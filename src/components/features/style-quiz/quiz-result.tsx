@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Sparkles, Flower2, UtensilsCrossed, Lightbulb, Building2, RotateCcw } from "lucide-react";
+import { Sparkles, Flower2, UtensilsCrossed, Lightbulb, Building2, RotateCcw, type LucideIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
@@ -163,7 +163,7 @@ function Section({
   children,
 }: {
   title: string;
-  icon?: React.ComponentType<{ className?: string }>;
+  icon?: LucideIcon;
   children: React.ReactNode;
 }) {
   return (

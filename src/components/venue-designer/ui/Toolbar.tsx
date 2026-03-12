@@ -8,6 +8,7 @@ import {
   Undo2,
   Redo2,
   Copy,
+  type LucideIcon,
 } from "lucide-react";
 import { useVenueDesignerStore } from "@/stores/venue-designer-store";
 import { Button } from "@/components/ui/button";
@@ -15,7 +16,7 @@ import { cn } from "@/lib/utils";
 import type { ActiveTool } from "@/types/venue-designer";
 import { useEffect } from "react";
 
-const TOOLS: { tool: ActiveTool; icon: React.ComponentType<{ className?: string }>; label: string }[] = [
+const TOOLS: { tool: ActiveTool; icon: LucideIcon; label: string }[] = [
   { tool: "select", icon: MousePointer2, label: "Select" },
   { tool: "translate", icon: Move, label: "Move" },
   { tool: "rotate", icon: RotateCw, label: "Rotate" },

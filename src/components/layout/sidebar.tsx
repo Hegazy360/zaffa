@@ -14,13 +14,14 @@ import {
   Users,
   Briefcase,
   ImageIcon,
+  type LucideIcon,
 } from "lucide-react";
 
 interface SidebarProps {
   role: UserRole;
 }
 
-const roleLinks: Record<UserRole, { href: string; label: string; icon: React.ComponentType<{ className?: string }> }[]> = {
+const roleLinks: Record<UserRole, { href: string; label: string; icon: LucideIcon }[]> = {
   client: [
     { href: "/dashboard/client", label: "My Events", icon: CalendarDays },
     { href: "/dashboard/client/messages", label: "Messages", icon: MessageSquare },

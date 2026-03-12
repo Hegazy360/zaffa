@@ -8,13 +8,14 @@ import {
   UtensilsCrossed,
   Lightbulb,
   Building2,
+  type LucideIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export interface QuizCategory {
   id: string;
   label: string;
-  icon: React.ComponentType<{ className?: string }>;
+  icon: LucideIcon;
   totalSteps: number;
 }
 
