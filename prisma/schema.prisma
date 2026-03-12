@@ -1,14 +1,267 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
-  provider = "prisma-client"
-  output   = "../src/generated/prisma"
+  provider        = "prisma-client"
+  output          = "../src/generated/prisma"
+  previewFeatures = ["postgresqlExtensions"]
 }
 
 datasource db {
-  provider = "postgresql"
+  provider   = "postgresql"
+  extensions = [pgvector(map: "vector")]
+}
+
+enum UserRole {
+  client
+  planner
+  vendor
+}
+
+enum EventType {
+  wedding
+  engagement
+  birthday
+  corporate
+  other
+}
+
+enum EventStatus {
+  draft
+  planning
+  confirmed
+  in_progress
+  completed
+  cancelled
+}
+
+enum VendorCategory {
+  catering
+  photography
+  videography
+  flowers
+  music
+  decoration
+  venue
+  makeup
+  fashion
+  transportation
+  other
+}
+
+enum BookingStatus {
+  pending
+  accepted
+  declined
+  completed
+  cancelled
+}
+
+model Profile {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  role       UserRole @default(client)
+  full_name  String
+  avatar_url String?
+  phone      String?
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  planner_profile    PlannerProfile?
+  vendor_profile     VendorProfile?
+  client_events      Event[]            @relation("ClientEvents")
+  sent_messages      Message[]
+  reviews            Review[]           @relation("AuthorReviews")
+  style_quiz_sessions StyleQuizSession[]
+  venue_designs       VenueDesign[]
+
+  @@map("profiles")
+}
+
+model PlannerProfile {
+  id            String                      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id       String                      @unique @db.Uuid
+  business_name String
+  bio           String?
+  location      String?
+  specialties   Json                        @default("[]")
+  avg_rating    Decimal                     @default(0) @db.Decimal(3, 2)
+  review_count  Int                         @default(0)
+  verified      Boolean                     @default(false)
+  embedding     Unsupported("vector(1536)")?
+  created_at    DateTime                    @default(now())
+  updated_at    DateTime                    @updatedAt
+
+  profile         Profile         @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  events          Event[]         @relation("PlannerEvents")
+  portfolio_items PortfolioItem[]
+  reviews         Review[]
+
+  @@map("planner_profiles")
+}
+
+model VendorProfile {
+  id            String                      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id       String                      @unique @db.Uuid
+  business_name String
+  category      VendorCategory
+  location      String?
+  avg_rating    Decimal                     @default(0) @db.Decimal(3, 2)
+  verified      Boolean                     @default(false)
+  embedding     Unsupported("vector(1536)")?
+  created_at    DateTime                    @default(now())
+  updated_at    DateTime                    @updatedAt
+
+  profile  Profile         @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  services VendorService[]
+  events   EventVendor[]
+
+  @@map("vendor_profiles")
+}
+
+model VendorService {
+  id          String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  vendor_id   String  @db.Uuid
+  name        String
+  description String?
+  price_from  Decimal @db.Decimal(10, 2)
+  price_unit  String  @default("per_event")
+
+  vendor VendorProfile @relation(fields: [vendor_id], references: [id], onDelete: Cascade)
+
+  @@map("vendor_services")
+}
+
+model Event {
+  id                 String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  client_id          String      @db.Uuid
+  planner_id         String?     @db.Uuid
+  title              String
+  event_type         EventType
+  event_date         DateTime?   @db.Date
+  venue              String?
+  budget             Decimal?    @db.Decimal(12, 2)
+  status             EventStatus @default(draft)
+  style_preferences  Json?
+  ai_recommendations Json?
+  created_at         DateTime    @default(now())
+  updated_at         DateTime    @updatedAt
+
+  client   Profile         @relation("ClientEvents", fields: [client_id], references: [id], onDelete: Cascade)
+  planner  PlannerProfile? @relation("PlannerEvents", fields: [planner_id], references: [id])
+  vendors  EventVendor[]
+  messages Message[]
+
+  @@map("events")
+}
+
+model EventVendor {
+  id           String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  event_id     String        @db.Uuid
+  vendor_id    String        @db.Uuid
+  status       BookingStatus @default(pending)
+  agreed_price Decimal?      @db.Decimal(10, 2)
+  created_at   DateTime      @default(now())
+
+  event  Event         @relation(fields: [event_id], references: [id], onDelete: Cascade)
+  vendor VendorProfile @relation(fields: [vendor_id], references: [id])
+
+  @@unique([event_id, vendor_id])
+  @@map("event_vendors")
+}
+
+model PortfolioItem {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  planner_id String   @db.Uuid
+  image_url  String
+  caption    String?
+  event_type EventType?
+  style_tags Json     @default("[]")
+  created_at DateTime @default(now())
+
+  planner PlannerProfile @relation(fields: [planner_id], references: [id], onDelete: Cascade)
+
+  @@map("portfolio_items")
+}
+
+model Review {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  author_id  String   @db.Uuid
+  planner_id String   @db.Uuid
+  rating     Int
+  comment    String?
+  created_at DateTime @default(now())
+
+  author  Profile        @relation("AuthorReviews", fields: [author_id], references: [id], onDelete: Cascade)
+  planner PlannerProfile @relation(fields: [planner_id], references: [id], onDelete: Cascade)
+
+  @@map("reviews")
+}
+
+model Message {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  event_id   String   @db.Uuid
+  sender_id  String   @db.Uuid
+  content    String
+  created_at DateTime @default(now())
+
+  event  Event   @relation(fields: [event_id], references: [id], onDelete: Cascade)
+  sender Profile @relation(fields: [sender_id], references: [id], onDelete: Cascade)
+
+  @@map("messages")
+}
+
+enum InspirationCategory {
+  overall_vibe
+  flowers
+  tables
+  lighting
+  venue_decor
+}
+
+model InspirationImage {
+  id            String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  category      InspirationCategory
+  subcategory   String
+  image_url     String
+  thumbnail_url String
+  alt_text      String
+  tags          Json                @default("[]")
+  source        String              @default("unsplash")
+  source_id     String?
+  photographer  String?
+  created_at    DateTime            @default(now())
+
+  @@index([category, subcategory])
+  @@map("inspiration_images")
+}
+
+model StyleQuizSession {
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id      String   @db.Uuid
+  answers      Json     @default("{}")
+  ai_advice    Json     @default("{}")
+  final_result Json?
+  created_at   DateTime @default(now())
+  updated_at   DateTime @updatedAt
+
+  user Profile @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@map("style_quiz_sessions")
+}
+
+model VenueDesign {
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id      String   @db.Uuid
+  name         String   @default("Untitled Design")
+  venue_width      Float    @default(20)
+  venue_length     Float    @default(30)
+  venue_height     Float    @default(5)
+  venue_floor_type String   @default("ceramic")
+  venue_floor_color String  @default("#E8DDD0")
+  venue_wall_color  String  @default("#FAF0E6")
+  items            Json     @default("[]")
+  thumbnail    String?
+  created_at   DateTime @default(now())
+  updated_at   DateTime @updatedAt
+
+  user Profile @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@map("venue_designs")
 }
