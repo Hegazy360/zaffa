@@ -5,8 +5,7 @@ export type ItemType =
   | "flower_vase"
   | "flower_centerpiece"
   | "tall_arrangement"
-  | "floral_arch"
-  | "square_arch"
+  | "arch"
   | "candelabra"
   | "candle_cluster"
   | "lantern"
@@ -65,8 +64,7 @@ export const ITEM_CATALOG: ItemCatalogEntry[] = [
   { type: "flower_vase", label: "Flower Vase", icon: "🌸", category: "florals", defaultColor: "#e8a0bf" },
   { type: "flower_centerpiece", label: "Centerpiece", icon: "💐", category: "florals", defaultColor: "#d4899e" },
   { type: "tall_arrangement", label: "Tall Arrangement", icon: "🌷", category: "florals", defaultColor: "#c97b92" },
-  { type: "floral_arch", label: "Round Arch", icon: "🌺", category: "florals", defaultColor: "#e8a0bf" },
-  { type: "square_arch", label: "Square Arch", icon: "🔲", category: "florals", defaultColor: "#e8a0bf" },
+  { type: "arch", label: "Floral Arch", icon: "🌺", category: "florals", defaultColor: "#e8a0bf" },
   { type: "garland", label: "Garland", icon: "🌿", category: "florals", defaultColor: "#5a7247" },
 
   // Lighting

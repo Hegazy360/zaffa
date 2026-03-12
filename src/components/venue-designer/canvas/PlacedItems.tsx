@@ -54,7 +54,7 @@ function PlacedItemMesh({ item }: { item: PlacedItem }) {
         scale={item.scale}
         onClick={handleClick}
       >
-        <Component color={item.color} />
+        <Component color={item.color} variant={item.variant} />
         {isSelected && (
           <mesh visible={false}>
             <boxGeometry args={[2, 2, 2]} />

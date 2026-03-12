@@ -42,6 +42,27 @@ export function PropertiesPanel() {
         </div>
       </div>
 
+      {item.type === "arch" && (
+        <div className="space-y-1">
+          <label className="text-xs text-muted-foreground">Shape</label>
+          <div className="flex gap-1">
+            {(["round", "square"] as const).map((v) => (
+              <button
+                key={v}
+                onClick={() => updateItem(item.id, { variant: v })}
+                className={`flex-1 rounded-md border px-2 py-1 text-xs font-medium transition-colors ${
+                  (item.variant || "round") === v
+                    ? "border-rose-400 bg-rose-50 text-rose-700 dark:bg-rose-900/30 dark:text-rose-300"
+                    : "border-border hover:bg-muted"
+                }`}
+              >
+                {v === "round" ? "⌒ Round" : "⊓ Square"}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
       {item.color !== undefined && (
         <div className="space-y-1">
           <label className="text-xs text-muted-foreground">Color</label>

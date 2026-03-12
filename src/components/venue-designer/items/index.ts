@@ -5,8 +5,7 @@ import { Chair } from "./Chair";
 import { FlowerVase } from "./FlowerVase";
 import { FlowerCenterpiece } from "./FlowerCenterpiece";
 import { TallArrangement } from "./TallArrangement";
-import { FloralArch } from "./FloralArch";
-import { SquareArch } from "./SquareArch";
+import { Arch } from "./Arch";
 import { Candelabra } from "./Candelabra";
 import { CandleCluster } from "./CandleCluster";
 import { Lantern } from "./Lantern";
@@ -19,7 +18,7 @@ import { Stage } from "./Stage";
 
 export const ITEM_COMPONENTS: Record<
   ItemType,
-  React.ComponentType<{ color?: string }>
+  React.ComponentType<{ color?: string; variant?: string }>
 > = {
   round_table: RoundTable,
   rectangular_table: RectangularTable,
@@ -27,8 +26,7 @@ export const ITEM_COMPONENTS: Record<
   flower_vase: FlowerVase,
   flower_centerpiece: FlowerCenterpiece,
   tall_arrangement: TallArrangement,
-  floral_arch: FloralArch,
-  square_arch: SquareArch,
+  arch: Arch,
   candelabra: Candelabra,
   candle_cluster: CandleCluster,
   lantern: Lantern,
