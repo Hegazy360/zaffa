@@ -15,7 +15,7 @@ import { cn } from "@/lib/utils";
 import type { ActiveTool } from "@/types/venue-designer";
 import { useEffect } from "react";
 
-const TOOLS: { tool: ActiveTool; icon: React.ElementType; label: string }[] = [
+const TOOLS: { tool: ActiveTool; icon: React.ComponentType<{ className?: string }>; label: string }[] = [
   { tool: "select", icon: MousePointer2, label: "Select" },
   { tool: "translate", icon: Move, label: "Move" },
   { tool: "rotate", icon: RotateCw, label: "Rotate" },

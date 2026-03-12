@@ -14,7 +14,7 @@ import { cn } from "@/lib/utils";
 export interface QuizCategory {
   id: string;
   label: string;
-  icon: React.ElementType;
+  icon: React.ComponentType<{ className?: string }>;
   totalSteps: number;
 }
 

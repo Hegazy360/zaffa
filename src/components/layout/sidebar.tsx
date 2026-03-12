@@ -20,7 +20,7 @@ interface SidebarProps {
   role: UserRole;
 }
 
-const roleLinks: Record<UserRole, { href: string; label: string; icon: React.ElementType }[]> = {
+const roleLinks: Record<UserRole, { href: string; label: string; icon: React.ComponentType<{ className?: string }> }[]> = {
   client: [
     { href: "/dashboard/client", label: "My Events", icon: CalendarDays },
     { href: "/dashboard/client/messages", label: "Messages", icon: MessageSquare },

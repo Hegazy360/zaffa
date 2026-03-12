@@ -163,7 +163,7 @@ function Section({
   children,
 }: {
   title: string;
-  icon?: React.ElementType;
+  icon?: React.ComponentType<{ className?: string }>;
   children: React.ReactNode;
 }) {
   return (
