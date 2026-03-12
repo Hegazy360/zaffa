@@ -1,8 +1,9 @@
 "use client";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Save, FolderOpen, Download } from "lucide-react";
+import { Save, FolderOpen, Download, Upload, Sparkles, Trash2 } from "lucide-react";
 import { useVenueDesignerStore } from "@/stores/venue-designer-store";
+import { AIGenerateDialog } from "./AIGenerateDialog";
 
 interface DesignerHeaderProps {
   onSave?: (name: string) => void;
@@ -12,8 +13,11 @@ interface DesignerHeaderProps {
 
 export function DesignerHeader({ onSave, onLoad, saving }: DesignerHeaderProps) {
   const [name, setName] = useState("Untitled Design");
+  const [aiDialogOpen, setAiDialogOpen] = useState(false);
   const items = useVenueDesignerStore((s) => s.items);
   const serialize = useVenueDesignerStore((s) => s.serialize);
+  const deserialize = useVenueDesignerStore((s) => s.deserialize);
+  const clearScene = useVenueDesignerStore((s) => s.clearScene);
 
   const handleExport = () => {
     const data = serialize();
@@ -24,6 +28,28 @@ export function DesignerHeader({ onSave, onLoad, saving }: DesignerHeaderProps) 
     a.download = `${name.replace(/\s+/g, "_")}.json`;
     a.click();
     URL.revokeObjectURL(url);
+  };
+
+  const handleImport = () => {
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = ".json";
+    input.onchange = async (e) => {
+      const file = (e.target as HTMLInputElement).files?.[0];
+      if (!file) return;
+      try {
+        const text = await file.text();
+        const data = JSON.parse(text);
+        if (data.venue && Array.isArray(data.items)) {
+          deserialize(data);
+          const imported = file.name.replace(/\.json$/, "").replace(/_/g, " ");
+          setName(imported);
+        }
+      } catch {
+        /* invalid file */
+      }
+    };
+    input.click();
   };
 
   return (
@@ -41,6 +67,18 @@ export function DesignerHeader({ onSave, onLoad, saving }: DesignerHeaderProps) 
       </span>
 
       <div className="ml-auto flex items-center gap-1">
+        <Button
+          variant="ghost"
+          size="sm"
+          className="gap-1.5 h-7 text-xs text-rose-600 hover:text-rose-700 hover:bg-rose-50"
+          onClick={() => setAiDialogOpen(true)}
+        >
+          <Sparkles className="h-3 w-3" />
+          AI Generate
+        </Button>
+
+        <AIGenerateDialog open={aiDialogOpen} onOpenChange={setAiDialogOpen} />
+
         {onSave && (
           <Button
             variant="ghost"
@@ -68,10 +106,34 @@ export function DesignerHeader({ onSave, onLoad, saving }: DesignerHeaderProps) 
           variant="ghost"
           size="sm"
           className="gap-1.5 h-7 text-xs"
+          onClick={handleImport}
+        >
+          <Upload className="h-3 w-3" />
+          Import
+        </Button>
+        <Button
+          variant="ghost"
+          size="sm"
+          className="gap-1.5 h-7 text-xs"
           onClick={handleExport}
         >
           <Download className="h-3 w-3" />
           Export
+        </Button>
+        <Button
+          variant="ghost"
+          size="sm"
+          className="gap-1.5 h-7 text-xs text-destructive hover:text-destructive hover:bg-destructive/10"
+          onClick={() => {
+            if (items.length === 0) return;
+            if (window.confirm(`Clear all ${items.length} items from the scene? This can be undone with Ctrl+Z.`)) {
+              clearScene();
+            }
+          }}
+          disabled={items.length === 0}
+        >
+          <Trash2 className="h-3 w-3" />
+          Clear
         </Button>
       </div>
     </div>

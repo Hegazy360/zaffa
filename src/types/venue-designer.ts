@@ -9,7 +9,6 @@ export type ItemType =
   | "candelabra"
   | "candle_cluster"
   | "lantern"
-  | "fairy_lights"
   | "backdrop_panel"
   | "mirror_panel"
   | "garland"
@@ -71,7 +70,6 @@ export const ITEM_CATALOG: ItemCatalogEntry[] = [
   { type: "candelabra", label: "Candelabra", icon: "🕯️", category: "lighting" },
   { type: "candle_cluster", label: "Candles", icon: "🕯️", category: "lighting" },
   { type: "lantern", label: "Lantern", icon: "🏮", category: "lighting", defaultColor: "#C4A35A" },
-  { type: "fairy_lights", label: "Fairy Lights", icon: "✨", category: "lighting", defaultColor: "#fff5e0" },
 
   // Decor
   { type: "backdrop_panel", label: "Backdrop", icon: "🎭", category: "decor", defaultColor: "#f5f0eb" },

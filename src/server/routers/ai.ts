@@ -9,6 +9,7 @@ import {
 import { generateColorPalette } from "../ai/color-matching";
 import { generateMoodBoard, visualizeVenue, refineVisualization } from "../ai/mood-board";
 import { getRecommendations } from "../ai/recommendations";
+import { generateScene } from "../ai/scene-generator";
 
 const visualSelectionsSchema = z.object({
   vibe: z.array(z.string()).optional(),
@@ -110,5 +111,17 @@ export const aiRouter = router({
     )
     .query(async ({ ctx, input }) => {
       return getRecommendations(ctx.supabase, input.eventId, input.type);
+    }),
+
+  generateScene: protectedProcedure
+    .input(
+      z.object({
+        prompt: z.string().min(5).max(2000),
+        venueWidth: z.number().min(5).max(100),
+        venueLength: z.number().min(5).max(100),
+      })
+    )
+    .mutation(async ({ input }) => {
+      return generateScene(input);
     }),
 });

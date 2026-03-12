@@ -2,7 +2,7 @@ import OpenAI from "openai";
 
 const openai = new OpenAI();
 
-const MODEL = process.env.AI_MODEL ?? "openai.gpt-oss-120b";
+const MODEL = process.env.AI_MODEL ?? "openai/gpt-4o-mini";
 
 interface MoodBoardInput {
   style: string;
@@ -11,33 +11,34 @@ interface MoodBoardInput {
 }
 
 export async function generateMoodBoard(input: MoodBoardInput) {
-  const prompt = `Draw a stunning mood board for a ${input.eventType} in Egypt with a ${input.style} style.${
+  const prompt = `Create a detailed text description of a mood board for a ${input.eventType} with a ${input.style} style.${
     input.colors?.length ? ` Use these colors: ${input.colors.join(", ")}.` : ""
-  } Include decorations, flowers, table settings, and lighting arranged in an elegant collage layout.`;
+  } Include decorations, flowers, table settings, and lighting.
 
-  const response = await openai.responses.create({
+Respond with ONLY valid JSON:
+{
+  "description": "detailed 3-4 sentence mood board description",
+  "elements": ["array of 6-8 key visual elements"],
+  "color_story": "1-2 sentences about the color palette"
+}`;
+
+  const response = await openai.chat.completions.create({
     model: MODEL,
-    input: prompt,
-    tools: [{ type: "image_generation" as const }],
+    messages: [{ role: "user", content: prompt }],
   });
 
-  const imageCall = response.output.find(
-    (o) => o.type === "image_generation_call"
-  );
-
-  if (!imageCall || imageCall.type !== "image_generation_call") {
-    throw new Error("No image generated");
-  }
+  const text = response.choices[0]?.message?.content ?? "";
+  const jsonMatch = text.match(/\{[\s\S]*\}/);
+  if (!jsonMatch) throw new Error("No JSON found in response");
 
   return {
-    imageBase64: imageCall.result,
+    ...JSON.parse(jsonMatch[0]),
     prompt,
-    responseId: response.id,
   };
 }
 
 interface VenueVisualizationInput {
-  venueImages: string[]; // base64-encoded images
+  venueImages: string[];
   style: string;
   colors?: string[];
   eventType: string;
@@ -46,7 +47,7 @@ interface VenueVisualizationInput {
 
 export async function visualizeVenue(input: VenueVisualizationInput) {
   const styleDescription = [
-    `${input.eventType} in Egypt`,
+    input.eventType,
     `${input.style} style`,
     input.colors?.length ? `color palette: ${input.colors.join(", ")}` : null,
     input.additionalNotes ?? null,
@@ -54,67 +55,57 @@ export async function visualizeVenue(input: VenueVisualizationInput) {
     .filter(Boolean)
     .join(", ");
 
-  const prompt = `Edit these venue photos to show how they would look decorated for a ${styleDescription}. Add elegant decorations, floral arrangements, lighting, table settings, and draping. Keep the architecture and layout exactly as-is — only add decorations.`;
+  const prompt = `Describe how this venue should be decorated for a ${styleDescription}. Include specific recommendations for floral arrangements, lighting, table settings, and draping.
 
-  const imageInputs = input.venueImages.map((img) => ({
-    type: "input_image" as const,
-    image_url: img.startsWith("data:")
-      ? img
-      : `data:image/jpeg;base64,${img}`,
-    detail: "high" as const,
-  }));
+Respond with ONLY valid JSON:
+{
+  "description": "detailed 3-4 sentence visualization description",
+  "decorations": ["array of specific decoration recommendations"],
+  "layout_tips": ["array of 3-4 layout suggestions"]
+}`;
 
-  const response = await openai.responses.create({
+  const response = await openai.chat.completions.create({
     model: MODEL,
-    input: [
-      {
-        role: "user" as const,
-        content: [
-          { type: "input_text" as const, text: prompt },
-          ...imageInputs,
-        ],
-      },
-    ],
-    tools: [{ type: "image_generation" as const }],
+    messages: [{ role: "user", content: prompt }],
   });
 
-  const imageCall = response.output.find(
-    (o) => o.type === "image_generation_call"
-  );
-
-  if (!imageCall || imageCall.type !== "image_generation_call") {
-    throw new Error("No image generated");
-  }
+  const text = response.choices[0]?.message?.content ?? "";
+  const jsonMatch = text.match(/\{[\s\S]*\}/);
+  if (!jsonMatch) throw new Error("No JSON found in response");
 
   return {
-    imageBase64: imageCall.result,
+    ...JSON.parse(jsonMatch[0]),
     prompt,
-    responseId: response.id,
   };
 }
 
 export async function refineVisualization(
-  previousResponseId: string,
+  _previousResponseId: string,
   instruction: string
 ) {
-  const response = await openai.responses.create({
+  const response = await openai.chat.completions.create({
     model: MODEL,
-    previous_response_id: previousResponseId,
-    input: instruction,
-    tools: [{ type: "image_generation" as const }],
+    messages: [
+      {
+        role: "user",
+        content: `Refine this venue decoration plan: ${instruction}
+
+Respond with ONLY valid JSON:
+{
+  "description": "updated decoration description",
+  "changes": ["array of specific changes made"],
+  "tips": ["array of 2-3 tips"]
+}`,
+      },
+    ],
   });
 
-  const imageCall = response.output.find(
-    (o) => o.type === "image_generation_call"
-  );
-
-  if (!imageCall || imageCall.type !== "image_generation_call") {
-    throw new Error("No image generated");
-  }
+  const text = response.choices[0]?.message?.content ?? "";
+  const jsonMatch = text.match(/\{[\s\S]*\}/);
+  if (!jsonMatch) throw new Error("No JSON found in response");
 
   return {
-    imageBase64: imageCall.result,
+    ...JSON.parse(jsonMatch[0]),
     prompt: instruction,
-    responseId: response.id,
   };
 }

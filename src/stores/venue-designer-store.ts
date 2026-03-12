@@ -37,6 +37,8 @@ interface VenueDesignerState {
   undo: () => void;
   redo: () => void;
 
+  clearScene: () => void;
+
   serialize: () => DesignJSON;
   deserialize: (data: DesignJSON) => void;
 }
@@ -183,15 +185,30 @@ export const useVenueDesignerStore = create<VenueDesignerState>((set, get) => ({
     });
   },
 
+  clearScene: () => {
+    const prev = snapshot(get());
+    set({
+      items: [],
+      selectedId: null,
+      placingType: null,
+      past: [...get().past, prev],
+      future: [],
+    });
+  },
+
   serialize: () => ({
     venue: get().venue,
     items: get().items,
   }),
 
   deserialize: (data) => {
+    const items = data.items.map((item) => ({
+      ...item,
+      id: genId(),
+    }));
     set({
       venue: data.venue,
-      items: data.items,
+      items,
       selectedId: null,
       placingType: null,
       past: [],

@@ -2,7 +2,7 @@ import OpenAI from "openai";
 
 const openai = new OpenAI();
 
-const MODEL = process.env.AI_MODEL ?? "openai.gpt-oss-120b";
+const MODEL = process.env.AI_MODEL ?? "openai/gpt-4o-mini";
 
 export interface VisualQuizSelections {
   vibe?: string[];
@@ -20,9 +20,9 @@ export interface VisualQuizSelections {
 export async function generateStyleRecommendations(
   selections: VisualQuizSelections
 ) {
-  const response = await openai.responses.create({
+  const response = await openai.chat.completions.create({
     model: MODEL,
-    input: [
+    messages: [
       {
         role: "user",
         content: `You are a world-class wedding and event style consultant with deep knowledge of global trends, from European minimalism to South Asian grandeur, Middle Eastern opulence, American rustic charm, and everything in between. Based on the user's visual quiz selections below, create a comprehensive, personalized style guide.
@@ -67,7 +67,8 @@ User's visual selections:
     ],
   });
 
-  const jsonMatch = response.output_text.match(/\{[\s\S]*\}/);
+  const text = response.choices[0]?.message?.content ?? "";
+  const jsonMatch = text.match(/\{[\s\S]*\}/);
   if (!jsonMatch) throw new Error("No JSON found in response");
 
   return JSON.parse(jsonMatch[0]);
@@ -77,9 +78,9 @@ export async function generateStepAdvice(
   currentCategory: string,
   selectionsSoFar: VisualQuizSelections
 ): Promise<string> {
-  const response = await openai.responses.create({
+  const response = await openai.chat.completions.create({
     model: MODEL,
-    input: [
+    messages: [
       {
         role: "user",
         content: `You are a friendly, expert wedding style consultant. The user is taking a visual style quiz and just made their selections. Give them a brief, encouraging tip (2-3 sentences max) about what to consider for the next step. Be specific to their choices and mention current trends.
@@ -94,15 +95,15 @@ Give a brief tip about what pairs well with their choices for the next step. Kee
     ],
   });
 
-  return response.output_text.trim();
+  return (response.choices[0]?.message?.content ?? "").trim();
 }
 
 export async function generatePaletteSuggestions(
   vibe: string[]
 ): Promise<{ id: string; name: string; colors: string[] }[]> {
-  const response = await openai.responses.create({
+  const response = await openai.chat.completions.create({
     model: MODEL,
-    input: [
+    messages: [
       {
         role: "user",
         content: `You are a color theory expert specializing in event design. Based on these style vibes: ${vibe.join(", ")}, suggest 4 harmonious color palettes.
@@ -118,7 +119,8 @@ Make palettes diverse: one warm, one cool, one neutral/earthy, one bold/unexpect
     ],
   });
 
-  const jsonMatch = response.output_text.match(/\[[\s\S]*\]/);
+  const text = response.choices[0]?.message?.content ?? "";
+  const jsonMatch = text.match(/\[[\s\S]*\]/);
   if (!jsonMatch) throw new Error("No JSON array found in response");
 
   return JSON.parse(jsonMatch[0]);

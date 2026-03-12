@@ -3,7 +3,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 
 const openai = new OpenAI();
 
-const EMBEDDING_MODEL = process.env.AI_EMBEDDING_MODEL ?? "openai.text-embedding-3-small";
+const EMBEDDING_MODEL = process.env.AI_EMBEDDING_MODEL ?? "openai/text-embedding-3-small";
 
 async function getEmbedding(text: string): Promise<number[]> {
   const response = await openai.embeddings.create({

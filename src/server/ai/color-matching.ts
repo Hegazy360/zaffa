@@ -2,7 +2,7 @@ import OpenAI from "openai";
 
 const openai = new OpenAI();
 
-const MODEL = process.env.AI_MODEL ?? "openai.gpt-oss-120b";
+const MODEL = process.env.AI_MODEL ?? "openai/gpt-4o-mini";
 
 interface ColorPreferences {
   mood: string;
@@ -11,12 +11,12 @@ interface ColorPreferences {
 }
 
 export async function generateColorPalette(preferences: ColorPreferences) {
-  const response = await openai.responses.create({
+  const response = await openai.chat.completions.create({
     model: MODEL,
-    input: [
+    messages: [
       {
         role: "user",
-        content: `You are a color theory expert for Egyptian event design. Generate a harmonious color palette.
+        content: `You are a color theory expert for event design. Generate a harmonious color palette.
 Respond with ONLY valid JSON in this exact structure:
 {
   "primary": "hex color",
@@ -39,7 +39,8 @@ Preferences: mood=${preferences.mood}, season=${preferences.season ?? "any"}, fa
     ],
   });
 
-  const jsonMatch = response.output_text.match(/\{[\s\S]*\}/);
+  const text = response.choices[0]?.message?.content ?? "";
+  const jsonMatch = text.match(/\{[\s\S]*\}/);
   if (!jsonMatch) throw new Error("No JSON found in response");
 
   return JSON.parse(jsonMatch[0]);

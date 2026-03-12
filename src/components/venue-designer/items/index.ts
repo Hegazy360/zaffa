@@ -9,7 +9,7 @@ import { Arch } from "./Arch";
 import { Candelabra } from "./Candelabra";
 import { CandleCluster } from "./CandleCluster";
 import { Lantern } from "./Lantern";
-import { FairyLights } from "./FairyLights";
+// FairyLights removed - too many pointLights killed performance
 import { BackdropPanel } from "./BackdropPanel";
 import { MirrorPanel } from "./MirrorPanel";
 import { Garland } from "./Garland";
@@ -30,7 +30,6 @@ export const ITEM_COMPONENTS: Record<
   candelabra: Candelabra,
   candle_cluster: CandleCluster,
   lantern: Lantern,
-  fairy_lights: FairyLights,
   backdrop_panel: BackdropPanel,
   mirror_panel: MirrorPanel,
   garland: Garland,

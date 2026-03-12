@@ -1,11 +1,76 @@
 "use client";
-import { useRef, useCallback } from "react";
+import { useRef, useCallback, useEffect, useMemo } from "react";
 import { ThreeEvent } from "@react-three/fiber";
 import { TransformControls } from "@react-three/drei";
 import * as THREE from "three";
 import { useVenueDesignerStore } from "@/stores/venue-designer-store";
 import { ITEM_COMPONENTS } from "../items";
+import {
+  CHAIR_FRAME_GEO,
+  CHAIR_CUSHION_GEO,
+  CHAIR_FRAME_MAT,
+  CHAIR_CUSHION_MAT,
+} from "../items/Chair";
 import type { PlacedItem } from "@/types/venue-designer";
+
+const dummy = new THREE.Object3D();
+
+function BatchedChairs({ chairs }: { chairs: PlacedItem[] }) {
+  const frameRef = useRef<THREE.InstancedMesh>(null);
+  const cushionRef = useRef<THREE.InstancedMesh>(null);
+  const select = useVenueDesignerStore((s) => s.select);
+  const placingType = useVenueDesignerStore((s) => s.placingType);
+  const idMap = useRef<Map<number, string>>(new Map());
+
+  useEffect(() => {
+    if (!frameRef.current || !cushionRef.current) return;
+    idMap.current.clear();
+
+    for (let i = 0; i < chairs.length; i++) {
+      const c = chairs[i];
+      dummy.position.set(...c.position);
+      dummy.rotation.set(...c.rotation);
+      dummy.scale.set(...c.scale);
+      dummy.updateMatrix();
+      frameRef.current.setMatrixAt(i, dummy.matrix);
+      cushionRef.current.setMatrixAt(i, dummy.matrix);
+      idMap.current.set(i, c.id);
+    }
+    frameRef.current.instanceMatrix.needsUpdate = true;
+    cushionRef.current.instanceMatrix.needsUpdate = true;
+    frameRef.current.computeBoundingSphere();
+    cushionRef.current.computeBoundingSphere();
+  }, [chairs]);
+
+  const handleClick = useCallback(
+    (e: ThreeEvent<MouseEvent>) => {
+      if (placingType) return;
+      e.stopPropagation();
+      if (e.instanceId !== undefined) {
+        const id = idMap.current.get(e.instanceId);
+        if (id) select(id);
+      }
+    },
+    [select, placingType]
+  );
+
+  if (chairs.length === 0) return null;
+
+  return (
+    <>
+      <instancedMesh
+        ref={frameRef}
+        args={[CHAIR_FRAME_GEO, CHAIR_FRAME_MAT, chairs.length]}
+        onClick={handleClick}
+      />
+      <instancedMesh
+        ref={cushionRef}
+        args={[CHAIR_CUSHION_GEO, CHAIR_CUSHION_MAT, chairs.length]}
+        onClick={handleClick}
+      />
+    </>
+  );
+}
 
 function PlacedItemMesh({ item }: { item: PlacedItem }) {
   const meshRef = useRef<THREE.Group>(null);
@@ -75,10 +140,34 @@ function PlacedItemMesh({ item }: { item: PlacedItem }) {
 
 export function PlacedItems() {
   const items = useVenueDesignerStore((s) => s.items);
+  const selectedId = useVenueDesignerStore((s) => s.selectedId);
+
+  const { chairs, otherItems, selectedChair } = useMemo(() => {
+    const c: PlacedItem[] = [];
+    const o: PlacedItem[] = [];
+    let sc: PlacedItem | null = null;
+
+    for (const item of items) {
+      if (item.type === "chair") {
+        if (item.id === selectedId) {
+          sc = item;
+        } else {
+          c.push(item);
+        }
+      } else {
+        o.push(item);
+      }
+    }
+    return { chairs: c, otherItems: o, selectedChair: sc };
+  }, [items, selectedId]);
 
   return (
     <>
-      {items.map((item) => (
+      <BatchedChairs chairs={chairs} />
+      {selectedChair && (
+        <PlacedItemMesh key={selectedChair.id} item={selectedChair} />
+      )}
+      {otherItems.map((item) => (
         <PlacedItemMesh key={item.id} item={item} />
       ))}
     </>
