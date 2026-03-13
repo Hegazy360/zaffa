@@ -15,13 +15,14 @@ export function Lantern({ color = "#C4A35A" }: { color?: string }) {
 
   const glassMat = useMemo(
     () =>
-      new THREE.MeshPhysicalMaterial({
-        color: "#fdf6e8",
+      new THREE.MeshStandardMaterial({
+        color: "#FFDDAA",
         transparent: true,
-        opacity: 0.3,
-        roughness: 0.1,
+        opacity: 0.35,
+        roughness: 0.15,
         metalness: 0,
-        transmission: 0.8,
+        emissive: new THREE.Color("#FFAA44"),
+        emissiveIntensity: 0.5,
       }),
     []
   );
@@ -36,57 +37,61 @@ export function Lantern({ color = "#C4A35A" }: { color?: string }) {
   return (
     <group>
       {/* Base plate */}
-      <mesh position={[0, 0.01, 0]} material={metalMat} castShadow receiveShadow>
-        <boxGeometry args={[0.16, 0.02, 0.16]} />
+      <mesh position={[0, 0.008, 0]} material={metalMat} castShadow receiveShadow>
+        <boxGeometry args={[0.16, 0.016, 0.16]} />
       </mesh>
+      {/* Foot detail */}
+      {[[-0.065, 0.065], [0.065, 0.065], [-0.065, -0.065], [0.065, -0.065]].map(([x, z], i) => (
+        <mesh key={`f${i}`} position={[x, 0.003, z]} material={metalMat}>
+          <sphereGeometry args={[0.012, 6, 4]} />
+        </mesh>
+      ))}
 
       {/* Vertical frame edges */}
       {frameEdges.map((pos, i) => (
         <mesh key={i} position={[pos[0], 0.14, pos[2]]} material={metalMat} castShadow>
-          <boxGeometry args={[0.012, 0.24, 0.012]} />
+          <boxGeometry args={[0.01, 0.24, 0.01]} />
         </mesh>
       ))}
 
-      {/* Glass panels */}
-      <mesh position={[0, 0.14, 0]} material={glassMat}>
-        <boxGeometry args={[0.11, 0.22, 0.11]} />
-      </mesh>
+      {/* Glass panels - 4 sides with emissive warm glow */}
+      {[[0, 0.06], [0, -0.06], [0.06, 0], [-0.06, 0]].map(([x, z], i) => (
+        <mesh
+          key={`g${i}`}
+          position={[x, 0.14, z]}
+          rotation={[0, i < 2 ? 0 : Math.PI / 2, 0]}
+          material={glassMat}
+        >
+          <boxGeometry args={[0.10, 0.22, 0.002]} />
+        </mesh>
+      ))}
 
       {/* Top cap */}
       <mesh position={[0, 0.27, 0]} material={metalMat} castShadow>
-        <coneGeometry args={[0.09, 0.08, 4]} />
+        <coneGeometry args={[0.085, 0.07, 4]} />
       </mesh>
 
       {/* Top ring */}
-      <mesh position={[0, 0.32, 0]} material={metalMat} castShadow>
-        <torusGeometry args={[0.025, 0.006, 6, 12]} />
+      <mesh position={[0, 0.31, 0]} material={metalMat} castShadow>
+        <torusGeometry args={[0.02, 0.005, 6, 12]} />
       </mesh>
 
       {/* Candle inside */}
-      <mesh position={[0, 0.08, 0]} castShadow>
-        <cylinderGeometry args={[0.018, 0.02, 0.1, 8]} />
+      <mesh position={[0, 0.06, 0]} castShadow>
+        <cylinderGeometry args={[0.016, 0.018, 0.08, 8]} />
         <meshStandardMaterial color="#FFF8E7" roughness={0.9} />
       </mesh>
 
       {/* Flame */}
-      <mesh position={[0, 0.14, 0]}>
-        <sphereGeometry args={[0.012, 8, 6]} />
+      <mesh position={[0, 0.11, 0]}>
+        <sphereGeometry args={[0.01, 8, 6]} />
         <meshStandardMaterial
           color="#FFD700"
           emissive="#FF8C00"
-          emissiveIntensity={2}
+          emissiveIntensity={3}
           roughness={0.2}
         />
       </mesh>
-
-      {/* Warm glow */}
-      <pointLight
-        position={[0, 0.14, 0]}
-        color="#FFAA44"
-        intensity={0.5}
-        distance={1.5}
-        decay={2}
-      />
     </group>
   );
 }

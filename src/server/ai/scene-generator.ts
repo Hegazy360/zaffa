@@ -2,24 +2,19 @@ import OpenAI from "openai";
 
 const openai = new OpenAI();
 const MODEL = process.env.AI_SCENE_MODEL ?? process.env.AI_MODEL ?? "openai/gpt-4o-mini";
+const IMAGE_MODEL = process.env.AI_IMAGE_MODEL ?? "google/gemini-3-pro-image-preview";
 
 const SYSTEM_PROMPT = `You are a professional wedding planner and event venue layout designer. You generate 3D venue layouts as JSON. Floor=XZ plane, Y=up, origin=(0,0,0)=center. Back wall=+Z, entrance=-Z.
 
 ITEMS (type | y | notes):
-round_table | 0 | seats 8, r=0.7m
-rectangular_table | 0 | seats 6, 1.3x0.75m
-arch | 0 | variant:"round"|"square", 2.2m wide
-stage | 0 | 4x2m, against back wall
-flower_vase | 0.81 | on tables
-flower_centerpiece | 0.81 | on tables
-tall_arrangement | 0.81 | on tables
-candelabra | 0.81 | on tables
-candle_cluster | 0.81 | on tables or floor(y=0)
-lantern | 0 | floor
-backdrop_panel | 0 | against wall
-mirror_panel | 0 | floor
-garland | 0 | floor/edges
-aisle_runner | 0 | floor, scale x for length
+TABLES: round_table(0,seats 8,r=0.7m,surface=0.81) | rectangular_table(0,seats 6,1.3x0.75m,surface=0.80) | cocktail_table(0,standing,tall,surface=1.11) | sweetheart_table(0,couple table,surface=0.43) | gift_table(0,gift/card display,surface=0.43) | bar_counter(0,bar area,surface=1.1) | buffet_table(0,food service,surface=0.43)
+SEATING: bench(0,long pew) | lounge_sofa(0,lounge area)
+FLORALS: flower_vase(on tables,y=surface) | flower_centerpiece(on tables,y=surface) | tall_arrangement(on tables,y=surface) | arch(0,variant:"round"|"square") | garland(0,floor/edges) | wreath(1.2,wall-mounted) | topiary(0,floor) | petal_scatter(0,floor) | potted_plant(0,floor) | flower_wall(0,backdrop)
+LIGHTING: candelabra(on tables,y=surface) | candle_cluster(on tables y=surface or floor y=0) | lantern(0,floor) | floor_uplight(0,floor edges)
+DECOR: backdrop_panel(0,against wall) | mirror_panel(0,floor) | aisle_runner(0,floor,scale x) | balloon_arch(0,entrances) | balloon_column(0,flanking) | welcome_sign(0,entrance) | cake_stand(0,cake table) | photo_frame(0,display) | neon_sign(0,wall) | fabric_drape(0,wall/ceiling) | dessert_table(0,dessert area) | dj_booth(0,entertainment area)
+STRUCTURE: stage(0,4x2m,back wall) | column_pillar(0,flanking) | pergola(0,overhead frame) | dance_floor(0,center area)
+
+TABLE SURFACE HEIGHTS for items placed ON tables: round_table=0.81, rectangular_table=0.80, sweetheart_table=0.43, gift_table=0.43, cocktail_table=1.11, dessert_table=0.43, bar_counter=1.1, buffet_table=0.43. Use the correct Y for each table type when placing centerpieces, candelabras, etc.
 
 RULES: Tables 3m+ apart. Grid/arc layout. Leave center aisle/dance floor clear. Stage at back wall facing audience (ry=PI). Arch near stage facing audience (ry=PI). Backdrop panels against back wall facing audience (ry=PI). 1 centerpiece per table. 0.5m wall margin. DO NOT generate chairs—they are added automatically.
 
@@ -137,4 +132,67 @@ export async function generateScene(input: SceneGeneratorInput) {
   parsed.items = [...parsed.items, ...chairs];
 
   return parsed as { venue: Record<string, unknown>; items: Record<string, unknown>[] };
+}
+
+export interface RenderSceneInput {
+  screenshot: string;
+  description: string;
+  aspectRatio?: number;
+}
+
+export async function renderScene(input: RenderSceneInput) {
+  const base64 = input.screenshot.startsWith("data:")
+    ? input.screenshot
+    : `data:image/png;base64,${input.screenshot}`;
+
+  const floorType = input.description || "ceramic";
+  const envMap: Record<string, string> = {
+    grass: "an outdoor garden with lush green grass extending naturally in all directions, trees and greenery in the background",
+    sand: "an outdoor beach setting with sand extending naturally in all directions, ocean or dunes in the background",
+    wood: "an elegant indoor ballroom with polished hardwood floors extending to the walls",
+    marble: "a luxurious indoor hall with marble floors extending to the walls",
+    ceramic: "an elegant indoor venue with tiled ceramic floors extending to the walls",
+    concrete: "a modern industrial loft space with concrete floors extending to the walls",
+  };
+  const environment = envMap[floorType] ?? envMap.ceramic;
+
+  const prompt = `This is a 3D render of an event venue. Create a photorealistic version of this exact scene. Keep the same camera angle, same dimensions, same number and position of every item. Do not add, remove, or rearrange anything — absolutely NO extra tables, chairs, or event items beyond what is shown. Just upgrade the visual quality — replace the 3D materials with realistic textures (fabric, wood, metal, glass, flowers) and add natural lighting and soft shadows. The venue is set in ${environment}. Fill the surrounding black area with ONLY natural environment (grass, trees, sky, etc.) — do NOT place any additional furniture or event items outside the venue area. The output should look like a real photo of the same scene.`;
+
+  const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      model: IMAGE_MODEL,
+      messages: [
+        {
+          role: "user",
+          content: [
+            { type: "image_url", image_url: { url: base64 } },
+            { type: "text", text: prompt },
+          ],
+        },
+      ],
+      modalities: ["image", "text"],
+    }),
+  });
+
+  if (!response.ok) {
+    const err = await response.text();
+    throw new Error(`Image generation failed: ${response.status} ${err}`);
+  }
+
+  const data = await response.json();
+  const message = data.choices?.[0]?.message;
+
+  if (!message?.images?.length) {
+    throw new Error("No image was generated");
+  }
+
+  return {
+    imageUrl: message.images[0].image_url.url as string,
+    text: message.content as string | null,
+  };
 }

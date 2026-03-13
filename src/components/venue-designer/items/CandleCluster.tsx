@@ -9,7 +9,7 @@ const WAX = new THREE.MeshStandardMaterial({
 const FLAME = new THREE.MeshStandardMaterial({
   color: "#FFD700",
   emissive: "#FF8C00",
-  emissiveIntensity: 2,
+  emissiveIntensity: 3,
   roughness: 0.3,
   metalness: 0,
 });
@@ -55,7 +55,6 @@ export function CandleCluster() {
           </mesh>
         </group>
       ))}
-      <pointLight position={[0, 0.28, 0]} color="#FFB347" intensity={0.4} distance={2.5} />
     </group>
   );
 }

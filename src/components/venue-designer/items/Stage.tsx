@@ -122,9 +122,6 @@ export function Stage() {
         </mesh>
       ))}
 
-      {/* Small accent lights on pillars */}
-      <pointLight position={[-1.2, 2.3, -0.85]} color="#FFD700" intensity={0.3} distance={2.5} decay={2} />
-      <pointLight position={[1.2, 2.3, -0.85]} color="#FFD700" intensity={0.3} distance={2.5} decay={2} />
     </group>
   );
 }

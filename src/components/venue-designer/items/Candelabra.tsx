@@ -14,7 +14,7 @@ const CANDLE = new THREE.MeshStandardMaterial({
 const FLAME = new THREE.MeshStandardMaterial({
   color: "#FFD700",
   emissive: "#FF8C00",
-  emissiveIntensity: 2,
+  emissiveIntensity: 3,
   roughness: 0.3,
   metalness: 0,
 });
@@ -39,7 +39,6 @@ export function Candelabra() {
       <mesh position={[0, 0.7, 0]} material={FLAME}>
         <sphereGeometry args={[0.015, 8, 8]} />
       </mesh>
-      <pointLight position={[0, 0.72, 0]} color="#FFB347" intensity={0.5} distance={3} />
 
       {/* Arms */}
       {armAngles.map((angle, i) => {
@@ -62,12 +61,6 @@ export function Candelabra() {
             <mesh position={[x, 0.59, z]} material={FLAME}>
               <sphereGeometry args={[0.012, 8, 8]} />
             </mesh>
-            <pointLight
-              position={[x, 0.61, z]}
-              color="#FFB347"
-              intensity={0.3}
-              distance={2}
-            />
           </group>
         );
       })}

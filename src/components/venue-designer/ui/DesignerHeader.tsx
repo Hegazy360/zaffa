@@ -1,9 +1,10 @@
 "use client";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Save, FolderOpen, Download, Upload, Sparkles, Trash2 } from "lucide-react";
+import { Save, FolderOpen, Download, Upload, Sparkles, Trash2, Camera } from "lucide-react";
 import { useVenueDesignerStore } from "@/stores/venue-designer-store";
 import { AIGenerateDialog } from "./AIGenerateDialog";
+import { RenderDialog } from "./RenderDialog";
 
 interface DesignerHeaderProps {
   onSave?: (name: string) => void;
@@ -14,6 +15,7 @@ interface DesignerHeaderProps {
 export function DesignerHeader({ onSave, onLoad, saving }: DesignerHeaderProps) {
   const [name, setName] = useState("Untitled Design");
   const [aiDialogOpen, setAiDialogOpen] = useState(false);
+  const [renderDialogOpen, setRenderDialogOpen] = useState(false);
   const items = useVenueDesignerStore((s) => s.items);
   const serialize = useVenueDesignerStore((s) => s.serialize);
   const deserialize = useVenueDesignerStore((s) => s.deserialize);
@@ -77,7 +79,19 @@ export function DesignerHeader({ onSave, onLoad, saving }: DesignerHeaderProps) 
           AI Generate
         </Button>
 
+        <Button
+          variant="ghost"
+          size="sm"
+          className="gap-1.5 h-7 text-xs text-rose-600 hover:text-rose-700 hover:bg-rose-50"
+          onClick={() => setRenderDialogOpen(true)}
+          disabled={items.length === 0}
+        >
+          <Camera className="h-3 w-3" />
+          Render
+        </Button>
+
         <AIGenerateDialog open={aiDialogOpen} onOpenChange={setAiDialogOpen} />
+        <RenderDialog open={renderDialogOpen} onOpenChange={setRenderDialogOpen} />
 
         {onSave && (
           <Button

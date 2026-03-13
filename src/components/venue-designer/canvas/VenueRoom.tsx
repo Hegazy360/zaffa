@@ -39,63 +39,14 @@ function useFloorMaterial(floorType: FloorType, floorColor: string) {
 
 export function VenueRoom() {
   const venue = useVenueDesignerStore((s) => s.venue);
-  const { width, length, height, floorType, floorColor, wallColor } = venue;
-  const hw = width / 2;
-  const hl = length / 2;
+  const { width, length, floorType, floorColor } = venue;
 
   const floorMat = useFloorMaterial(floorType, floorColor);
-
-  const wallMat = useMemo(
-    () =>
-      new THREE.MeshStandardMaterial({
-        color: wallColor,
-        roughness: 0.9,
-        metalness: 0,
-        side: THREE.DoubleSide,
-      }),
-    [wallColor]
-  );
-
-  const frontWallMat = useMemo(
-    () =>
-      new THREE.MeshStandardMaterial({
-        color: wallColor,
-        transparent: true,
-        opacity: 0.15,
-        side: THREE.DoubleSide,
-      }),
-    [wallColor]
-  );
-
-  const gridHelper = useMemo(() => {
-    const size = Math.max(width, length);
-    const divisions = Math.round(size);
-    const gridColor = floorType === "grass" || floorType === "sand" ? "#00000015" : "#ccc";
-    const gridSub = floorType === "grass" || floorType === "sand" ? "#00000008" : "#e0e0e0";
-    const grid = new THREE.GridHelper(size, divisions, gridColor, gridSub);
-    grid.position.y = 0.005;
-    return grid;
-  }, [width, length, floorType]);
 
   return (
     <group>
       <mesh rotation-x={-Math.PI / 2} receiveShadow material={floorMat}>
         <planeGeometry args={[width, length]} />
-      </mesh>
-
-      <primitive object={gridHelper} />
-
-      <mesh position={[0, height / 2, -hl]} material={wallMat} receiveShadow>
-        <planeGeometry args={[width, height]} />
-      </mesh>
-      <mesh position={[-hw, height / 2, 0]} rotation-y={Math.PI / 2} material={wallMat} receiveShadow>
-        <planeGeometry args={[length, height]} />
-      </mesh>
-      <mesh position={[hw, height / 2, 0]} rotation-y={-Math.PI / 2} material={wallMat} receiveShadow>
-        <planeGeometry args={[length, height]} />
-      </mesh>
-      <mesh position={[0, height / 2, hl]} rotation-y={Math.PI} material={frontWallMat}>
-        <planeGeometry args={[width, height]} />
       </mesh>
     </group>
   );

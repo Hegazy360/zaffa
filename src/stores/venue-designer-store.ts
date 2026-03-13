@@ -56,15 +56,45 @@ function snapshot(state: VenueDesignerState): HistoryEntry {
 }
 
 const DEFAULT_COLORS: Partial<Record<ItemType, string>> = {
+  // Tables
+  cocktail_table: "#FFFFFF",
+  sweetheart_table: "#FAF0E6",
+  gift_table: "#FAF0E6",
+  bar_counter: "#3D2B1F",
+  buffet_table: "#FFFFFF",
+  // Seating
+  ghost_chair: "#E8F4FF",
+  lounge_sofa: "#8B6F8A",
+  // Florals
+  flower_wall: "#e8a0bf",
   flower_vase: "#e8a0bf",
   flower_centerpiece: "#d4899e",
   tall_arrangement: "#c97b92",
   arch: "#e8a0bf",
-  backdrop_panel: "#f5f0eb",
   garland: "#5a7247",
+  wreath: "#e8a0bf",
+  topiary: "#4A7A3D",
+  petal_scatter: "#e8a0bf",
+  potted_plant: "#4A7A3D",
+  // Lighting
   lantern: "#C4A35A",
-  fairy_lights: "#fff5e0",
+  floor_uplight: "#FFD700",
+  // Decor
+  backdrop_panel: "#f5f0eb",
   aisle_runner: "#F5F0EB",
+  balloon_arch: "#FF6B8A",
+  balloon_column: "#FF6B8A",
+  welcome_sign: "#F5F0EB",
+  cake_stand: "#FEFEFE",
+  photo_frame: "#C4A35A",
+  neon_sign: "#FF6B8A",
+  fabric_drape: "#F5E6D3",
+  dessert_table: "#FAF0E6",
+  dj_booth: "#2A2A2A",
+  // Structure
+  column_pillar: "#F5F0EB",
+  pergola: "#F5E6D3",
+  dance_floor: "#2A2A2A",
 };
 
 export const useVenueDesignerStore = create<VenueDesignerState>((set, get) => ({

@@ -17,9 +17,12 @@ import { useVenueDesignerStore } from "@/stores/venue-designer-store";
 import type { DesignJSON, PlacedItem } from "@/types/venue-designer";
 
 const EXAMPLE_PROMPTS = [
-  "Wedding reception for 120 guests, round tables, romantic pink and gold theme, stage at the back with an arch",
-  "Intimate engagement party for 30 guests, rectangular tables, modern white and green theme with lots of candles",
-  "Grand wedding for 200 guests, mix of round and rectangular tables, classic red and gold theme, center aisle with arch",
+  "Classic wedding reception for 120 guests, round tables, blush pink and gold theme, stage with floral arch, candelabras on every table",
+  "Intimate engagement dinner for 30 guests, rectangular tables, white and green theme, lots of candles and lanterns along the aisle",
+  "Outdoor garden wedding for 80 guests, round tables, soft lavender and ivory theme, pergola over the dance floor, string lights overhead",
+  "Elegant gala for 150 guests, round tables, black and gold theme, chandelier centerpieces, DJ booth near the dance floor, bar counter on the side",
+  "Rustic boho wedding for 60 guests, rectangular tables, terracotta and sage green, flower wall backdrop, welcome sign at the entrance",
+  "Luxurious engagement party for 50 guests, round tables, deep burgundy and gold, stage with kosha, balloon arches at the entrance, dessert table",
 ];
 
 interface AIGenerateDialogProps {
@@ -84,7 +87,7 @@ export function AIGenerateDialog({ open, onOpenChange }: AIGenerateDialogProps) 
 
         <div className="space-y-3">
           <Textarea
-            placeholder="e.g. Wedding reception for 120 guests, round tables, romantic pink and gold theme, stage at the back with a floral arch..."
+            placeholder="e.g. Wedding reception for 120 guests, round tables, blush pink and gold theme, stage with floral arch, candelabras on tables, string lights overhead..."
             value={prompt}
             onChange={(e) => setPrompt(e.target.value)}
             className="min-h-24 resize-none"

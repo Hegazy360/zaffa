@@ -9,7 +9,8 @@ import {
 import { generateColorPalette } from "../ai/color-matching";
 import { generateMoodBoard, visualizeVenue, refineVisualization } from "../ai/mood-board";
 import { getRecommendations } from "../ai/recommendations";
-import { generateScene } from "../ai/scene-generator";
+import { generateScene, renderScene } from "../ai/scene-generator";
+import { startVideoGeneration, getVideoStatus } from "../ai/video-generator";
 
 const visualSelectionsSchema = z.object({
   vibe: z.array(z.string()).optional(),
@@ -123,5 +124,33 @@ export const aiRouter = router({
     )
     .mutation(async ({ input }) => {
       return generateScene(input);
+    }),
+
+  renderScene: protectedProcedure
+    .input(
+      z.object({
+        screenshot: z.string().min(100),
+        description: z.string().min(5).max(2000),
+      })
+    )
+    .mutation(async ({ input }) => {
+      return renderScene(input);
+    }),
+
+  startVideo: protectedProcedure
+    .input(
+      z.object({
+        imageBase64: z.string().min(100),
+        prompt: z.string().max(500).default(""),
+      })
+    )
+    .mutation(async ({ input }) => {
+      return startVideoGeneration(input);
+    }),
+
+  videoStatus: protectedProcedure
+    .input(z.object({ generationId: z.string() }))
+    .query(async ({ input }) => {
+      return getVideoStatus(input.generationId);
     }),
 });
