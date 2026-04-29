@@ -247,21 +247,33 @@ model StyleQuizSession {
 }
 
 model VenueDesign {
-  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  user_id      String   @db.Uuid
-  name         String   @default("Untitled Design")
-  venue_width      Float    @default(20)
-  venue_length     Float    @default(30)
-  venue_height     Float    @default(5)
-  venue_floor_type String   @default("ceramic")
-  venue_floor_color String  @default("#E8DDD0")
-  venue_wall_color  String  @default("#FAF0E6")
-  items            Json     @default("[]")
-  thumbnail    String?
-  created_at   DateTime @default(now())
-  updated_at   DateTime @updatedAt
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id     String   @db.Uuid
+  name        String   @default("Untitled Design")
+  event_type  String   @default("wedding")
+  setting     String   @default("indoor")
+  size        String   @default("medium")
+  palette     Json     @default("{}")
+  references  Json     @default("{}")
+  style_notes String?
+  thumbnail   String?
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
 
-  user Profile @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  user  Profile            @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  media VenueDesignMedia[]
 
   @@map("venue_designs")
+}
+
+model VenueDesignMedia {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  design_id  String   @db.Uuid
+  type       String
+  url        String
+  created_at DateTime @default(now())
+
+  design VenueDesign @relation(fields: [design_id], references: [id], onDelete: Cascade)
+
+  @@map("venue_design_media")
 }

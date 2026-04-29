@@ -9,12 +9,11 @@ import {
   Compass,
   CalendarHeart,
   Store,
-  Sparkles,
+  Wand2,
   LogIn,
   LogOut,
   ArrowRight,
   LayoutDashboard,
-  User,
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
@@ -24,7 +23,7 @@ const navLinks = [
   { href: "/explore", label: "Explore", icon: Compass },
   { href: "/planners", label: "Planners", icon: CalendarHeart },
   { href: "/vendors", label: "Vendors", icon: Store },
-  { href: "/ai/style-quiz", label: "Style Quiz", icon: Sparkles },
+  { href: "/venue-designer", label: "Venue Designer", icon: Wand2 },
 ];
 
 export function Navbar() {

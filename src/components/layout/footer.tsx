@@ -37,16 +37,22 @@ export function Footer() {
           </div>
 
           <div>
-            <h4 className="font-semibold mb-3">AI Tools</h4>
+            <h4 className="font-semibold mb-3">Design</h4>
             <ul className="space-y-2 text-sm text-muted-foreground">
               <li>
-                <Link href="/ai/style-quiz" className="hover:text-foreground">
-                  Style Quiz
+                <Link
+                  href="/venue-designer"
+                  className="hover:text-foreground"
+                >
+                  Venue Designer
                 </Link>
               </li>
               <li>
-                <Link href="/ai/mood-board" className="hover:text-foreground">
-                  Mood Board Generator
+                <Link
+                  href="/venue-designer/new"
+                  className="hover:text-foreground"
+                >
+                  Start a New Design
                 </Link>
               </li>
             </ul>

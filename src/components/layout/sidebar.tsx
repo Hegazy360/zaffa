@@ -9,11 +9,11 @@ import {
   Home,
   MessageSquare,
   Settings,
-  Star,
-  Store,
+  Wand2,
   Users,
   Briefcase,
   ImageIcon,
+  Store,
   type LucideIcon,
 } from "lucide-react";
 
@@ -25,7 +25,7 @@ const roleLinks: Record<UserRole, { href: string; label: string; icon: LucideIco
   client: [
     { href: "/dashboard/client", label: "My Events", icon: CalendarDays },
     { href: "/dashboard/client/messages", label: "Messages", icon: MessageSquare },
-    { href: "/ai/style-quiz", label: "Style Quiz", icon: Star },
+    { href: "/venue-designer", label: "Venue Designer", icon: Wand2 },
     { href: "/dashboard/client/settings", label: "Settings", icon: Settings },
   ],
   planner: [

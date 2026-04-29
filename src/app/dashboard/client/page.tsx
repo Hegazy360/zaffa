@@ -11,7 +11,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Plus } from "lucide-react";
+import { Plus, Pencil } from "lucide-react";
 import type { EventStatus, EventType } from "@/types";
 
 interface EventCard {
@@ -104,6 +104,40 @@ export default function ClientDashboardPage() {
                 Create New Event
               </Button>
             </div>
+
+            <section>
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-lg font-semibold">Venue Designer</h2>
+                <Button
+                  variant="outline"
+                  render={<Link href="/venue-designer" />}
+                  className="gap-2"
+                >
+                  <Pencil className="h-4 w-4" />
+                  My Designs
+                </Button>
+              </div>
+              <Card className="hover:ring-2 hover:ring-primary/20 transition-all">
+                <CardContent className="flex items-center gap-4 py-4">
+                  <div className="rounded-full bg-rose-50 p-3">
+                    <Pencil className="h-6 w-6 text-rose-500" />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="font-medium">3D Venue Layout Designer</h3>
+                    <p className="text-sm text-muted-foreground">
+                      Design your venue layout in 3D, generate AI scenes, and create photorealistic renders
+                    </p>
+                  </div>
+                  <Button
+                    render={<Link href="/venue-designer/new" />}
+                    className="bg-rose-500 hover:bg-rose-600 text-white gap-2"
+                  >
+                    <Plus className="h-4 w-4" />
+                    New Design
+                  </Button>
+                </CardContent>
+              </Card>
+            </section>
 
             <section>
               <h2 className="text-lg font-semibold mb-4">My Events</h2>

@@ -31,14 +31,20 @@ export async function updateSession(request: NextRequest) {
 
   const isAuthPage = request.nextUrl.pathname.startsWith("/auth");
   const isDashboardPage = request.nextUrl.pathname.startsWith("/dashboard");
+  const isVenueDesignerPage = request.nextUrl.pathname.startsWith("/venue-designer");
+  // The recovery flow authenticates the user with a temporary session so they
+  // can update their password. We must allow access to the reset page even
+  // when a session exists.
+  const isResetPasswordPage =
+    request.nextUrl.pathname === "/auth/reset-password";
 
-  if (!user && isDashboardPage) {
+  if (!user && (isDashboardPage || isVenueDesignerPage)) {
     const url = request.nextUrl.clone();
     url.pathname = "/auth/signin";
     return NextResponse.redirect(url);
   }
 
-  if (user && isAuthPage) {
+  if (user && isAuthPage && !isResetPasswordPage) {
     const url = request.nextUrl.clone();
     url.pathname = "/dashboard";
     return NextResponse.redirect(url);
