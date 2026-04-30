@@ -115,7 +115,7 @@ export const eventsRouter = router({
               references: true,
               media: {
                 orderBy: { created_at: "desc" },
-                select: { id: true, type: true, url: true },
+                select: { id: true, type: true, url: true, parent_id: true },
               },
             },
           },

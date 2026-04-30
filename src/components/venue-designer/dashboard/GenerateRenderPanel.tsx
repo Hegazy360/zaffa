@@ -51,8 +51,15 @@ export function GenerateRenderPanel({ designId }: GenerateRenderPanelProps) {
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const utils = trpc.useUtils();
+  // Tracks the id of the render media row that the currently-displayed image
+  // came from, so that when the user generates a video off of it we can link
+  // the resulting video media to its source render via parent_id.
+  const lastRenderMediaIdRef = useRef<string | null>(null);
   const saveMediaMutation = trpc.venueDesigns.saveMedia.useMutation({
-    onSuccess: () => {
+    onSuccess: (created) => {
+      if (created.type === "render") {
+        lastRenderMediaIdRef.current = created.id;
+      }
       if (designId) {
         utils.venueDesigns.getById.invalidate({ id: designId });
       }
@@ -129,6 +136,7 @@ export function GenerateRenderPanel({ designId }: GenerateRenderPanelProps) {
               design_id: designId,
               type: "video",
               url: status.videoUrl,
+              parent_id: lastRenderMediaIdRef.current,
             });
           }
           if (pollRef.current) clearInterval(pollRef.current);
@@ -236,10 +244,15 @@ export function GenerateRenderPanel({ designId }: GenerateRenderPanelProps) {
         setVideoUrl(item.url);
         setResultImage(null);
         setView("video");
+        // Don't touch lastRenderMediaIdRef — we want the source render link
+        // to remain whatever it was before the user opened this video.
       } else {
         setResultImage(item.url);
         setVideoUrl(null);
         setView("image");
+        // Switching to a past render makes that render the new "current" one
+        // for any video the user generates next.
+        lastRenderMediaIdRef.current = item.id;
       }
     },
     []

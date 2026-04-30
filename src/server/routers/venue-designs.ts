@@ -133,6 +133,9 @@ export const venueDesignsRouter = router({
         design_id: z.string().uuid(),
         type: z.enum(["render", "video"]),
         url: z.string().min(1),
+        // Optional: id of the source render this video was generated from.
+        // Lets us scope videos to a specific render when displaying.
+        parent_id: z.string().uuid().nullish(),
       })
     )
     .mutation(async ({ ctx, input }) => {
@@ -147,6 +150,7 @@ export const venueDesignsRouter = router({
           design_id: input.design_id,
           type: input.type,
           url: input.url,
+          parent_id: input.parent_id ?? null,
         },
       });
     }),

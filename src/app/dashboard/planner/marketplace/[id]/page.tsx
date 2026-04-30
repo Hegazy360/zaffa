@@ -319,8 +319,28 @@ export default function BriefDetailPage() {
                   );
                 })()}
                 {(() => {
-                  const videos =
-                    design?.media.filter((m) => m.type === "video") ?? [];
+                  if (!design) return null;
+                  // Only show videos generated from the displayed render.
+                  // Legacy videos (parent_id === null) only appear when the
+                  // design has a single render — otherwise we can't tell
+                  // which render they belong to.
+                  const renders = design.media.filter(
+                    (m) => m.type === "render"
+                  );
+                  const selectedRender =
+                    (design.thumbnail
+                      ? renders.find((m) => m.url === design.thumbnail)
+                      : null) ??
+                    renders[0] ??
+                    null;
+                  const videos = design.media.filter((m) => {
+                    if (m.type !== "video") return false;
+                    if (selectedRender && m.parent_id === selectedRender.id)
+                      return true;
+                    if (m.parent_id === null && renders.length <= 1)
+                      return true;
+                    return false;
+                  });
                   if (videos.length === 0) return null;
                   return (
                     <div>

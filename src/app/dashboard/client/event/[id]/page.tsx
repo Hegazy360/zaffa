@@ -167,7 +167,15 @@ export default function EventDetailPage() {
 
   const approvedDesign =
     event.designs.find((d) => d.approved_at) ?? event.designs[0] ?? null;
+  // Prefer the render whose URL matches design.thumbnail (the one the couple
+  // explicitly selected). Fall back to the latest render, then the raw
+  // thumbnail field for very old designs.
   const heroImage =
+    (approvedDesign?.thumbnail
+      ? approvedDesign.media.find(
+          (m) => m.type === "render" && m.url === approvedDesign.thumbnail
+        )?.url
+      : null) ??
     approvedDesign?.media.find((m) => m.type === "render")?.url ??
     approvedDesign?.thumbnail ??
     null;
@@ -442,7 +450,12 @@ interface DesignSnapshot {
   thumbnail: string | null;
   palette: unknown;
   approved_at: Date | null;
-  media: Array<{ id: string; type: string; url: string }>;
+  media: Array<{
+    id: string;
+    type: string;
+    url: string;
+    parent_id: string | null;
+  }>;
 }
 
 function ApprovedDesignCard({

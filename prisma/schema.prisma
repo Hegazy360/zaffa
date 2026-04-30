@@ -299,11 +299,17 @@ model VenueDesign {
 model VenueDesignMedia {
   id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   design_id  String   @db.Uuid
+  // For videos: id of the render (also a VenueDesignMedia row) the video was
+  // generated from. NULL for renders themselves and for legacy videos from
+  // before this column existed.
+  parent_id  String?  @db.Uuid
   type       String
   url        String
   created_at DateTime @default(now())
 
-  design VenueDesign @relation(fields: [design_id], references: [id], onDelete: Cascade)
+  design   VenueDesign        @relation(fields: [design_id], references: [id], onDelete: Cascade)
+  parent   VenueDesignMedia?  @relation("MediaParent", fields: [parent_id], references: [id], onDelete: SetNull)
+  children VenueDesignMedia[] @relation("MediaParent")
 
   @@map("venue_design_media")
 }

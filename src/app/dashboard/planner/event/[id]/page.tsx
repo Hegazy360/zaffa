@@ -577,7 +577,12 @@ interface DesignSnapshot {
   thumbnail: string | null;
   palette: unknown;
   references: unknown;
-  media: Array<{ id: string; url: string; type: string }>;
+  media: Array<{
+    id: string;
+    url: string;
+    type: string;
+    parent_id: string | null;
+  }>;
 }
 
 interface FlatRef {
@@ -624,12 +629,27 @@ function DesignTab({ design }: { design: DesignSnapshot | null }) {
     );
   }
   const palette = normalizePalette(design.palette);
-  const heroImage =
-    design.media.find((m) => m.type === "render")?.url ??
-    design.thumbnail ??
+  // The "selected" render is whichever one matches the design.thumbnail, with
+  // a fallback to the most recent render. We need its id (not just the url)
+  // so we can filter videos to only those generated from this render.
+  const renders = design.media.filter((m) => m.type === "render");
+  const selectedRender =
+    (design.thumbnail
+      ? renders.find((m) => m.url === design.thumbnail)
+      : null) ??
+    renders[0] ??
     null;
+  const heroImage = selectedRender?.url ?? design.thumbnail ?? null;
   const refs = flattenReferences(design.references);
-  const videos = design.media.filter((m) => m.type === "video");
+  // Videos linked (parent_id) to the selected render. Legacy videos with
+  // parent_id === null only appear when the design has a single render
+  // (safe assumption that the video came from it).
+  const videos = design.media.filter((m) => {
+    if (m.type !== "video") return false;
+    if (selectedRender && m.parent_id === selectedRender.id) return true;
+    if (m.parent_id === null && renders.length <= 1) return true;
+    return false;
+  });
 
   return (
     <div className="space-y-6">
