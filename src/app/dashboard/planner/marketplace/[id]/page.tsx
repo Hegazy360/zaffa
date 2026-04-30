@@ -19,6 +19,7 @@ import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { CurrencyInput } from "@/components/ui/currency-input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -99,11 +100,19 @@ function formatDate(date: Date | string | null | undefined): string {
 }
 
 function formatCurrency(amount: number, currency = "EGP"): string {
-  return new Intl.NumberFormat("en-EG", {
-    style: "currency",
-    currency,
-    minimumFractionDigits: 0,
-  }).format(amount);
+  // Intl.NumberFormat throws RangeError when the currency code isn't a valid
+  // ISO 4217 string (e.g. while the planner is still typing). Fall back to a
+  // plain "amount code" rendering so the live take-home preview never tears
+  // the page down.
+  try {
+    return new Intl.NumberFormat("en-EG", {
+      style: "currency",
+      currency,
+      minimumFractionDigits: 0,
+    }).format(amount);
+  } catch {
+    return `${amount.toFixed(0)} ${currency}`;
+  }
 }
 
 export default function BriefDetailPage() {
@@ -741,6 +750,19 @@ function ProposalForm({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [existingSchedule]);
 
+  // While a preset is active, keep the rows in sync with the quote so that
+  // typing the quote *after* picking the preset auto-fills the plan. We
+  // skip in "custom" mode so manual edits aren't clobbered.
+  useEffect(() => {
+    if (template === "custom") return;
+    const total = Number(quote) || 0;
+    if (total <= 0) return;
+    setInstallments(makeTemplateRows(template, total));
+    // We deliberately omit `installments` from deps — including it would
+    // create a render loop because we're the writer.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [quote, template]);
+
   const utils = trpc.useUtils();
   const create = trpc.proposals.create.useMutation({
     onError: (e) => toast.error(e.message),
@@ -787,10 +809,20 @@ function ProposalForm({
 
   function applyTemplate(name: string) {
     setTemplate(name);
-    if (name === "custom") return;
-    const total = Number(quote) || 0;
+    if (name === "custom") {
+      // Switching back to custom keeps whatever rows exist so the planner
+      // can hand-edit them. Clearing here would feel destructive.
+      return;
+    }
+    // Use the quote when available, otherwise fall back to whatever the
+    // planner has already typed in installments. Either way, we *replace*
+    // the rows instead of leaving stale entries from a previous template.
+    const total =
+      Number(quote) ||
+      installments.reduce((s, r) => s + (Number(r.amount) || 0), 0);
     if (total <= 0) {
       toast.error("Set a quote first to auto-fill the plan");
+      setInstallments([]);
       return;
     }
     setInstallments(makeTemplateRows(name, total));
@@ -892,11 +924,11 @@ function ProposalForm({
         </div>
         <div className="space-y-1.5">
           <Label htmlFor="currency">Currency</Label>
-          <Input
+          <CurrencyInput
             id="currency"
             value={currency}
-            onChange={(e) => setCurrency(e.target.value.toUpperCase())}
-            maxLength={4}
+            onChange={setCurrency}
+            placeholder="EGP"
           />
         </div>
       </div>

@@ -65,7 +65,6 @@ const TABS = [
   "overview",
   "design",
   "proposals",
-  "vendors",
   "payments",
   "messages",
 ] as const;
@@ -309,10 +308,6 @@ export default function EventDetailPage() {
               <FileText className="size-3.5" />
               Proposals
             </TabsTrigger>
-            <TabsTrigger value="vendors" className="gap-1.5">
-              <Users className="size-3.5" />
-              Vendors
-            </TabsTrigger>
             <TabsTrigger value="payments" className="gap-1.5">
               <CreditCard className="size-3.5" />
               Payments
@@ -344,10 +339,6 @@ export default function EventDetailPage() {
               eventId={event.id}
               currentPlannerId={event.planner?.id ?? null}
             />
-          </TabsContent>
-
-          <TabsContent value="vendors">
-            <VendorsTab event={event} />
           </TabsContent>
 
           <TabsContent value="payments">
@@ -1052,85 +1043,6 @@ function DesignTab({
           </div>
         )}
       </div>
-    </div>
-  );
-}
-
-// ---------------------------------------------------------------------------
-// Vendors tab — read-only list
-// ---------------------------------------------------------------------------
-
-interface VendorRow {
-  id: string;
-  status: string;
-  agreed_price: unknown;
-  vendor: {
-    id: string;
-    business_name: string;
-    category: string;
-    location: string | null;
-  };
-}
-
-function VendorsTab({
-  event,
-}: {
-  event: { vendors: VendorRow[] };
-}) {
-  return (
-    <div className="overflow-hidden rounded-2xl border border-rose-100/70 bg-white/80 backdrop-blur-sm dark:border-rose-900/30 dark:bg-card/80">
-      <div className="border-b border-rose-100/70 px-5 py-3 dark:border-rose-900/30">
-        <h3 className="font-display text-base font-medium tracking-tight">
-          Vendors on this event
-        </h3>
-      </div>
-      {event.vendors.length === 0 ? (
-        <div className="px-5 py-12 text-center">
-          <Users className="mx-auto mb-3 size-7 text-rose-500" />
-          <p className="font-display text-lg font-light tracking-tight">
-            No vendors yet
-          </p>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Your planner will start matching vendors based on your design.
-          </p>
-        </div>
-      ) : (
-        <ul className="divide-y divide-rose-100/70 dark:divide-rose-900/30">
-          {event.vendors.map((row) => (
-            <li
-              key={row.id}
-              className="flex items-center justify-between gap-4 px-5 py-4"
-            >
-              <div>
-                <p className="font-medium">{row.vendor.business_name}</p>
-                <p className="text-xs capitalize text-muted-foreground">
-                  {row.vendor.category}
-                  {row.vendor.location && ` · ${row.vendor.location}`}
-                </p>
-              </div>
-              <div className="flex items-center gap-3">
-                {decimalToNumber(row.agreed_price) > 0 && (
-                  <span className="text-sm font-medium">
-                    {formatCurrency(decimalToNumber(row.agreed_price))}
-                  </span>
-                )}
-                <span
-                  className={cn(
-                    "inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide ring-1",
-                    row.status === "accepted"
-                      ? "bg-emerald-50 text-emerald-700 ring-emerald-200"
-                      : row.status === "declined"
-                        ? "bg-stone-50 text-stone-500 ring-stone-200"
-                        : "bg-amber-50 text-amber-800 ring-amber-200"
-                  )}
-                >
-                  {row.status}
-                </span>
-              </div>
-            </li>
-          ))}
-        </ul>
-      )}
     </div>
   );
 }

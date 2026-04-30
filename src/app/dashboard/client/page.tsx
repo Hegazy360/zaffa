@@ -417,7 +417,7 @@ function EventsEmptyState() {
       </h3>
       <p className="mt-2 max-w-md text-pretty text-sm text-muted-foreground">
         Approve a design above and we&apos;ll spin up a full event hub — dates,
-        venue, planner, vendors, payments, and conversation, all linked to your
+        venue, planner, payments, and conversation, all linked to your
         approved design.
       </p>
     </div>

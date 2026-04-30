@@ -78,7 +78,7 @@ export default function SettingsPage() {
             Settings
           </h1>
           <p className="max-w-lg text-pretty text-sm text-muted-foreground sm:text-base">
-            Update how you appear to your planner and vendors.
+            Update how you appear to your planner.
           </p>
         </header>
 
