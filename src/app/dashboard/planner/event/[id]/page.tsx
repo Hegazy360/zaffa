@@ -44,6 +44,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
+import { SchedulePanel } from "@/components/payments/SchedulePanel";
 
 const TABS = ["overview", "design", "vendors", "payments", "messages"] as const;
 type TabValue = (typeof TABS)[number];
@@ -809,6 +810,7 @@ interface PaymentRow {
   due_date: Date | null;
   paid_at: Date | null;
   notes: string | null;
+  schedule_id: string | null;
 }
 
 function PaymentsTab({
@@ -819,22 +821,13 @@ function PaymentsTab({
   payments: PaymentRow[];
 }) {
   const utils = trpc.useUtils();
-  const [open, setOpen] = useState(false);
+  const [legacyOpen, setLegacyOpen] = useState(false);
 
-  const total = payments.reduce((sum, p) => sum + decimalToNumber(p.amount), 0);
-  const paid = payments
-    .filter((p) => p.status === "paid")
-    .reduce((sum, p) => sum + decimalToNumber(p.amount), 0);
-  const owed = total - paid;
-  const currency = payments[0]?.currency ?? "EGP";
+  // The schedule-bound payments are managed via SchedulePanel. The legacy
+  // ledger ("manual" rows with no schedule_id) is still useful for offline
+  // / cash payments either side wants to record.
+  const legacy = payments.filter((p) => !p.schedule_id);
 
-  const markPaid = trpc.payments.markPaid.useMutation({
-    onSuccess: () => {
-      toast.success("Marked paid");
-      utils.events.byId.invalidate({ id: eventId });
-    },
-    onError: (err) => toast.error(err.message),
-  });
   const removePayment = trpc.payments.delete.useMutation({
     onSuccess: () => {
       toast.success("Payment removed");
@@ -842,63 +835,66 @@ function PaymentsTab({
     },
     onError: (err) => toast.error(err.message),
   });
+  const markPaid = trpc.payments.markPaid.useMutation({
+    onSuccess: () => {
+      toast.success("Marked paid");
+      utils.events.byId.invalidate({ id: eventId });
+    },
+    onError: (err) => toast.error(err.message),
+  });
 
   return (
     <div className="space-y-6">
-      <div className="grid gap-3 sm:grid-cols-3">
-        <Stat label="Total" value={formatCurrency(total, currency)} />
-        <Stat label="Paid" value={formatCurrency(paid, currency)} />
-        <Stat label="Owed" value={formatCurrency(owed, currency)} />
-      </div>
+      <SchedulePanel eventId={eventId} side="planner" />
 
-      <div className="overflow-hidden rounded-2xl border border-rose-100/70 bg-white/80 backdrop-blur-sm">
+      <div className="overflow-hidden rounded-2xl border border-rose-100/70 bg-white/60 backdrop-blur-sm">
         <div className="flex items-center justify-between border-b border-rose-100/70 px-5 py-3">
-          <h3 className="font-display text-base font-medium tracking-tight">
-            Schedule
-          </h3>
-          <Dialog open={open} onOpenChange={setOpen}>
+          <div>
+            <h3 className="font-display text-base font-medium tracking-tight">
+              Manual ledger
+            </h3>
+            <p className="text-xs text-muted-foreground">
+              Off-platform payments (cash, bank transfer outside Stripe). Use
+              this for records only.
+            </p>
+          </div>
+          <Dialog open={legacyOpen} onOpenChange={setLegacyOpen}>
             <DialogTrigger
               render={
                 <Button
                   size="sm"
-                  className="h-8 gap-1 bg-gradient-to-r from-rose-600 to-amber-500 text-xs text-white hover:opacity-90"
+                  variant="outline"
+                  className="h-8 gap-1 text-xs"
                 />
               }
             >
               <Plus className="size-3" />
-              Add payment
+              Add manual entry
             </DialogTrigger>
             <AddPaymentDialog
               eventId={eventId}
-              onClose={() => setOpen(false)}
+              onClose={() => setLegacyOpen(false)}
               onCreated={() => {
                 utils.events.byId.invalidate({ id: eventId });
-                setOpen(false);
+                setLegacyOpen(false);
               }}
             />
           </Dialog>
         </div>
 
-        {payments.length === 0 ? (
-          <div className="px-5 py-12 text-center">
-            <CreditCard className="mx-auto mb-3 size-7 text-rose-500" />
-            <p className="font-display text-lg font-light tracking-tight">
-              No payments yet
-            </p>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Track deposits and installments so you and the couple stay
-              aligned.
-            </p>
+        {legacy.length === 0 ? (
+          <div className="px-5 py-8 text-center text-xs text-muted-foreground">
+            No off-platform entries yet.
           </div>
         ) : (
           <ul className="divide-y divide-rose-100/70">
-            {payments.map((p) => (
+            {legacy.map((p) => (
               <li
                 key={p.id}
-                className="flex items-center justify-between gap-4 px-5 py-4"
+                className="flex items-center justify-between gap-4 px-5 py-3"
               >
                 <div className="min-w-0 flex-1">
-                  <p className="truncate font-medium">{p.label}</p>
+                  <p className="truncate text-sm font-medium">{p.label}</p>
                   <p className="mt-0.5 flex items-center gap-2 text-xs text-muted-foreground">
                     {p.due_date && (
                       <span className="inline-flex items-center gap-1">
@@ -915,7 +911,7 @@ function PaymentsTab({
                   </p>
                 </div>
                 <div className="flex items-center gap-3">
-                  <span className="text-sm font-medium">
+                  <span className="text-sm font-medium tabular-nums">
                     {formatCurrency(decimalToNumber(p.amount), p.currency)}
                   </span>
                   {p.status !== "paid" ? (

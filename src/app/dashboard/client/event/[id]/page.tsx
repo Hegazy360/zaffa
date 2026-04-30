@@ -59,6 +59,7 @@ import {
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 import type { EventStatus } from "@/types";
+import { SchedulePanel } from "@/components/payments/SchedulePanel";
 
 const TABS = [
   "overview",
@@ -1147,6 +1148,7 @@ interface PaymentRow {
   due_date: Date | null;
   paid_at: Date | null;
   notes: string | null;
+  schedule_id: string | null;
 }
 
 function PaymentsTab({
@@ -1157,22 +1159,25 @@ function PaymentsTab({
   payments: PaymentRow[];
 }) {
   const utils = trpc.useUtils();
-  const [open, setOpen] = useState(false);
+  const searchParams = useSearchParams();
+  const [legacyOpen, setLegacyOpen] = useState(false);
 
-  const total = payments.reduce((sum, p) => sum + decimalToNumber(p.amount), 0);
-  const paid = payments
-    .filter((p) => p.status === "paid")
-    .reduce((sum, p) => sum + decimalToNumber(p.amount), 0);
-  const owed = total - paid;
-  const currency = payments[0]?.currency ?? "EGP";
+  // Stripe Checkout returns to this page with ?paid=<installmentId>. We
+  // pass it down so the SchedulePanel can poll until the webhook flips it.
+  const paid = searchParams.get("paid");
+  const cancelled = searchParams.get("cancelled");
 
-  const markPaid = trpc.payments.markPaid.useMutation({
-    onSuccess: () => {
-      toast.success("Marked paid");
-      utils.events.byId.invalidate({ id: eventId });
-    },
-    onError: (err) => toast.error(err.message),
-  });
+  useEffect(() => {
+    if (paid) {
+      toast.success("Thanks — confirming your payment now");
+    } else if (cancelled) {
+      toast.message("Checkout cancelled");
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const legacy = payments.filter((p) => !p.schedule_id);
+
   const removePayment = trpc.payments.delete.useMutation({
     onSuccess: () => {
       toast.success("Payment removed");
@@ -1180,63 +1185,66 @@ function PaymentsTab({
     },
     onError: (err) => toast.error(err.message),
   });
+  const markPaid = trpc.payments.markPaid.useMutation({
+    onSuccess: () => {
+      toast.success("Marked paid");
+      utils.events.byId.invalidate({ id: eventId });
+    },
+    onError: (err) => toast.error(err.message),
+  });
 
   return (
     <div className="space-y-6">
-      <div className="grid gap-3 sm:grid-cols-3">
-        <Stat label="Total" value={formatCurrency(total, currency)} />
-        <Stat label="Paid" value={formatCurrency(paid, currency)} />
-        <Stat label="Owed" value={formatCurrency(owed, currency)} />
-      </div>
+      <SchedulePanel eventId={eventId} side="client" paidQueryParam={paid} />
 
-      <div className="overflow-hidden rounded-2xl border border-rose-100/70 bg-white/80 backdrop-blur-sm dark:border-rose-900/30 dark:bg-card/80">
+      <div className="overflow-hidden rounded-2xl border border-rose-100/70 bg-white/60 backdrop-blur-sm dark:border-rose-900/30 dark:bg-card/60">
         <div className="flex items-center justify-between border-b border-rose-100/70 px-5 py-3 dark:border-rose-900/30">
-          <h3 className="font-display text-base font-medium tracking-tight">
-            Schedule
-          </h3>
-          <Dialog open={open} onOpenChange={setOpen}>
+          <div>
+            <h3 className="font-display text-base font-medium tracking-tight">
+              Off-platform notes
+            </h3>
+            <p className="text-xs text-muted-foreground">
+              Manual entries to track payments outside Stripe (cash, bank
+              transfer).
+            </p>
+          </div>
+          <Dialog open={legacyOpen} onOpenChange={setLegacyOpen}>
             <DialogTrigger
               render={
                 <Button
                   size="sm"
-                  className="h-8 gap-1 bg-gradient-to-r from-rose-600 to-amber-500 text-xs text-white hover:opacity-90"
+                  variant="outline"
+                  className="h-8 gap-1 text-xs"
                 />
               }
             >
               <Plus className="size-3" />
-              Add payment
+              Add manual entry
             </DialogTrigger>
             <AddPaymentDialog
               eventId={eventId}
-              onClose={() => setOpen(false)}
+              onClose={() => setLegacyOpen(false)}
               onCreated={() => {
                 utils.events.byId.invalidate({ id: eventId });
-                setOpen(false);
+                setLegacyOpen(false);
               }}
             />
           </Dialog>
         </div>
 
-        {payments.length === 0 ? (
-          <div className="px-5 py-12 text-center">
-            <CreditCard className="mx-auto mb-3 size-7 text-rose-500" />
-            <p className="font-display text-lg font-light tracking-tight">
-              No payments yet
-            </p>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Track deposits and installments so you and your planner stay
-              aligned.
-            </p>
+        {legacy.length === 0 ? (
+          <div className="px-5 py-8 text-center text-xs text-muted-foreground">
+            No off-platform entries yet.
           </div>
         ) : (
           <ul className="divide-y divide-rose-100/70 dark:divide-rose-900/30">
-            {payments.map((p) => (
+            {legacy.map((p) => (
               <li
                 key={p.id}
-                className="flex items-center justify-between gap-4 px-5 py-4"
+                className="flex items-center justify-between gap-4 px-5 py-3"
               >
                 <div className="min-w-0 flex-1">
-                  <p className="truncate font-medium">{p.label}</p>
+                  <p className="truncate text-sm font-medium">{p.label}</p>
                   <p className="mt-0.5 flex items-center gap-2 text-xs text-muted-foreground">
                     {p.due_date && (
                       <span className="inline-flex items-center gap-1">
@@ -1253,7 +1261,7 @@ function PaymentsTab({
                   </p>
                 </div>
                 <div className="flex items-center gap-3">
-                  <span className="text-sm font-medium">
+                  <span className="text-sm font-medium tabular-nums">
                     {formatCurrency(decimalToNumber(p.amount), p.currency)}
                   </span>
                   {p.status !== "paid" ? (
@@ -1766,6 +1774,7 @@ function ProposalCard({
   onSwitch: () => void;
   isAccepting: boolean;
 }) {
+  const utils = trpc.useUtils();
   const amount = decimalToNumber(proposal.quote_amount);
   const rating = decimalToNumber(proposal.planner.avg_rating);
   const isAccepted = proposal.status === "accepted";
@@ -1775,6 +1784,29 @@ function ProposalCard({
   const isPending = proposal.status === "pending";
   const canReview = isAccepted || isReleased;
   const planner = proposal.planner;
+
+  // Pull the payment schedule attached to *this* proposal (if any). When the
+  // schedule is still "proposed", the accept flow rolls both proposal +
+  // schedule into a single transaction via paymentSchedules.acceptProposed.
+  const { data: scheduleForEvent } =
+    trpc.paymentSchedules.forEvent.useQuery(
+      { eventId },
+      { enabled: isPending }
+    );
+  const proposedSchedule =
+    scheduleForEvent && scheduleForEvent.proposal_id === proposal.id
+      ? scheduleForEvent
+      : null;
+  const acceptSchedule = trpc.paymentSchedules.acceptProposed.useMutation({
+    onSuccess: () => {
+      toast.success("Planner accepted");
+      utils.proposals.byEvent.invalidate({ eventId });
+      utils.events.byId.invalidate({ id: eventId });
+      utils.paymentSchedules.forEvent.invalidate({ eventId });
+    },
+    onError: (e) => toast.error(e.message),
+  });
+  const acceptingSchedule = acceptSchedule.isPending;
   const specialtiesArr = Array.isArray(planner.specialties)
     ? (planner.specialties as unknown[]).filter(
         (s): s is string => typeof s === "string"
@@ -1947,6 +1979,51 @@ function ProposalCard({
         </div>
       )}
 
+      {proposedSchedule && proposedSchedule.status === "proposed" && (
+        <div className="mt-3 overflow-hidden rounded-xl border border-rose-100/70 bg-rose-50/30">
+          <div className="flex items-center justify-between gap-3 border-b border-rose-100/70 bg-white/60 px-3 py-2">
+            <span className="text-[10px] font-medium uppercase tracking-[0.2em] text-rose-700/80">
+              Payment plan
+            </span>
+            <span className="text-[10px] text-muted-foreground">
+              Locked when you accept
+            </span>
+          </div>
+          <ul className="divide-y divide-rose-100/70 px-3">
+            {proposedSchedule.installments.map((i) => (
+              <li
+                key={i.id}
+                className="flex items-center justify-between gap-3 py-2 text-xs"
+              >
+                <div className="min-w-0">
+                  <p className="truncate text-foreground/90">{i.label}</p>
+                  {i.due_date && (
+                    <p className="text-[10px] text-muted-foreground">
+                      Due {format(new Date(i.due_date), "PP")}
+                    </p>
+                  )}
+                </div>
+                <span className="font-mono tabular-nums text-foreground/80">
+                  {formatCurrency(
+                    decimalToNumber(i.amount),
+                    proposedSchedule.currency
+                  )}
+                </span>
+              </li>
+            ))}
+          </ul>
+          <div className="flex items-center justify-between gap-3 border-t border-rose-100/70 bg-white/60 px-3 py-2 text-sm font-medium">
+            <span>Total</span>
+            <span className="font-mono tabular-nums">
+              {formatCurrency(
+                decimalToNumber(proposedSchedule.total_amount),
+                proposedSchedule.currency
+              )}
+            </span>
+          </div>
+        </div>
+      )}
+
       {canReview && (
         <ReviewSection eventId={eventId} plannerId={planner.id} />
       )}
@@ -1987,6 +2064,22 @@ function ProposalCard({
             className="gap-1.5 bg-gradient-to-r from-rose-600 to-amber-500 text-white"
           >
             Switch to this planner
+          </Button>
+        ) : proposedSchedule && proposedSchedule.status === "proposed" ? (
+          <Button
+            size="sm"
+            disabled={acceptingSchedule || !isPending}
+            onClick={() =>
+              acceptSchedule.mutate({ scheduleId: proposedSchedule.id })
+            }
+            className="gap-1.5 bg-gradient-to-r from-rose-600 to-amber-500 text-white"
+          >
+            {acceptingSchedule ? (
+              <Loader2 className="size-3.5 animate-spin" />
+            ) : (
+              <CheckCircle2 className="size-3.5" />
+            )}
+            Accept proposal & plan
           </Button>
         ) : (
           <Button

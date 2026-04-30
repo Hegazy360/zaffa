@@ -1,4 +1,4 @@
-export type UserRole = "client" | "planner" | "vendor";
+export type UserRole = "client" | "planner" | "vendor" | "admin";
 
 export type EventType =
   | "wedding"

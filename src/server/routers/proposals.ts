@@ -2,6 +2,7 @@ import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import { router, protectedProcedure } from "../trpc";
 import { prisma } from "@/lib/prisma";
+import { cancelOpenInstallmentsForEvent } from "./payment-schedules";
 
 const breakdownRowSchema = z.object({
   label: z.string().min(1).max(120),
@@ -240,13 +241,16 @@ export const proposalsRouter = router({
       }
 
       // If the planner is currently engaged on this event, withdrawing also
-      // detaches them from the event so the brief reopens.
+      // detaches them from the event so the brief reopens, and cancels any
+      // open (pending/awaiting/failed) installments on the active payment
+      // schedule. Already-paid installments stay attributed to this planner.
       return prisma.$transaction(async (tx) => {
         if (proposal.status === "accepted") {
           await tx.event.update({
             where: { id: proposal.event_id },
             data: { planner_id: null },
           });
+          await cancelOpenInstallmentsForEvent(tx, proposal.event_id);
         }
         return tx.proposal.update({
           where: { id: input.id },
@@ -478,6 +482,10 @@ export const proposalsRouter = router({
           where: { id: from.event_id },
           data: { planner_id: to.planner_id },
         });
+
+        // Cancel the outgoing planner's open installments so they can't
+        // collect future payments. Already-paid rows remain on the record.
+        await cancelOpenInstallmentsForEvent(tx, from.event_id);
 
         // Recompute aggregates on the released planner so their card stays
         // accurate without a separate worker.

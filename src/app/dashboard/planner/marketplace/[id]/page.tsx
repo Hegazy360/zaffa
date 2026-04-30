@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   AlertTriangle,
   ArrowLeft,
@@ -446,6 +446,7 @@ interface ProposalSummary {
   quote_breakdown: unknown;
   created_at: Date;
   updated_at: Date;
+  event_id?: string;
 }
 
 function MyProposalState({
@@ -649,6 +650,35 @@ interface BreakdownRow {
   amount: string;
 }
 
+interface InstallmentRow {
+  label: string;
+  amount: string;
+  due_date: string;
+}
+
+const PLAN_TEMPLATES: Record<string, number[]> = {
+  "50/50": [0.5, 0.5],
+  "30/40/30": [0.3, 0.4, 0.3],
+  "25/25/25/25": [0.25, 0.25, 0.25, 0.25],
+};
+const DEFAULT_LABELS = ["Deposit", "Mid-event", "Final", "Final"];
+// Default platform fee mirrored from the server. We can fetch it via tRPC
+// later if we want to make it configurable per planner.
+const PLANNER_FORM_DEFAULT_FEE_PCT = 8;
+
+function makeTemplateRows(
+  template: string,
+  total: number
+): InstallmentRow[] {
+  const fractions = PLAN_TEMPLATES[template];
+  if (!fractions || total <= 0) return [];
+  return fractions.map((f, i) => ({
+    label: DEFAULT_LABELS[i] ?? `Installment ${i + 1}`,
+    amount: (Math.round(total * f * 100) / 100).toString(),
+    due_date: "",
+  }));
+}
+
 function ProposalForm({
   mode,
   eventId,
@@ -683,22 +713,47 @@ function ProposalForm({
   );
   const [breakdown, setBreakdown] = useState<BreakdownRow[]>(initialBreakdown);
 
+  // If a schedule already exists on this proposal, hydrate the rows so
+  // editing carries them through. We fetch via a separate tRPC query keyed
+  // on the proposal's event id.
+  const { data: existingSchedule } = trpc.paymentSchedules.forEvent.useQuery(
+    { eventId: eventId ?? proposal?.event_id ?? "" },
+    { enabled: !!(eventId ?? proposal?.event_id) }
+  );
+
+  const [template, setTemplate] = useState<string>("custom");
+  const [installments, setInstallments] = useState<InstallmentRow[]>([]);
+
+  // First-time hydration from an existing proposed schedule.
+  useEffect(() => {
+    if (!existingSchedule || installments.length > 0) return;
+    if (existingSchedule.status !== "proposed" && existingSchedule.status !== "draft") {
+      return;
+    }
+    const hydrated = existingSchedule.installments.map((i) => ({
+      label: i.label,
+      amount: String(decimalToNumber(i.amount)),
+      due_date: i.due_date
+        ? new Date(i.due_date).toISOString().slice(0, 10)
+        : "",
+    }));
+    if (hydrated.length > 0) setInstallments(hydrated);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [existingSchedule]);
+
+  const utils = trpc.useUtils();
   const create = trpc.proposals.create.useMutation({
-    onSuccess: () => {
-      toast.success("Proposal sent");
-      onDone();
-    },
     onError: (e) => toast.error(e.message),
   });
   const update = trpc.proposals.update.useMutation({
-    onSuccess: () => {
-      toast.success("Proposal updated");
-      onDone();
-    },
     onError: (e) => toast.error(e.message),
   });
+  const proposeSchedule = trpc.paymentSchedules.propose.useMutation({
+    onError: (e) => toast.error(`Couldn't save payment plan: ${e.message}`),
+  });
 
-  const submitting = create.isPending || update.isPending;
+  const submitting =
+    create.isPending || update.isPending || proposeSchedule.isPending;
 
   function buildBreakdown() {
     const cleaned = breakdown
@@ -707,7 +762,41 @@ function ProposalForm({
     return cleaned.length > 0 ? cleaned : null;
   }
 
-  function onSubmit(e: React.FormEvent) {
+  function buildInstallments() {
+    const cleaned = installments
+      .map((r) => ({
+        label: r.label.trim(),
+        amount: Number(r.amount) || 0,
+        due_date: r.due_date ? new Date(r.due_date) : null,
+      }))
+      .filter((r) => r.label.length > 0 && r.amount > 0);
+    return cleaned.length > 0 ? cleaned : null;
+  }
+
+  // Live totals for the take-home preview. We compute against whatever
+  // installments the planner has typed; if there are none we fall back to
+  // the bare quote so they still see the math.
+  const installmentTotal =
+    installments.reduce((s, r) => s + (Number(r.amount) || 0), 0) ||
+    Number(quote) ||
+    0;
+  const feeAmount =
+    Math.round(installmentTotal * PLANNER_FORM_DEFAULT_FEE_PCT) / 100;
+  const takeHome =
+    Math.round((installmentTotal - feeAmount) * 100) / 100;
+
+  function applyTemplate(name: string) {
+    setTemplate(name);
+    if (name === "custom") return;
+    const total = Number(quote) || 0;
+    if (total <= 0) {
+      toast.error("Set a quote first to auto-fill the plan");
+      return;
+    }
+    setInstallments(makeTemplateRows(name, total));
+  }
+
+  async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (coverLetter.trim().length < 20) {
       toast.error("Cover letter should be at least 20 characters");
@@ -715,22 +804,61 @@ function ProposalForm({
     }
     const quoteAmount = quote ? Number(quote) : null;
     const quote_breakdown = buildBreakdown();
-    if (mode === "create" && eventId) {
-      create.mutate({
-        eventId,
-        coverLetter: coverLetter.trim(),
-        quote_amount: quoteAmount,
-        quote_currency: currency,
-        quote_breakdown,
-      });
-    } else if (mode === "edit" && proposal) {
-      update.mutate({
-        id: proposal.id,
-        coverLetter: coverLetter.trim(),
-        quote_amount: quoteAmount,
-        quote_currency: currency,
-        quote_breakdown,
-      });
+    const installmentRows = buildInstallments();
+
+    // If the planner provided an installment plan, the totals must agree
+    // with the quote so the client doesn't see a mismatch on accept.
+    if (installmentRows && quoteAmount) {
+      const sum = installmentRows.reduce((s, r) => s + r.amount, 0);
+      if (Math.abs(sum - quoteAmount) > 0.5) {
+        toast.error(
+          `Plan total (${sum}) doesn't match quote (${quoteAmount}).`
+        );
+        return;
+      }
+    }
+
+    try {
+      let proposalId: string;
+      if (mode === "create" && eventId) {
+        const created = await create.mutateAsync({
+          eventId,
+          coverLetter: coverLetter.trim(),
+          quote_amount: quoteAmount,
+          quote_currency: currency,
+          quote_breakdown,
+        });
+        proposalId = created.id;
+      } else if (mode === "edit" && proposal) {
+        await update.mutateAsync({
+          id: proposal.id,
+          coverLetter: coverLetter.trim(),
+          quote_amount: quoteAmount,
+          quote_currency: currency,
+          quote_breakdown,
+        });
+        proposalId = proposal.id;
+      } else {
+        return;
+      }
+
+      if (installmentRows) {
+        await proposeSchedule.mutateAsync({
+          proposalId,
+          currency,
+          installments: installmentRows.map((r) => ({
+            label: r.label,
+            amount: r.amount,
+            due_date: r.due_date,
+          })),
+        });
+      }
+
+      toast.success(mode === "create" ? "Proposal sent" : "Proposal updated");
+      utils.paymentSchedules.forEvent.invalidate();
+      onDone();
+    } catch {
+      // toasts already surfaced from per-mutation onError
     }
   }
 
@@ -827,6 +955,150 @@ function ProposalForm({
             </Button>
           </div>
         ))}
+      </div>
+
+      <div className="space-y-3 rounded-2xl border border-rose-100/70 bg-rose-50/40 p-4">
+        <div>
+          <Label className="text-sm">Payment plan</Label>
+          <p className="mt-0.5 text-xs text-muted-foreground">
+            Optional. Pick a template or build a custom plan. The client
+            confirms it when they accept your proposal.
+          </p>
+        </div>
+        <div className="flex flex-wrap gap-1.5">
+          {(["50/50", "30/40/30", "25/25/25/25", "custom"] as const).map(
+            (t) => (
+              <Button
+                key={t}
+                type="button"
+                size="sm"
+                variant={template === t ? "default" : "outline"}
+                onClick={() => applyTemplate(t)}
+                className={
+                  template === t
+                    ? "h-7 bg-gradient-to-r from-rose-600 to-amber-500 text-white"
+                    : "h-7"
+                }
+              >
+                {t === "custom" ? "Custom" : t}
+              </Button>
+            )
+          )}
+          {installments.length > 0 && (
+            <Button
+              type="button"
+              size="sm"
+              variant="ghost"
+              onClick={() => setInstallments([])}
+              className="h-7 ml-auto text-muted-foreground hover:text-rose-700"
+            >
+              Clear
+            </Button>
+          )}
+        </div>
+
+        {installments.map((row, idx) => (
+          <div key={idx} className="grid grid-cols-12 gap-2">
+            <Input
+              className="col-span-5"
+              placeholder="Deposit"
+              value={row.label}
+              onChange={(e) =>
+                setInstallments((rows) =>
+                  rows.map((r, i) =>
+                    i === idx ? { ...r, label: e.target.value } : r
+                  )
+                )
+              }
+            />
+            <Input
+              className="col-span-3"
+              type="number"
+              min="0"
+              placeholder="0"
+              value={row.amount}
+              onChange={(e) =>
+                setInstallments((rows) =>
+                  rows.map((r, i) =>
+                    i === idx ? { ...r, amount: e.target.value } : r
+                  )
+                )
+              }
+            />
+            <Input
+              className="col-span-3"
+              type="date"
+              value={row.due_date}
+              onChange={(e) =>
+                setInstallments((rows) =>
+                  rows.map((r, i) =>
+                    i === idx ? { ...r, due_date: e.target.value } : r
+                  )
+                )
+              }
+            />
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon-sm"
+              className="col-span-1"
+              onClick={() =>
+                setInstallments((rows) => rows.filter((_, i) => i !== idx))
+              }
+            >
+              <Trash2 className="size-3.5" />
+            </Button>
+          </div>
+        ))}
+        {(installments.length > 0 || template === "custom") && (
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={() =>
+              setInstallments((rows) => [
+                ...rows,
+                {
+                  label: DEFAULT_LABELS[rows.length] ?? `Installment ${rows.length + 1}`,
+                  amount: "",
+                  due_date: "",
+                },
+              ])
+            }
+          >
+            Add installment
+          </Button>
+        )}
+
+        {installmentTotal > 0 && (
+          <div className="rounded-xl border border-rose-100/70 bg-white/80 px-3 py-2 text-xs">
+            <p className="mb-1 text-[10px] font-medium uppercase tracking-[0.2em] text-rose-700/80">
+              Take-home preview
+            </p>
+            <ul className="space-y-0.5">
+              <li className="flex justify-between">
+                <span className="text-muted-foreground">Client pays</span>
+                <span className="font-mono tabular-nums">
+                  {formatCurrency(installmentTotal, currency)}
+                </span>
+              </li>
+              <li className="flex justify-between">
+                <span className="text-muted-foreground">
+                  Platform fee ({PLANNER_FORM_DEFAULT_FEE_PCT}%)
+                </span>
+                <span className="font-mono tabular-nums text-foreground/70">
+                  − {formatCurrency(feeAmount, currency)}
+                </span>
+              </li>
+              <li className="flex justify-between border-t border-rose-100/60 pt-1 font-medium">
+                <span>Your take-home</span>
+                <span className="font-mono tabular-nums">
+                  {formatCurrency(takeHome, currency)}
+                </span>
+              </li>
+            </ul>
+          </div>
+        )}
       </div>
 
       <div className="flex justify-end gap-2 pt-2">

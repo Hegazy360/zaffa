@@ -11,6 +11,8 @@ import {
   Home,
   MessageSquare,
   Settings,
+  ShieldCheck,
+  Wallet,
   Wand2,
   Users,
   Briefcase,
@@ -80,6 +82,11 @@ const roleLinks: Record<UserRole, NavLink[]> = {
       icon: MessageSquare,
     },
     {
+      href: "/dashboard/planner/earnings",
+      label: "Earnings",
+      icon: Wallet,
+    },
+    {
       href: "/dashboard/planner/portfolio",
       label: "Portfolio",
       icon: ImageIcon,
@@ -113,12 +120,26 @@ const roleLinks: Record<UserRole, NavLink[]> = {
       icon: Settings,
     },
   ],
+  admin: [
+    { href: "/dashboard/admin", label: "Overview", icon: Home },
+    {
+      href: "/dashboard/admin/payouts",
+      label: "Payouts",
+      icon: Wallet,
+    },
+    {
+      href: "/dashboard/admin/audit",
+      label: "Audit",
+      icon: ShieldCheck,
+    },
+  ],
 };
 
 const roleEyebrow: Record<UserRole, string> = {
   client: "Your atelier",
   planner: "Atelier console",
   vendor: "Vendor console",
+  admin: "Operations console",
 };
 
 function isLinkActive(pathname: string | null, link: NavLink): boolean {
@@ -130,7 +151,8 @@ function isLinkActive(pathname: string | null, link: NavLink): boolean {
   const isRoleRoot =
     link.href === "/dashboard/client" ||
     link.href === "/dashboard/planner" ||
-    link.href === "/dashboard/vendor";
+    link.href === "/dashboard/vendor" ||
+    link.href === "/dashboard/admin";
   if (!isRoleRoot && pathname.startsWith(link.href + "/")) return true;
   if (link.match?.some((prefix) => pathname.startsWith(prefix))) return true;
   return false;

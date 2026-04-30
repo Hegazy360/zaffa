@@ -13,6 +13,7 @@ enum UserRole {
   client
   planner
   vendor
+  admin
 }
 
 enum EventType {
@@ -56,9 +57,36 @@ enum BookingStatus {
 
 enum PaymentStatus {
   pending
+  awaiting_payment
+  processing
   paid
+  failed
+  refunded
   overdue
   cancelled
+}
+
+enum PaymentScheduleStatus {
+  draft
+  proposed
+  active
+  amended
+  completed
+  cancelled
+}
+
+enum AmendmentStatus {
+  pending
+  accepted
+  rejected
+  withdrawn
+}
+
+enum PayoutMethod {
+  instapay
+  wire
+  cash
+  other
 }
 
 enum ProposalStatus {
@@ -102,12 +130,14 @@ model PlannerProfile {
   created_at    DateTime                    @default(now())
   updated_at    DateTime                    @updatedAt
 
-  profile         Profile         @relation(fields: [user_id], references: [id], onDelete: Cascade)
-  events          Event[]         @relation("PlannerEvents")
-  portfolio_items PortfolioItem[]
-  reviews         Review[]
-  proposals       Proposal[]
-  blocks          PlannerBlock[]
+  profile            Profile           @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  events             Event[]           @relation("PlannerEvents")
+  portfolio_items    PortfolioItem[]
+  reviews            Review[]
+  proposals          Proposal[]
+  blocks             PlannerBlock[]
+  payment_schedules  PaymentSchedule[]
+  payouts            Payout[]
 
   @@map("planner_profiles")
 }
@@ -159,14 +189,15 @@ model Event {
   created_at         DateTime    @default(now())
   updated_at         DateTime    @updatedAt
 
-  client    Profile         @relation("ClientEvents", fields: [client_id], references: [id], onDelete: Cascade)
-  planner   PlannerProfile? @relation("PlannerEvents", fields: [planner_id], references: [id])
-  vendors   EventVendor[]
-  messages  Message[]
-  designs   VenueDesign[]
-  payments  Payment[]
-  proposals Proposal[]
-  reviews   Review[]
+  client             Profile           @relation("ClientEvents", fields: [client_id], references: [id], onDelete: Cascade)
+  planner            PlannerProfile?   @relation("PlannerEvents", fields: [planner_id], references: [id])
+  vendors            EventVendor[]
+  messages           Message[]
+  designs            VenueDesign[]
+  payments           Payment[]
+  proposals          Proposal[]
+  reviews            Review[]
+  payment_schedules  PaymentSchedule[]
 
   @@map("events")
 }
@@ -315,22 +346,115 @@ model VenueDesignMedia {
 }
 
 model Payment {
-  id         String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  event_id   String        @db.Uuid
-  label      String
-  amount     Decimal       @db.Decimal(10, 2)
-  currency   String        @default("EGP")
-  status     PaymentStatus @default(pending)
-  due_date   DateTime?
-  paid_at    DateTime?
-  notes      String?
-  created_at DateTime      @default(now())
-  updated_at DateTime      @updatedAt
+  id          String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  event_id    String        @db.Uuid
+  // Nullable so legacy manual ledger rows still load. New rows created from
+  // a PaymentSchedule always reference a schedule.
+  schedule_id String?       @db.Uuid
+  label       String
+  amount      Decimal       @db.Decimal(10, 2)
+  currency    String        @default("EGP")
+  status      PaymentStatus @default(pending)
+  due_date    DateTime?
+  paid_at     DateTime?
+  notes       String?
 
-  event Event @relation(fields: [event_id], references: [id], onDelete: Cascade)
+  // Stripe linkage. All nullable until the client opens a Checkout session.
+  stripe_checkout_session_id String?
+  stripe_payment_intent_id   String?
+  stripe_charge_id           String?
+  stripe_refund_id           String?
+
+  // Cached at capture time so we don't recompute on every read and so the
+  // amounts are stable even if the schedule's fee_pct changes later.
+  platform_fee_amount    Decimal? @db.Decimal(10, 2)
+  net_to_planner_amount  Decimal? @db.Decimal(10, 2)
+
+  // Set when an admin records a Payout that includes this installment.
+  payout_id String? @db.Uuid
+
+  // Dispute flag set by the charge.dispute.created webhook.
+  disputed_at DateTime?
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  event    Event             @relation(fields: [event_id], references: [id], onDelete: Cascade)
+  schedule PaymentSchedule?  @relation(fields: [schedule_id], references: [id], onDelete: SetNull)
+  payout   Payout?           @relation(fields: [payout_id], references: [id], onDelete: SetNull)
 
   @@index([event_id])
+  @@index([schedule_id])
+  @@index([payout_id])
   @@map("payments")
+}
+
+model PaymentSchedule {
+  id               String                @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  event_id         String                @db.Uuid
+  proposal_id      String                @db.Uuid
+  planner_id       String                @db.Uuid
+  client_id        String                @db.Uuid
+  currency         String                @default("EGP")
+  total_amount     Decimal               @db.Decimal(12, 2)
+  platform_fee_pct Decimal               @default(8.0) @db.Decimal(5, 2)
+  status           PaymentScheduleStatus @default(draft)
+  accepted_at      DateTime?
+  cancelled_at     DateTime?
+  created_at       DateTime              @default(now())
+  updated_at       DateTime              @updatedAt
+
+  event        Event                @relation(fields: [event_id], references: [id], onDelete: Cascade)
+  proposal     Proposal             @relation(fields: [proposal_id], references: [id], onDelete: Cascade)
+  planner      PlannerProfile       @relation(fields: [planner_id], references: [id], onDelete: Cascade)
+  installments Payment[]
+  amendments   ScheduleAmendment[]
+
+  @@index([event_id])
+  @@index([planner_id])
+  @@index([proposal_id])
+  @@map("payment_schedules")
+}
+
+model ScheduleAmendment {
+  id                     String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  schedule_id            String          @db.Uuid
+  requested_by_user_id   String          @db.Uuid
+  // Snapshot of the proposed not-yet-paid installments. Shape:
+  // [{ label: string, amount: number, due_date: string | null }]
+  proposed_installments  Json
+  proposed_total         Decimal         @db.Decimal(12, 2)
+  proposed_fee_pct       Decimal?        @db.Decimal(5, 2)
+  reason                 String?
+  status                 AmendmentStatus @default(pending)
+  decided_at             DateTime?
+  decided_by_user_id     String?         @db.Uuid
+  created_at             DateTime        @default(now())
+  updated_at             DateTime        @updatedAt
+
+  schedule PaymentSchedule @relation(fields: [schedule_id], references: [id], onDelete: Cascade)
+
+  @@index([schedule_id, status])
+  @@map("schedule_amendments")
+}
+
+model Payout {
+  id                  String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  planner_id          String       @db.Uuid
+  currency            String       @default("EGP")
+  amount              Decimal      @db.Decimal(12, 2)
+  method              PayoutMethod @default(instapay)
+  reference           String?
+  notes               String?
+  paid_at             DateTime
+  recorded_by_user_id String       @db.Uuid
+  created_at          DateTime     @default(now())
+
+  planner      PlannerProfile @relation(fields: [planner_id], references: [id], onDelete: Cascade)
+  installments Payment[]
+
+  @@index([planner_id, paid_at])
+  @@map("payouts")
 }
 
 model Proposal {
@@ -349,8 +473,9 @@ model Proposal {
   created_at      DateTime       @default(now())
   updated_at      DateTime       @updatedAt
 
-  event   Event          @relation(fields: [event_id], references: [id], onDelete: Cascade)
-  planner PlannerProfile @relation(fields: [planner_id], references: [id], onDelete: Cascade)
+  event              Event             @relation(fields: [event_id], references: [id], onDelete: Cascade)
+  planner            PlannerProfile    @relation(fields: [planner_id], references: [id], onDelete: Cascade)
+  payment_schedules  PaymentSchedule[]
 
   @@unique([event_id, planner_id])
   @@index([planner_id, status])
