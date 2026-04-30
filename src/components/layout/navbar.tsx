@@ -16,6 +16,7 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
@@ -112,16 +113,19 @@ export function Navbar() {
                 sideOffset={10}
                 className="min-w-60 p-1.5"
               >
-                <DropdownMenuLabel className="px-2 py-2">
-                  <p className="text-sm leading-tight font-medium">
-                    {displayName || "Your account"}
-                  </p>
-                  {user.email && displayName !== user.email && (
-                    <p className="mt-0.5 truncate text-xs text-muted-foreground">
-                      {user.email}
+                {/* Base UI requires GroupLabel to live inside a Group. */}
+                <DropdownMenuGroup>
+                  <DropdownMenuLabel className="px-2 py-2">
+                    <p className="text-sm leading-tight font-medium">
+                      {displayName || "Your account"}
                     </p>
-                  )}
-                </DropdownMenuLabel>
+                    {user.email && displayName !== user.email && (
+                      <p className="mt-0.5 truncate text-xs text-muted-foreground">
+                        {user.email}
+                      </p>
+                    )}
+                  </DropdownMenuLabel>
+                </DropdownMenuGroup>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
                   onClick={() => router.push("/dashboard")}
