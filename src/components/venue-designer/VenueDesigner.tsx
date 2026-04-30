@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
+import { motion, useReducedMotion } from "framer-motion";
 import { trpc } from "@/lib/trpc";
 import { useVenueDesignerStore } from "@/stores/venue-designer-store";
 import {
@@ -20,6 +21,14 @@ import { PaletteCard } from "./dashboard/PaletteCard";
 import { ReferenceCategoryCard } from "./dashboard/ReferenceCategoryCard";
 import { StyleNotesCard } from "./dashboard/StyleNotesCard";
 import { GenerateRenderPanel } from "./dashboard/GenerateRenderPanel";
+import {
+  DesignerStepper,
+  StepHeading,
+  StepNavFooter,
+  STEP_IDS,
+  useDesignerStep,
+  type StepId,
+} from "./dashboard/DesignerStepper";
 
 interface VenueDesignerProps {
   designId?: string;
@@ -192,55 +201,131 @@ export function VenueDesigner({ designId }: VenueDesignerProps) {
   }
 
   return (
-    <div className="min-h-screen w-full bg-muted/30">
-      <div className="sticky top-0 z-30 border-b bg-background/80 px-4 py-2 backdrop-blur-md">
-        <div className="mx-auto max-w-5xl">
+    <DesignerLayout
+      name={name}
+      onNameChange={setName}
+      onSave={doSave}
+      saving={saveMutation.isPending}
+      saveStatus={saveStatus}
+      designId={currentId}
+    />
+  );
+}
+
+interface DesignerLayoutProps {
+  name: string;
+  onNameChange: (name: string) => void;
+  onSave: () => void;
+  saving: boolean;
+  saveStatus: "saved" | "saving" | "unsaved";
+  designId?: string;
+}
+
+function DesignerLayout({
+  name,
+  onNameChange,
+  onSave,
+  saving,
+  saveStatus,
+  designId,
+}: DesignerLayoutProps) {
+  const { activeStep, goToStep } = useDesignerStep();
+  const stepIndex = STEP_IDS.indexOf(activeStep);
+  const reduceMotion = useReducedMotion();
+
+  return (
+    <div className="relative isolate min-h-screen w-full overflow-x-hidden bg-gradient-to-b from-rose-50/50 via-background to-background dark:from-rose-950/15">
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 grain-bg opacity-50"
+      />
+      <div
+        aria-hidden
+        className="pointer-events-none absolute -top-40 left-1/2 -z-10 h-[28rem] w-[28rem] -translate-x-1/2 rounded-full bg-gradient-to-br from-rose-200/30 to-amber-200/20 blur-3xl dark:from-rose-900/15 dark:to-amber-900/10"
+      />
+
+      {/* Sticky compact header */}
+      <div className="sticky top-0 z-30 border-b border-border/60 bg-background/70 backdrop-blur-md">
+        <div className="mx-auto max-w-5xl px-4 py-2">
           <DesignerHeader
             name={name}
-            onNameChange={setName}
-            onSave={doSave}
-            saving={saveMutation.isPending}
+            onNameChange={onNameChange}
+            onSave={onSave}
+            saving={saving}
             saveStatus={saveStatus}
-            designId={currentId}
+            designId={designId}
           />
         </div>
       </div>
 
-      <div className="mx-auto grid max-w-5xl gap-5 px-4 py-6">
-        <div className="space-y-1">
-          <h1 className="text-2xl font-semibold tracking-tight">
-            Design your event
-          </h1>
-          <p className="text-sm text-muted-foreground">
-            Tell us the basics, pick a palette, and gather inspiration for each
-            part of your venue. We&apos;ll bring it all together into a single
-            photoreal render.
-          </p>
+      <DesignerStepper activeStep={activeStep} onStepChange={goToStep} />
+
+      <motion.main
+        key={activeStep}
+        initial={reduceMotion ? false : { opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+        id="step-body"
+        className={cnStepBody}
+      >
+        <StepHeading
+          step={activeStep}
+          index={stepIndex}
+          total={STEP_IDS.length}
+        />
+
+        <div className="mt-2">
+          <StepBody step={activeStep} designId={designId} />
         </div>
 
-        <div className="grid gap-5 lg:grid-cols-2">
-          <EventBasicsCard />
-          <PaletteCard />
-        </div>
-
-        <div className="space-y-1 pt-2">
-          <h2 className="text-base font-medium">Inspiration</h2>
-          <p className="text-sm text-muted-foreground">
-            Add up to 3 reference photos per category. Pick from our curated
-            gallery or upload your own.
-          </p>
-        </div>
-
-        <div className="grid gap-5">
-          {REFERENCE_CATEGORIES.map((cat) => (
-            <ReferenceCategoryCard key={cat} category={cat} />
-          ))}
-        </div>
-
-        <StyleNotesCard />
-
-        <GenerateRenderPanel designId={currentId} />
-      </div>
+        <StepNavFooter step={activeStep} onStepChange={goToStep} />
+      </motion.main>
     </div>
   );
+}
+
+// Tailwind class string for the step body container. The selectors lightly
+// override the default shadcn Card chrome so each step's card feels integrated
+// with the editorial frame: softer corners, hairline ring, warm rose-tinted
+// shadow, and a translucent backdrop that picks up the page gradient.
+const cnStepBody = [
+  "mx-auto flex w-full max-w-3xl flex-col gap-8 px-4 pb-24 sm:px-6",
+  "[&_[data-slot=card]]:rounded-2xl",
+  "[&_[data-slot=card]]:bg-card/85",
+  "[&_[data-slot=card]]:backdrop-blur-sm",
+  "[&_[data-slot=card]]:ring-foreground/[0.06]",
+  "[&_[data-slot=card]]:shadow-[0_12px_40px_-18px_rgba(244,63,94,0.18)]",
+  "[&_[data-slot=card]]:py-6",
+  "[&_[data-slot=card-header]]:px-5",
+  "sm:[&_[data-slot=card-header]]:px-7",
+  "[&_[data-slot=card-content]]:px-5",
+  "sm:[&_[data-slot=card-content]]:px-7",
+].join(" ");
+
+interface StepBodyProps {
+  step: StepId;
+  designId?: string;
+}
+
+function StepBody({ step, designId }: StepBodyProps) {
+  switch (step) {
+    case "basics":
+      return <EventBasicsCard />;
+    case "palette":
+      return <PaletteCard />;
+    case "vibe":
+      return <ReferenceCategoryCard category="overall_vibe" />;
+    case "tables":
+      return <ReferenceCategoryCard category="tables" />;
+    case "florals":
+      return <ReferenceCategoryCard category="flowers" />;
+    case "lighting":
+      return <ReferenceCategoryCard category="lighting" />;
+    case "decor":
+      return <ReferenceCategoryCard category="venue_decor" />;
+    case "notes":
+      return <StyleNotesCard />;
+    case "generate":
+      return <GenerateRenderPanel designId={designId} />;
+  }
 }
