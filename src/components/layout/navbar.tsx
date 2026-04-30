@@ -25,10 +25,6 @@ import { createClient } from "@/lib/supabase/client";
 import type { User as SupabaseUser } from "@supabase/supabase-js";
 import { cn } from "@/lib/utils";
 
-const navLinks = [
-  { href: "/venue-designer", label: "Venue Designer", icon: Wand2 },
-];
-
 function isActiveRoute(pathname: string | null, href: string): boolean {
   if (!pathname) return false;
   if (href === "/") return pathname === "/";
@@ -89,34 +85,18 @@ export function Navbar() {
           </span>
         </Link>
 
-        <nav className="hidden items-center gap-1 md:flex">
-          {navLinks.map((link) => {
-            const active = isActiveRoute(pathname, link.href);
-            return (
-              <Link
-                key={link.href}
-                href={link.href}
-                className={cn(
-                  "relative inline-flex h-9 items-center rounded-full px-3 text-sm tracking-wide transition-colors",
-                  active
-                    ? "font-medium text-foreground"
-                    : "font-medium text-muted-foreground hover:text-foreground"
-                )}
-              >
-                {link.label}
-                {active && (
-                  <span
-                    aria-hidden
-                    className="absolute -bottom-px left-1/2 h-px w-6 -translate-x-1/2 bg-gradient-to-r from-rose-500 to-amber-500"
-                  />
-                )}
-              </Link>
-            );
-          })}
-        </nav>
+        {/* Desktop auth area — single primary CTA points at the venue designer
+            (the only product surface), with sign-in/avatar alongside. */}
+        <div className="hidden items-center gap-3 md:flex">
+          <Button
+            render={<Link href="/venue-designer" />}
+            className="group gap-2 bg-gradient-to-r from-rose-600 to-amber-500 text-white shadow-md shadow-rose-600/20 hover:opacity-90 hover:shadow-rose-600/30"
+          >
+            <Wand2 className="h-4 w-4" />
+            Start designing
+            <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+          </Button>
 
-        {/* Desktop auth area */}
-        <div className="hidden items-center gap-2 md:flex">
           {loading ? (
             <div className="h-10 w-10 animate-pulse rounded-full bg-muted" />
           ) : user ? (
@@ -168,22 +148,13 @@ export function Navbar() {
               </DropdownMenuContent>
             </DropdownMenu>
           ) : (
-            <>
-              <Button
-                variant="ghost"
-                render={<Link href="/auth/signin" />}
-                className="text-sm"
-              >
-                Sign In
-              </Button>
-              <Button
-                render={<Link href="/auth/signup" />}
-                className="gap-2 bg-gradient-to-r from-rose-600 to-amber-500 text-white shadow-md shadow-rose-600/20 hover:opacity-90 hover:shadow-rose-600/30"
-              >
-                Get Started
-                <ArrowRight className="h-4 w-4" />
-              </Button>
-            </>
+            <Button
+              variant="ghost"
+              render={<Link href="/auth/signin" />}
+              className="text-sm text-muted-foreground hover:text-foreground"
+            >
+              Sign in
+            </Button>
           )}
         </div>
 
@@ -235,45 +206,38 @@ export function Navbar() {
               )}
             </div>
 
-            {/* Nav links */}
-            <nav className="flex-1 px-3 py-4">
-              <div className="space-y-1">
-                {user && (
+            {/* Primary CTA + (signed-in) dashboard shortcut */}
+            <nav className="flex-1 px-4 py-5">
+              <Button
+                render={
                   <Link
-                    href="/dashboard"
+                    href="/venue-designer"
                     onClick={() => setOpen(false)}
-                    className={cn(
-                      "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
-                      isActiveRoute(pathname, "/dashboard")
-                        ? "bg-rose-50 text-rose-700 dark:bg-rose-950/40 dark:text-rose-200"
-                        : "bg-accent/40 text-foreground hover:bg-accent"
-                    )}
-                  >
-                    <LayoutDashboard className="h-4 w-4" />
-                    Dashboard
-                  </Link>
-                )}
-                {navLinks.map((link) => {
-                  const Icon = link.icon;
-                  const active = isActiveRoute(pathname, link.href);
-                  return (
-                    <Link
-                      key={link.href}
-                      href={link.href}
-                      onClick={() => setOpen(false)}
-                      className={cn(
-                        "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
-                        active
-                          ? "bg-rose-50 text-rose-700 dark:bg-rose-950/40 dark:text-rose-200"
-                          : "text-muted-foreground hover:bg-accent hover:text-foreground"
-                      )}
-                    >
-                      <Icon className="h-4 w-4" />
-                      {link.label}
-                    </Link>
-                  );
-                })}
-              </div>
+                  />
+                }
+                size="lg"
+                className="group w-full justify-center gap-2 bg-gradient-to-r from-rose-600 to-amber-500 text-white shadow-md shadow-rose-600/20 hover:opacity-90"
+              >
+                <Wand2 className="h-4 w-4" />
+                Start designing
+                <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+              </Button>
+
+              {user && (
+                <Link
+                  href="/dashboard"
+                  onClick={() => setOpen(false)}
+                  className={cn(
+                    "mt-3 flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
+                    isActiveRoute(pathname, "/dashboard")
+                      ? "bg-rose-50 text-rose-700 dark:bg-rose-950/40 dark:text-rose-200"
+                      : "bg-accent/40 text-foreground hover:bg-accent"
+                  )}
+                >
+                  <LayoutDashboard className="h-4 w-4" />
+                  Dashboard
+                </Link>
+              )}
             </nav>
 
             {/* Auth section */}
@@ -289,35 +253,20 @@ export function Navbar() {
                   Sign Out
                 </Button>
               ) : (
-                <>
-                  <Button
-                    variant="outline"
-                    render={
-                      <Link
-                        href="/auth/signin"
-                        onClick={() => setOpen(false)}
-                      />
-                    }
-                    className="w-full justify-center gap-2"
-                    size="lg"
-                  >
-                    <LogIn className="h-4 w-4" />
-                    Sign In
-                  </Button>
-                  <Button
-                    render={
-                      <Link
-                        href="/auth/signup"
-                        onClick={() => setOpen(false)}
-                      />
-                    }
-                    className="w-full justify-center gap-2 bg-gradient-to-r from-rose-600 to-amber-500 text-white shadow-md shadow-rose-600/20 hover:opacity-90"
-                    size="lg"
-                  >
-                    Get Started
-                    <ArrowRight className="h-4 w-4" />
-                  </Button>
-                </>
+                <Button
+                  variant="outline"
+                  render={
+                    <Link
+                      href="/auth/signin"
+                      onClick={() => setOpen(false)}
+                    />
+                  }
+                  className="w-full justify-center gap-2"
+                  size="lg"
+                >
+                  <LogIn className="h-4 w-4" />
+                  Sign in
+                </Button>
               )}
             </div>
           </SheetContent>
