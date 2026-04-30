@@ -1,7 +1,7 @@
 "use client";
 
 import { motion, useReducedMotion, type Variants } from "framer-motion";
-import { type ReactNode } from "react";
+import { type ReactNode, Fragment } from "react";
 
 interface SplitTextProps {
   children: string;
@@ -22,12 +22,15 @@ const container = (delay: number, stagger: number): Variants => ({
   },
 });
 
+// Subtle rise + fade. Avoids clipping descenders/italic strokes — the previous
+// implementation wrapped each char in `overflow:hidden`, which cut italic
+// letters and any descender, and word-margins got eaten by `text-balance`.
 const child: Variants = {
-  hidden: { y: "110%", opacity: 0 },
+  hidden: { y: "0.4em", opacity: 0 },
   visible: {
     y: 0,
     opacity: 1,
-    transition: { duration: 0.8, ease: [0.16, 1, 0.3, 1] },
+    transition: { duration: 0.7, ease: [0.16, 1, 0.3, 1] },
   },
 };
 
@@ -43,6 +46,8 @@ export function SplitText({
 
   if (reduce) return <span className={className}>{children}</span>;
 
+  // Split into words while preserving the spaces as plain text nodes so the
+  // browser can wrap, kern, and balance lines naturally.
   const words = children.split(" ");
 
   return (
@@ -52,25 +57,25 @@ export function SplitText({
       initial="hidden"
       whileInView="visible"
       viewport={{ once, margin: "-10% 0px" }}
-      style={{ display: "inline-block" }}
+      // `inline` (not inline-block) so `text-balance` and word-wrap behave.
+      style={{ display: "inline" }}
     >
       {words.map((word, wIndex) => (
-        <span
-          key={wIndex}
-          style={{
-            display: "inline-block",
-            whiteSpace: "nowrap",
-            marginRight: wIndex < words.length - 1 ? "0.25em" : 0,
-          }}
-        >
+        <Fragment key={wIndex}>
           {by === "word" ? (
             <Token>{word}</Token>
           ) : (
-            word.split("").map((ch, i) => (
-              <Token key={i}>{ch}</Token>
-            ))
+            // Wrap word characters in a nowrap span so a single word never
+            // breaks across lines mid-letter, but the inter-word space stays
+            // a real space the browser can collapse / break on.
+            <span style={{ whiteSpace: "nowrap" }}>
+              {word.split("").map((ch, i) => (
+                <Token key={i}>{ch}</Token>
+              ))}
+            </span>
           )}
-        </span>
+          {wIndex < words.length - 1 ? " " : null}
+        </Fragment>
       ))}
     </motion.span>
   );
@@ -78,17 +83,8 @@ export function SplitText({
 
 function Token({ children }: { children: ReactNode }) {
   return (
-    <span
-      style={{
-        display: "inline-block",
-        overflow: "hidden",
-        verticalAlign: "top",
-        lineHeight: "inherit",
-      }}
-    >
-      <motion.span variants={child} style={{ display: "inline-block" }}>
-        {children}
-      </motion.span>
-    </span>
+    <motion.span variants={child} style={{ display: "inline-block" }}>
+      {children}
+    </motion.span>
   );
 }

@@ -8,13 +8,19 @@ import { ArrowRight, Sparkles, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useParallax } from "./parallax";
 
+// All three intentionally hold the cream/petal/rose/amber palette so the hero
+// reads as one editorial composition, not three unrelated stock photos.
+// Pinterest `originals/` URLs give us higher quality and more curatorial weight.
 const HERO_IMAGES = {
+  // Romantic alfresco outdoor reception — the kind of room we'd design (Pinterest)
   primary:
-    "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=1400&q=80",
+    "https://i.pinimg.com/originals/c1/c7/e8/c1c7e8c387cdadcc45d435e716de3e97.jpg",
+  // Detail — peony centerpieces in dreamy cream and rose (Pinterest)
   secondary:
-    "https://images.unsplash.com/photo-1465495976277-4387d4b0b4c6?auto=format&fit=crop&w=900&q=80",
+    "https://i.pinimg.com/originals/c8/bb/ac/c8bbac4ac8efcc2c900329576a626fd1.jpg",
+  // Outdoor warm tablescape lit by hundreds of candles (Pinterest)
   tertiary:
-    "https://images.unsplash.com/photo-1530103862676-de8c9debad1d?auto=format&fit=crop&w=900&q=80",
+    "https://i.pinimg.com/originals/9a/0b/ab/9a0bab0c6488a9e5c08e586622a3578f.jpg",
 } as const;
 
 export function HeroEditorial() {
@@ -151,7 +157,7 @@ export function HeroEditorial() {
             >
               <Image
                 src={HERO_IMAGES.primary}
-                alt="An elegant rose and eucalyptus centerpiece on a candlelit table"
+                alt="A romantic alfresco wedding reception in cream and rose tones"
                 fill
                 sizes="(min-width: 1024px) 40vw, 90vw"
                 priority
@@ -166,7 +172,7 @@ export function HeroEditorial() {
             >
               <Image
                 src={HERO_IMAGES.secondary}
-                alt="Bohemian outdoor ceremony"
+                alt="A dreamy peony centerpiece in cream and rose tones"
                 fill
                 sizes="200px"
                 className="object-cover"
@@ -179,7 +185,7 @@ export function HeroEditorial() {
             >
               <Image
                 src={HERO_IMAGES.tertiary}
-                alt="Romantic candlelit reception"
+                alt="A warm outdoor tablescape lit by hundreds of candles"
                 fill
                 sizes="220px"
                 className="object-cover"
@@ -214,15 +220,14 @@ export function HeroEditorial() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 1.4, duration: 0.6 }}
-          className="pointer-events-none absolute bottom-6 left-1/2 hidden -translate-x-1/2 lg:block"
+          className="pointer-events-none absolute bottom-8 left-1/2 hidden -translate-x-1/2 flex-col items-center gap-2 text-[0.65rem] uppercase tracking-[0.3em] text-muted-foreground lg:flex"
         >
-          <div className="flex h-9 w-6 items-start justify-center rounded-full border border-foreground/30">
-            <motion.div
-              animate={{ y: [4, 14, 4] }}
-              transition={{ duration: 1.6, repeat: Infinity, ease: "easeInOut" }}
-              className="mt-1.5 h-1.5 w-1 rounded-full bg-foreground/50"
-            />
-          </div>
+          <span>See how it works</span>
+          <motion.span
+            animate={{ y: [0, 6, 0] }}
+            transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
+            className="block h-6 w-px bg-gradient-to-b from-rose-500/60 to-transparent"
+          />
         </motion.div>
       )}
     </section>

@@ -1,11 +1,9 @@
 import { Navbar } from "@/components/layout/navbar";
 import { Footer } from "@/components/layout/footer";
 import { HeroEditorial } from "@/components/home/hero-editorial";
-import { SocialProofMarquee } from "@/components/home/social-proof-marquee";
+import { ScrollyDemo } from "@/components/home/scrolly-demo";
 import { EditorialReel } from "@/components/home/editorial-reel";
-import { QuoteTheater } from "@/components/home/quote-theater";
-import { StatsBand } from "@/components/home/stats-band";
-import { Contact } from "@/components/home/contact";
+import { BeginSection } from "@/components/home/begin-section";
 
 export default function HomePage() {
   return (
@@ -13,12 +11,17 @@ export default function HomePage() {
       <Navbar />
 
       <main className="flex-1">
+        {/* Act I — The promise */}
         <HeroEditorial />
-        <SocialProofMarquee />
+
+        {/* Act II — The atelier (centerpiece) */}
+        <ScrollyDemo />
+
+        {/* Act III — The proof */}
         <EditorialReel />
-        <QuoteTheater />
-        <StatsBand />
-        <Contact />
+
+        {/* Act IV — Begin */}
+        <BeginSection />
       </main>
 
       <Footer />
