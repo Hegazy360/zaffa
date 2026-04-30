@@ -59,6 +59,7 @@ export function EventBasicsCard() {
         <div className="space-y-1.5">
           <Label htmlFor="event-type">Event type</Label>
           <Select
+            items={EVENT_TYPES}
             value={eventType}
             onValueChange={(v) => v && setEventType(v as EventType)}
           >

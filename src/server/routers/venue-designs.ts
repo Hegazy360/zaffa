@@ -47,9 +47,19 @@ export const venueDesignsRouter = router({
         event_type: true,
         setting: true,
         size: true,
+        palette: true,
         thumbnail: true,
         updated_at: true,
         _count: { select: { media: true } },
+        // Latest generated render for this design — used as the card hero
+        // thumbnail. We filter to "render" because videos can't be cheaply
+        // poster-extracted on the server.
+        media: {
+          where: { type: "render" },
+          orderBy: { created_at: "desc" },
+          take: 1,
+          select: { url: true },
+        },
       },
     });
   }),
