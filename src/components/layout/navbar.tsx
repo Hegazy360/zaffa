@@ -1,36 +1,46 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { Button } from "@/components/ui/button";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { usePathname, useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 import {
   Menu,
-  Compass,
-  CalendarHeart,
-  Store,
   Wand2,
   LogIn,
   LogOut,
   ArrowRight,
   LayoutDashboard,
 } from "lucide-react";
-import { useState, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { createClient } from "@/lib/supabase/client";
 import type { User as SupabaseUser } from "@supabase/supabase-js";
+import { cn } from "@/lib/utils";
 
 const navLinks = [
-  { href: "/explore", label: "Explore", icon: Compass },
-  { href: "/planners", label: "Planners", icon: CalendarHeart },
-  { href: "/vendors", label: "Vendors", icon: Store },
   { href: "/venue-designer", label: "Venue Designer", icon: Wand2 },
 ];
+
+function isActiveRoute(pathname: string | null, href: string): boolean {
+  if (!pathname) return false;
+  if (href === "/") return pathname === "/";
+  return pathname === href || pathname.startsWith(href + "/");
+}
 
 export function Navbar() {
   const [open, setOpen] = useState(false);
   const [user, setUser] = useState<SupabaseUser | null>(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
+  const pathname = usePathname();
   const supabase = createClient();
 
   useEffect(() => {
@@ -64,66 +74,114 @@ export function Navbar() {
     (user?.user_metadata?.full_name as string) ?? user?.email ?? "";
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container flex h-16 items-center justify-between px-4 mx-auto max-w-7xl">
-        <Link href="/" className="flex items-center gap-2">
-          <span className="text-2xl font-bold tracking-tight bg-gradient-to-r from-rose-600 to-amber-500 bg-clip-text text-transparent">
+    <header className="sticky top-0 z-50 w-full border-b border-border/60 bg-background/70 backdrop-blur-xl supports-[backdrop-filter]:bg-background/55">
+      <div className="container mx-auto flex h-16 max-w-7xl items-center justify-between gap-6 px-4">
+        <Link
+          href="/"
+          className="group flex items-center gap-2"
+          aria-label="Zaffa home"
+        >
+          <span className="font-display bg-gradient-to-br from-rose-600 via-rose-500 to-amber-500 bg-clip-text text-2xl font-light italic tracking-tight text-transparent transition-opacity group-hover:opacity-90">
             Zaffa
           </span>
-          <span className="text-sm text-muted-foreground hidden sm:inline">
+          <span className="font-arabic hidden text-sm text-muted-foreground sm:inline">
             زفّة
           </span>
         </Link>
 
-        <nav className="hidden md:flex items-center gap-6">
-          {navLinks.map((link) => (
-            <Link
-              key={link.href}
-              href={link.href}
-              className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
-            >
-              {link.label}
-            </Link>
-          ))}
+        <nav className="hidden items-center gap-1 md:flex">
+          {navLinks.map((link) => {
+            const active = isActiveRoute(pathname, link.href);
+            return (
+              <Link
+                key={link.href}
+                href={link.href}
+                className={cn(
+                  "relative inline-flex h-9 items-center rounded-full px-3 text-sm tracking-wide transition-colors",
+                  active
+                    ? "font-medium text-foreground"
+                    : "font-medium text-muted-foreground hover:text-foreground"
+                )}
+              >
+                {link.label}
+                {active && (
+                  <span
+                    aria-hidden
+                    className="absolute -bottom-px left-1/2 h-px w-6 -translate-x-1/2 bg-gradient-to-r from-rose-500 to-amber-500"
+                  />
+                )}
+              </Link>
+            );
+          })}
         </nav>
 
         {/* Desktop auth area */}
-        <div className="hidden md:flex items-center gap-3">
+        <div className="hidden items-center gap-2 md:flex">
           {loading ? (
-            <div className="h-8 w-20 animate-pulse rounded-lg bg-muted" />
+            <div className="h-10 w-10 animate-pulse rounded-full bg-muted" />
           ) : user ? (
+            <DropdownMenu>
+              <DropdownMenuTrigger
+                aria-label="Account menu"
+                className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-rose-600 to-amber-500 text-sm font-semibold text-white shadow-sm shadow-rose-600/20 ring-2 ring-transparent transition-all hover:shadow-md hover:shadow-rose-600/30 hover:ring-rose-200 focus-visible:ring-rose-300 focus-visible:outline-none dark:hover:ring-rose-900/60"
+              >
+                {userInitial}
+              </DropdownMenuTrigger>
+              <DropdownMenuContent
+                align="end"
+                sideOffset={10}
+                className="min-w-60 p-1.5"
+              >
+                <DropdownMenuLabel className="px-2 py-2">
+                  <p className="text-sm leading-tight font-medium">
+                    {displayName || "Your account"}
+                  </p>
+                  {user.email && displayName !== user.email && (
+                    <p className="mt-0.5 truncate text-xs text-muted-foreground">
+                      {user.email}
+                    </p>
+                  )}
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  onClick={() => router.push("/dashboard")}
+                  className="gap-2 px-2 py-2"
+                >
+                  <LayoutDashboard className="h-4 w-4" />
+                  Dashboard
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => router.push("/venue-designer")}
+                  className="gap-2 px-2 py-2"
+                >
+                  <Wand2 className="h-4 w-4" />
+                  My designs
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  onClick={handleSignOut}
+                  className="gap-2 px-2 py-2"
+                >
+                  <LogOut className="h-4 w-4" />
+                  Sign Out
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : (
             <>
               <Button
                 variant="ghost"
-                render={<Link href="/dashboard" />}
-                className="gap-2"
+                render={<Link href="/auth/signin" />}
+                className="text-sm"
               >
-                <LayoutDashboard className="h-4 w-4" />
-                Dashboard
-              </Button>
-              <button
-                onClick={handleSignOut}
-                className="inline-flex items-center justify-center rounded-lg px-3 h-8 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-              >
-                Sign Out
-              </button>
-              <Link
-                href="/dashboard"
-                className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-r from-rose-600 to-amber-500 text-xs font-semibold text-white"
-              >
-                {userInitial}
-              </Link>
-            </>
-          ) : (
-            <>
-              <Button variant="ghost" render={<Link href="/auth/signin" />}>
                 Sign In
               </Button>
               <Button
                 render={<Link href="/auth/signup" />}
-                className="bg-gradient-to-r from-rose-600 to-amber-500 text-white hover:opacity-90"
+                className="gap-2 bg-gradient-to-r from-rose-600 to-amber-500 text-white shadow-md shadow-rose-600/20 hover:opacity-90 hover:shadow-rose-600/30"
               >
                 Get Started
+                <ArrowRight className="h-4 w-4" />
               </Button>
             </>
           )}
@@ -131,43 +189,49 @@ export function Navbar() {
 
         {/* Mobile sheet */}
         <Sheet open={open} onOpenChange={setOpen}>
-          <SheetTrigger className="md:hidden inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground h-9 w-9">
+          <SheetTrigger className="inline-flex h-9 w-9 items-center justify-center rounded-md text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground md:hidden">
             <Menu className="h-5 w-5" />
             <span className="sr-only">Toggle menu</span>
           </SheetTrigger>
-          <SheetContent side="right" className="w-80 p-0 flex flex-col">
-            {/* Branding header */}
-            <div className="px-6 pt-6 pb-4 border-b bg-gradient-to-br from-rose-50 to-amber-50 dark:from-rose-950/30 dark:to-amber-950/30">
+          <SheetContent side="right" className="flex w-80 flex-col p-0">
+            {/* Branded header */}
+            <div className="relative isolate overflow-hidden border-b bg-gradient-to-br from-rose-50 via-rose-50/80 to-amber-50 px-6 pt-6 pb-5 dark:from-rose-950/50 dark:via-rose-950/30 dark:to-amber-950/30">
+              <div
+                aria-hidden
+                className="pointer-events-none absolute inset-0 grain-bg opacity-40"
+              />
               {user ? (
-                <div className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-r from-rose-600 to-amber-500 text-sm font-semibold text-white">
+                <div className="relative flex items-center gap-3">
+                  <div className="flex h-11 w-11 items-center justify-center rounded-full bg-gradient-to-br from-rose-600 to-amber-500 text-sm font-semibold text-white shadow-md shadow-rose-600/20">
                     {userInitial}
                   </div>
                   <div className="min-w-0">
-                    <p className="text-sm font-medium truncate">
+                    <p className="truncate text-sm font-medium">
                       {displayName}
                     </p>
-                    <p className="text-xs text-muted-foreground truncate">
+                    <p className="truncate text-xs text-muted-foreground">
                       {user.email}
                     </p>
                   </div>
                 </div>
               ) : (
-                <>
+                <div className="relative">
                   <Link
                     href="/"
                     onClick={() => setOpen(false)}
                     className="flex items-center gap-2"
                   >
-                    <span className="text-2xl font-bold tracking-tight bg-gradient-to-r from-rose-600 to-amber-500 bg-clip-text text-transparent">
+                    <span className="font-display bg-gradient-to-br from-rose-600 to-amber-500 bg-clip-text text-2xl font-light italic tracking-tight text-transparent">
                       Zaffa
                     </span>
-                    <span className="text-sm text-muted-foreground">زفّة</span>
+                    <span className="font-arabic text-sm text-muted-foreground">
+                      زفّة
+                    </span>
                   </Link>
                   <p className="mt-1 text-xs text-muted-foreground">
                     Your dream event, expertly planned
                   </p>
-                </>
+                </div>
               )}
             </div>
 
@@ -178,7 +242,12 @@ export function Navbar() {
                   <Link
                     href="/dashboard"
                     onClick={() => setOpen(false)}
-                    className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-foreground bg-accent/50 transition-colors hover:bg-accent"
+                    className={cn(
+                      "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
+                      isActiveRoute(pathname, "/dashboard")
+                        ? "bg-rose-50 text-rose-700 dark:bg-rose-950/40 dark:text-rose-200"
+                        : "bg-accent/40 text-foreground hover:bg-accent"
+                    )}
                   >
                     <LayoutDashboard className="h-4 w-4" />
                     Dashboard
@@ -186,12 +255,18 @@ export function Navbar() {
                 )}
                 {navLinks.map((link) => {
                   const Icon = link.icon;
+                  const active = isActiveRoute(pathname, link.href);
                   return (
                     <Link
                       key={link.href}
                       href={link.href}
                       onClick={() => setOpen(false)}
-                      className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+                      className={cn(
+                        "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
+                        active
+                          ? "bg-rose-50 text-rose-700 dark:bg-rose-950/40 dark:text-rose-200"
+                          : "text-muted-foreground hover:bg-accent hover:text-foreground"
+                      )}
                     >
                       <Icon className="h-4 w-4" />
                       {link.label}
@@ -202,7 +277,7 @@ export function Navbar() {
             </nav>
 
             {/* Auth section */}
-            <div className="border-t px-4 py-4 space-y-2">
+            <div className="space-y-2 border-t px-4 py-4">
               {user ? (
                 <Button
                   variant="outline"
@@ -236,7 +311,7 @@ export function Navbar() {
                         onClick={() => setOpen(false)}
                       />
                     }
-                    className="w-full justify-center gap-2 bg-gradient-to-r from-rose-600 to-amber-500 text-white hover:opacity-90"
+                    className="w-full justify-center gap-2 bg-gradient-to-r from-rose-600 to-amber-500 text-white shadow-md shadow-rose-600/20 hover:opacity-90"
                     size="lg"
                   >
                     Get Started

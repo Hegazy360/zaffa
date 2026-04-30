@@ -4,7 +4,7 @@ export function Footer() {
   return (
     <footer className="border-t bg-muted/30">
       <div className="container mx-auto max-w-7xl px-4 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           <div>
             <h3 className="text-lg font-bold bg-gradient-to-r from-rose-600 to-amber-500 bg-clip-text text-transparent">
               Zaffa
@@ -13,27 +13,6 @@ export function Footer() {
               Your dream event, expertly planned. Connecting you with
               Egypt&apos;s finest wedding planners and vendors.
             </p>
-          </div>
-
-          <div>
-            <h4 className="font-semibold mb-3">Explore</h4>
-            <ul className="space-y-2 text-sm text-muted-foreground">
-              <li>
-                <Link href="/explore" className="hover:text-foreground">
-                  Browse Arrangements
-                </Link>
-              </li>
-              <li>
-                <Link href="/planners" className="hover:text-foreground">
-                  Find Planners
-                </Link>
-              </li>
-              <li>
-                <Link href="/vendors" className="hover:text-foreground">
-                  Vendor Directory
-                </Link>
-              </li>
-            </ul>
           </div>
 
           <div>
