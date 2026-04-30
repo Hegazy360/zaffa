@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
   Save,
@@ -9,7 +10,10 @@ import {
   Loader2,
   Circle,
   Image as ImageIcon,
+  CheckCircle2,
+  ExternalLink,
 } from "lucide-react";
+import { trpc } from "@/lib/trpc";
 import { MediaGalleryDialog } from "./MediaGalleryDialog";
 
 interface DesignerHeaderProps {
@@ -31,6 +35,26 @@ export function DesignerHeader({
 }: DesignerHeaderProps) {
   const router = useRouter();
   const [mediaGalleryOpen, setMediaGalleryOpen] = useState(false);
+
+  // Look up which event (if any) this design is already attached to so we
+  // can show "Open event" instead of "Approve & create event".
+  const { data: design } = trpc.venueDesigns.getById.useQuery(
+    { id: designId ?? "" },
+    { enabled: Boolean(designId) }
+  );
+  const linkedEventId = design?.event_id ?? null;
+
+  const utils = trpc.useUtils();
+  const createFromDesign = trpc.events.createFromDesign.useMutation({
+    onSuccess: (event) => {
+      toast.success("Event created from design");
+      utils.events.list.invalidate();
+      utils.venueDesigns.list.invalidate();
+      if (designId) utils.venueDesigns.getById.invalidate({ id: designId });
+      router.push(`/dashboard/client/event/${event.id}`);
+    },
+    onError: (err) => toast.error(err.message),
+  });
 
   return (
     <div className="flex items-center gap-3 rounded-xl border bg-background/90 px-3 py-1.5 shadow-sm backdrop-blur-sm">
@@ -103,6 +127,35 @@ export function DesignerHeader({
           <Save className="h-3 w-3" />
           Save
         </Button>
+
+        {designId &&
+          (linkedEventId ? (
+            <Button
+              size="sm"
+              variant="outline"
+              className="h-7 gap-1.5 border-rose-200 bg-rose-50/60 text-xs text-rose-700 hover:bg-rose-100/70"
+              onClick={() =>
+                router.push(`/dashboard/client/event/${linkedEventId}`)
+              }
+            >
+              <ExternalLink className="h-3 w-3" />
+              Open event
+            </Button>
+          ) : (
+            <Button
+              size="sm"
+              className="h-7 gap-1.5 bg-gradient-to-r from-rose-600 to-amber-500 text-xs text-white hover:opacity-90"
+              disabled={createFromDesign.isPending}
+              onClick={() => createFromDesign.mutate({ designId })}
+            >
+              {createFromDesign.isPending ? (
+                <Loader2 className="h-3 w-3 animate-spin" />
+              ) : (
+                <CheckCircle2 className="h-3 w-3" />
+              )}
+              Approve & create event
+            </Button>
+          ))}
       </div>
     </div>
   );

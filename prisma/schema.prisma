@@ -54,6 +54,13 @@ enum BookingStatus {
   cancelled
 }
 
+enum PaymentStatus {
+  pending
+  paid
+  overdue
+  cancelled
+}
+
 model Profile {
   id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   role       UserRole @default(client)
@@ -147,6 +154,8 @@ model Event {
   planner  PlannerProfile? @relation("PlannerEvents", fields: [planner_id], references: [id])
   vendors  EventVendor[]
   messages Message[]
+  designs  VenueDesign[]
+  payments Payment[]
 
   @@map("events")
 }
@@ -247,22 +256,26 @@ model StyleQuizSession {
 }
 
 model VenueDesign {
-  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  user_id     String   @db.Uuid
-  name        String   @default("Untitled Design")
-  event_type  String   @default("wedding")
-  setting     String   @default("indoor")
-  size        String   @default("medium")
-  palette     Json     @default("{}")
-  references  Json     @default("{}")
+  id          String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id     String    @db.Uuid
+  event_id    String?   @db.Uuid
+  name        String    @default("Untitled Design")
+  event_type  String    @default("wedding")
+  setting     String    @default("indoor")
+  size        String    @default("medium")
+  palette     Json      @default("{}")
+  references  Json      @default("{}")
   style_notes String?
   thumbnail   String?
-  created_at  DateTime @default(now())
-  updated_at  DateTime @updatedAt
+  approved_at DateTime?
+  created_at  DateTime  @default(now())
+  updated_at  DateTime  @updatedAt
 
   user  Profile            @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  event Event?             @relation(fields: [event_id], references: [id], onDelete: SetNull)
   media VenueDesignMedia[]
 
+  @@index([event_id])
   @@map("venue_designs")
 }
 
@@ -276,4 +289,23 @@ model VenueDesignMedia {
   design VenueDesign @relation(fields: [design_id], references: [id], onDelete: Cascade)
 
   @@map("venue_design_media")
+}
+
+model Payment {
+  id         String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  event_id   String        @db.Uuid
+  label      String
+  amount     Decimal       @db.Decimal(10, 2)
+  currency   String        @default("EGP")
+  status     PaymentStatus @default(pending)
+  due_date   DateTime?
+  paid_at    DateTime?
+  notes      String?
+  created_at DateTime      @default(now())
+  updated_at DateTime      @updatedAt
+
+  event Event @relation(fields: [event_id], references: [id], onDelete: Cascade)
+
+  @@index([event_id])
+  @@map("payments")
 }

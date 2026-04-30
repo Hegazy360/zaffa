@@ -1,177 +1,425 @@
 "use client";
 
 import Link from "next/link";
-import { Navbar } from "@/components/layout/navbar";
-import { Sidebar, MobileSidebar } from "@/components/layout/sidebar";
-import { Button } from "@/components/ui/button";
+import { useRouter } from "next/navigation";
 import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Plus, Pencil } from "lucide-react";
+  ArrowRight,
+  CalendarDays,
+  CheckCircle2,
+  ImageIcon,
+  Loader2,
+  MapPin,
+  Plus,
+  Sparkles,
+  Wand2,
+} from "lucide-react";
+import { toast } from "sonner";
+import { trpc } from "@/lib/trpc";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import type { EventStatus, EventType } from "@/types";
 
-interface EventCard {
-  id: string;
-  title: string;
-  event_type: EventType;
-  event_date: string;
-  status: EventStatus;
-  budget: number | null;
+interface NormalizedPalette {
+  colors: string[];
 }
 
-const mockEvents: EventCard[] = [
-  {
-    id: "1",
-    title: "Ahmed & Sara's Wedding",
-    event_type: "wedding",
-    event_date: "2025-09-15",
-    status: "planning",
-    budget: 250000,
-  },
-  {
-    id: "2",
-    title: "Birthday Celebration",
-    event_type: "birthday",
-    event_date: "2025-06-20",
-    status: "draft",
-    budget: 15000,
-  },
-];
+function normalizePalette(value: unknown): NormalizedPalette {
+  if (value && typeof value === "object" && !Array.isArray(value)) {
+    const obj = value as Record<string, unknown>;
+    const colors = Array.isArray(obj.colors)
+      ? obj.colors.filter((c): c is string => typeof c === "string")
+      : [];
+    return { colors };
+  }
+  return { colors: [] };
+}
 
-function formatDate(dateStr: string): string {
-  return new Date(dateStr).toLocaleDateString("en-US", {
+function formatEventDate(date: Date | string | null | undefined): string {
+  if (!date) return "Date not set";
+  return new Date(date).toLocaleDateString("en-US", {
     year: "numeric",
     month: "long",
     day: "numeric",
   });
 }
 
-function formatEventType(type: EventType): string {
+function formatEventType(type: EventType | string): string {
   return type.charAt(0).toUpperCase() + type.slice(1);
 }
 
-function formatCurrency(amount: number): string {
-  return new Intl.NumberFormat("en-EG", {
-    style: "currency",
-    currency: "EGP",
-    minimumFractionDigits: 0,
-  }).format(amount);
-}
-
-function getStatusVariant(
-  status: EventStatus
-): "default" | "secondary" | "destructive" | "outline" {
-  switch (status) {
-    case "planning":
-      return "default";
-    case "draft":
-      return "secondary";
-    case "confirmed":
-      return "default";
-    case "completed":
-      return "secondary";
-    case "cancelled":
-      return "destructive";
-    default:
-      return "outline";
-  }
-}
+const statusStyles: Record<EventStatus | string, string> = {
+  draft: "bg-stone-100 text-stone-700 ring-stone-200",
+  planning: "bg-amber-50 text-amber-800 ring-amber-200",
+  confirmed: "bg-rose-50 text-rose-700 ring-rose-200",
+  in_progress: "bg-amber-100 text-amber-900 ring-amber-300",
+  completed: "bg-emerald-50 text-emerald-700 ring-emerald-200",
+  cancelled: "bg-stone-50 text-stone-500 ring-stone-200",
+};
 
 export default function ClientDashboardPage() {
+  const router = useRouter();
+  const utils = trpc.useUtils();
+
+  const { data: profile } = trpc.profile.me.useQuery();
+  const { data: designs, isLoading: designsLoading } =
+    trpc.venueDesigns.list.useQuery();
+  const { data: events, isLoading: eventsLoading } =
+    trpc.events.list.useQuery();
+
+  const createFromDesign = trpc.events.createFromDesign.useMutation({
+    onSuccess: (event) => {
+      utils.events.list.invalidate();
+      utils.venueDesigns.list.invalidate();
+      toast.success("Event created from design");
+      router.push(`/dashboard/client/event/${event.id}`);
+    },
+    onError: (err) => toast.error(err.message),
+  });
+
+  const firstName = profile?.full_name?.split(" ")[0] ?? "there";
+
   return (
-    <div className="min-h-screen flex flex-col">
-      <Navbar />
-      <div className="flex flex-1">
-        <Sidebar role="client" />
-        <main className="flex-1 flex flex-col min-w-0">
-          <MobileSidebar role="client" />
-          <div className="p-6 space-y-8">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-              <div>
-                <h1 className="text-2xl font-bold tracking-tight">
-                  Welcome back
-                </h1>
-                <p className="text-muted-foreground">
-                  Manage your events and track your planning progress
-                </p>
-              </div>
-              <Button render={<Link href="/dashboard/client/event/new" />} className="bg-gradient-to-r from-rose-600 to-amber-500 text-white hover:opacity-90">
-                <Plus className="h-4 w-4 mr-2" />
-                Create New Event
-              </Button>
+    <div className="relative isolate min-h-[calc(100vh-4rem)] w-full overflow-x-hidden bg-gradient-to-b from-rose-50/50 via-background to-background dark:from-rose-950/15">
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 grain-bg opacity-40"
+      />
+      <div
+        aria-hidden
+        className="pointer-events-none absolute -top-40 left-1/2 -z-10 h-[28rem] w-[28rem] -translate-x-1/2 rounded-full bg-gradient-to-br from-rose-200/30 to-amber-200/20 blur-3xl dark:from-rose-900/15 dark:to-amber-900/10"
+      />
+
+      <div className="mx-auto max-w-6xl px-6 py-12 sm:py-16">
+        {/* Hero */}
+        <header className="mb-12 flex flex-col items-start gap-5 sm:flex-row sm:items-end sm:justify-between">
+          <div className="space-y-3">
+            <div className="inline-flex items-center gap-2 rounded-full border border-rose-200/70 bg-rose-50/70 px-3.5 py-1 text-[11px] font-medium uppercase tracking-[0.18em] text-rose-700 backdrop-blur-sm dark:border-rose-900/50 dark:bg-rose-950/30 dark:text-rose-200">
+              <Sparkles className="size-3" />
+              Welcome back
             </div>
-
-            <section>
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg font-semibold">Venue Designer</h2>
-                <Button
-                  variant="outline"
-                  render={<Link href="/venue-designer" />}
-                  className="gap-2"
-                >
-                  <Pencil className="h-4 w-4" />
-                  My Designs
-                </Button>
-              </div>
-              <Card className="hover:ring-2 hover:ring-primary/20 transition-all">
-                <CardContent className="flex items-center gap-4 py-4">
-                  <div className="rounded-full bg-rose-50 p-3">
-                    <Pencil className="h-6 w-6 text-rose-500" />
-                  </div>
-                  <div className="flex-1">
-                    <h3 className="font-medium">3D Venue Layout Designer</h3>
-                    <p className="text-sm text-muted-foreground">
-                      Design your venue layout in 3D, generate AI scenes, and create photorealistic renders
-                    </p>
-                  </div>
-                  <Button
-                    render={<Link href="/venue-designer/new" />}
-                    className="bg-rose-500 hover:bg-rose-600 text-white gap-2"
-                  >
-                    <Plus className="h-4 w-4" />
-                    New Design
-                  </Button>
-                </CardContent>
-              </Card>
-            </section>
-
-            <section>
-              <h2 className="text-lg font-semibold mb-4">My Events</h2>
-              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                {mockEvents.map((event) => (
-                  <Link key={event.id} href={`/dashboard/client/event/${event.id}`}>
-                    <Card className="hover:ring-2 hover:ring-primary/20 transition-all cursor-pointer h-full">
-                      <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
-                        <CardTitle className="text-base">{event.title}</CardTitle>
-                        <Badge variant={getStatusVariant(event.status)}>
-                          {event.status.replace("_", " ")}
-                        </Badge>
-                      </CardHeader>
-                      <CardContent className="space-y-2">
-                        <p className="text-sm text-muted-foreground">
-                          {formatEventType(event.event_type)}
-                        </p>
-                        <p className="text-sm text-muted-foreground">
-                          {formatDate(event.event_date)}
-                        </p>
-                        {event.budget && (
-                          <p className="text-sm font-medium">
-                            Budget: {formatCurrency(event.budget)}
-                          </p>
-                        )}
-                      </CardContent>
-                    </Card>
-                  </Link>
-                ))}
-              </div>
-            </section>
+            <h1 className="font-display text-balance text-4xl font-light leading-tight tracking-tight sm:text-5xl">
+              Hello, {firstName}.
+            </h1>
+            <p className="max-w-lg text-pretty text-sm text-muted-foreground sm:text-base">
+              Pick up where you left off — your designs and events all live here.
+            </p>
           </div>
-        </main>
+          <Button
+            size="lg"
+            render={<Link href="/venue-designer/new" />}
+            className="group h-11 gap-2 bg-gradient-to-r from-rose-600 to-amber-500 px-5 text-white shadow-lg shadow-rose-500/20 hover:opacity-90 hover:shadow-rose-500/30"
+          >
+            <Wand2 className="size-4" />
+            Start a new design
+            <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" />
+          </Button>
+        </header>
+
+        {/* Designs rail */}
+        <section className="mb-14">
+          <div className="mb-6 flex items-end justify-between">
+            <div>
+              <p className="mb-1 text-[0.65rem] font-medium uppercase tracking-[0.3em] text-rose-700/80">
+                Your designs
+              </p>
+              <h2 className="font-display text-2xl font-light tracking-tight">
+                Approve a design to begin
+              </h2>
+            </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              render={<Link href="/venue-designer" />}
+              className="gap-1 text-sm"
+            >
+              View all
+              <ArrowRight className="size-3.5" />
+            </Button>
+          </div>
+
+          {designsLoading ? (
+            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+              {Array.from({ length: 3 }).map((_, i) => (
+                <div
+                  key={i}
+                  className="overflow-hidden rounded-2xl bg-card/80 ring-1 ring-foreground/[0.06]"
+                >
+                  <div className="aspect-[4/3] animate-pulse bg-gradient-to-br from-rose-50 to-amber-50/60" />
+                  <div className="space-y-2 p-4">
+                    <div className="h-4 w-2/3 animate-pulse rounded bg-muted" />
+                    <div className="h-3 w-1/2 animate-pulse rounded bg-muted" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : !designs || designs.length === 0 ? (
+            <DesignsEmptyState onStart={() => router.push("/venue-designer/new")} />
+          ) : (
+            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+              {designs.slice(0, 6).map((design) => {
+                const palette = normalizePalette(design.palette);
+                const heroImage = design.media[0]?.url ?? design.thumbnail ?? null;
+                const isAttached = events?.some((e) =>
+                  e.designs.some((d) => d.id === design.id)
+                );
+
+                return (
+                  <article
+                    key={design.id}
+                    className="group relative overflow-hidden rounded-2xl border border-rose-100/70 bg-white/80 backdrop-blur-sm ring-1 ring-foreground/[0.04] transition-all hover:shadow-[0_20px_50px_-20px_rgba(244,63,94,0.25)] dark:border-rose-900/30 dark:bg-card/80"
+                  >
+                    <Link
+                      href={`/venue-designer/${design.id}`}
+                      className="block"
+                    >
+                      <div className="relative aspect-[4/3] overflow-hidden bg-muted">
+                        {heroImage ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img
+                            src={heroImage}
+                            alt={design.name}
+                            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+                          />
+                        ) : (
+                          <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-rose-50 via-rose-50/60 to-amber-50">
+                            <Sparkles className="size-7 text-rose-400/70" />
+                          </div>
+                        )}
+                        {palette.colors.length > 0 && (
+                          <div className="absolute left-3 top-3 inline-flex items-center gap-1 rounded-full bg-black/55 px-1.5 py-1 backdrop-blur-sm">
+                            {palette.colors.slice(0, 4).map((c) => (
+                              <span
+                                key={c}
+                                className="block size-2 rounded-full ring-1 ring-white/40"
+                                style={{ backgroundColor: c }}
+                              />
+                            ))}
+                          </div>
+                        )}
+                        {isAttached && (
+                          <div className="absolute right-3 top-3 inline-flex items-center gap-1 rounded-full bg-rose-600/90 px-2 py-1 text-[10px] font-medium tracking-wide text-white backdrop-blur-sm">
+                            <CheckCircle2 className="size-3" />
+                            Approved
+                          </div>
+                        )}
+                      </div>
+                    </Link>
+
+                    <div className="space-y-3 p-4">
+                      <div>
+                        <h3 className="font-display text-base font-medium leading-tight tracking-tight">
+                          {design.name}
+                        </h3>
+                        <p className="mt-1 text-[11px] capitalize text-muted-foreground">
+                          {design.event_type} · {design.size} · {design.setting}
+                        </p>
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        {isAttached ? (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            render={
+                              <Link href={`/venue-designer/${design.id}`} />
+                            }
+                            className="h-8 flex-1 gap-1 text-xs"
+                          >
+                            Open
+                            <ArrowRight className="size-3" />
+                          </Button>
+                        ) : (
+                          <Button
+                            size="sm"
+                            disabled={createFromDesign.isPending}
+                            onClick={() =>
+                              createFromDesign.mutate({ designId: design.id })
+                            }
+                            className="h-8 flex-1 gap-1 bg-gradient-to-r from-rose-600 to-amber-500 text-xs text-white hover:opacity-90"
+                          >
+                            {createFromDesign.isPending &&
+                            createFromDesign.variables?.designId === design.id ? (
+                              <Loader2 className="size-3 animate-spin" />
+                            ) : (
+                              <CheckCircle2 className="size-3" />
+                            )}
+                            Approve & create event
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  </article>
+                );
+              })}
+            </div>
+          )}
+        </section>
+
+        <div aria-hidden className="champagne-hairline mb-14 h-px w-full" />
+
+        {/* Events rail */}
+        <section>
+          <div className="mb-6 flex items-end justify-between">
+            <div>
+              <p className="mb-1 text-[0.65rem] font-medium uppercase tracking-[0.3em] text-rose-700/80">
+                Your events
+              </p>
+              <h2 className="font-display text-2xl font-light tracking-tight">
+                Everything in one place
+              </h2>
+            </div>
+          </div>
+
+          {eventsLoading ? (
+            <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
+              {Array.from({ length: 3 }).map((_, i) => (
+                <div
+                  key={i}
+                  className="h-44 animate-pulse rounded-2xl bg-gradient-to-br from-rose-50 to-amber-50/60"
+                />
+              ))}
+            </div>
+          ) : !events || events.length === 0 ? (
+            <EventsEmptyState />
+          ) : (
+            <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
+              {events.map((event) => (
+                <EventCard key={event.id} event={event} />
+              ))}
+            </div>
+          )}
+        </section>
       </div>
+    </div>
+  );
+}
+
+interface EventListItem {
+  id: string;
+  title: string;
+  event_type: string;
+  event_date: Date | null;
+  venue: string | null;
+  budget: unknown;
+  status: string;
+  created_at: Date;
+  designs: Array<{
+    id: string;
+    name: string;
+    thumbnail: string | null;
+    palette: unknown;
+    media: Array<{ url: string }>;
+  }>;
+}
+
+function EventCard({ event }: { event: EventListItem }) {
+  const heroImage =
+    event.designs[0]?.media[0]?.url ?? event.designs[0]?.thumbnail ?? null;
+  const palette = normalizePalette(event.designs[0]?.palette);
+
+  return (
+    <Link
+      href={`/dashboard/client/event/${event.id}`}
+      className="group relative block overflow-hidden rounded-2xl border border-rose-100/70 bg-white/80 backdrop-blur-sm ring-1 ring-foreground/[0.04] transition-all hover:-translate-y-0.5 hover:shadow-[0_20px_50px_-20px_rgba(244,63,94,0.25)] dark:border-rose-900/30 dark:bg-card/80"
+    >
+      <div className="relative aspect-[16/9] overflow-hidden bg-gradient-to-br from-rose-50 to-amber-50/60">
+        {heroImage ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={heroImage}
+            alt={event.title}
+            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+          />
+        ) : (
+          <div className="flex h-full items-center justify-center">
+            <ImageIcon className="size-7 text-rose-400/70" />
+          </div>
+        )}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/35 via-transparent to-transparent" />
+        <span
+          className={cn(
+            "absolute left-3 top-3 inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide ring-1 backdrop-blur-sm",
+            statusStyles[event.status] ?? statusStyles.draft
+          )}
+        >
+          {event.status.replace("_", " ")}
+        </span>
+        {palette.colors.length > 0 && (
+          <div className="absolute right-3 top-3 inline-flex items-center gap-1 rounded-full bg-black/55 px-1.5 py-1 backdrop-blur-sm">
+            {palette.colors.slice(0, 4).map((c) => (
+              <span
+                key={c}
+                className="block size-2 rounded-full ring-1 ring-white/40"
+                style={{ backgroundColor: c }}
+              />
+            ))}
+          </div>
+        )}
+      </div>
+
+      <div className="space-y-2 p-4">
+        <h3 className="font-display text-base font-medium leading-tight tracking-tight">
+          {event.title}
+        </h3>
+        <div className="flex items-center gap-3 text-xs text-muted-foreground">
+          <span className="inline-flex items-center gap-1">
+            <CalendarDays className="size-3" />
+            {formatEventDate(event.event_date)}
+          </span>
+          {event.venue && (
+            <span className="inline-flex items-center gap-1">
+              <MapPin className="size-3" />
+              <span className="max-w-[120px] truncate">{event.venue}</span>
+            </span>
+          )}
+        </div>
+        <p className="text-[11px] capitalize text-muted-foreground">
+          {formatEventType(event.event_type)}
+          {event.designs[0] && ` · linked to ${event.designs[0].name}`}
+        </p>
+      </div>
+    </Link>
+  );
+}
+
+function DesignsEmptyState({ onStart }: { onStart: () => void }) {
+  return (
+    <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-rose-200/70 bg-white/40 px-6 py-16 text-center backdrop-blur-sm dark:border-rose-900/40 dark:bg-card/40">
+      <div className="mb-5 grid size-14 place-items-center rounded-full bg-gradient-to-br from-rose-100 to-amber-100 ring-1 ring-rose-200/60">
+        <Wand2 className="size-6 text-rose-600" />
+      </div>
+      <h3 className="font-display text-xl font-light tracking-tight">
+        No designs yet
+      </h3>
+      <p className="mt-2 max-w-md text-pretty text-sm text-muted-foreground">
+        Pick a vibe, palette, and a few references — we&apos;ll bring it to
+        life. You can approve any design to turn it into a real event.
+      </p>
+      <Button
+        onClick={onStart}
+        className="mt-6 h-10 gap-2 bg-gradient-to-r from-rose-600 to-amber-500 px-5 text-white shadow-md shadow-rose-500/20 hover:opacity-90"
+      >
+        <Plus className="size-4" />
+        Create your first design
+      </Button>
+    </div>
+  );
+}
+
+function EventsEmptyState() {
+  return (
+    <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-rose-200/70 bg-white/40 px-6 py-16 text-center backdrop-blur-sm dark:border-rose-900/40 dark:bg-card/40">
+      <div className="mb-5 grid size-14 place-items-center rounded-full bg-gradient-to-br from-rose-100 to-amber-100 ring-1 ring-rose-200/60">
+        <CalendarDays className="size-6 text-rose-600" />
+      </div>
+      <h3 className="font-display text-xl font-light tracking-tight">
+        No events yet
+      </h3>
+      <p className="mt-2 max-w-md text-pretty text-sm text-muted-foreground">
+        Approve a design above and we&apos;ll spin up a full event hub — dates,
+        venue, planner, vendors, payments, and conversation, all linked to your
+        approved design.
+      </p>
     </div>
   );
 }

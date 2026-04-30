@@ -8,9 +8,11 @@ import {
   Trash2,
   Sparkles,
   ArrowRight,
+  CheckCircle2,
   Image as ImageIcon,
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
+import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { Navbar } from "@/components/layout/navbar";
@@ -40,6 +42,16 @@ export default function VenueDesignerGalleryPage() {
     onSuccess: () => utils.venueDesigns.list.invalidate(),
   });
 
+  const approveMutation = trpc.events.createFromDesign.useMutation({
+    onSuccess: (event) => {
+      toast.success("Event created from design");
+      utils.events.list.invalidate();
+      utils.venueDesigns.list.invalidate();
+      router.push(`/dashboard/client/event/${event.id}`);
+    },
+    onError: (err) => toast.error(err.message),
+  });
+
   const handleDelete = (
     e: React.MouseEvent,
     id: string,
@@ -50,6 +62,18 @@ export default function VenueDesignerGalleryPage() {
     if (window.confirm(`Delete "${name}"? This cannot be undone.`)) {
       deleteMutation.mutate({ id });
     }
+  };
+
+  const handleApprove = (e: React.MouseEvent, designId: string) => {
+    e.stopPropagation();
+    e.preventDefault();
+    approveMutation.mutate({ designId });
+  };
+
+  const handleOpenEvent = (e: React.MouseEvent, eventId: string) => {
+    e.stopPropagation();
+    e.preventDefault();
+    router.push(`/dashboard/client/event/${eventId}`);
   };
 
   return (
@@ -223,13 +247,15 @@ export default function VenueDesignerGalleryPage() {
                     </div>
                   </div>
 
-                  <div className="space-y-2 p-5">
-                    <h3 className="font-display text-lg leading-tight font-medium tracking-tight">
-                      {design.name}
-                    </h3>
-                    <p className="text-xs text-muted-foreground capitalize">
-                      {design.size} · {design.setting}
-                    </p>
+                  <div className="space-y-3 p-5">
+                    <div>
+                      <h3 className="font-display text-lg leading-tight font-medium tracking-tight">
+                        {design.name}
+                      </h3>
+                      <p className="mt-1 text-xs text-muted-foreground capitalize">
+                        {design.size} · {design.setting}
+                      </p>
+                    </div>
                     <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
                       <span>
                         {formatDistanceToNow(new Date(design.updated_at), {
@@ -243,6 +269,38 @@ export default function VenueDesignerGalleryPage() {
                         </span>
                       )}
                     </div>
+
+                    {design.event_id ? (
+                      <button
+                        type="button"
+                        onClick={(e) =>
+                          handleOpenEvent(e, design.event_id as string)
+                        }
+                        className="inline-flex w-full items-center justify-center gap-1.5 rounded-lg border border-rose-200/70 bg-rose-50/60 px-3 py-1.5 text-xs font-medium text-rose-700 transition-colors hover:bg-rose-100/70"
+                      >
+                        <CheckCircle2 className="size-3.5" />
+                        Approved · Open event
+                        <ArrowRight className="size-3" />
+                      </button>
+                    ) : (
+                      <button
+                        type="button"
+                        disabled={
+                          approveMutation.isPending &&
+                          approveMutation.variables?.designId === design.id
+                        }
+                        onClick={(e) => handleApprove(e, design.id)}
+                        className="inline-flex w-full items-center justify-center gap-1.5 rounded-lg bg-gradient-to-r from-rose-600 to-amber-500 px-3 py-1.5 text-xs font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-60"
+                      >
+                        {approveMutation.isPending &&
+                        approveMutation.variables?.designId === design.id ? (
+                          <Loader2 className="size-3 animate-spin" />
+                        ) : (
+                          <CheckCircle2 className="size-3.5" />
+                        )}
+                        Approve & create event
+                      </button>
+                    )}
                   </div>
                 </motion.article>
               );

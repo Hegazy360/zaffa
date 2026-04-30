@@ -50,6 +50,8 @@ export const venueDesignsRouter = router({
         palette: true,
         thumbnail: true,
         updated_at: true,
+        event_id: true,
+        approved_at: true,
         _count: { select: { media: true } },
         // Latest generated render for this design — used as the card hero
         // thumbnail. We filter to "render" because videos can't be cheaply
