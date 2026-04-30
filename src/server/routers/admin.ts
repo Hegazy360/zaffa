@@ -216,4 +216,146 @@ export const adminRouter = router({
         },
       });
     }),
+
+  // Lists every vendor with one or more pending VendorRelease rows. Mirrors
+  // pendingPayouts for the planner side so the admin payouts UI can show
+  // both queues in the same shape.
+  pendingVendorPayouts: protectedProcedure.query(async ({ ctx }) => {
+    await assertAdmin(ctx.user.id);
+    const releases = await prisma.vendorRelease.findMany({
+      where: { status: "pending" },
+      orderBy: { requested_at: "desc" },
+      include: {
+        vendor: {
+          select: {
+            id: true,
+            business_name: true,
+            category: true,
+            profile: { select: { full_name: true, avatar_url: true } },
+          },
+        },
+        planner: {
+          select: { id: true, business_name: true },
+        },
+        engagement: {
+          select: {
+            id: true,
+            title: true,
+            event: { select: { id: true, title: true } },
+          },
+        },
+      },
+    });
+    type Bucket = {
+      vendorId: string;
+      businessName: string;
+      fullName: string;
+      avatarUrl: string | null;
+      category: string;
+      currency: string;
+      total: number;
+      releases: typeof releases;
+    };
+    const byVendor = new Map<string, Bucket>();
+    for (const r of releases) {
+      if (!r.vendor) continue;
+      const key = `${r.vendor.id}:${r.currency}`;
+      const existing = byVendor.get(key);
+      const next: Bucket = existing ?? {
+        vendorId: r.vendor.id,
+        businessName: r.vendor.business_name,
+        fullName: r.vendor.profile.full_name,
+        avatarUrl: r.vendor.profile.avatar_url,
+        category: r.vendor.category,
+        currency: r.currency,
+        total: 0,
+        releases: [],
+      };
+      next.total += Number(r.amount);
+      next.releases.push(r);
+      byVendor.set(key, next);
+    }
+    return {
+      vendors: Array.from(byVendor.values()).sort((a, b) => b.total - a.total),
+    };
+  }),
+
+  // Pending releases for one vendor — admin uses this to pick which rows to
+  // include in a single payout.
+  vendorPending: protectedProcedure
+    .input(z.object({ vendorId: z.string().uuid() }))
+    .query(async ({ ctx, input }) => {
+      await assertAdmin(ctx.user.id);
+      return prisma.vendorRelease.findMany({
+        where: { vendor_id: input.vendorId, status: "pending" },
+        orderBy: { requested_at: "desc" },
+        include: {
+          engagement: {
+            select: {
+              id: true,
+              title: true,
+              event: { select: { id: true, title: true } },
+            },
+          },
+          planner: {
+            select: { id: true, business_name: true },
+          },
+        },
+      });
+    }),
+
+  // Records an off-Stripe vendor payout: creates a Payout (recipient=vendor),
+  // links chosen releases to it, and flips them to paid. Same invariants as
+  // recordPayout (amount = sum of selected rows, currency must match).
+  recordVendorPayout: protectedProcedure
+    .input(
+      z.object({
+        vendorId: z.string().uuid(),
+        releaseIds: z.array(z.string().uuid()).min(1).max(200),
+        currency: z.string().min(2).max(8).default("EGP"),
+        method: z.enum(["instapay", "wire", "cash", "other"]).default("instapay"),
+        reference: z.string().max(200).optional(),
+        notes: z.string().max(2000).optional(),
+        paid_at: z.coerce.date().default(() => new Date()),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      await assertAdmin(ctx.user.id);
+      const eligible = await prisma.vendorRelease.findMany({
+        where: {
+          id: { in: input.releaseIds },
+          status: "pending",
+          currency: input.currency,
+          vendor_id: input.vendorId,
+        },
+        select: { id: true, amount: true },
+      });
+      if (eligible.length !== input.releaseIds.length) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Some releases are no longer eligible for payout",
+        });
+      }
+      const total = eligible.reduce((s, r) => s + Number(r.amount), 0);
+      return prisma.$transaction(async (tx) => {
+        const payout = await tx.payout.create({
+          data: {
+            vendor_id: input.vendorId,
+            recipient_type: "vendor",
+            currency: input.currency,
+            amount: total,
+            method: input.method,
+            reference: input.reference,
+            notes: input.notes,
+            paid_at: input.paid_at,
+            recorded_by_user_id: ctx.user.id,
+          },
+        });
+        await tx.vendorRelease.updateMany({
+          where: { id: { in: input.releaseIds } },
+          data: { status: "paid", paid_at: input.paid_at, payout_id: payout.id },
+        });
+        return payout;
+      });
+    }),
 });

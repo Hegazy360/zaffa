@@ -11,10 +11,8 @@ import {
 import {
   ArrowLeft,
   CalendarDays,
-  Check,
   CheckCircle2,
   CircleDot,
-  Clock,
   CreditCard,
   Loader2,
   MapPin,
@@ -41,7 +39,6 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 import { SchedulePanel } from "@/components/payments/SchedulePanel";
@@ -352,7 +349,7 @@ export default function PlannerEventDetailPage() {
             <VendorsTab event={event} />
           </TabsContent>
           <TabsContent value="payments">
-            <PaymentsTab eventId={event.id} payments={event.payments} />
+            <PaymentsTab eventId={event.id} />
           </TabsContent>
           <TabsContent value="messages">
             <MessagesTab eventId={event.id} />
@@ -735,215 +732,133 @@ function DesignTab({ design }: { design: DesignSnapshot | null }) {
 
 interface VendorsTabEvent {
   id: string;
-  vendors: Array<{
-    id: string;
-    status: string;
-    agreed_price: unknown;
-    vendor: {
-      id: string;
-      business_name: string;
-      category: string;
-      location: string | null;
-    };
-  }>;
 }
+
+const ENGAGEMENT_STATUS_TONE: Record<string, string> = {
+  draft: "bg-stone-100 text-stone-700",
+  requested: "bg-rose-100 text-rose-800",
+  accepted: "bg-emerald-100 text-emerald-800",
+  declined: "bg-stone-100 text-stone-700",
+  active: "bg-amber-100 text-amber-900",
+  completed: "bg-stone-100 text-stone-700",
+  cancelled: "bg-stone-100 text-stone-500",
+};
 
 function VendorsTab({ event }: { event: VendorsTabEvent }) {
-  return (
-    <div className="overflow-hidden rounded-2xl border border-rose-100/70 bg-white/80 backdrop-blur-sm">
-      <div className="flex items-center justify-between border-b border-rose-100/70 px-5 py-3">
-        <h3 className="font-display text-base font-medium tracking-tight">
-          Vendors
-        </h3>
-        <span className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
-          Curated for this event
-        </span>
-      </div>
-      {event.vendors.length === 0 ? (
-        <div className="px-5 py-12 text-center">
-          <Users className="mx-auto mb-3 size-7 text-rose-500" />
-          <p className="font-display text-lg font-light tracking-tight">
-            No vendors yet
-          </p>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Once you start curating florists, photographers, and caterers
-            they&apos;ll show up here.
-          </p>
-        </div>
-      ) : (
-        <ul className="divide-y divide-rose-100/70">
-          {event.vendors.map((v) => (
-            <li
-              key={v.id}
-              className="flex items-center justify-between gap-4 px-5 py-4"
-            >
-              <div>
-                <p className="font-medium">{v.vendor.business_name}</p>
-                <p className="text-xs capitalize text-muted-foreground">
-                  {v.vendor.category} · {v.vendor.location ?? "Cairo"}
-                </p>
-              </div>
-              <div className="flex items-center gap-3">
-                <span className="text-sm font-medium">
-                  {decimalToNumber(v.agreed_price) > 0
-                    ? formatCurrency(decimalToNumber(v.agreed_price))
-                    : "—"}
-                </span>
-                <span className="inline-flex items-center rounded-full bg-rose-50 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-rose-700 ring-1 ring-rose-100">
-                  {v.status}
-                </span>
-              </div>
-            </li>
-          ))}
-        </ul>
-      )}
-    </div>
-  );
-}
-
-interface PaymentRow {
-  id: string;
-  label: string;
-  amount: unknown;
-  currency: string;
-  status: string;
-  due_date: Date | null;
-  paid_at: Date | null;
-  notes: string | null;
-  schedule_id: string | null;
-}
-
-function PaymentsTab({
-  eventId,
-  payments,
-}: {
-  eventId: string;
-  payments: PaymentRow[];
-}) {
   const utils = trpc.useUtils();
-  const [legacyOpen, setLegacyOpen] = useState(false);
-
-  // The schedule-bound payments are managed via SchedulePanel. The legacy
-  // ledger ("manual" rows with no schedule_id) is still useful for offline
-  // / cash payments either side wants to record.
-  const legacy = payments.filter((p) => !p.schedule_id);
-
-  const removePayment = trpc.payments.delete.useMutation({
-    onSuccess: () => {
-      toast.success("Payment removed");
-      utils.events.byId.invalidate({ id: eventId });
-    },
-    onError: (err) => toast.error(err.message),
+  const engagements = trpc.vendorEngagements.forEvent.useQuery({
+    eventId: event.id,
   });
-  const markPaid = trpc.payments.markPaid.useMutation({
-    onSuccess: () => {
-      toast.success("Marked paid");
-      utils.events.byId.invalidate({ id: eventId });
-    },
-    onError: (err) => toast.error(err.message),
+  const eventBalance = trpc.payouts.eventBalance.useQuery({
+    eventId: event.id,
   });
+  const walletBalance = trpc.payouts.plannerBalance.useQuery();
+  const completeMutation = trpc.vendorEngagements.complete.useMutation({
+    onSuccess: () => {
+      toast.success("Marked complete");
+      utils.vendorEngagements.forEvent.invalidate({ eventId: event.id });
+    },
+    onError: (e) => toast.error(e.message),
+  });
+  const cancelMutation = trpc.vendorEngagements.cancel.useMutation({
+    onSuccess: () => {
+      toast.success("Cancelled");
+      utils.vendorEngagements.forEvent.invalidate({ eventId: event.id });
+    },
+    onError: (e) => toast.error(e.message),
+  });
+
+  // Releases are gated server-side by the wallet-wide available, so we cap
+  // the displayed "available for this event" by the wallet ceiling. Without
+  // this the planner could see e.g. 30k for an event but only have 10k left
+  // wallet-wide because of self-payouts already taken.
+  const eventAvailable = eventBalance.data?.availableForEvent ?? 0;
+  const walletAvailable = walletBalance.data?.availableNow ?? 0;
+  const canReleaseHere = Math.min(eventAvailable, walletAvailable);
 
   return (
-    <div className="space-y-6">
-      <SchedulePanel eventId={eventId} side="planner" />
-
-      <div className="overflow-hidden rounded-2xl border border-rose-100/70 bg-white/60 backdrop-blur-sm">
-        <div className="flex items-center justify-between border-b border-rose-100/70 px-5 py-3">
-          <div>
-            <h3 className="font-display text-base font-medium tracking-tight">
-              Manual ledger
-            </h3>
-            <p className="text-xs text-muted-foreground">
-              Off-platform payments (cash, bank transfer outside Stripe). Use
-              this for records only.
-            </p>
-          </div>
-          <Dialog open={legacyOpen} onOpenChange={setLegacyOpen}>
-            <DialogTrigger
-              render={
-                <Button
-                  size="sm"
-                  variant="outline"
-                  className="h-8 gap-1 text-xs"
-                />
-              }
-            >
-              <Plus className="size-3" />
-              Add manual entry
-            </DialogTrigger>
-            <AddPaymentDialog
-              eventId={eventId}
-              onClose={() => setLegacyOpen(false)}
-              onCreated={() => {
-                utils.events.byId.invalidate({ id: eventId });
-                setLegacyOpen(false);
-              }}
-            />
-          </Dialog>
+    <div className="space-y-4">
+      <div className="flex items-center justify-between gap-3 rounded-2xl border border-rose-100/70 bg-gradient-to-br from-rose-50 to-amber-50/60 px-5 py-3">
+        <div>
+          <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-rose-700/80">
+            Available for this event
+          </p>
+          <p className="font-display text-xl font-light leading-tight tracking-tight">
+            {formatCurrency(canReleaseHere)}
+          </p>
+          <p className="text-[11px] text-muted-foreground">
+            Earned from this event{" "}
+            {formatCurrency(eventBalance.data?.accrued ?? 0)} · committed{" "}
+            {formatCurrency(eventBalance.data?.committedToVendors ?? 0)} ·
+            paid out{" "}
+            {formatCurrency(eventBalance.data?.paidToVendors ?? 0)}.
+            {walletAvailable < eventAvailable && (
+              <>
+                {" "}
+                Wallet-wide cap {formatCurrency(walletAvailable)}.
+              </>
+            )}
+          </p>
         </div>
+        <Button
+          render={<Link href="/dashboard/planner/vendors" />}
+          className="gap-1 bg-gradient-to-r from-rose-600 to-amber-500 text-white"
+        >
+          <Plus className="size-4" />
+          Add vendor
+        </Button>
+      </div>
 
-        {legacy.length === 0 ? (
-          <div className="px-5 py-8 text-center text-xs text-muted-foreground">
-            No off-platform entries yet.
+      <div className="overflow-hidden rounded-2xl border border-rose-100/70 bg-white/80 backdrop-blur-sm">
+        <div className="flex items-center justify-between border-b border-rose-100/70 px-5 py-3">
+          <h3 className="font-display text-base font-medium tracking-tight">
+            Engagements
+          </h3>
+          <span className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
+            Per-vendor deals for this event
+          </span>
+        </div>
+        {engagements.isLoading ? (
+          <div className="flex justify-center py-12">
+            <Loader2 className="size-5 animate-spin text-rose-500" />
+          </div>
+        ) : (engagements.data?.length ?? 0) === 0 ? (
+          <div className="px-5 py-12 text-center">
+            <Users className="mx-auto mb-3 size-7 text-rose-500" />
+            <p className="font-display text-lg font-light tracking-tight">
+              No vendors yet
+            </p>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Browse the marketplace and request a deal — line items, total,
+              and releases are tracked per engagement here.
+            </p>
+            <Button
+              render={<Link href="/dashboard/planner/vendors" />}
+              size="sm"
+              className="mt-4 gap-1 bg-gradient-to-r from-rose-600 to-amber-500 text-white"
+            >
+              Browse vendors
+            </Button>
           </div>
         ) : (
           <ul className="divide-y divide-rose-100/70">
-            {legacy.map((p) => (
-              <li
-                key={p.id}
-                className="flex items-center justify-between gap-4 px-5 py-3"
-              >
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-medium">{p.label}</p>
-                  <p className="mt-0.5 flex items-center gap-2 text-xs text-muted-foreground">
-                    {p.due_date && (
-                      <span className="inline-flex items-center gap-1">
-                        <Clock className="size-3" />
-                        Due {format(new Date(p.due_date), "PP")}
-                      </span>
-                    )}
-                    {p.paid_at && (
-                      <span className="inline-flex items-center gap-1 text-emerald-700">
-                        <Check className="size-3" />
-                        Paid {format(new Date(p.paid_at), "PP")}
-                      </span>
-                    )}
-                  </p>
-                </div>
-                <div className="flex items-center gap-3">
-                  <span className="text-sm font-medium tabular-nums">
-                    {formatCurrency(decimalToNumber(p.amount), p.currency)}
-                  </span>
-                  {p.status !== "paid" ? (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      disabled={markPaid.isPending}
-                      onClick={() => markPaid.mutate({ id: p.id })}
-                      className="h-7 gap-1 text-xs"
-                    >
-                      <Check className="size-3" />
-                      Mark paid
-                    </Button>
-                  ) : (
-                    <span className="inline-flex items-center rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-emerald-700 ring-1 ring-emerald-200">
-                      Paid
-                    </span>
-                  )}
-                  <Button
-                    variant="ghost"
-                    size="icon-sm"
-                    onClick={() => {
-                      if (window.confirm(`Remove "${p.label}"?`)) {
-                        removePayment.mutate({ id: p.id });
-                      }
-                    }}
-                    className="size-7 text-muted-foreground hover:text-destructive"
-                  >
-                    <Trash2 className="size-3.5" />
-                  </Button>
-                </div>
-              </li>
+            {engagements.data!.map((e) => (
+              <EngagementRow
+                key={e.id}
+                engagement={e}
+                onComplete={() => completeMutation.mutate({ id: e.id })}
+                onCancel={() => {
+                  const reason = prompt("Cancel reason?");
+                  if (reason !== null) {
+                    cancelMutation.mutate({
+                      id: e.id,
+                      reason: reason || undefined,
+                    });
+                  }
+                }}
+                pending={completeMutation.isPending || cancelMutation.isPending}
+                eventId={event.id}
+              />
             ))}
           </ul>
         )}
@@ -952,109 +867,451 @@ function PaymentsTab({
   );
 }
 
-function AddPaymentDialog({
+function EngagementRow({
+  engagement,
+  onComplete,
+  onCancel,
+  pending,
   eventId,
-  onClose,
+}: {
+  engagement: {
+    id: string;
+    title: string;
+    notes: string | null;
+    status: string;
+    currency: string;
+    total_amount: unknown;
+    vendor: {
+      id: string;
+      business_name: string;
+      category: string;
+      avg_rating: unknown;
+      review_count: number;
+    };
+    items: Array<{
+      id: string;
+      name: string;
+      description: string | null;
+      quantity: number;
+      unit_price: unknown;
+      line_total: unknown;
+      delivered_at: Date | string | null;
+    }>;
+    releases: Array<{
+      id: string;
+      label: string;
+      amount: unknown;
+      currency: string;
+      status: string;
+      requested_at: Date | string;
+      paid_at: Date | string | null;
+    }>;
+  };
+  onComplete: () => void;
+  onCancel: () => void;
+  pending: boolean;
+  eventId: string;
+}) {
+  const utils = trpc.useUtils();
+  const [releaseOpen, setReleaseOpen] = useState(false);
+  const [reviewOpen, setReviewOpen] = useState(false);
+
+  const totalReleased = engagement.releases
+    .filter((r) => r.status === "paid" || r.status === "pending")
+    .reduce((s, r) => s + Number(r.amount), 0);
+  const remaining = decimalToNumber(engagement.total_amount) - totalReleased;
+  const status = engagement.status;
+
+  return (
+    <li className="space-y-3 px-5 py-4">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div className="min-w-0">
+          <Link
+            href={`/dashboard/planner/vendors/${engagement.vendor.id}`}
+            className="text-base font-medium leading-tight hover:underline"
+          >
+            {engagement.title}
+          </Link>
+          <p className="truncate text-xs text-muted-foreground">
+            {engagement.vendor.business_name} · {engagement.vendor.category}
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          <span
+            className={cn(
+              "rounded-full px-2 py-0.5 text-[10px] uppercase tracking-wider",
+              ENGAGEMENT_STATUS_TONE[status] ?? ENGAGEMENT_STATUS_TONE.draft,
+            )}
+          >
+            {status}
+          </span>
+          <span className="font-mono text-sm tabular-nums">
+            {formatCurrency(
+              decimalToNumber(engagement.total_amount),
+              engagement.currency,
+            )}
+          </span>
+        </div>
+      </div>
+      {engagement.notes && (
+        <p className="rounded-xl bg-stone-50 px-3 py-2 text-xs text-stone-700">
+          {engagement.notes}
+        </p>
+      )}
+
+      <ul className="divide-y divide-rose-100/70 rounded-xl border border-rose-100/70 text-sm">
+        {engagement.items.map((i) => (
+          <li
+            key={i.id}
+            className="flex items-center justify-between gap-3 px-3 py-2"
+          >
+            <div className="min-w-0">
+              <p className="truncate">{i.name}</p>
+              {i.description && (
+                <p className="truncate text-xs text-muted-foreground">
+                  {i.description}
+                </p>
+              )}
+            </div>
+            <div className="flex shrink-0 items-center gap-3 text-xs text-muted-foreground">
+              <span>×{i.quantity}</span>
+              {i.delivered_at && (
+                <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] uppercase tracking-wider text-emerald-800 ring-1 ring-emerald-100">
+                  Delivered
+                </span>
+              )}
+              <span className="font-mono tabular-nums">
+                {formatCurrency(
+                  decimalToNumber(i.line_total),
+                  engagement.currency,
+                )}
+              </span>
+            </div>
+          </li>
+        ))}
+      </ul>
+
+      {engagement.releases.length > 0 && (
+        <div className="rounded-xl border border-rose-100/70">
+          <p className="border-b border-rose-100/70 px-3 py-2 text-[10px] font-medium uppercase tracking-[0.2em] text-rose-700/80">
+            Releases · remaining {formatCurrency(Math.max(0, remaining), engagement.currency)}
+          </p>
+          <ul className="divide-y divide-rose-100/70 text-sm">
+            {engagement.releases.map((r) => (
+              <li
+                key={r.id}
+                className="flex items-center justify-between gap-3 px-3 py-2"
+              >
+                <div>
+                  <p className="font-medium">{r.label}</p>
+                  <p className="text-[11px] text-muted-foreground">
+                    Requested {format(new Date(r.requested_at), "PP")}
+                    {r.paid_at && (
+                      <> · Paid {format(new Date(r.paid_at), "PP")}</>
+                    )}
+                  </p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span
+                    className={cn(
+                      "rounded-full px-2 py-0.5 text-[10px] uppercase tracking-wider",
+                      r.status === "paid"
+                        ? "bg-emerald-100 text-emerald-800"
+                        : r.status === "cancelled"
+                          ? "bg-stone-100 text-stone-500"
+                          : "bg-amber-100 text-amber-900",
+                    )}
+                  >
+                    {r.status}
+                  </span>
+                  <span className="font-mono text-xs tabular-nums">
+                    {formatCurrency(
+                      decimalToNumber(r.amount),
+                      r.currency,
+                    )}
+                  </span>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      <div className="flex flex-wrap justify-end gap-2 pt-1">
+        {(status === "accepted" || status === "active" || status === "completed") && (
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => setReleaseOpen(true)}
+            disabled={pending}
+            className="gap-1"
+          >
+            <Plus className="size-3.5" />
+            Release funds
+          </Button>
+        )}
+        {(status === "accepted" || status === "active") && (
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={onComplete}
+            disabled={pending}
+            className="gap-1"
+          >
+            <CheckCircle2 className="size-3.5" />
+            Mark complete
+          </Button>
+        )}
+        {status === "completed" && (
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => setReviewOpen(true)}
+            className="gap-1"
+          >
+            <Sparkles className="size-3.5" />
+            Leave review
+          </Button>
+        )}
+        {(status === "requested" || status === "accepted" || status === "active") && (
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={onCancel}
+            disabled={pending}
+            className="gap-1 text-destructive"
+          >
+            <Trash2 className="size-3.5" />
+            Cancel
+          </Button>
+        )}
+      </div>
+
+      <ReleaseDialog
+        open={releaseOpen}
+        onOpenChange={setReleaseOpen}
+        engagementId={engagement.id}
+        currency={engagement.currency}
+        onCreated={() => {
+          utils.vendorEngagements.forEvent.invalidate({ eventId });
+          utils.payouts.plannerBalance.invalidate();
+        }}
+      />
+      <ReviewDialog
+        open={reviewOpen}
+        onOpenChange={setReviewOpen}
+        engagementId={engagement.id}
+        vendorId={engagement.vendor.id}
+        vendorName={engagement.vendor.business_name}
+      />
+    </li>
+  );
+}
+
+function ReleaseDialog({
+  open,
+  onOpenChange,
+  engagementId,
+  currency,
   onCreated,
 }: {
-  eventId: string;
-  onClose: () => void;
+  open: boolean;
+  onOpenChange: (v: boolean) => void;
+  engagementId: string;
+  currency: string;
   onCreated: () => void;
 }) {
-  const [label, setLabel] = useState("");
+  const [label, setLabel] = useState("Deposit");
   const [amount, setAmount] = useState("");
-  const [dueDate, setDueDate] = useState("");
   const [notes, setNotes] = useState("");
-
-  const create = trpc.payments.create.useMutation({
+  const create = trpc.vendorReleases.create.useMutation({
     onSuccess: () => {
-      toast.success("Payment added");
-      setLabel("");
-      setAmount("");
-      setDueDate("");
-      setNotes("");
+      toast.success("Release queued for admin payout");
       onCreated();
+      onOpenChange(false);
+      setLabel("Deposit");
+      setAmount("");
+      setNotes("");
     },
-    onError: (err) => toast.error(err.message),
+    onError: (e) => toast.error(e.message),
+  });
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle>Release funds</DialogTitle>
+          <DialogDescription>
+            Earmarks money from your accrued balance to this vendor. Admin
+            pays the vendor off-platform once the release is in the queue.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="space-y-3">
+          <div className="space-y-1.5">
+            <Label htmlFor="rl-label">Label</Label>
+            <Input
+              id="rl-label"
+              value={label}
+              onChange={(e) => setLabel(e.target.value)}
+            />
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="rl-amt">Amount ({currency})</Label>
+            <Input
+              id="rl-amt"
+              type="number"
+              min={0}
+              value={amount}
+              onChange={(e) => setAmount(e.target.value)}
+            />
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="rl-notes">Notes</Label>
+            <Textarea
+              id="rl-notes"
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              rows={3}
+              className="resize-none"
+            />
+          </div>
+        </div>
+        <div className="flex justify-end gap-2">
+          <Button
+            disabled={create.isPending}
+            onClick={() => {
+              const n = Number(amount);
+              if (!Number.isFinite(n) || n <= 0) {
+                toast.error("Amount must be greater than 0");
+                return;
+              }
+              create.mutate({
+                engagement_id: engagementId,
+                label: label.trim() || "Release",
+                amount: n,
+                notes: notes.trim() || null,
+              });
+            }}
+            className="gap-1 bg-gradient-to-r from-rose-600 to-amber-500 text-white"
+          >
+            {create.isPending && <Loader2 className="size-4 animate-spin" />}
+            Queue release
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function ReviewDialog({
+  open,
+  onOpenChange,
+  engagementId,
+  vendorId,
+  vendorName,
+}: {
+  open: boolean;
+  onOpenChange: (v: boolean) => void;
+  engagementId: string;
+  vendorId: string;
+  vendorName: string;
+}) {
+  const utils = trpc.useUtils();
+  const existing = trpc.vendorReviews.mineForEngagement.useQuery(
+    { engagementId, vendorId },
+    { enabled: open },
+  );
+  const [rating, setRating] = useState(5);
+  const [comment, setComment] = useState("");
+
+  const seed = existing.data?.id ?? null;
+  const [seededFor, setSeededFor] = useState<string | null>(null);
+  if (open && seed !== seededFor) {
+    setSeededFor(seed);
+    setRating(existing.data?.rating ?? 5);
+    setComment(existing.data?.comment ?? "");
+  }
+
+  const upsert = trpc.vendorReviews.upsert.useMutation({
+    onSuccess: () => {
+      toast.success("Review saved");
+      utils.vendorReviews.forVendor.invalidate({ vendorId });
+      utils.vendorReviews.mineForEngagement.invalidate({
+        engagementId,
+        vendorId,
+      });
+      onOpenChange(false);
+    },
+    onError: (e) => toast.error(e.message),
   });
 
   return (
-    <DialogContent className="sm:max-w-md">
-      <DialogHeader>
-        <DialogTitle>Add a payment</DialogTitle>
-        <DialogDescription>
-          Track a deposit or installment for this event.
-        </DialogDescription>
-      </DialogHeader>
-      <div className="space-y-3">
-        <div className="space-y-1.5">
-          <Label htmlFor="payment-label">Label</Label>
-          <Input
-            id="payment-label"
-            value={label}
-            onChange={(e) => setLabel(e.target.value)}
-            placeholder="Venue deposit"
-          />
-        </div>
-        <div className="grid grid-cols-2 gap-3">
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle>Review {vendorName}</DialogTitle>
+          <DialogDescription>
+            Show other planners how the engagement went. You can edit your
+            review later.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="space-y-3">
           <div className="space-y-1.5">
-            <Label htmlFor="payment-amount">Amount (EGP)</Label>
-            <Input
-              id="payment-amount"
-              type="number"
-              inputMode="numeric"
-              value={amount}
-              onChange={(e) => setAmount(e.target.value)}
-              placeholder="0"
-            />
+            <Label>Rating</Label>
+            <div className="flex gap-1">
+              {[1, 2, 3, 4, 5].map((n) => (
+                <button
+                  key={n}
+                  type="button"
+                  onClick={() => setRating(n)}
+                  className={cn(
+                    "text-2xl",
+                    n <= rating ? "text-amber-500" : "text-stone-300",
+                  )}
+                  aria-label={`${n} stars`}
+                >
+                  ★
+                </button>
+              ))}
+            </div>
           </div>
           <div className="space-y-1.5">
-            <Label htmlFor="payment-due">Due date</Label>
-            <Input
-              id="payment-due"
-              type="date"
-              value={dueDate}
-              onChange={(e) => setDueDate(e.target.value)}
+            <Label htmlFor="rv-cmt">Comment (optional)</Label>
+            <Textarea
+              id="rv-cmt"
+              value={comment}
+              onChange={(e) => setComment(e.target.value)}
+              rows={4}
+              className="resize-none"
             />
           </div>
         </div>
-        <div className="space-y-1.5">
-          <Label htmlFor="payment-notes">Notes (optional)</Label>
-          <Textarea
-            id="payment-notes"
-            rows={3}
-            value={notes}
-            onChange={(e) => setNotes(e.target.value)}
-            placeholder="Any context for this payment"
-          />
+        <div className="flex justify-end">
+          <Button
+            disabled={upsert.isPending}
+            onClick={() =>
+              upsert.mutate({
+                engagementId,
+                vendorId,
+                rating,
+                comment: comment.trim() || undefined,
+              })
+            }
+            className="gap-1 bg-gradient-to-r from-rose-600 to-amber-500 text-white"
+          >
+            {upsert.isPending && <Loader2 className="size-4 animate-spin" />}
+            Save review
+          </Button>
         </div>
-      </div>
-      <div className="flex items-center justify-end gap-2">
-        <Button variant="ghost" onClick={onClose}>
-          Cancel
-        </Button>
-        <Button
-          disabled={create.isPending || !label.trim() || !amount}
-          onClick={() =>
-            create.mutate({
-              eventId,
-              label: label.trim(),
-              amount: parseFloat(amount) || 0,
-              due_date: dueDate ? new Date(dueDate) : null,
-              notes: notes.trim() || null,
-            })
-          }
-          className="gap-1 bg-gradient-to-r from-rose-600 to-amber-500 text-white hover:opacity-90"
-        >
-          {create.isPending ? (
-            <Loader2 className="size-3.5 animate-spin" />
-          ) : (
-            <Plus className="size-3.5" />
-          )}
-          Add payment
-        </Button>
-      </div>
-    </DialogContent>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function PaymentsTab({ eventId }: { eventId: string }) {
+  return (
+    <div className="space-y-6">
+      <SchedulePanel eventId={eventId} side="planner" />
+    </div>
   );
 }
 

@@ -89,6 +89,27 @@ enum PayoutMethod {
   other
 }
 
+enum PayoutRecipientType {
+  planner
+  vendor
+}
+
+enum VendorEngagementStatus {
+  draft
+  requested
+  accepted
+  declined
+  active
+  completed
+  cancelled
+}
+
+enum VendorReleaseStatus {
+  pending
+  paid
+  cancelled
+}
+
 enum ProposalStatus {
   pending
   accepted
@@ -105,11 +126,12 @@ model Profile {
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
 
-  planner_profile    PlannerProfile?
-  vendor_profile     VendorProfile?
-  client_events      Event[]            @relation("ClientEvents")
-  sent_messages      Message[]
-  reviews            Review[]           @relation("AuthorReviews")
+  planner_profile     PlannerProfile?
+  vendor_profile      VendorProfile?
+  client_events       Event[]            @relation("ClientEvents")
+  sent_messages       Message[]
+  reviews             Review[]           @relation("AuthorReviews")
+  vendor_reviews      VendorReview[]     @relation("AuthorVendorReviews")
   style_quiz_sessions StyleQuizSession[]
   venue_designs       VenueDesign[]
 
@@ -117,61 +139,198 @@ model Profile {
 }
 
 model PlannerProfile {
-  id            String                      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  user_id       String                      @unique @db.Uuid
+  id            String                       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id       String                       @unique @db.Uuid
   business_name String
   bio           String?
   location      String?
-  specialties   Json                        @default("[]")
-  avg_rating    Decimal                     @default(0) @db.Decimal(3, 2)
-  review_count  Int                         @default(0)
-  verified      Boolean                     @default(false)
+  specialties   Json                         @default("[]")
+  avg_rating    Decimal                      @default(0) @db.Decimal(3, 2)
+  review_count  Int                          @default(0)
+  verified      Boolean                      @default(false)
   embedding     Unsupported("vector(1536)")?
-  created_at    DateTime                    @default(now())
-  updated_at    DateTime                    @updatedAt
+  created_at    DateTime                     @default(now())
+  updated_at    DateTime                     @updatedAt
 
-  profile            Profile           @relation(fields: [user_id], references: [id], onDelete: Cascade)
-  events             Event[]           @relation("PlannerEvents")
+  profile            Profile            @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  events             Event[]            @relation("PlannerEvents")
   portfolio_items    PortfolioItem[]
   reviews            Review[]
   proposals          Proposal[]
   blocks             PlannerBlock[]
   payment_schedules  PaymentSchedule[]
   payouts            Payout[]
+  vendor_engagements VendorEngagement[]
+  vendor_releases    VendorRelease[]
 
   @@map("planner_profiles")
 }
 
 model VendorProfile {
-  id            String                      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  user_id       String                      @unique @db.Uuid
+  id            String                       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id       String                       @unique @db.Uuid
   business_name String
   category      VendorCategory
   location      String?
-  avg_rating    Decimal                     @default(0) @db.Decimal(3, 2)
-  verified      Boolean                     @default(false)
+  bio           String?
+  specialties   Json                         @default("[]")
+  avg_rating    Decimal                      @default(0) @db.Decimal(3, 2)
+  review_count  Int                          @default(0)
+  verified      Boolean                      @default(false)
   embedding     Unsupported("vector(1536)")?
-  created_at    DateTime                    @default(now())
-  updated_at    DateTime                    @updatedAt
+  created_at    DateTime                     @default(now())
+  updated_at    DateTime                     @updatedAt
 
-  profile  Profile         @relation(fields: [user_id], references: [id], onDelete: Cascade)
-  services VendorService[]
-  events   EventVendor[]
+  profile         Profile               @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  services        VendorService[]
+  events          EventVendor[]
+  portfolio_items VendorPortfolioItem[]
+  reviews         VendorReview[]
+  engagements     VendorEngagement[]
+  releases        VendorRelease[]
+  payouts         Payout[]
 
   @@map("vendor_profiles")
 }
 
 model VendorService {
-  id          String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  vendor_id   String  @db.Uuid
-  name        String
-  description String?
-  price_from  Decimal @db.Decimal(10, 2)
-  price_unit  String  @default("per_event")
+  id             String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  vendor_id      String   @db.Uuid
+  name           String
+  description    String?
+  price_from     Decimal  @db.Decimal(10, 2)
+  price_unit     String   @default("per_event")
+  // Free-text refinement under the vendor's primary category
+  // (e.g. "tea-light", "centerpiece"). Used in browse filters.
+  subcategory    String?
+  // Json array of Cloudinary URLs. Empty array = no images.
+  images         Json     @default("[]")
+  lead_time_days Int?
+  // Soft-hide so vendors can pause an item without losing the row.
+  available      Boolean  @default(true)
+  created_at     DateTime @default(now())
+  updated_at     DateTime @updatedAt
+
+  vendor VendorProfile          @relation(fields: [vendor_id], references: [id], onDelete: Cascade)
+  items  VendorEngagementItem[]
+
+  @@index([vendor_id, available])
+  @@map("vendor_services")
+}
+
+model VendorPortfolioItem {
+  id         String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  vendor_id  String     @db.Uuid
+  image_url  String
+  caption    String?
+  event_type EventType?
+  style_tags Json       @default("[]")
+  created_at DateTime   @default(now())
 
   vendor VendorProfile @relation(fields: [vendor_id], references: [id], onDelete: Cascade)
 
-  @@map("vendor_services")
+  @@index([vendor_id])
+  @@map("vendor_portfolio_items")
+}
+
+model VendorReview {
+  id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  // Author is the engaging planner (clients never see vendors). Stored as
+  // Profile.id so we don't need a planner-only constraint at the DB layer.
+  author_id     String   @db.Uuid
+  vendor_id     String   @db.Uuid
+  // Nullable so the same author can leave one review per (vendor, engagement)
+  // and aggregate them at the vendor level.
+  engagement_id String?  @db.Uuid
+  rating        Int
+  comment       String?
+  created_at    DateTime @default(now())
+  updated_at    DateTime @default(now()) @updatedAt
+
+  author     Profile           @relation("AuthorVendorReviews", fields: [author_id], references: [id], onDelete: Cascade)
+  vendor     VendorProfile     @relation(fields: [vendor_id], references: [id], onDelete: Cascade)
+  engagement VendorEngagement? @relation(fields: [engagement_id], references: [id], onDelete: SetNull)
+
+  @@unique([author_id, vendor_id, engagement_id])
+  @@index([vendor_id, rating])
+  @@map("vendor_reviews")
+}
+
+model VendorEngagement {
+  id           String                 @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  event_id     String                 @db.Uuid
+  planner_id   String                 @db.Uuid
+  vendor_id    String                 @db.Uuid
+  title        String
+  notes        String?
+  status       VendorEngagementStatus @default(requested)
+  currency     String                 @default("EGP")
+  // Recomputed from the line items on every mutation.
+  total_amount Decimal                @db.Decimal(12, 2)
+  requested_at DateTime?
+  accepted_at  DateTime?
+  completed_at DateTime?
+  cancelled_at DateTime?
+  created_at   DateTime               @default(now())
+  updated_at   DateTime               @updatedAt
+
+  event    Event                  @relation(fields: [event_id], references: [id], onDelete: Cascade)
+  planner  PlannerProfile         @relation(fields: [planner_id], references: [id], onDelete: Cascade)
+  vendor   VendorProfile          @relation(fields: [vendor_id], references: [id], onDelete: Cascade)
+  items    VendorEngagementItem[]
+  releases VendorRelease[]
+  reviews  VendorReview[]
+
+  @@index([event_id, status])
+  @@index([planner_id, status])
+  @@index([vendor_id, status])
+  @@map("vendor_engagements")
+}
+
+model VendorEngagementItem {
+  id            String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  engagement_id String    @db.Uuid
+  // Nullable when the item is a one-off custom row not in the vendor's catalog.
+  service_id    String?   @db.Uuid
+  name          String
+  description   String?
+  quantity      Int       @default(1)
+  unit_price    Decimal   @db.Decimal(10, 2)
+  line_total    Decimal   @db.Decimal(12, 2)
+  delivered_at  DateTime?
+  created_at    DateTime  @default(now())
+
+  engagement VendorEngagement @relation(fields: [engagement_id], references: [id], onDelete: Cascade)
+  service    VendorService?   @relation(fields: [service_id], references: [id], onDelete: SetNull)
+
+  @@index([engagement_id])
+  @@map("vendor_engagement_items")
+}
+
+model VendorRelease {
+  id            String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  engagement_id String              @db.Uuid
+  planner_id    String              @db.Uuid
+  vendor_id     String              @db.Uuid
+  label         String
+  amount        Decimal             @db.Decimal(12, 2)
+  currency      String              @default("EGP")
+  status        VendorReleaseStatus @default(pending)
+  notes         String?
+  requested_at  DateTime            @default(now())
+  paid_at       DateTime?
+  // Set when admin records the matching off-Stripe Payout.
+  payout_id     String?             @db.Uuid
+
+  engagement VendorEngagement @relation(fields: [engagement_id], references: [id], onDelete: Cascade)
+  planner    PlannerProfile   @relation(fields: [planner_id], references: [id], onDelete: Cascade)
+  vendor     VendorProfile    @relation(fields: [vendor_id], references: [id], onDelete: Cascade)
+  payout     Payout?          @relation(fields: [payout_id], references: [id], onDelete: SetNull)
+
+  @@index([planner_id, status])
+  @@index([vendor_id, status])
+  @@index([engagement_id])
+  @@map("vendor_releases")
 }
 
 model Event {
@@ -189,8 +348,8 @@ model Event {
   created_at         DateTime    @default(now())
   updated_at         DateTime    @updatedAt
 
-  client             Profile           @relation("ClientEvents", fields: [client_id], references: [id], onDelete: Cascade)
-  planner            PlannerProfile?   @relation("PlannerEvents", fields: [planner_id], references: [id])
+  client             Profile            @relation("ClientEvents", fields: [client_id], references: [id], onDelete: Cascade)
+  planner            PlannerProfile?    @relation("PlannerEvents", fields: [planner_id], references: [id])
   vendors            EventVendor[]
   messages           Message[]
   designs            VenueDesign[]
@@ -198,6 +357,7 @@ model Event {
   proposals          Proposal[]
   reviews            Review[]
   payment_schedules  PaymentSchedule[]
+  vendor_engagements VendorEngagement[]
 
   @@map("events")
 }
@@ -218,13 +378,13 @@ model EventVendor {
 }
 
 model PortfolioItem {
-  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  planner_id String   @db.Uuid
+  id         String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  planner_id String     @db.Uuid
   image_url  String
   caption    String?
   event_type EventType?
-  style_tags Json     @default("[]")
-  created_at DateTime @default(now())
+  style_tags Json       @default("[]")
+  created_at DateTime   @default(now())
 
   planner PlannerProfile @relation(fields: [planner_id], references: [id], onDelete: Cascade)
 
@@ -367,8 +527,8 @@ model Payment {
 
   // Cached at capture time so we don't recompute on every read and so the
   // amounts are stable even if the schedule's fee_pct changes later.
-  platform_fee_amount    Decimal? @db.Decimal(10, 2)
-  net_to_planner_amount  Decimal? @db.Decimal(10, 2)
+  platform_fee_amount   Decimal? @db.Decimal(10, 2)
+  net_to_planner_amount Decimal? @db.Decimal(10, 2)
 
   // Set when an admin records a Payout that includes this installment.
   payout_id String? @db.Uuid
@@ -379,9 +539,9 @@ model Payment {
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
 
-  event    Event             @relation(fields: [event_id], references: [id], onDelete: Cascade)
-  schedule PaymentSchedule?  @relation(fields: [schedule_id], references: [id], onDelete: SetNull)
-  payout   Payout?           @relation(fields: [payout_id], references: [id], onDelete: SetNull)
+  event    Event            @relation(fields: [event_id], references: [id], onDelete: Cascade)
+  schedule PaymentSchedule? @relation(fields: [schedule_id], references: [id], onDelete: SetNull)
+  payout   Payout?          @relation(fields: [payout_id], references: [id], onDelete: SetNull)
 
   @@index([event_id])
   @@index([schedule_id])
@@ -404,9 +564,9 @@ model PaymentSchedule {
   created_at       DateTime              @default(now())
   updated_at       DateTime              @updatedAt
 
-  event        Event                @relation(fields: [event_id], references: [id], onDelete: Cascade)
-  proposal     Proposal             @relation(fields: [proposal_id], references: [id], onDelete: Cascade)
-  planner      PlannerProfile       @relation(fields: [planner_id], references: [id], onDelete: Cascade)
+  event        Event               @relation(fields: [event_id], references: [id], onDelete: Cascade)
+  proposal     Proposal            @relation(fields: [proposal_id], references: [id], onDelete: Cascade)
+  planner      PlannerProfile      @relation(fields: [planner_id], references: [id], onDelete: Cascade)
   installments Payment[]
   amendments   ScheduleAmendment[]
 
@@ -417,20 +577,20 @@ model PaymentSchedule {
 }
 
 model ScheduleAmendment {
-  id                     String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  schedule_id            String          @db.Uuid
-  requested_by_user_id   String          @db.Uuid
+  id                    String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  schedule_id           String          @db.Uuid
+  requested_by_user_id  String          @db.Uuid
   // Snapshot of the proposed not-yet-paid installments. Shape:
   // [{ label: string, amount: number, due_date: string | null }]
-  proposed_installments  Json
-  proposed_total         Decimal         @db.Decimal(12, 2)
-  proposed_fee_pct       Decimal?        @db.Decimal(5, 2)
-  reason                 String?
-  status                 AmendmentStatus @default(pending)
-  decided_at             DateTime?
-  decided_by_user_id     String?         @db.Uuid
-  created_at             DateTime        @default(now())
-  updated_at             DateTime        @updatedAt
+  proposed_installments Json
+  proposed_total        Decimal         @db.Decimal(12, 2)
+  proposed_fee_pct      Decimal?        @db.Decimal(5, 2)
+  reason                String?
+  status                AmendmentStatus @default(pending)
+  decided_at            DateTime?
+  decided_by_user_id    String?         @db.Uuid
+  created_at            DateTime        @default(now())
+  updated_at            DateTime        @updatedAt
 
   schedule PaymentSchedule @relation(fields: [schedule_id], references: [id], onDelete: Cascade)
 
@@ -439,21 +599,29 @@ model ScheduleAmendment {
 }
 
 model Payout {
-  id                  String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  planner_id          String       @db.Uuid
-  currency            String       @default("EGP")
-  amount              Decimal      @db.Decimal(12, 2)
-  method              PayoutMethod @default(instapay)
+  id                  String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  // Either planner_id or vendor_id must be set depending on recipient_type.
+  // We keep planner_id nullable now to support vendor-recipient payouts; the
+  // tRPC layer enforces the "exactly one is set" invariant.
+  planner_id          String?             @db.Uuid
+  vendor_id           String?             @db.Uuid
+  recipient_type      PayoutRecipientType @default(planner)
+  currency            String              @default("EGP")
+  amount              Decimal             @db.Decimal(12, 2)
+  method              PayoutMethod        @default(instapay)
   reference           String?
   notes               String?
   paid_at             DateTime
-  recorded_by_user_id String       @db.Uuid
-  created_at          DateTime     @default(now())
+  recorded_by_user_id String              @db.Uuid
+  created_at          DateTime            @default(now())
 
-  planner      PlannerProfile @relation(fields: [planner_id], references: [id], onDelete: Cascade)
-  installments Payment[]
+  planner         PlannerProfile? @relation(fields: [planner_id], references: [id], onDelete: Cascade)
+  vendor          VendorProfile?  @relation(fields: [vendor_id], references: [id], onDelete: Cascade)
+  installments    Payment[]
+  vendor_releases VendorRelease[]
 
   @@index([planner_id, paid_at])
+  @@index([vendor_id, paid_at])
   @@map("payouts")
 }
 
@@ -473,9 +641,9 @@ model Proposal {
   created_at      DateTime       @default(now())
   updated_at      DateTime       @updatedAt
 
-  event              Event             @relation(fields: [event_id], references: [id], onDelete: Cascade)
-  planner            PlannerProfile    @relation(fields: [planner_id], references: [id], onDelete: Cascade)
-  payment_schedules  PaymentSchedule[]
+  event             Event             @relation(fields: [event_id], references: [id], onDelete: Cascade)
+  planner           PlannerProfile    @relation(fields: [planner_id], references: [id], onDelete: Cascade)
+  payment_schedules PaymentSchedule[]
 
   @@unique([event_id, planner_id])
   @@index([planner_id, status])

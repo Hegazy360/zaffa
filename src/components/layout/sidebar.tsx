@@ -9,12 +9,14 @@ import {
   Compass,
   FileText,
   Home,
+  Inbox,
   MessageSquare,
   Settings,
   ShieldCheck,
+  Store,
+  UserRound,
   Wallet,
   Wand2,
-  Users,
   Briefcase,
   ImageIcon,
   type LucideIcon,
@@ -66,6 +68,11 @@ const roleLinks: Record<UserRole, NavLink[]> = {
       icon: Compass,
     },
     {
+      href: "/dashboard/planner/vendors",
+      label: "Vendors",
+      icon: Store,
+    },
+    {
       href: "/dashboard/planner/proposals",
       label: "My proposals",
       icon: FileText,
@@ -100,19 +107,30 @@ const roleLinks: Record<UserRole, NavLink[]> = {
   vendor: [
     { href: "/dashboard/vendor", label: "Dashboard", icon: Home },
     {
-      href: "/dashboard/vendor/services",
-      label: "Services",
+      href: "/dashboard/vendor/catalog",
+      label: "Catalog",
       icon: Briefcase,
     },
     {
-      href: "/dashboard/vendor/requests",
-      label: "Requests",
-      icon: Users,
+      href: "/dashboard/vendor/inbox",
+      label: "Inbox",
+      icon: Inbox,
     },
     {
-      href: "/dashboard/vendor/calendar",
-      label: "Calendar",
-      icon: CalendarDays,
+      href: "/dashboard/vendor/engagements",
+      label: "Engagements",
+      icon: FileText,
+      match: ["/dashboard/vendor/engagements"],
+    },
+    {
+      href: "/dashboard/vendor/earnings",
+      label: "Earnings",
+      icon: Wallet,
+    },
+    {
+      href: "/dashboard/vendor/profile",
+      label: "Profile",
+      icon: UserRound,
     },
     {
       href: "/dashboard/vendor/settings",
@@ -124,8 +142,13 @@ const roleLinks: Record<UserRole, NavLink[]> = {
     { href: "/dashboard/admin", label: "Overview", icon: Home },
     {
       href: "/dashboard/admin/payouts",
-      label: "Payouts",
+      label: "Planner payouts",
       icon: Wallet,
+    },
+    {
+      href: "/dashboard/admin/vendor-payouts",
+      label: "Vendor payouts",
+      icon: Store,
     },
     {
       href: "/dashboard/admin/audit",

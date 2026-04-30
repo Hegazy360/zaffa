@@ -16,7 +16,6 @@ import {
   Check,
   CheckCircle2,
   CircleDot,
-  Clock,
   CreditCard,
   ExternalLink,
   FileText,
@@ -25,13 +24,11 @@ import {
   MapPin,
   MessageSquare,
   Pencil,
-  Plus,
   Send,
   Sparkles,
   Star,
   Trash2,
   UserCircle,
-  Users,
   Wand2,
 } from "lucide-react";
 import { format, formatDistanceToNow } from "date-fns";
@@ -342,7 +339,7 @@ export default function EventDetailPage() {
           </TabsContent>
 
           <TabsContent value="payments">
-            <PaymentsTab eventId={event.id} payments={event.payments} />
+            <PaymentsTab eventId={event.id} />
           </TabsContent>
 
           <TabsContent value="messages">
@@ -1051,28 +1048,8 @@ function DesignTab({
 // Payments tab — totals, list, add, mark paid
 // ---------------------------------------------------------------------------
 
-interface PaymentRow {
-  id: string;
-  label: string;
-  amount: unknown;
-  currency: string;
-  status: string;
-  due_date: Date | null;
-  paid_at: Date | null;
-  notes: string | null;
-  schedule_id: string | null;
-}
-
-function PaymentsTab({
-  eventId,
-  payments,
-}: {
-  eventId: string;
-  payments: PaymentRow[];
-}) {
-  const utils = trpc.useUtils();
+function PaymentsTab({ eventId }: { eventId: string }) {
   const searchParams = useSearchParams();
-  const [legacyOpen, setLegacyOpen] = useState(false);
 
   // Stripe Checkout returns to this page with ?paid=<installmentId>. We
   // pass it down so the SchedulePanel can poll until the webhook flips it.
@@ -1088,235 +1065,10 @@ function PaymentsTab({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const legacy = payments.filter((p) => !p.schedule_id);
-
-  const removePayment = trpc.payments.delete.useMutation({
-    onSuccess: () => {
-      toast.success("Payment removed");
-      utils.events.byId.invalidate({ id: eventId });
-    },
-    onError: (err) => toast.error(err.message),
-  });
-  const markPaid = trpc.payments.markPaid.useMutation({
-    onSuccess: () => {
-      toast.success("Marked paid");
-      utils.events.byId.invalidate({ id: eventId });
-    },
-    onError: (err) => toast.error(err.message),
-  });
-
   return (
     <div className="space-y-6">
       <SchedulePanel eventId={eventId} side="client" paidQueryParam={paid} />
-
-      <div className="overflow-hidden rounded-2xl border border-rose-100/70 bg-white/60 backdrop-blur-sm dark:border-rose-900/30 dark:bg-card/60">
-        <div className="flex items-center justify-between border-b border-rose-100/70 px-5 py-3 dark:border-rose-900/30">
-          <div>
-            <h3 className="font-display text-base font-medium tracking-tight">
-              Off-platform notes
-            </h3>
-            <p className="text-xs text-muted-foreground">
-              Manual entries to track payments outside Stripe (cash, bank
-              transfer).
-            </p>
-          </div>
-          <Dialog open={legacyOpen} onOpenChange={setLegacyOpen}>
-            <DialogTrigger
-              render={
-                <Button
-                  size="sm"
-                  variant="outline"
-                  className="h-8 gap-1 text-xs"
-                />
-              }
-            >
-              <Plus className="size-3" />
-              Add manual entry
-            </DialogTrigger>
-            <AddPaymentDialog
-              eventId={eventId}
-              onClose={() => setLegacyOpen(false)}
-              onCreated={() => {
-                utils.events.byId.invalidate({ id: eventId });
-                setLegacyOpen(false);
-              }}
-            />
-          </Dialog>
-        </div>
-
-        {legacy.length === 0 ? (
-          <div className="px-5 py-8 text-center text-xs text-muted-foreground">
-            No off-platform entries yet.
-          </div>
-        ) : (
-          <ul className="divide-y divide-rose-100/70 dark:divide-rose-900/30">
-            {legacy.map((p) => (
-              <li
-                key={p.id}
-                className="flex items-center justify-between gap-4 px-5 py-3"
-              >
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-medium">{p.label}</p>
-                  <p className="mt-0.5 flex items-center gap-2 text-xs text-muted-foreground">
-                    {p.due_date && (
-                      <span className="inline-flex items-center gap-1">
-                        <Clock className="size-3" />
-                        Due {format(new Date(p.due_date), "PP")}
-                      </span>
-                    )}
-                    {p.paid_at && (
-                      <span className="inline-flex items-center gap-1 text-emerald-700">
-                        <Check className="size-3" />
-                        Paid {format(new Date(p.paid_at), "PP")}
-                      </span>
-                    )}
-                  </p>
-                </div>
-                <div className="flex items-center gap-3">
-                  <span className="text-sm font-medium tabular-nums">
-                    {formatCurrency(decimalToNumber(p.amount), p.currency)}
-                  </span>
-                  {p.status !== "paid" ? (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      disabled={markPaid.isPending}
-                      onClick={() => markPaid.mutate({ id: p.id })}
-                      className="h-7 gap-1 text-xs"
-                    >
-                      <Check className="size-3" />
-                      Mark paid
-                    </Button>
-                  ) : (
-                    <span className="inline-flex items-center rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-emerald-700 ring-1 ring-emerald-200">
-                      Paid
-                    </span>
-                  )}
-                  <Button
-                    variant="ghost"
-                    size="icon-sm"
-                    onClick={() => {
-                      if (window.confirm(`Remove "${p.label}"?`)) {
-                        removePayment.mutate({ id: p.id });
-                      }
-                    }}
-                    className="size-7 text-muted-foreground hover:text-destructive"
-                  >
-                    <Trash2 className="size-3.5" />
-                  </Button>
-                </div>
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
     </div>
-  );
-}
-
-function AddPaymentDialog({
-  eventId,
-  onClose,
-  onCreated,
-}: {
-  eventId: string;
-  onClose: () => void;
-  onCreated: () => void;
-}) {
-  const [label, setLabel] = useState("");
-  const [amount, setAmount] = useState("");
-  const [dueDate, setDueDate] = useState("");
-  const [notes, setNotes] = useState("");
-
-  const create = trpc.payments.create.useMutation({
-    onSuccess: () => {
-      toast.success("Payment added");
-      setLabel("");
-      setAmount("");
-      setDueDate("");
-      setNotes("");
-      onCreated();
-    },
-    onError: (err) => toast.error(err.message),
-  });
-
-  return (
-    <DialogContent className="sm:max-w-md">
-      <DialogHeader>
-        <DialogTitle>Add a payment</DialogTitle>
-        <DialogDescription>
-          Track a deposit or installment for this event.
-        </DialogDescription>
-      </DialogHeader>
-      <div className="space-y-3">
-        <div className="space-y-1.5">
-          <Label htmlFor="payment-label">Label</Label>
-          <Input
-            id="payment-label"
-            value={label}
-            onChange={(e) => setLabel(e.target.value)}
-            placeholder="Venue deposit"
-          />
-        </div>
-        <div className="grid grid-cols-2 gap-3">
-          <div className="space-y-1.5">
-            <Label htmlFor="payment-amount">Amount (EGP)</Label>
-            <Input
-              id="payment-amount"
-              type="number"
-              inputMode="numeric"
-              value={amount}
-              onChange={(e) => setAmount(e.target.value)}
-              placeholder="0"
-            />
-          </div>
-          <div className="space-y-1.5">
-            <Label htmlFor="payment-due">Due date</Label>
-            <Input
-              id="payment-due"
-              type="date"
-              value={dueDate}
-              onChange={(e) => setDueDate(e.target.value)}
-            />
-          </div>
-        </div>
-        <div className="space-y-1.5">
-          <Label htmlFor="payment-notes">Notes (optional)</Label>
-          <Textarea
-            id="payment-notes"
-            rows={3}
-            value={notes}
-            onChange={(e) => setNotes(e.target.value)}
-            placeholder="Any context for this payment"
-          />
-        </div>
-      </div>
-      <div className="flex items-center justify-end gap-2">
-        <Button variant="ghost" onClick={onClose}>
-          Cancel
-        </Button>
-        <Button
-          disabled={create.isPending || !label.trim() || !amount}
-          onClick={() =>
-            create.mutate({
-              eventId,
-              label: label.trim(),
-              amount: parseFloat(amount) || 0,
-              due_date: dueDate ? new Date(dueDate) : null,
-              notes: notes.trim() || null,
-            })
-          }
-          className="gap-1 bg-gradient-to-r from-rose-600 to-amber-500 text-white hover:opacity-90"
-        >
-          {create.isPending ? (
-            <Loader2 className="size-3.5 animate-spin" />
-          ) : (
-            <Plus className="size-3.5" />
-          )}
-          Add payment
-        </Button>
-      </div>
-    </DialogContent>
   );
 }
 

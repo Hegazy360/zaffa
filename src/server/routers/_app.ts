@@ -13,6 +13,10 @@ import { plannerRouter } from "./planner";
 import { profileRouter } from "./profile";
 import { proposalsRouter } from "./proposals";
 import { reviewsRouter } from "./reviews";
+import { vendorEngagementsRouter } from "./vendor-engagements";
+import { vendorReleasesRouter } from "./vendor-releases";
+import { vendorReviewsRouter } from "./vendor-reviews";
+import { vendorsRouter } from "./vendors";
 import { venueDesignsRouter } from "./venue-designs";
 
 export const appRouter = router({
@@ -30,6 +34,10 @@ export const appRouter = router({
   profile: profileRouter,
   proposals: proposalsRouter,
   reviews: reviewsRouter,
+  vendors: vendorsRouter,
+  vendorEngagements: vendorEngagementsRouter,
+  vendorReleases: vendorReleasesRouter,
+  vendorReviews: vendorReviewsRouter,
   venueDesigns: venueDesignsRouter,
 });
 

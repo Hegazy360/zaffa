@@ -50,24 +50,39 @@ export default function PlannerEarningsPage() {
         </p>
       </header>
 
-      <div className="grid gap-3 sm:grid-cols-3">
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        <Stat
+          label="Available now"
+          tone="rose"
+          value={formatCurrency(balance.data.availableNow, currency)}
+          hint="Free to allocate to vendors"
+        />
+        <Stat
+          label="Accrued (lifetime net)"
+          value={formatCurrency(balance.data.accrued, currency)}
+          hint={`Collected gross ${formatCurrency(
+            balance.data.lifetimeCollected,
+            currency,
+          )}`}
+        />
         <Stat
           label="Pending payout"
-          tone="rose"
           value={formatCurrency(balance.data.pendingNet, currency)}
           hint={`Across ${pending.data?.length ?? 0} paid installments`}
         />
         <Stat
-          label="Lifetime collected"
-          value={formatCurrency(balance.data.lifetimeCollected, currency)}
-          hint={`Fees ${formatCurrency(
-            balance.data.lifetimeFees,
-            currency
-          )}`}
+          label="Paid out to you"
+          value={formatCurrency(balance.data.paidOutSelf, currency)}
         />
         <Stat
-          label="Lifetime paid out"
-          value={formatCurrency(balance.data.lifetimePaidOut, currency)}
+          label="Paid out to vendors"
+          value={formatCurrency(balance.data.paidOutVendors, currency)}
+          hint="Released and admin-paid"
+        />
+        <Stat
+          label="Committed to vendors"
+          value={formatCurrency(balance.data.committedToVendors, currency)}
+          hint="Pending releases"
         />
       </div>
 

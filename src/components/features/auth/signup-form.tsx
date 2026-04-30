@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import type { UserRole } from "@/types";
 import { Button } from "@/components/ui/button";
@@ -13,6 +14,7 @@ import Link from "next/link";
 const STEPS = 2;
 
 export function SignUpForm() {
+  const router = useRouter();
   const supabase = createClient();
   const [step, setStep] = useState(1);
   const [email, setEmail] = useState("");
@@ -69,6 +71,12 @@ export function SignUpForm() {
         setLoading(false);
         return;
       }
+    }
+
+    if (authData.session) {
+      router.push("/dashboard");
+      router.refresh();
+      return;
     }
 
     setLoading(false);

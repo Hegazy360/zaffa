@@ -19,10 +19,21 @@ export default function AdminHome() {
           className="rounded-2xl border border-rose-100/70 bg-white/80 p-5 transition hover:border-rose-300 hover:shadow-sm"
         >
           <p className="font-display text-lg font-light tracking-tight">
-            Payouts
+            Planner payouts
           </p>
           <p className="mt-1 text-sm text-muted-foreground">
             Planner balances and recording manual payouts.
+          </p>
+        </Link>
+        <Link
+          href="/dashboard/admin/vendor-payouts"
+          className="rounded-2xl border border-rose-100/70 bg-white/80 p-5 transition hover:border-rose-300 hover:shadow-sm"
+        >
+          <p className="font-display text-lg font-light tracking-tight">
+            Vendor payouts
+          </p>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Releases planners committed, ready to pay vendors off-platform.
           </p>
         </Link>
       </div>
