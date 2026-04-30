@@ -61,6 +61,13 @@ enum PaymentStatus {
   cancelled
 }
 
+enum ProposalStatus {
+  pending
+  accepted
+  released
+  declined
+}
+
 model Profile {
   id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   role       UserRole @default(client)
@@ -99,6 +106,8 @@ model PlannerProfile {
   events          Event[]         @relation("PlannerEvents")
   portfolio_items PortfolioItem[]
   reviews         Review[]
+  proposals       Proposal[]
+  blocks          PlannerBlock[]
 
   @@map("planner_profiles")
 }
@@ -150,12 +159,14 @@ model Event {
   created_at         DateTime    @default(now())
   updated_at         DateTime    @updatedAt
 
-  client   Profile         @relation("ClientEvents", fields: [client_id], references: [id], onDelete: Cascade)
-  planner  PlannerProfile? @relation("PlannerEvents", fields: [planner_id], references: [id])
-  vendors  EventVendor[]
-  messages Message[]
-  designs  VenueDesign[]
-  payments Payment[]
+  client    Profile         @relation("ClientEvents", fields: [client_id], references: [id], onDelete: Cascade)
+  planner   PlannerProfile? @relation("PlannerEvents", fields: [planner_id], references: [id])
+  vendors   EventVendor[]
+  messages  Message[]
+  designs   VenueDesign[]
+  payments  Payment[]
+  proposals Proposal[]
+  reviews   Review[]
 
   @@map("events")
 }
@@ -193,13 +204,19 @@ model Review {
   id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   author_id  String   @db.Uuid
   planner_id String   @db.Uuid
+  event_id   String?  @db.Uuid
   rating     Int
   comment    String?
   created_at DateTime @default(now())
+  updated_at DateTime @default(now()) @updatedAt
 
   author  Profile        @relation("AuthorReviews", fields: [author_id], references: [id], onDelete: Cascade)
   planner PlannerProfile @relation(fields: [planner_id], references: [id], onDelete: Cascade)
+  event   Event?         @relation(fields: [event_id], references: [id], onDelete: SetNull)
 
+  // One review per (client, planner, event) so a couple can update their
+  // existing review rather than stacking new rows after re-engagements.
+  @@unique([author_id, planner_id, event_id])
   @@map("reviews")
 }
 
@@ -308,4 +325,43 @@ model Payment {
 
   @@index([event_id])
   @@map("payments")
+}
+
+model Proposal {
+  id              String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  event_id        String         @db.Uuid
+  planner_id      String         @db.Uuid
+  cover_letter    String
+  quote_amount    Decimal?       @db.Decimal(12, 2)
+  quote_currency  String         @default("EGP")
+  quote_breakdown Json?
+  status          ProposalStatus @default(pending)
+  accepted_at     DateTime?
+  released_at     DateTime?
+  release_reason  String?
+  release_rating  Int?
+  created_at      DateTime       @default(now())
+  updated_at      DateTime       @updatedAt
+
+  event   Event          @relation(fields: [event_id], references: [id], onDelete: Cascade)
+  planner PlannerProfile @relation(fields: [planner_id], references: [id], onDelete: Cascade)
+
+  @@unique([event_id, planner_id])
+  @@index([planner_id, status])
+  @@index([event_id, status])
+  @@map("proposals")
+}
+
+model PlannerBlock {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  planner_id String   @db.Uuid
+  start_date DateTime @db.Date
+  end_date   DateTime @db.Date
+  reason     String?
+  created_at DateTime @default(now())
+
+  planner PlannerProfile @relation(fields: [planner_id], references: [id], onDelete: Cascade)
+
+  @@index([planner_id, start_date])
+  @@map("planner_blocks")
 }

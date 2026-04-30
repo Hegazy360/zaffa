@@ -6,6 +6,8 @@ import { cn } from "@/lib/utils";
 import type { UserRole } from "@/types";
 import {
   CalendarDays,
+  Compass,
+  FileText,
   Home,
   MessageSquare,
   Settings,
@@ -57,19 +59,30 @@ const roleLinks: Record<UserRole, NavLink[]> = {
   planner: [
     { href: "/dashboard/planner", label: "Dashboard", icon: Home },
     {
-      href: "/dashboard/planner/events",
-      label: "Events",
-      icon: CalendarDays,
+      href: "/dashboard/planner/marketplace",
+      label: "Marketplace",
+      icon: Compass,
     },
     {
-      href: "/dashboard/planner/portfolio",
-      label: "Portfolio",
-      icon: ImageIcon,
+      href: "/dashboard/planner/proposals",
+      label: "My proposals",
+      icon: FileText,
+      match: ["/dashboard/planner/event"],
+    },
+    {
+      href: "/dashboard/planner/schedule",
+      label: "Schedule",
+      icon: CalendarDays,
     },
     {
       href: "/dashboard/planner/messages",
       label: "Messages",
       icon: MessageSquare,
+    },
+    {
+      href: "/dashboard/planner/portfolio",
+      label: "Portfolio",
+      icon: ImageIcon,
     },
     {
       href: "/dashboard/planner/settings",

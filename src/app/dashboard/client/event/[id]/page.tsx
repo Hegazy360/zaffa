@@ -18,6 +18,8 @@ import {
   CircleDot,
   Clock,
   CreditCard,
+  ExternalLink,
+  FileText,
   Image as ImageIcon,
   Loader2,
   MapPin,
@@ -26,7 +28,9 @@ import {
   Plus,
   Send,
   Sparkles,
+  Star,
   Trash2,
+  UserCircle,
   Users,
   Wand2,
 } from "lucide-react";
@@ -56,7 +60,14 @@ import {
 import { cn } from "@/lib/utils";
 import type { EventStatus } from "@/types";
 
-const TABS = ["overview", "design", "vendors", "payments", "messages"] as const;
+const TABS = [
+  "overview",
+  "design",
+  "proposals",
+  "vendors",
+  "payments",
+  "messages",
+] as const;
 type TabValue = (typeof TABS)[number];
 
 const STATUS_OPTIONS: Array<{ value: EventStatus; label: string }> = [
@@ -157,7 +168,9 @@ export default function EventDetailPage() {
   const approvedDesign =
     event.designs.find((d) => d.approved_at) ?? event.designs[0] ?? null;
   const heroImage =
-    approvedDesign?.media[0]?.url ?? approvedDesign?.thumbnail ?? null;
+    approvedDesign?.media.find((m) => m.type === "render")?.url ??
+    approvedDesign?.thumbnail ??
+    null;
   const palette = normalizePalette(approvedDesign?.palette);
   const totalPaid = event.payments
     .filter((p) => p.status === "paid")
@@ -283,6 +296,10 @@ export default function EventDetailPage() {
               <Wand2 className="size-3.5" />
               Design
             </TabsTrigger>
+            <TabsTrigger value="proposals" className="gap-1.5">
+              <FileText className="size-3.5" />
+              Proposals
+            </TabsTrigger>
             <TabsTrigger value="vendors" className="gap-1.5">
               <Users className="size-3.5" />
               Vendors
@@ -310,6 +327,13 @@ export default function EventDetailPage() {
               event={event}
               approvedDesign={approvedDesign}
               onAttached={() => utils.events.byId.invalidate({ id: eventId })}
+            />
+          </TabsContent>
+
+          <TabsContent value="proposals">
+            <ProposalsTab
+              eventId={event.id}
+              currentPlannerId={event.planner?.id ?? null}
             />
           </TabsContent>
 
@@ -418,7 +442,7 @@ interface DesignSnapshot {
   thumbnail: string | null;
   palette: unknown;
   approved_at: Date | null;
-  media: Array<{ url: string }>;
+  media: Array<{ id: string; type: string; url: string }>;
 }
 
 function ApprovedDesignCard({
@@ -888,8 +912,7 @@ function DesignTab({
                   </p>
                 ) : (
                   candidates.map((d) => {
-                    const img =
-                      d.media[0]?.url ?? d.thumbnail ?? null;
+                    const img = d.media[0]?.url ?? d.thumbnail ?? null;
                     return (
                       <button
                         key={d.id}
@@ -941,11 +964,13 @@ function DesignTab({
               href={`/venue-designer/${approvedDesign.id}`}
               className="group relative aspect-[4/3] overflow-hidden rounded-xl bg-muted"
             >
-              {approvedDesign.media[0]?.url || approvedDesign.thumbnail ? (
+              {approvedDesign.media.find((m) => m.type === "render")?.url ||
+              approvedDesign.thumbnail ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
                   src={
-                    approvedDesign.media[0]?.url ??
+                    approvedDesign.media.find((m) => m.type === "render")
+                      ?.url ??
                     approvedDesign.thumbnail ??
                     ""
                   }
@@ -1497,5 +1522,817 @@ function MessagesTab({ eventId }: { eventId: string }) {
         </div>
       </div>
     </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Proposals tab — list + accept + switch planner
+// ---------------------------------------------------------------------------
+
+interface ProposalForClient {
+  id: string;
+  status: string;
+  cover_letter: string;
+  quote_amount: unknown;
+  quote_currency: string;
+  quote_breakdown: unknown;
+  release_reason: string | null;
+  release_rating: number | null;
+  planner: {
+    id: string;
+    business_name: string;
+    bio: string | null;
+    location: string | null;
+    specialties: unknown;
+    avg_rating: unknown;
+    review_count: number;
+    verified: boolean;
+    profile: { full_name: string; avatar_url: string | null };
+    portfolio_items: Array<{
+      id: string;
+      image_url: string;
+      caption: string | null;
+    }>;
+    reviews: Array<{
+      id: string;
+      rating: number;
+      comment: string | null;
+      author: { full_name: string };
+    }>;
+  };
+}
+
+function ProposalsTab({
+  eventId,
+  currentPlannerId,
+}: {
+  eventId: string;
+  currentPlannerId: string | null;
+}) {
+  const utils = trpc.useUtils();
+  const { data: proposals, isLoading } = trpc.proposals.byEvent.useQuery({
+    eventId,
+  });
+
+  const accept = trpc.proposals.accept.useMutation({
+    onSuccess: () => {
+      toast.success("Planner accepted");
+      utils.proposals.byEvent.invalidate({ eventId });
+      utils.events.byId.invalidate({ id: eventId });
+    },
+    onError: (e) => toast.error(e.message),
+  });
+
+  const [switchOpen, setSwitchOpen] = useState<{
+    fromProposalId: string;
+    toProposalId: string;
+  } | null>(null);
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center py-12">
+        <Loader2 className="size-5 animate-spin text-rose-500" />
+      </div>
+    );
+  }
+
+  if (!proposals || proposals.length === 0) {
+    return (
+      <div className="rounded-2xl border border-dashed border-rose-200/70 bg-white/40 p-12 text-center backdrop-blur-sm">
+        <div className="mx-auto mb-4 grid size-12 place-items-center rounded-full bg-gradient-to-br from-rose-100 to-amber-100 ring-1 ring-rose-200/60">
+          <FileText className="size-5 text-rose-600" />
+        </div>
+        <p className="font-display text-lg font-light tracking-tight">
+          No proposals yet
+        </p>
+        <p className="mt-1 max-w-md mx-auto text-sm text-muted-foreground">
+          Once your design is approved, planners can introduce themselves
+          here. We&apos;ll let you know when the first one arrives.
+        </p>
+      </div>
+    );
+  }
+
+  const accepted = proposals.find((p) => p.status === "accepted") ?? null;
+  const pending = proposals.filter((p) => p.status === "pending");
+  const released = proposals.filter((p) => p.status === "released");
+  const declined = proposals.filter((p) => p.status === "declined");
+
+  return (
+    <div className="space-y-8">
+      {accepted && (
+        <section>
+          <p className="mb-3 text-[0.65rem] font-medium uppercase tracking-[0.3em] text-rose-700/80">
+            Currently engaged
+          </p>
+          <ProposalCard
+            proposal={accepted}
+            eventId={eventId}
+            currentPlannerId={currentPlannerId}
+            onAccept={() => {}}
+            onSwitch={() => {}}
+            isAccepting={false}
+          />
+        </section>
+      )}
+
+      {pending.length > 0 && (
+        <section>
+          <p className="mb-3 text-[0.65rem] font-medium uppercase tracking-[0.3em] text-rose-700/80">
+            {accepted ? "Backups standing by" : "Awaiting your decision"}
+          </p>
+          <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+            {pending.map((p) => (
+              <ProposalCard
+                key={p.id}
+                proposal={p}
+                eventId={eventId}
+                currentPlannerId={currentPlannerId}
+                onAccept={() => accept.mutate({ proposalId: p.id })}
+                onSwitch={() => {
+                  if (!accepted) return;
+                  setSwitchOpen({
+                    fromProposalId: accepted.id,
+                    toProposalId: p.id,
+                  });
+                }}
+                isAccepting={
+                  accept.isPending && accept.variables?.proposalId === p.id
+                }
+              />
+            ))}
+          </div>
+        </section>
+      )}
+
+      {released.length > 0 && (
+        <section>
+          <p className="mb-3 text-[0.65rem] font-medium uppercase tracking-[0.3em] text-stone-500">
+            Past planners
+          </p>
+          <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+            {released.map((p) => (
+              <ProposalCard
+                key={p.id}
+                proposal={p}
+                eventId={eventId}
+                currentPlannerId={currentPlannerId}
+                onAccept={() => {}}
+                onSwitch={() => {}}
+                isAccepting={false}
+              />
+            ))}
+          </div>
+        </section>
+      )}
+
+      {declined.length > 0 && (
+        <section>
+          <p className="mb-3 text-[0.65rem] font-medium uppercase tracking-[0.3em] text-stone-500">
+            Withdrew
+          </p>
+          <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+            {declined.map((p) => (
+              <ProposalCard
+                key={p.id}
+                proposal={p}
+                eventId={eventId}
+                currentPlannerId={currentPlannerId}
+                onAccept={() => {}}
+                onSwitch={() => {}}
+                isAccepting={false}
+              />
+            ))}
+          </div>
+        </section>
+      )}
+
+      <Dialog
+        open={switchOpen !== null}
+        onOpenChange={(o) => !o && setSwitchOpen(null)}
+      >
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="font-display text-xl font-light tracking-tight">
+              Switch planners
+            </DialogTitle>
+            <DialogDescription>
+              Switching releases your current planner. Share a rating and a
+              short note so the change is on the record for both of you.
+            </DialogDescription>
+          </DialogHeader>
+          {switchOpen && (
+            <SwitchPlannerForm
+              fromProposalId={switchOpen.fromProposalId}
+              toProposalId={switchOpen.toProposalId}
+              onDone={() => {
+                setSwitchOpen(null);
+                utils.proposals.byEvent.invalidate({ eventId });
+                utils.events.byId.invalidate({ id: eventId });
+              }}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}
+
+function ProposalCard({
+  proposal,
+  eventId,
+  currentPlannerId,
+  onAccept,
+  onSwitch,
+  isAccepting,
+}: {
+  proposal: ProposalForClient;
+  eventId: string;
+  currentPlannerId: string | null;
+  onAccept: () => void;
+  onSwitch: () => void;
+  isAccepting: boolean;
+}) {
+  const amount = decimalToNumber(proposal.quote_amount);
+  const rating = decimalToNumber(proposal.planner.avg_rating);
+  const isAccepted = proposal.status === "accepted";
+  const isReleased = proposal.status === "released";
+  const isDeclined = proposal.status === "declined";
+  const someoneEngaged = currentPlannerId !== null;
+  const isPending = proposal.status === "pending";
+  const canReview = isAccepted || isReleased;
+  const planner = proposal.planner;
+  const specialtiesArr = Array.isArray(planner.specialties)
+    ? (planner.specialties as unknown[]).filter(
+        (s): s is string => typeof s === "string"
+      )
+    : [];
+
+  return (
+    <article className="rounded-2xl border border-rose-100/70 bg-white/80 p-5 backdrop-blur-sm">
+      <div className="flex items-start gap-3">
+        {planner.profile.avatar_url ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={planner.profile.avatar_url}
+            alt={planner.business_name}
+            className="size-12 shrink-0 rounded-full object-cover ring-1 ring-rose-200"
+          />
+        ) : (
+          <div className="grid size-12 shrink-0 place-items-center rounded-full bg-gradient-to-br from-rose-200 to-amber-200 text-sm font-semibold text-rose-800">
+            <UserCircle className="size-6" />
+          </div>
+        )}
+        <div className="min-w-0 flex-1">
+          <div className="flex items-start justify-between gap-2">
+            <div className="min-w-0">
+              <Link
+                href={`/planners/${planner.id}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-display group inline-flex max-w-full items-center gap-1.5 truncate text-base font-medium tracking-tight underline-offset-4 transition-colors hover:text-rose-700 hover:underline"
+              >
+                <span className="truncate">{planner.business_name}</span>
+                <ExternalLink className="size-3 shrink-0 text-muted-foreground transition-colors group-hover:text-rose-700" />
+              </Link>
+              <p className="truncate text-xs text-muted-foreground">
+                {planner.profile.full_name}
+                {planner.location ? ` · ${planner.location}` : ""}
+              </p>
+            </div>
+            {planner.review_count > 0 && (
+              <span className="inline-flex shrink-0 items-center gap-0.5 rounded-full bg-amber-50 px-1.5 py-0.5 text-[11px] font-medium text-amber-800 ring-1 ring-amber-100">
+                <Star className="size-3 fill-current" />
+                {rating.toFixed(1)}
+                <span className="text-muted-foreground">
+                  · {planner.review_count}
+                </span>
+              </span>
+            )}
+          </div>
+          {specialtiesArr.length > 0 && (
+            <div className="mt-2 flex flex-wrap gap-1">
+              {specialtiesArr.slice(0, 3).map((s) => (
+                <span
+                  key={s}
+                  className="rounded-full bg-rose-50 px-2 py-0.5 text-[10px] text-rose-700 ring-1 ring-rose-100"
+                >
+                  {s}
+                </span>
+              ))}
+            </div>
+          )}
+          {planner.bio && (
+            <p className="mt-2 line-clamp-2 text-xs text-muted-foreground">
+              {planner.bio}
+            </p>
+          )}
+        </div>
+      </div>
+
+      {planner.portfolio_items.length > 0 && (
+        <div className="mt-4 grid grid-cols-4 gap-1.5">
+          {planner.portfolio_items.slice(0, 4).map((it) => (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              key={it.id}
+              src={it.image_url}
+              alt={it.caption ?? ""}
+              className="aspect-square w-full rounded-lg object-cover"
+            />
+          ))}
+        </div>
+      )}
+
+      <div className="mt-4 rounded-xl bg-rose-50/40 p-3">
+        <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-rose-700/80">
+          Cover letter
+        </p>
+        <p className="mt-1 whitespace-pre-wrap text-sm text-foreground/90">
+          {proposal.cover_letter}
+        </p>
+      </div>
+
+      {amount > 0 &&
+        (() => {
+          const breakdown = Array.isArray(proposal.quote_breakdown)
+            ? (proposal.quote_breakdown as Array<{
+                label: string;
+                amount: number;
+              }>).filter(
+                (row) =>
+                  row &&
+                  typeof row.label === "string" &&
+                  typeof row.amount === "number"
+              )
+            : [];
+          return (
+            <div className="mt-3 overflow-hidden rounded-xl border border-rose-100/70 bg-white/60">
+              <div className="flex items-center justify-between gap-3 px-3 py-2.5">
+                <span className="text-[10px] font-medium uppercase tracking-[0.2em] text-muted-foreground">
+                  Quote
+                </span>
+                <span className="font-display text-lg font-light tracking-tight">
+                  {formatCurrency(amount, proposal.quote_currency)}
+                </span>
+              </div>
+              {breakdown.length > 0 && (
+                <div className="border-t border-rose-100/70 bg-rose-50/30 px-3 py-2">
+                  <p className="mb-1.5 text-[10px] font-medium uppercase tracking-[0.2em] text-rose-700/80">
+                    Breakdown
+                  </p>
+                  <ul className="space-y-1">
+                    {breakdown.map((row, idx) => (
+                      <li
+                        key={`${row.label}-${idx}`}
+                        className="flex items-center justify-between gap-3 text-xs"
+                      >
+                        <span className="text-foreground/80">{row.label}</span>
+                        <span className="font-mono tabular-nums text-foreground/70">
+                          {formatCurrency(row.amount, proposal.quote_currency)}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+          );
+        })()}
+
+      {planner.reviews.length > 0 && (
+        <div className="mt-3 space-y-2">
+          <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-muted-foreground">
+            Recent reviews
+          </p>
+          {planner.reviews.slice(0, 1).map((r) => (
+            <div
+              key={r.id}
+              className="rounded-xl border border-rose-100/60 bg-white/60 p-3"
+            >
+              <div className="flex items-center gap-1 text-amber-500">
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <Star
+                    key={i}
+                    className={cn(
+                      "size-3",
+                      i < r.rating ? "fill-current" : "text-stone-200"
+                    )}
+                  />
+                ))}
+                <span className="ml-1 text-[11px] text-muted-foreground">
+                  {r.author.full_name}
+                </span>
+              </div>
+              {r.comment && (
+                <p className="mt-1 italic text-xs text-foreground/90">
+                  &ldquo;{r.comment}&rdquo;
+                </p>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+
+      {canReview && (
+        <ReviewSection eventId={eventId} plannerId={planner.id} />
+      )}
+
+      <div className="mt-4 flex flex-wrap items-center gap-2">
+        <Button
+          size="sm"
+          variant="outline"
+          render={
+            <Link
+              href={`/planners/${planner.id}`}
+              target="_blank"
+              rel="noopener noreferrer"
+            />
+          }
+          className="gap-1.5"
+        >
+          <ExternalLink className="size-3.5" />
+          View full profile
+        </Button>
+        {isAccepted ? (
+          <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-1 text-[11px] font-medium text-emerald-800 ring-1 ring-emerald-200">
+            <CheckCircle2 className="size-3" />
+            Engaged
+          </span>
+        ) : isReleased ? (
+          <span className="inline-flex items-center gap-1 rounded-full bg-stone-100 px-2.5 py-1 text-[11px] font-medium text-stone-700 ring-1 ring-stone-200">
+            Released
+          </span>
+        ) : isDeclined ? (
+          <span className="inline-flex items-center gap-1 rounded-full bg-stone-100 px-2.5 py-1 text-[11px] font-medium text-stone-500 ring-1 ring-stone-200">
+            Withdrew
+          </span>
+        ) : someoneEngaged ? (
+          <Button
+            size="sm"
+            onClick={onSwitch}
+            className="gap-1.5 bg-gradient-to-r from-rose-600 to-amber-500 text-white"
+          >
+            Switch to this planner
+          </Button>
+        ) : (
+          <Button
+            size="sm"
+            disabled={isAccepting || !isPending}
+            onClick={onAccept}
+            className="gap-1.5 bg-gradient-to-r from-rose-600 to-amber-500 text-white"
+          >
+            {isAccepting ? (
+              <Loader2 className="size-3.5 animate-spin" />
+            ) : (
+              <CheckCircle2 className="size-3.5" />
+            )}
+            Accept proposal
+          </Button>
+        )}
+      </div>
+    </article>
+  );
+}
+
+function ReviewSection({
+  eventId,
+  plannerId,
+}: {
+  eventId: string;
+  plannerId: string;
+}) {
+  const [open, setOpen] = useState(false);
+  const utils = trpc.useUtils();
+  const { data: review, isLoading } = trpc.reviews.mineForEvent.useQuery({
+    eventId,
+    plannerId,
+  });
+
+  const remove = trpc.reviews.delete.useMutation({
+    onSuccess: () => {
+      toast.success("Review removed");
+      utils.reviews.mineForEvent.invalidate({ eventId, plannerId });
+      utils.proposals.byEvent.invalidate({ eventId });
+      utils.planner.byId.invalidate({ id: plannerId });
+    },
+    onError: (e) => toast.error(e.message),
+  });
+
+  if (isLoading) {
+    return (
+      <div className="mt-3 flex items-center gap-2 rounded-xl bg-stone-50 p-3 text-xs text-muted-foreground">
+        <Loader2 className="size-3 animate-spin" />
+        Loading your review…
+      </div>
+    );
+  }
+
+  if (review) {
+    return (
+      <div className="mt-3 rounded-xl border border-amber-100/70 bg-amber-50/40 p-3">
+        <div className="flex items-start justify-between gap-2">
+          <div className="min-w-0 flex-1">
+            <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-amber-700/90">
+              Your review
+            </p>
+            <div className="mt-1 flex items-center gap-1 text-amber-500">
+              {Array.from({ length: 5 }).map((_, i) => (
+                <Star
+                  key={i}
+                  className={cn(
+                    "size-3.5",
+                    i < review.rating ? "fill-current" : "text-stone-300"
+                  )}
+                />
+              ))}
+            </div>
+            {review.comment && (
+              <p className="mt-2 italic text-xs text-foreground/85">
+                &ldquo;{review.comment}&rdquo;
+              </p>
+            )}
+          </div>
+          <Dialog open={open} onOpenChange={setOpen}>
+            <DialogTrigger
+              render={
+                <Button variant="ghost" size="sm" className="h-7 px-2 text-xs" />
+              }
+            >
+              <Pencil className="mr-1 size-3" />
+              Edit
+            </DialogTrigger>
+            <ReviewDialogContent
+              eventId={eventId}
+              plannerId={plannerId}
+              existing={review}
+              onClose={() => setOpen(false)}
+            />
+          </Dialog>
+        </div>
+        <button
+          type="button"
+          disabled={remove.isPending}
+          onClick={() => {
+            if (
+              confirm(
+                "Remove your review? This will update the planner's rating."
+              )
+            ) {
+              remove.mutate({ id: review.id });
+            }
+          }}
+          className="mt-2 text-[11px] text-stone-500 underline-offset-4 hover:text-rose-700 hover:underline disabled:opacity-50"
+        >
+          {remove.isPending ? "Removing…" : "Remove review"}
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <div className="mt-3 flex items-center justify-between gap-3 rounded-xl border border-dashed border-rose-200/80 bg-rose-50/30 p-3">
+        <div className="min-w-0">
+          <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-rose-700/80">
+            Share your experience
+          </p>
+          <p className="mt-0.5 text-xs text-foreground/80">
+            Help other couples by rating this planner.
+          </p>
+        </div>
+        <DialogTrigger
+          render={
+            <Button
+              size="sm"
+              className="gap-1.5 bg-gradient-to-r from-rose-600 to-amber-500 text-white"
+            />
+          }
+        >
+          <Star className="size-3.5" />
+          Leave a review
+        </DialogTrigger>
+      </div>
+      <ReviewDialogContent
+        eventId={eventId}
+        plannerId={plannerId}
+        existing={null}
+        onClose={() => setOpen(false)}
+      />
+    </Dialog>
+  );
+}
+
+function ReviewDialogContent({
+  eventId,
+  plannerId,
+  existing,
+  onClose,
+}: {
+  eventId: string;
+  plannerId: string;
+  existing: { rating: number; comment: string | null } | null;
+  onClose: () => void;
+}) {
+  const utils = trpc.useUtils();
+  const [rating, setRating] = useState(existing?.rating ?? 5);
+  const [hover, setHover] = useState<number | null>(null);
+  const [comment, setComment] = useState(existing?.comment ?? "");
+
+  const upsert = trpc.reviews.upsert.useMutation({
+    onSuccess: () => {
+      toast.success(existing ? "Review updated" : "Review posted");
+      utils.reviews.mineForEvent.invalidate({ eventId, plannerId });
+      utils.proposals.byEvent.invalidate({ eventId });
+      utils.planner.byId.invalidate({ id: plannerId });
+      onClose();
+    },
+    onError: (e) => toast.error(e.message),
+  });
+
+  function onSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    upsert.mutate({
+      eventId,
+      plannerId,
+      rating,
+      comment: comment.trim() ? comment.trim() : undefined,
+    });
+  }
+
+  const display = hover ?? rating;
+
+  return (
+    <DialogContent className="sm:max-w-md">
+      <DialogHeader>
+        <DialogTitle className="font-display text-xl font-light tracking-tight">
+          {existing ? "Edit your review" : "Leave a review"}
+        </DialogTitle>
+        <DialogDescription>
+          Your rating and note appear publicly on the planner&apos;s profile.
+        </DialogDescription>
+      </DialogHeader>
+      <form onSubmit={onSubmit} className="space-y-4">
+        <div className="space-y-2">
+          <Label>Rating</Label>
+          <div
+            className="flex items-center gap-1.5"
+            onMouseLeave={() => setHover(null)}
+          >
+            {Array.from({ length: 5 }).map((_, i) => {
+              const v = i + 1;
+              return (
+                <button
+                  key={v}
+                  type="button"
+                  aria-label={`${v} star${v === 1 ? "" : "s"}`}
+                  onClick={() => setRating(v)}
+                  onMouseEnter={() => setHover(v)}
+                  className="rounded-md p-0.5 transition-transform hover:scale-110"
+                >
+                  <Star
+                    className={cn(
+                      "size-7 transition-colors",
+                      v <= display
+                        ? "fill-amber-400 text-amber-400"
+                        : "text-stone-300"
+                    )}
+                  />
+                </button>
+              );
+            })}
+            <span className="ml-2 text-sm text-muted-foreground">
+              {display} / 5
+            </span>
+          </div>
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="review-comment">
+            Comment{" "}
+            <span className="text-xs text-muted-foreground">(optional)</span>
+          </Label>
+          <Textarea
+            id="review-comment"
+            value={comment}
+            onChange={(e) => setComment(e.target.value)}
+            placeholder="What stood out? Communication, taste, day-of execution…"
+            rows={5}
+            maxLength={2000}
+          />
+          <p className="text-right text-[11px] text-muted-foreground">
+            {comment.length} / 2000
+          </p>
+        </div>
+        <div className="flex justify-end gap-2 pt-2">
+          <Button
+            type="button"
+            variant="ghost"
+            onClick={onClose}
+            disabled={upsert.isPending}
+          >
+            Cancel
+          </Button>
+          <Button
+            type="submit"
+            disabled={upsert.isPending}
+            className="bg-gradient-to-r from-rose-600 to-amber-500 text-white"
+          >
+            {upsert.isPending ? (
+              <Loader2 className="mr-2 size-4 animate-spin" />
+            ) : (
+              <Star className="mr-2 size-4" />
+            )}
+            {existing ? "Save changes" : "Post review"}
+          </Button>
+        </div>
+      </form>
+    </DialogContent>
+  );
+}
+
+function SwitchPlannerForm({
+  fromProposalId,
+  toProposalId,
+  onDone,
+}: {
+  fromProposalId: string;
+  toProposalId: string;
+  onDone: () => void;
+}) {
+  const [rating, setRating] = useState(4);
+  const [reason, setReason] = useState("");
+
+  const switchMutation = trpc.proposals.switch.useMutation({
+    onSuccess: () => {
+      toast.success("Planner switched");
+      onDone();
+    },
+    onError: (e) => toast.error(e.message),
+  });
+
+  function onSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (reason.trim().length < 10) {
+      toast.error("Tell them at least a sentence about why");
+      return;
+    }
+    switchMutation.mutate({
+      fromProposalId,
+      toProposalId,
+      rating,
+      reason: reason.trim(),
+    });
+  }
+
+  return (
+    <form onSubmit={onSubmit} className="space-y-4">
+      <div className="space-y-2">
+        <Label>Rating for the outgoing planner</Label>
+        <div className="flex items-center gap-1">
+          {Array.from({ length: 5 }).map((_, i) => {
+            const v = i + 1;
+            return (
+              <button
+                key={v}
+                type="button"
+                onClick={() => setRating(v)}
+                className="text-amber-500 transition-transform hover:scale-110"
+                aria-label={`${v} stars`}
+              >
+                <Star
+                  className={cn(
+                    "size-7",
+                    v <= rating ? "fill-current" : "text-stone-200"
+                  )}
+                />
+              </button>
+            );
+          })}
+        </div>
+      </div>
+      <div className="space-y-1.5">
+        <Label htmlFor="reason">Reason for switching</Label>
+        <Textarea
+          id="reason"
+          rows={4}
+          value={reason}
+          onChange={(e) => setReason(e.target.value)}
+          placeholder="What worked, what didn't, what you'd hope is different next time."
+          className="resize-none"
+        />
+      </div>
+      <div className="flex justify-end gap-2">
+        <Button
+          type="submit"
+          disabled={switchMutation.isPending}
+          className="bg-gradient-to-r from-rose-600 to-amber-500 text-white"
+        >
+          {switchMutation.isPending ? (
+            <Loader2 className="mr-2 size-4 animate-spin" />
+          ) : null}
+          Switch planners
+        </Button>
+      </div>
+    </form>
   );
 }
