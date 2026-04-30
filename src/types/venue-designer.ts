@@ -48,9 +48,11 @@ export type Size = "intimate" | "medium" | "large";
 export interface Ref {
   id: string;
   url: string;
-  source: "inspiration" | "upload";
+  source: "inspiration" | "upload" | "pinterest";
   sourceId?: string;
+  sourceUrl?: string;
   thumbnailUrl?: string;
+  attribution?: string;
 }
 
 export interface DesignPalette {

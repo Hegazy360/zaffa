@@ -3,6 +3,8 @@ import {
   DEFAULT_DESIGN,
   EMPTY_REFERENCES,
   MAX_REFERENCES_PER_CATEGORY,
+  MAX_TOTAL_REFERENCES,
+  REFERENCE_CATEGORIES,
   type DesignDocument,
   type DesignPalette,
   type EventType,
@@ -12,6 +14,10 @@ import {
   type Size,
 } from "@/types/venue-designer";
 
+export type AddReferenceResult =
+  | { ok: true }
+  | { ok: false; reason: "duplicate" | "category_full" | "total_full" };
+
 interface VenueDesignerState extends DesignDocument {
   setName: (name: string) => void;
   setEventType: (eventType: EventType) => void;
@@ -20,9 +26,13 @@ interface VenueDesignerState extends DesignDocument {
   setPalette: (palette: DesignPalette) => void;
   setStyleNotes: (notes: string) => void;
 
-  addReference: (category: ReferenceCategory, ref: Ref) => boolean;
+  addReference: (
+    category: ReferenceCategory,
+    ref: Ref
+  ) => AddReferenceResult;
   removeReference: (category: ReferenceCategory, refId: string) => void;
   clearReferences: (category?: ReferenceCategory) => void;
+  totalReferences: () => number;
 
   reset: () => void;
   serialize: () => DesignDocument;
@@ -52,16 +62,28 @@ export const useVenueDesignerStore = create<VenueDesignerState>((set, get) => ({
   setStyleNotes: (styleNotes) => set({ styleNotes }),
 
   addReference: (category, ref) => {
-    const current = get().references[category];
-    if (current.some((r) => r.id === ref.id)) return false;
-    if (current.length >= MAX_REFERENCES_PER_CATEGORY) return false;
+    const refs = get().references;
+    const current = refs[category];
+    if (current.some((r) => r.id === ref.id)) {
+      return { ok: false, reason: "duplicate" };
+    }
+    if (current.length >= MAX_REFERENCES_PER_CATEGORY) {
+      return { ok: false, reason: "category_full" };
+    }
+    const total = REFERENCE_CATEGORIES.reduce(
+      (n, c) => n + refs[c].length,
+      0
+    );
+    if (total >= MAX_TOTAL_REFERENCES) {
+      return { ok: false, reason: "total_full" };
+    }
     set((s) => ({
       references: {
         ...s.references,
         [category]: [...s.references[category], ref],
       },
     }));
-    return true;
+    return { ok: true };
   },
 
   removeReference: (category, refId) => {
@@ -81,6 +103,11 @@ export const useVenueDesignerStore = create<VenueDesignerState>((set, get) => ({
     set((s) => ({
       references: { ...s.references, [category]: [] },
     }));
+  },
+
+  totalReferences: () => {
+    const refs = get().references;
+    return REFERENCE_CATEGORIES.reduce((n, c) => n + refs[c].length, 0);
   },
 
   reset: () => set({ ...DEFAULT_DESIGN, references: { ...EMPTY_REFERENCES } }),

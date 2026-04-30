@@ -1,0 +1,11 @@
+name = "zaffa-pinterest-search"
+main = "src/index.ts"
+compatibility_date = "2026-04-29"
+
+[observability]
+enabled = true
+
+# Set the shared secret with:
+#   cd workers/pinterest-search
+#   npx wrangler secret put PROXY_SECRET
+# Then add the same value to .env.local as PINTEREST_PROXY_SECRET.

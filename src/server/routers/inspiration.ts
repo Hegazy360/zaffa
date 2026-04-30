@@ -1,6 +1,11 @@
 import { z } from "zod";
-import { router, publicProcedure } from "../trpc";
+import { TRPCError } from "@trpc/server";
+import { router, publicProcedure, protectedProcedure } from "../trpc";
 import { prisma } from "@/lib/prisma";
+import {
+  PinterestSearchError,
+  searchPinterest,
+} from "../inspiration/pinterest";
 
 export const inspirationRouter = router({
   byCategory: publicProcedure
@@ -46,5 +51,26 @@ export const inspirationRouter = router({
         orderBy: { subcategory: "asc" },
       });
       return rows.map((r) => r.subcategory);
+    }),
+
+  searchPinterest: protectedProcedure
+    .input(
+      z.object({
+        query: z.string().min(2).max(120),
+        pageSize: z.number().int().min(1).max(50).optional(),
+      })
+    )
+    .query(async ({ input }) => {
+      try {
+        return await searchPinterest(input);
+      } catch (err) {
+        if (err instanceof PinterestSearchError) {
+          throw new TRPCError({
+            code: err.cause?.status === 401 ? "UNAUTHORIZED" : "BAD_GATEWAY",
+            message: err.message,
+          });
+        }
+        throw err;
+      }
     }),
 });

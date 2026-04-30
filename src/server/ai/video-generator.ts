@@ -33,28 +33,6 @@ export type VideoEventType =
 export type VideoSetting = "indoor" | "outdoor" | "tent";
 export type VideoSize = "intimate" | "medium" | "large";
 
-const GUEST_DESCRIPTION: Record<VideoEventType, string> = {
-  wedding:
-    "elegantly dressed wedding guests — women in flowing evening gowns, men in tuxedos and formal suits — mingling in small groups, holding flutes of champagne, smiling and quietly conversing; a couple walks slowly arm-in-arm through the mid-ground",
-  engagement:
-    "well-dressed couples and friends in cocktail attire, holding champagne flutes, laughing softly and toasting; the engaged couple visible mid-frame, walking and smiling",
-  birthday:
-    "stylish guests in chic cocktail attire mingling and laughing, raising glasses, a few moving subtly to music in the background",
-  corporate:
-    "guests in elevated business cocktail attire networking and conversing in small groups, holding drinks, exchanging warm handshakes",
-  other:
-    "elegantly dressed guests in formal cocktail attire mingling and conversing in small groups, holding drinks",
-};
-
-const SIZE_DENSITY: Record<VideoSize, string> = {
-  intimate:
-    "a small, curated group of about 20-30 guests — the space feels full but never crowded",
-  medium:
-    "a comfortable crowd of around 80-100 guests spread evenly across the space",
-  large:
-    "a generous gathering of 150+ guests filling the space without feeling chaotic",
-};
-
 const CAMERA_MOTION: Record<VideoSetting, string> = {
   indoor:
     "smooth constant-velocity forward dolly through the room on a stabilized gimbal at chest height (~1.4m), gently easing past the foreground tables toward the focal point in the distance, with subtle parallax revealing depth. No ascending, descending, or zooming.",
@@ -82,8 +60,6 @@ export interface VideoSceneContext {
 }
 
 function buildVideoPrompt(ctx: VideoSceneContext): string {
-  const guests = GUEST_DESCRIPTION[ctx.eventType] ?? GUEST_DESCRIPTION.other;
-  const density = SIZE_DENSITY[ctx.size];
   const motion = CAMERA_MOTION[ctx.setting];
   const atmosphere = ATMOSPHERE[ctx.setting];
 
@@ -99,11 +75,11 @@ function buildVideoPrompt(ctx: VideoSceneContext): string {
     : "";
 
   return [
-    `Cinematic promotional video of this exact ${ctx.eventType} venue, in the style of a high-end wedding film reel — anamorphic 2.39 cinematic feel, shallow depth of field, soft film grain, warm cinematic color grade with slightly lifted blacks.`,
+    `Cinematic, atmospheric video walkthrough of this exact ${ctx.eventType} venue, in the style of a high-end venue showcase reel — anamorphic 2.39 cinematic feel, shallow depth of field, soft film grain, warm cinematic color grade with slightly lifted blacks.`,
 
     `Camera motion: ${motion}`,
 
-    `Populate the previously empty venue with ${density}: ${guests}. People are placed naturally throughout the space — never blocking the focal point, never crowding into the foreground. They occupy the venue without dominating it. Faces are softly out of focus or shown in three-quarter profile; no harsh close-ups, no distorted features.`,
+    `The venue is unoccupied — absolutely no people, no guests, no waitstaff, no human figures, no silhouettes, no shadows of figures. The composition stays focused entirely on the design itself: the tables, florals, lighting, decor, and architecture.`,
 
     `Subtle micro-motion across the scene: ${atmosphere}.`,
 
@@ -111,7 +87,7 @@ function buildVideoPrompt(ctx: VideoSceneContext): string {
 
     notesLine,
 
-    `Avoid: hard cuts, jump cuts, multiple separate scenes, chaotic crowd, distorted or warped faces, duplicate or extra limbs, text overlays, watermarks, logos, frame-rate stutter, vertical aspect ratio.`,
+    `Avoid: any people or human figures of any kind, hard cuts, jump cuts, multiple separate scenes, distorted or warped objects, duplicate or extra elements, text overlays, watermarks, logos, frame-rate stutter, vertical aspect ratio.`,
   ]
     .filter(Boolean)
     .join(" ");
@@ -127,7 +103,7 @@ export async function startVideoGeneration(input: StartVideoInput) {
 
   const prompt = input.context
     ? buildVideoPrompt(input.context)
-    : "Cinematic promotional walkthrough of this elegant event venue with elegantly dressed guests mingling, smooth forward dolly at chest height, warm cinematic color grade, candles flickering, fabric swaying gently. No ascending or descending.";
+    : "Cinematic atmospheric walkthrough of this empty event venue — no people, no guests. Smooth forward dolly at chest height, warm cinematic color grade, candles flickering, fabric swaying gently. No ascending or descending. Avoid any human figures.";
 
   const body: Record<string, unknown> = {
     model: VIDEO_MODEL,

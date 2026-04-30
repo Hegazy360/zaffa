@@ -21,6 +21,7 @@ import {
 import { trpc } from "@/lib/trpc";
 import { useVenueDesignerStore } from "@/stores/venue-designer-store";
 import {
+  MAX_TOTAL_REFERENCES,
   REFERENCE_CATEGORIES,
   type ReferenceCategory,
 } from "@/types/venue-designer";
@@ -54,6 +55,7 @@ export function GenerateRenderPanel({ designId }: GenerateRenderPanelProps) {
     for (const cat of REFERENCE_CATEGORIES) {
       for (const r of references[cat]) {
         out.push({ url: r.url, category: cat });
+        if (out.length >= MAX_TOTAL_REFERENCES) return out;
       }
     }
     return out;
