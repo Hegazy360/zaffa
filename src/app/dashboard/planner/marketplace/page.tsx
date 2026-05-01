@@ -11,9 +11,11 @@ import {
   MapPin,
   Sparkles,
 } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { useFormatters } from "@/lib/use-formatters";
 import {
   Select,
   SelectContent,
@@ -22,16 +24,31 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-const EVENT_TYPES = [
-  { value: "all", label: "All event types" },
-  { value: "wedding", label: "Wedding" },
-  { value: "engagement", label: "Engagement" },
-  { value: "birthday", label: "Birthday" },
-  { value: "corporate", label: "Corporate" },
-  { value: "other", label: "Other" },
-] as const;
+type EventTypeFilter =
+  | "all"
+  | "wedding"
+  | "engagement"
+  | "birthday"
+  | "corporate"
+  | "other";
 
-type EventTypeFilter = (typeof EVENT_TYPES)[number]["value"];
+const EVENT_TYPE_KEYS: ReadonlyArray<{
+  value: EventTypeFilter;
+  labelKey:
+    | "allEventTypes"
+    | "wedding"
+    | "engagement"
+    | "birthday"
+    | "corporate"
+    | "other";
+}> = [
+  { value: "all", labelKey: "allEventTypes" },
+  { value: "wedding", labelKey: "wedding" },
+  { value: "engagement", labelKey: "engagement" },
+  { value: "birthday", labelKey: "birthday" },
+  { value: "corporate", labelKey: "corporate" },
+  { value: "other", labelKey: "other" },
+];
 
 function normalizePalette(value: unknown): string[] {
   if (value && typeof value === "object" && !Array.isArray(value)) {
@@ -41,15 +58,6 @@ function normalizePalette(value: unknown): string[] {
     }
   }
   return [];
-}
-
-function formatDate(date: Date | string | null | undefined): string {
-  if (!date) return "Date open";
-  return new Date(date).toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-  });
 }
 
 function decimalToNumber(value: unknown): number {
@@ -62,19 +70,20 @@ function decimalToNumber(value: unknown): number {
   return 0;
 }
 
-function formatBudget(value: unknown): string | null {
-  const n = decimalToNumber(value);
-  if (n <= 0) return null;
-  return new Intl.NumberFormat("en-EG", {
-    style: "currency",
-    currency: "EGP",
-    minimumFractionDigits: 0,
-  }).format(n);
-}
-
 export default function MarketplacePage() {
+  const t = useTranslations("marketplace");
+  const f = useFormatters();
   const [eventType, setEventType] = useState<EventTypeFilter>("all");
   const [hasBudget, setHasBudget] = useState(false);
+
+  const eventTypeOptions = useMemo(
+    () =>
+      EVENT_TYPE_KEYS.map((opt) => ({
+        value: opt.value,
+        label: t(opt.labelKey),
+      })),
+    [t],
+  );
 
   const { data: planner } = trpc.planner.me.useQuery();
   const { data: briefs, isLoading } = trpc.marketplace.list.useQuery(
@@ -98,24 +107,23 @@ export default function MarketplacePage() {
         <header className="mb-10 flex flex-col gap-3">
           <div className="inline-flex w-fit items-center gap-2 rounded-full border border-rose-200/70 bg-rose-50/70 px-3.5 py-1 text-[11px] font-medium uppercase tracking-[0.18em] text-rose-700 backdrop-blur-sm">
             <Compass className="size-3" />
-            Marketplace
+            {t("eyebrow")}
           </div>
           <h1 className="font-display text-balance text-4xl font-light leading-tight tracking-tight sm:text-5xl">
-            Open briefs from couples
+            {t("title")}
           </h1>
           <p className="max-w-xl text-pretty text-sm text-muted-foreground sm:text-base">
-            Each brief here has an approved design and is looking for a planner.
-            Read the vision, gauge the date, and submit a thoughtful proposal.
+            {t("subtitle")}
           </p>
         </header>
 
         {/* Filters */}
         <div className="mb-8 flex flex-wrap items-center gap-3 rounded-2xl border border-rose-100/70 bg-white/70 p-3 backdrop-blur-sm">
-          <span className="ml-2 text-[10px] font-medium uppercase tracking-[0.2em] text-muted-foreground">
-            Filter
+          <span className="ms-2 text-[10px] font-medium uppercase tracking-[0.2em] text-muted-foreground">
+            {t("filter")}
           </span>
           <Select
-            items={EVENT_TYPES}
+            items={eventTypeOptions}
             value={eventType}
             onValueChange={(v) => setEventType(v as EventTypeFilter)}
           >
@@ -123,7 +131,7 @@ export default function MarketplacePage() {
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              {EVENT_TYPES.map((opt) => (
+              {eventTypeOptions.map((opt) => (
                 <SelectItem key={opt.value} value={opt.value}>
                   {opt.label}
                 </SelectItem>
@@ -140,16 +148,16 @@ export default function MarketplacePage() {
             )}
           >
             {hasBudget && <Check className="size-3" />}
-            Budget shared
+            {t("budgetShared")}
           </button>
         </div>
 
         {!planner ? (
           <EmptyState
-            title="Planner profile required"
-            body="Set up your planner profile to start applying to open briefs."
+            title={t("plannerProfileRequired")}
+            body={t("plannerProfileRequiredBody")}
             ctaHref="/dashboard/planner/settings"
-            ctaLabel="Set up profile"
+            ctaLabel={t("setUpProfile")}
           />
         ) : isLoading ? (
           <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
@@ -168,15 +176,17 @@ export default function MarketplacePage() {
           </div>
         ) : visible.length === 0 ? (
           <EmptyState
-            title="No open briefs match your filters"
-            body="Loosen the filters or check back tomorrow — couples publish briefs throughout the week."
+            title={t("noOpenBriefs")}
+            body={t("noOpenBriefsBody")}
           />
         ) : (
           <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {visible.map((brief) => {
               const palette = normalizePalette(brief.design?.palette);
               const heroImage = brief.design?.heroImage ?? null;
-              const budget = formatBudget(brief.budget);
+              const budgetNumber = decimalToNumber(brief.budget);
+              const budget =
+                budgetNumber > 0 ? f.currency(budgetNumber) : null;
               return (
                 <Link
                   key={brief.id}
@@ -197,13 +207,13 @@ export default function MarketplacePage() {
                       </div>
                     )}
                     {brief.myProposal && (
-                      <span className="absolute left-3 top-3 inline-flex items-center gap-1 rounded-full bg-emerald-600/90 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-white backdrop-blur-sm">
+                      <span className="absolute start-3 top-3 inline-flex items-center gap-1 rounded-full bg-emerald-600/90 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-white backdrop-blur-sm">
                         <Sparkles className="size-2.5" />
-                        Already proposed
+                        {t("alreadyProposed")}
                       </span>
                     )}
                     {palette.length > 0 && (
-                      <div className="absolute right-3 top-3 inline-flex items-center gap-1 rounded-full bg-black/55 px-1.5 py-1 backdrop-blur-sm">
+                      <div className="absolute end-3 top-3 inline-flex items-center gap-1 rounded-full bg-black/55 px-1.5 py-1 backdrop-blur-sm">
                         {palette.slice(0, 4).map((c) => (
                           <span
                             key={c}
@@ -219,12 +229,17 @@ export default function MarketplacePage() {
                       {brief.title}
                     </h3>
                     <p className="text-[11px] capitalize text-muted-foreground">
-                      {brief.event_type} · with {brief.client_first_name}
+                      {t("withClient", {
+                        type: brief.event_type,
+                        firstName: brief.client_first_name,
+                      })}
                     </p>
                     <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
                       <span className="inline-flex items-center gap-1">
                         <CalendarDays className="size-3" />
-                        {formatDate(brief.event_date)}
+                        {brief.event_date
+                          ? f.date(brief.event_date, "medium")
+                          : t("dateOpen")}
                       </span>
                       {brief.venue && (
                         <span className="inline-flex items-center gap-1">
@@ -277,7 +292,7 @@ function EmptyState({
           className="mt-6 h-10 gap-2 bg-gradient-to-r from-rose-600 to-amber-500 px-5 text-white shadow-md shadow-rose-500/20 hover:opacity-90"
         >
           {ctaLabel}
-          <ArrowRight className="size-4" />
+          <ArrowRight className="size-4 rtl:-scale-x-100" />
         </Button>
       )}
     </div>

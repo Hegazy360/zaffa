@@ -8,56 +8,53 @@ import {
   useReducedMotion,
 } from "framer-motion";
 import { useRef } from "react";
+import { useTranslations } from "next-intl";
 import { SplitText } from "./split-text";
 
 interface Story {
-  couple: string;
-  location: string;
-  planner: string;
+  coupleKey: "reelStory1Couple" | "reelStory2Couple" | "reelStory3Couple";
+  locationKey:
+    | "reelStory1Location"
+    | "reelStory2Location"
+    | "reelStory3Location";
+  plannerKey: "reelStory1Planner" | "reelStory2Planner" | "reelStory3Planner";
+  pullKey: "reelStory1Pull" | "reelStory2Pull" | "reelStory3Pull";
+  bodyKey: "reelStory1Body" | "reelStory2Body" | "reelStory3Body";
   image: string;
-  pull: string;
-  body: string;
 }
 
-// Each story shows the VENUE we'd design — not a couple. The product is the
-// venue; the copy carries the romance.
 const STORIES: Story[] = [
   {
-    couple: "Mariam & Karim",
-    location: "Sahel, Egypt",
-    planner: "Atelier Nour",
-    // Hundreds of candles glowing in harmony — matches "two hundred candles, one long table" (Pinterest)
+    coupleKey: "reelStory1Couple",
+    locationKey: "reelStory1Location",
+    plannerKey: "reelStory1Planner",
+    pullKey: "reelStory1Pull",
+    bodyKey: "reelStory1Body",
     image:
       "https://i.pinimg.com/originals/f5/40/d1/f540d1840a8a6591b96e7db26d8e7396.jpg",
-    pull: "A garden the color of sunset.",
-    body:
-      "Two hundred candles, one long table, and the quiet certainty that everything was where it was meant to be.",
   },
   {
-    couple: "Layla & Omar",
-    location: "Cairo, Egypt",
-    planner: "Maison Hassan",
-    // Opulent chandeliers, hand-painted ceilings, endless candlelight — exactly "half-cinema, half-cathedral" (Pinterest)
+    coupleKey: "reelStory2Couple",
+    locationKey: "reelStory2Location",
+    plannerKey: "reelStory2Planner",
+    pullKey: "reelStory2Pull",
+    bodyKey: "reelStory2Body",
     image:
       "https://i.pinimg.com/originals/48/b8/e4/48b8e4a9eaaaf140764b4f4527e9265c.jpg",
-    pull: "Gold, candlelight, and quiet glamour.",
-    body:
-      "A reception that felt half-cinema, half-cathedral. Designed in three weeks, remembered for a lifetime.",
   },
   {
-    couple: "Nour & Adam",
-    location: "El Gouna",
-    planner: "Habiba & Co.",
-    // Tropical sunset wooden arch with florals — outdoor beach wedding venue (Pinterest)
+    coupleKey: "reelStory3Couple",
+    locationKey: "reelStory3Location",
+    plannerKey: "reelStory3Planner",
+    pullKey: "reelStory3Pull",
+    bodyKey: "reelStory3Body",
     image:
       "https://i.pinimg.com/originals/0c/c2/87/0cc287a3dbe52c0bbcc25eba40c9ebd7.jpg",
-    pull: "A barefoot vow at golden hour.",
-    body:
-      "The sea turned amber. Our planner had the shoes off the bridesmaids before the first photograph.",
   },
 ];
 
 export function EditorialReel() {
+  const t = useTranslations("marketing");
   return (
     <section className="relative isolate overflow-hidden bg-gradient-to-b from-background via-rose-50/30 to-background">
       <div
@@ -70,30 +67,28 @@ export function EditorialReel() {
       />
       <div
         aria-hidden
-        className="pointer-events-none absolute -left-32 top-1/3 h-[28rem] w-[28rem] rounded-full bg-gradient-to-br from-rose-200/30 to-amber-200/20 blur-3xl"
+        className="pointer-events-none absolute -start-32 top-1/3 h-[28rem] w-[28rem] rounded-full bg-gradient-to-br from-rose-200/30 to-amber-200/20 blur-3xl"
       />
 
       <div className="container relative mx-auto max-w-7xl px-4 pt-28 pb-12 md:pt-36 md:pb-16">
         <p className="mb-4 text-[0.7rem] uppercase tracking-[0.3em] text-rose-700">
-          After the render
+          {t("reelEyebrow")}
         </p>
         <h2 className="font-display text-balance text-4xl font-light leading-[1.05] tracking-tight md:text-7xl">
-          <SplitText>Days that lived</SplitText>
+          <SplitText>{t("reelTitleLine1")}</SplitText>
           <br />
           <span className="italic text-muted-foreground">
-            <SplitText delay={0.3}>up to the dream.</SplitText>
+            <SplitText delay={0.3}>{t("reelTitleLine2")}</SplitText>
           </span>
         </h2>
         <p className="mt-6 max-w-xl text-pretty text-base text-muted-foreground md:text-lg">
-          Three real couples. Three palettes locked, three rooms rendered, three
-          nights remembered. This is what happens after the still becomes a
-          scene.
+          {t("reelSubtitle")}
         </p>
       </div>
 
       <div className="relative space-y-24 pb-32 md:space-y-40">
         {STORIES.map((story, i) => (
-          <Spread key={story.couple} story={story} reverse={i % 2 === 1} />
+          <Spread key={story.coupleKey} story={story} reverse={i % 2 === 1} />
         ))}
       </div>
     </section>
@@ -101,6 +96,7 @@ export function EditorialReel() {
 }
 
 function Spread({ story, reverse }: { story: Story; reverse: boolean }) {
+  const t = useTranslations("marketing");
   const ref = useRef<HTMLElement>(null);
   const reduce = useReducedMotion();
 
@@ -116,6 +112,9 @@ function Spread({ story, reverse }: { story: Story; reverse: boolean }) {
     reduce ? [1, 1, 1] : [1.18, 1.05, 1],
   );
 
+  const couple = t(story.coupleKey);
+  const planner = t(story.plannerKey);
+
   return (
     <article
       ref={ref}
@@ -127,7 +126,7 @@ function Spread({ story, reverse }: { story: Story; reverse: boolean }) {
         <motion.div style={{ y, scale }} className="absolute inset-[-10%]">
           <Image
             src={story.image}
-            alt={`${story.couple} wedding planned by ${story.planner}`}
+            alt={t("reelImageAlt", { couple, planner })}
             fill
             sizes="(min-width: 1024px) 60vw, 90vw"
             className="object-cover"
@@ -138,14 +137,14 @@ function Spread({ story, reverse }: { story: Story; reverse: boolean }) {
         <div className="absolute inset-x-0 bottom-0 flex items-end justify-between p-6 text-white md:p-8">
           <div>
             <p className="font-display text-2xl font-light leading-tight md:text-4xl">
-              {story.couple}
+              {couple}
             </p>
             <p className="mt-1 text-[0.7rem] uppercase tracking-[0.2em] text-white/70">
-              {story.location}
+              {t(story.locationKey)}
             </p>
           </div>
           <p className="text-[0.7rem] uppercase tracking-[0.2em] text-white/70">
-            {story.planner}
+            {planner}
           </p>
         </div>
       </div>
@@ -158,7 +157,7 @@ function Spread({ story, reverse }: { story: Story; reverse: boolean }) {
           transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
           className="font-display text-balance text-3xl font-light leading-[1.1] tracking-tight md:text-5xl"
         >
-          &ldquo;{story.pull}&rdquo;
+          &ldquo;{t(story.pullKey)}&rdquo;
         </motion.blockquote>
         <motion.p
           initial={{ opacity: 0, y: 16 }}
@@ -171,7 +170,7 @@ function Spread({ story, reverse }: { story: Story; reverse: boolean }) {
           }}
           className="mt-6 max-w-md text-pretty text-base text-muted-foreground md:text-lg"
         >
-          {story.body}
+          {t(story.bodyKey)}
         </motion.p>
       </div>
     </article>

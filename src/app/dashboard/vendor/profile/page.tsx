@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState, type DragEvent, type KeyboardEvent } from "react";
+import { useMemo, useRef, useState, type DragEvent, type KeyboardEvent } from "react";
 import {
   Image as ImageIcon,
   Loader2,
@@ -13,6 +13,7 @@ import {
   X,
 } from "lucide-react";
 import { toast } from "sonner";
+import { useTranslations } from "next-intl";
 import { trpc } from "@/lib/trpc";
 import { useVendorImageUpload } from "@/hooks/use-vendor-image-upload";
 import { Button } from "@/components/ui/button";
@@ -35,21 +36,35 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-const CATEGORIES = [
-  { value: "catering", label: "Catering" },
-  { value: "photography", label: "Photography" },
-  { value: "videography", label: "Videography" },
-  { value: "flowers", label: "Flowers" },
-  { value: "music", label: "Music" },
-  { value: "decoration", label: "Decoration" },
-  { value: "venue", label: "Venue" },
-  { value: "makeup", label: "Makeup" },
-  { value: "fashion", label: "Fashion" },
-  { value: "transportation", label: "Transportation" },
-  { value: "other", label: "Other" },
-] as const;
+type CategoryOption =
+  | "catering"
+  | "photography"
+  | "videography"
+  | "flowers"
+  | "music"
+  | "decoration"
+  | "venue"
+  | "makeup"
+  | "fashion"
+  | "transportation"
+  | "other";
 
-type CategoryOption = (typeof CATEGORIES)[number]["value"];
+const CATEGORY_VALUES: ReadonlyArray<{
+  value: CategoryOption;
+  labelKey: string;
+}> = [
+  { value: "catering", labelKey: "categoryCatering" },
+  { value: "photography", labelKey: "categoryPhotography" },
+  { value: "videography", labelKey: "categoryVideography" },
+  { value: "flowers", labelKey: "categoryFlowers" },
+  { value: "music", labelKey: "categoryMusic" },
+  { value: "decoration", labelKey: "categoryDecoration" },
+  { value: "venue", labelKey: "categoryVenue" },
+  { value: "makeup", labelKey: "categoryMakeup" },
+  { value: "fashion", labelKey: "categoryFashion" },
+  { value: "transportation", labelKey: "categoryTransportation" },
+  { value: "other", labelKey: "categoryOther" },
+];
 
 type EventTypeOption =
   | "wedding"
@@ -59,13 +74,17 @@ type EventTypeOption =
   | "other"
   | "none";
 
-const EVENT_TYPES: Array<{ value: EventTypeOption; label: string }> = [
-  { value: "none", label: "Any event type" },
-  { value: "wedding", label: "Wedding" },
-  { value: "engagement", label: "Engagement" },
-  { value: "birthday", label: "Birthday" },
-  { value: "corporate", label: "Corporate" },
-  { value: "other", label: "Other" },
+const EVENT_TYPE_VALUES: ReadonlyArray<{
+  value: EventTypeOption;
+  labelKey: string;
+  ns: "vendor" | "marketplace";
+}> = [
+  { value: "none", labelKey: "anyEventType", ns: "vendor" },
+  { value: "wedding", labelKey: "wedding", ns: "marketplace" },
+  { value: "engagement", labelKey: "engagement", ns: "marketplace" },
+  { value: "birthday", labelKey: "birthday", ns: "marketplace" },
+  { value: "corporate", labelKey: "corporate", ns: "marketplace" },
+  { value: "other", labelKey: "other", ns: "marketplace" },
 ];
 
 interface PortfolioItem {
@@ -93,10 +112,21 @@ function styleTagsArray(value: unknown): string[] {
 
 export default function VendorProfilePage() {
   const utils = trpc.useUtils();
+  const t = useTranslations("vendor");
+  const tMarketplace = useTranslations("marketplace");
   const me = trpc.vendors.me.useQuery();
   const portfolio = trpc.vendors.portfolio.list.useQuery(undefined, {
     enabled: !!me.data,
   });
+
+  const categories = useMemo(
+    () =>
+      CATEGORY_VALUES.map((c) => ({
+        value: c.value,
+        label: t(c.labelKey),
+      })),
+    [t],
+  );
 
   const [seed, setSeed] = useState<string | null>(null);
   const [businessName, setBusinessName] = useState("");
@@ -118,7 +148,7 @@ export default function VendorProfilePage() {
 
   const update = trpc.vendors.update.useMutation({
     onSuccess: () => {
-      toast.success("Profile saved");
+      toast.success(t("profileSavedToast"));
       utils.vendors.me.invalidate();
     },
     onError: (e) => toast.error(e.message),
@@ -132,7 +162,7 @@ export default function VendorProfilePage() {
       return;
     }
     if (specialties.length >= 20) {
-      toast.error("Up to 20 specialties");
+      toast.error(t("specialtiesMax"));
       return;
     }
     setSpecialties([...specialties, v]);
@@ -148,7 +178,7 @@ export default function VendorProfilePage() {
 
   function handleSave() {
     if (!businessName.trim()) {
-      toast.error("Business name is required");
+      toast.error(t("businessNameRequired"));
       return;
     }
     update.mutate({
@@ -166,7 +196,7 @@ export default function VendorProfilePage() {
 
   const removeItem = trpc.vendors.portfolio.delete.useMutation({
     onSuccess: () => {
-      toast.success("Removed");
+      toast.success(t("removedToast"));
       utils.vendors.portfolio.list.invalidate();
     },
     onError: (e) => toast.error(e.message),
@@ -189,41 +219,40 @@ export default function VendorProfilePage() {
       <div className="relative z-10 mx-auto max-w-3xl space-y-10 px-4 py-10 sm:px-6">
         <header>
           <p className="mb-1 text-[0.65rem] font-medium uppercase tracking-[0.3em] text-rose-700/80">
-            Profile
+            {t("profileLabel")}
           </p>
           <h1 className="font-display text-3xl font-light tracking-tight sm:text-4xl">
-            How planners see you
+            {t("profileTitle")}
           </h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            Business basics, then the work that&apos;ll get you booked.
+            {t("profileSubtitle")}
           </p>
         </header>
 
         <section className="overflow-hidden rounded-2xl border border-rose-100/70 bg-white/85 backdrop-blur-sm">
           <div className="border-b border-rose-100/70 px-6 py-4">
             <h2 className="font-display text-lg font-medium tracking-tight">
-              Business profile
+              {t("businessProfileTitle")}
             </h2>
             <p className="text-xs text-muted-foreground">
-              These details show up on your card, your public profile, and
-              every engagement request.
+              {t("businessProfileSubtitle")}
             </p>
           </div>
           <div className="space-y-5 p-6">
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-1.5 sm:col-span-2">
-                <Label htmlFor="biz">Business name</Label>
+                <Label htmlFor="biz">{t("businessNameLabel")}</Label>
                 <Input
                   id="biz"
                   value={businessName}
                   onChange={(e) => setBusinessName(e.target.value)}
-                  placeholder="Studio Bloom"
+                  placeholder={t("businessNamePlaceholder")}
                 />
               </div>
               <div className="space-y-1.5">
-                <Label htmlFor="cat">Category</Label>
+                <Label htmlFor="cat">{t("categoryLabel")}</Label>
                 <Select
-                  items={CATEGORIES}
+                  items={categories}
                   value={category}
                   onValueChange={(v) => v && setCategory(v as CategoryOption)}
                 >
@@ -231,7 +260,7 @@ export default function VendorProfilePage() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    {CATEGORIES.map((c) => (
+                    {categories.map((c) => (
                       <SelectItem key={c.value} value={c.value}>
                         {c.label}
                       </SelectItem>
@@ -240,30 +269,30 @@ export default function VendorProfilePage() {
                 </Select>
               </div>
               <div className="space-y-1.5">
-                <Label htmlFor="loc">Location</Label>
+                <Label htmlFor="loc">{t("locationLabel")}</Label>
                 <Input
                   id="loc"
                   value={location}
                   onChange={(e) => setLocation(e.target.value)}
-                  placeholder="Cairo, Egypt"
+                  placeholder={t("locationPlaceholder")}
                 />
               </div>
               <div className="space-y-1.5 sm:col-span-2">
-                <Label htmlFor="bio">Bio</Label>
+                <Label htmlFor="bio">{t("bioLabel")}</Label>
                 <Textarea
                   id="bio"
                   value={bio}
                   onChange={(e) => setBio(e.target.value)}
                   rows={4}
-                  placeholder="What's your studio's voice? What weddings light you up?"
+                  placeholder={t("bioPlaceholder")}
                   className="resize-none"
                 />
                 <p className="text-[11px] text-muted-foreground">
-                  {bio.length}/2000
+                  {t("bioCounter", { count: bio.length })}
                 </p>
               </div>
               <div className="space-y-1.5 sm:col-span-2">
-                <Label htmlFor="spec">Specialties</Label>
+                <Label htmlFor="spec">{t("specialtiesLabel")}</Label>
                 <div className="flex flex-wrap items-center gap-2 rounded-xl border border-input bg-transparent p-2">
                   {specialties.map((s) => (
                     <span
@@ -276,7 +305,7 @@ export default function VendorProfilePage() {
                         onClick={() =>
                           setSpecialties(specialties.filter((x) => x !== s))
                         }
-                        aria-label={`Remove ${s}`}
+                        aria-label={t("removeSpecialty", { name: s })}
                         className="text-rose-700/70 hover:text-rose-900"
                       >
                         <X className="size-3" />
@@ -288,7 +317,7 @@ export default function VendorProfilePage() {
                     value={specialtyDraft}
                     onChange={(e) => setSpecialtyDraft(e.target.value)}
                     onKeyDown={onSpecialtyKey}
-                    placeholder={specialties.length === 0 ? "e.g. Long stems" : ""}
+                    placeholder={specialties.length === 0 ? t("specialtiesPlaceholder") : ""}
                     className="flex-1 min-w-[120px] bg-transparent text-sm outline-none"
                   />
                   <Button
@@ -299,7 +328,7 @@ export default function VendorProfilePage() {
                     className="gap-1"
                   >
                     <Plus className="size-3" />
-                    Add
+                    {t("addAction")}
                   </Button>
                 </div>
               </div>
@@ -315,7 +344,7 @@ export default function VendorProfilePage() {
                 ) : (
                   <Save className="size-4" />
                 )}
-                Save profile
+                {t("saveProfile")}
               </Button>
             </div>
           </div>
@@ -325,10 +354,10 @@ export default function VendorProfilePage() {
           <div className="flex items-end justify-between border-b border-rose-100/70 px-6 py-4">
             <div>
               <h2 className="font-display text-lg font-medium tracking-tight">
-                Portfolio
+                {t("portfolioTitle")}
               </h2>
               <p className="text-xs text-muted-foreground">
-                A few hero shots planners see before booking.
+                {t("portfolioSubtitle")}
               </p>
             </div>
             <Button
@@ -338,14 +367,13 @@ export default function VendorProfilePage() {
               disabled={!me.data}
             >
               <Plus className="size-3.5" />
-              Add piece
+              {t("addPiece")}
             </Button>
           </div>
           <div className="p-6">
             {!me.data ? (
               <p className="text-sm text-muted-foreground">
-                Save your business profile first to start uploading portfolio
-                pieces.
+                {t("portfolioSaveFirst")}
               </p>
             ) : portfolio.isLoading ? (
               <div className="flex justify-center py-8">
@@ -355,7 +383,7 @@ export default function VendorProfilePage() {
               <div className="rounded-xl border border-dashed border-rose-100 px-4 py-10 text-center">
                 <ImageIcon className="mx-auto mb-2 size-6 text-rose-500" />
                 <p className="text-sm text-muted-foreground">
-                  No portfolio pieces yet.
+                  {t("noPortfolioPieces")}
                 </p>
               </div>
             ) : (
@@ -368,7 +396,7 @@ export default function VendorProfilePage() {
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src={item.image_url}
-                      alt={item.caption ?? "portfolio"}
+                      alt={item.caption ?? t("portfolioFallbackAlt")}
                       className="aspect-[4/3] w-full object-cover"
                     />
                     <div className="space-y-1 p-3">
@@ -377,7 +405,15 @@ export default function VendorProfilePage() {
                       )}
                       {item.event_type && (
                         <p className="text-[11px] uppercase tracking-wider text-rose-700/70">
-                          {item.event_type}
+                          {(() => {
+                            const opt = EVENT_TYPE_VALUES.find(
+                              (o) => o.value === item.event_type,
+                            );
+                            if (!opt) return item.event_type;
+                            return opt.ns === "vendor"
+                              ? t(opt.labelKey)
+                              : tMarketplace(opt.labelKey);
+                          })()}
                         </p>
                       )}
                       <div className="flex justify-end gap-1 pt-1">
@@ -390,20 +426,20 @@ export default function VendorProfilePage() {
                           }
                         >
                           <Pencil className="size-3.5" />
-                          Edit
+                          {t("editLabel")}
                         </Button>
                         <Button
                           size="sm"
                           variant="ghost"
                           className="gap-1 text-destructive"
                           onClick={() => {
-                            if (confirm("Remove this piece?")) {
+                            if (confirm(t("removePieceConfirm"))) {
                               removeItem.mutate({ id: item.id });
                             }
                           }}
                         >
                           <Trash2 className="size-3.5" />
-                          Remove
+                          {t("removeLabel")}
                         </Button>
                       </div>
                     </div>
@@ -421,12 +457,12 @@ export default function VendorProfilePage() {
           <DialogContent className="max-w-lg">
             <DialogHeader>
               <DialogTitle>
-                {openItem?.mode === "edit" ? "Edit piece" : "Add to portfolio"}
+                {openItem?.mode === "edit" ? t("editPiece") : t("addToPortfolio")}
               </DialogTitle>
               <DialogDescription>
                 {openItem?.mode === "edit"
-                  ? "Update the caption, event type, and tags."
-                  : "Show planners your best work."}
+                  ? t("editPieceDesc")
+                  : t("addToPortfolioDesc")}
               </DialogDescription>
             </DialogHeader>
             {openItem && (
@@ -455,6 +491,16 @@ function PortfolioForm({
   item: PortfolioItem | null;
   onDone: () => void;
 }) {
+  const t = useTranslations("vendor");
+  const tMarketplace = useTranslations("marketplace");
+  const eventTypeOptions = useMemo(
+    () =>
+      EVENT_TYPE_VALUES.map((o) => ({
+        value: o.value,
+        label: o.ns === "vendor" ? t(o.labelKey) : tMarketplace(o.labelKey),
+      })),
+    [t, tMarketplace],
+  );
   const [imageUrl, setImageUrl] = useState(item?.image_url ?? "");
   const [caption, setCaption] = useState(item?.caption ?? "");
   const [eventType, setEventType] = useState<EventTypeOption>(
@@ -468,14 +514,14 @@ function PortfolioForm({
 
   const create = trpc.vendors.portfolio.create.useMutation({
     onSuccess: () => {
-      toast.success("Added");
+      toast.success(t("addedToast"));
       onDone();
     },
     onError: (e) => toast.error(e.message),
   });
   const update = trpc.vendors.portfolio.update.useMutation({
     onSuccess: () => {
-      toast.success("Updated");
+      toast.success(t("updatedToast"));
       onDone();
     },
     onError: (e) => toast.error(e.message),
@@ -515,7 +561,7 @@ function PortfolioForm({
   function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (mode === "create" && !imageUrl.trim()) {
-      toast.error("Upload an image first");
+      toast.error(t("uploadImageFirst"));
       return;
     }
     const eventTypeOrNull =
@@ -541,7 +587,7 @@ function PortfolioForm({
     <form onSubmit={onSubmit} className="space-y-4">
       {mode === "create" && (
         <div className="space-y-1.5">
-          <Label>Image</Label>
+          <Label>{t("imageLabel")}</Label>
           <input
             ref={fileInputRef}
             type="file"
@@ -557,7 +603,7 @@ function PortfolioForm({
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={imageUrl}
-                alt="upload preview"
+                alt={t("uploadPreviewAlt")}
                 className="aspect-[4/3] w-full object-cover"
               />
               <div className="absolute inset-x-0 bottom-0 flex items-center justify-end gap-2 bg-gradient-to-t from-stone-900/70 to-transparent p-2">
@@ -574,7 +620,7 @@ function PortfolioForm({
                   ) : (
                     <RefreshCw className="size-3.5" />
                   )}
-                  Replace
+                  {t("replace")}
                 </Button>
               </div>
             </div>
@@ -596,16 +642,16 @@ function PortfolioForm({
               {isUploading ? (
                 <>
                   <Loader2 className="size-6 animate-spin text-rose-500" />
-                  <p className="text-sm text-muted-foreground">Uploading…</p>
+                  <p className="text-sm text-muted-foreground">{t("uploadingDots")}</p>
                 </>
               ) : (
                 <>
                   <Upload className="size-6 text-rose-500" />
                   <p className="text-sm font-medium">
-                    Drop an image or click to upload
+                    {t("uploadOrDrop")}
                   </p>
                   <p className="text-[11px] text-muted-foreground">
-                    JPG, PNG, WEBP up to 8MB
+                    {t("imageRules")}
                   </p>
                 </>
               )}
@@ -614,18 +660,18 @@ function PortfolioForm({
         </div>
       )}
       <div className="space-y-1.5">
-        <Label htmlFor="cap">Caption</Label>
+        <Label htmlFor="cap">{t("captionLabel")}</Label>
         <Input
           id="cap"
           value={caption}
           onChange={(e) => setCaption(e.target.value)}
-          placeholder="Garden ceremony — golden hour"
+          placeholder={t("captionPlaceholder")}
         />
       </div>
       <div className="space-y-1.5">
-        <Label htmlFor="evt">Event type</Label>
+        <Label htmlFor="evt">{t("eventTypeLabel")}</Label>
         <Select
-          items={EVENT_TYPES}
+          items={eventTypeOptions}
           value={eventType}
           onValueChange={(v) => v && setEventType(v as EventTypeOption)}
         >
@@ -633,7 +679,7 @@ function PortfolioForm({
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            {EVENT_TYPES.map((o) => (
+            {eventTypeOptions.map((o) => (
               <SelectItem key={o.value} value={o.value}>
                 {o.label}
               </SelectItem>
@@ -642,18 +688,18 @@ function PortfolioForm({
         </Select>
       </div>
       <div className="space-y-1.5">
-        <Label>Style tags</Label>
+        <Label>{t("styleTagsLabel")}</Label>
         <div className="flex flex-wrap items-center gap-2 rounded-xl border border-input bg-transparent p-2">
-          {tags.map((t) => (
+          {tags.map((tag) => (
             <span
-              key={t}
+              key={tag}
               className="inline-flex items-center gap-1 rounded-full bg-rose-50 px-2 py-1 text-xs text-rose-800 ring-1 ring-rose-100"
             >
-              {t}
+              {tag}
               <button
                 type="button"
-                onClick={() => setTags(tags.filter((x) => x !== t))}
-                aria-label={`Remove ${t}`}
+                onClick={() => setTags(tags.filter((x) => x !== tag))}
+                aria-label={t("removeTag", { name: tag })}
                 className="text-rose-700/70 hover:text-rose-900"
               >
                 <X className="size-3" />
@@ -664,7 +710,7 @@ function PortfolioForm({
             value={tagDraft}
             onChange={(e) => setTagDraft(e.target.value)}
             onKeyDown={onTagKey}
-            placeholder={tags.length === 0 ? "e.g. romantic" : ""}
+            placeholder={tags.length === 0 ? t("styleTagsPlaceholder") : ""}
             className="flex-1 min-w-[100px] bg-transparent text-sm outline-none"
           />
         </div>
@@ -676,7 +722,7 @@ function PortfolioForm({
           className="gap-1 bg-gradient-to-r from-rose-600 to-amber-500 text-white"
         >
           {submitting && <Loader2 className="size-4 animate-spin" />}
-          {mode === "create" ? "Add" : "Save changes"}
+          {mode === "create" ? t("addAction") : t("saveChanges")}
         </Button>
       </DialogFooter>
     </form>

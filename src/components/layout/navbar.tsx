@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 import {
   Menu,
   Wand2,
@@ -12,6 +13,7 @@ import {
   LayoutDashboard,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { LocaleSwitcher } from "@/components/locale-switcher";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import {
   DropdownMenu,
@@ -39,6 +41,8 @@ export function Navbar() {
   const router = useRouter();
   const pathname = usePathname();
   const supabase = createClient();
+  const t = useTranslations("nav");
+  const tBrand = useTranslations("brand");
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
@@ -76,26 +80,28 @@ export function Navbar() {
         <Link
           href="/"
           className="group flex items-center gap-2"
-          aria-label="Zaffa home"
+          aria-label={t("ariaHome")}
         >
           <span className="font-display bg-gradient-to-br from-rose-600 via-rose-500 to-amber-500 bg-clip-text text-2xl font-light italic tracking-tight text-transparent transition-opacity group-hover:opacity-90">
-            Zaffa
+            {tBrand("name")}
           </span>
           <span className="font-arabic hidden text-sm text-muted-foreground sm:inline">
-            زفّة
+            {tBrand("nameArabic")}
           </span>
         </Link>
 
         {/* Desktop auth area — single primary CTA points at the venue designer
             (the only product surface), with sign-in/avatar alongside. */}
         <div className="hidden items-center gap-3 md:flex">
+          <LocaleSwitcher />
+
           <Button
             render={<Link href="/venue-designer" />}
             className="group gap-2 bg-gradient-to-r from-rose-600 to-amber-500 text-white shadow-md shadow-rose-600/20 hover:opacity-90 hover:shadow-rose-600/30"
           >
             <Wand2 className="h-4 w-4" />
-            Start designing
-            <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+            {t("startDesigning")}
+            <ArrowRight className="h-4 w-4 transition-transform rtl:-scale-x-100 group-hover:translate-x-0.5 rtl:group-hover:-translate-x-0.5" />
           </Button>
 
           {loading ? (
@@ -103,7 +109,7 @@ export function Navbar() {
           ) : user ? (
             <DropdownMenu>
               <DropdownMenuTrigger
-                aria-label="Account menu"
+                aria-label={t("accountMenu")}
                 className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-rose-600 to-amber-500 text-sm font-semibold text-white shadow-sm shadow-rose-600/20 ring-2 ring-transparent transition-all hover:shadow-md hover:shadow-rose-600/30 hover:ring-rose-200 focus-visible:ring-rose-300 focus-visible:outline-none dark:hover:ring-rose-900/60"
               >
                 {userInitial}
@@ -117,7 +123,7 @@ export function Navbar() {
                 <DropdownMenuGroup>
                   <DropdownMenuLabel className="px-2 py-2">
                     <p className="text-sm leading-tight font-medium">
-                      {displayName || "Your account"}
+                      {displayName || t("yourAccount")}
                     </p>
                     {user.email && displayName !== user.email && (
                       <p className="mt-0.5 truncate text-xs text-muted-foreground">
@@ -132,14 +138,14 @@ export function Navbar() {
                   className="gap-2 px-2 py-2"
                 >
                   <LayoutDashboard className="h-4 w-4" />
-                  Dashboard
+                  {t("dashboard")}
                 </DropdownMenuItem>
                 <DropdownMenuItem
                   onClick={() => router.push("/venue-designer")}
                   className="gap-2 px-2 py-2"
                 >
                   <Wand2 className="h-4 w-4" />
-                  My designs
+                  {t("myDesigns")}
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
@@ -147,7 +153,7 @@ export function Navbar() {
                   className="gap-2 px-2 py-2"
                 >
                   <LogOut className="h-4 w-4" />
-                  Sign Out
+                  {t("signOut")}
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -157,7 +163,7 @@ export function Navbar() {
               render={<Link href="/auth/signin" />}
               className="text-sm text-muted-foreground hover:text-foreground"
             >
-              Sign in
+              {t("signIn")}
             </Button>
           )}
         </div>
@@ -166,7 +172,7 @@ export function Navbar() {
         <Sheet open={open} onOpenChange={setOpen}>
           <SheetTrigger className="inline-flex h-9 w-9 items-center justify-center rounded-md text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground md:hidden">
             <Menu className="h-5 w-5" />
-            <span className="sr-only">Toggle menu</span>
+            <span className="sr-only">{t("toggleMenu")}</span>
           </SheetTrigger>
           <SheetContent side="right" className="flex w-80 flex-col p-0">
             {/* Branded header */}
@@ -197,14 +203,14 @@ export function Navbar() {
                     className="flex items-center gap-2"
                   >
                     <span className="font-display bg-gradient-to-br from-rose-600 to-amber-500 bg-clip-text text-2xl font-light italic tracking-tight text-transparent">
-                      Zaffa
+                      {tBrand("name")}
                     </span>
                     <span className="font-arabic text-sm text-muted-foreground">
-                      زفّة
+                      {tBrand("nameArabic")}
                     </span>
                   </Link>
                   <p className="mt-1 text-xs text-muted-foreground">
-                    Your dream event, expertly planned
+                    {tBrand("tagline")}
                   </p>
                 </div>
               )}
@@ -223,8 +229,8 @@ export function Navbar() {
                 className="group w-full justify-center gap-2 bg-gradient-to-r from-rose-600 to-amber-500 text-white shadow-md shadow-rose-600/20 hover:opacity-90"
               >
                 <Wand2 className="h-4 w-4" />
-                Start designing
-                <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+                {t("startDesigning")}
+                <ArrowRight className="h-4 w-4 transition-transform rtl:-scale-x-100 group-hover:translate-x-0.5 rtl:group-hover:-translate-x-0.5" />
               </Button>
 
               {user && (
@@ -239,13 +245,16 @@ export function Navbar() {
                   )}
                 >
                   <LayoutDashboard className="h-4 w-4" />
-                  Dashboard
+                  {t("dashboard")}
                 </Link>
               )}
             </nav>
 
             {/* Auth section */}
             <div className="space-y-2 border-t px-4 py-4">
+              <div className="mb-2 flex justify-center">
+                <LocaleSwitcher variant="outline" align="end" />
+              </div>
               {user ? (
                 <Button
                   variant="outline"
@@ -254,7 +263,7 @@ export function Navbar() {
                   onClick={handleSignOut}
                 >
                   <LogOut className="h-4 w-4" />
-                  Sign Out
+                  {t("signOut")}
                 </Button>
               ) : (
                 <Button
@@ -269,7 +278,7 @@ export function Navbar() {
                   size="lg"
                 >
                   <LogIn className="h-4 w-4" />
-                  Sign in
+                  {t("signIn")}
                 </Button>
               )}
             </div>

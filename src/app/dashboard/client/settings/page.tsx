@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2, LogOut, Save, Trash2 } from "lucide-react";
 import { toast } from "sonner";
+import { useTranslations } from "next-intl";
 import { trpc } from "@/lib/trpc";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -14,6 +15,7 @@ export default function SettingsPage() {
   const router = useRouter();
   const supabase = createClient();
   const utils = trpc.useUtils();
+  const tc = useTranslations("client");
 
   const { data: profile, isLoading } = trpc.profile.me.useQuery();
 
@@ -34,7 +36,7 @@ export default function SettingsPage() {
 
   const update = trpc.profile.update.useMutation({
     onSuccess: () => {
-      toast.success("Profile updated");
+      toast.success(tc("profileUpdatedToast"));
       utils.profile.me.invalidate();
     },
     onError: (err) => toast.error(err.message),
@@ -72,13 +74,13 @@ export default function SettingsPage() {
       <div className="mx-auto max-w-2xl px-6 py-12 sm:py-16">
         <header className="mb-10 space-y-3">
           <p className="text-[0.65rem] font-medium uppercase tracking-[0.3em] text-rose-700/80">
-            Your account
+            {tc("settingsEyebrow")}
           </p>
           <h1 className="font-display text-balance text-4xl font-light leading-tight tracking-tight sm:text-5xl">
-            Settings
+            {tc("settingsTitle")}
           </h1>
           <p className="max-w-lg text-pretty text-sm text-muted-foreground sm:text-base">
-            Update how you appear to your planner.
+            {tc("settingsSubtitle")}
           </p>
         </header>
 
@@ -99,7 +101,7 @@ export default function SettingsPage() {
               )}
               <div>
                 <p className="font-display text-lg font-medium leading-tight tracking-tight">
-                  {fullName || "Your name"}
+                  {fullName || tc("yourName")}
                 </p>
                 <p className="text-xs text-muted-foreground">
                   {profile?.email}
@@ -109,16 +111,16 @@ export default function SettingsPage() {
 
             <div className="grid gap-4">
               <div className="space-y-1.5">
-                <Label htmlFor="full-name">Full name</Label>
+                <Label htmlFor="full-name">{tc("fullName")}</Label>
                 <Input
                   id="full-name"
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
-                  placeholder="Your name"
+                  placeholder={tc("yourName")}
                 />
               </div>
               <div className="space-y-1.5">
-                <Label htmlFor="email">Email</Label>
+                <Label htmlFor="email">{tc("email")}</Label>
                 <Input
                   id="email"
                   value={profile?.email ?? ""}
@@ -126,25 +128,25 @@ export default function SettingsPage() {
                   className="bg-muted/50"
                 />
                 <p className="text-[11px] text-muted-foreground">
-                  Email is tied to your sign-in account.
+                  {tc("emailHint")}
                 </p>
               </div>
               <div className="space-y-1.5">
-                <Label htmlFor="phone">Phone</Label>
+                <Label htmlFor="phone">{tc("phone")}</Label>
                 <Input
                   id="phone"
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
-                  placeholder="+20 …"
+                  placeholder={tc("phonePlaceholder")}
                 />
               </div>
               <div className="space-y-1.5">
-                <Label htmlFor="avatar">Avatar URL</Label>
+                <Label htmlFor="avatar">{tc("avatarUrl")}</Label>
                 <Input
                   id="avatar"
                   value={avatarUrl}
                   onChange={(e) => setAvatarUrl(e.target.value)}
-                  placeholder="https://…"
+                  placeholder={tc("avatarUrlPlaceholder")}
                 />
               </div>
             </div>
@@ -160,7 +162,7 @@ export default function SettingsPage() {
                 ) : (
                   <Save className="size-4" />
                 )}
-                Save changes
+                {tc("saveChanges")}
               </Button>
             </div>
           </div>
@@ -168,14 +170,14 @@ export default function SettingsPage() {
 
         <div className="mt-8 space-y-3">
           <h2 className="font-display text-lg font-medium tracking-tight">
-            Account
+            {tc("account")}
           </h2>
           <div className="rounded-2xl border border-rose-100/70 bg-white/70 p-4 backdrop-blur-sm dark:border-rose-900/30 dark:bg-card/70">
             <div className="flex items-center justify-between gap-3">
               <div>
-                <p className="text-sm font-medium">Sign out</p>
+                <p className="text-sm font-medium">{tc("signOut")}</p>
                 <p className="text-xs text-muted-foreground">
-                  End this session on this device.
+                  {tc("signOutHint")}
                 </p>
               </div>
               <Button
@@ -185,7 +187,7 @@ export default function SettingsPage() {
                 className="gap-1"
               >
                 <LogOut className="size-3.5" />
-                Sign out
+                {tc("signOut")}
               </Button>
             </div>
           </div>
@@ -193,10 +195,9 @@ export default function SettingsPage() {
           <div className="rounded-2xl border border-stone-200/70 bg-stone-50/50 p-4 dark:border-stone-800 dark:bg-card/40">
             <div className="flex items-center justify-between gap-3">
               <div>
-                <p className="text-sm font-medium">Delete account</p>
+                <p className="text-sm font-medium">{tc("deleteAccount")}</p>
                 <p className="text-xs text-muted-foreground">
-                  Permanently remove your profile and all associated events.
-                  Reach out to support to complete this.
+                  {tc("deleteAccountHint")}
                 </p>
               </div>
               <Button
@@ -206,7 +207,7 @@ export default function SettingsPage() {
                 className="gap-1 text-destructive hover:bg-destructive/10 hover:text-destructive"
               >
                 <Trash2 className="size-3.5" />
-                Contact support
+                {tc("contactSupport")}
               </Button>
             </div>
           </div>

@@ -2,7 +2,6 @@
 
 import { use } from "react";
 import Link from "next/link";
-import { format } from "date-fns";
 import {
   ArrowLeft,
   CheckCircle2,
@@ -12,18 +11,20 @@ import {
   X,
 } from "lucide-react";
 import { toast } from "sonner";
+import { useTranslations } from "next-intl";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
-import { decimalToNumber, formatCurrency } from "@/lib/payments";
+import { decimalToNumber } from "@/lib/payments";
 
-const STATUS_LABEL: Record<string, string> = {
-  draft: "Draft",
-  requested: "Awaiting your response",
-  accepted: "Accepted",
-  declined: "Declined",
-  active: "Active",
-  completed: "Completed",
-  cancelled: "Cancelled",
+import { useFormatters } from "@/lib/use-formatters";
+const STATUS_KEY: Record<string, string> = {
+  draft: "statusDraft",
+  requested: "statusRequested",
+  accepted: "statusAccepted",
+  declined: "statusDeclined",
+  active: "statusActive",
+  completed: "statusCompleted",
+  cancelled: "statusCancelled",
 };
 
 const STATUS_TONE: Record<string, string> = {
@@ -34,6 +35,12 @@ const STATUS_TONE: Record<string, string> = {
   active: "bg-amber-100 text-amber-900",
   completed: "bg-stone-100 text-stone-700",
   cancelled: "bg-stone-100 text-stone-500",
+};
+
+const RELEASE_STATUS_KEY: Record<string, string> = {
+  pending: "releaseStatusPending",
+  paid: "releaseStatusPaid",
+  cancelled: "releaseStatusCancelled",
 };
 
 const RELEASE_TONE: Record<string, string> = {
@@ -49,10 +56,12 @@ export default function VendorEngagementDetailPage({
 }) {
   const { id } = use(params);
   const utils = trpc.useUtils();
+  const f = useFormatters();
+  const t = useTranslations("vendor");
   const detail = trpc.vendorEngagements.byId.useQuery({ id });
   const respond = trpc.vendorEngagements.vendorRespond.useMutation({
     onSuccess: () => {
-      toast.success("Response sent");
+      toast.success(t("responseSentToast"));
       utils.vendorEngagements.byId.invalidate({ id });
       utils.vendorEngagements.incoming.invalidate();
     },
@@ -60,7 +69,7 @@ export default function VendorEngagementDetailPage({
   });
   const cancel = trpc.vendorEngagements.cancel.useMutation({
     onSuccess: () => {
-      toast.success("Engagement cancelled");
+      toast.success(t("engagementCancelledToast"));
       utils.vendorEngagements.byId.invalidate({ id });
       utils.vendorEngagements.incoming.invalidate();
     },
@@ -84,7 +93,7 @@ export default function VendorEngagementDetailPage({
   if (!detail.data) {
     return (
       <div className="mx-auto max-w-3xl px-6 py-16 text-center">
-        <p className="text-sm text-muted-foreground">Engagement not found.</p>
+        <p className="text-sm text-muted-foreground">{t("engagementNotFound")}</p>
       </div>
     );
   }
@@ -109,15 +118,15 @@ export default function VendorEngagementDetailPage({
           href="/dashboard/vendor/engagements"
           className="inline-flex items-center gap-1 text-xs text-muted-foreground transition hover:text-rose-700"
         >
-          <ArrowLeft className="size-3" />
-          Back to engagements
+          <ArrowLeft className="size-3 rtl:-scale-x-100" />
+          {t("backToEngagements")}
         </Link>
 
         <header className="space-y-3 rounded-2xl border border-rose-100/70 bg-white/85 p-6 backdrop-blur-sm">
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div className="min-w-0">
               <p className="text-[0.65rem] font-medium uppercase tracking-[0.3em] text-rose-700/80">
-                Engagement
+                {t("engagementSingular")}
               </p>
               <h1 className="font-display mt-1 text-2xl font-light tracking-tight sm:text-3xl">
                 {e.title}
@@ -125,7 +134,7 @@ export default function VendorEngagementDetailPage({
               <p className="mt-1 text-sm text-muted-foreground">
                 {e.planner.business_name} · {e.event.title}
                 {e.event.event_date && (
-                  <> · {format(new Date(e.event.event_date), "PP")}</>
+                  <> · {f.date(e.event.event_date, "medium")}</>
                 )}
               </p>
             </div>
@@ -134,7 +143,7 @@ export default function VendorEngagementDetailPage({
                 STATUS_TONE[status]
               }`}
             >
-              {STATUS_LABEL[status] ?? status}
+              {STATUS_KEY[status] ? t(STATUS_KEY[status]) : status}
             </span>
           </div>
           {e.notes && (
@@ -144,25 +153,25 @@ export default function VendorEngagementDetailPage({
           )}
           <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
             <span>
-              Total{" "}
-              <span className="ml-1 font-mono tabular-nums text-foreground">
-                {formatCurrency(decimalToNumber(e.total_amount), e.currency)}
+              {t("totalAmount")}{" "}
+              <span className="ms-1 font-mono tabular-nums text-foreground">
+                {f.currency(decimalToNumber(e.total_amount), e.currency)}
               </span>
             </span>
             <span>·</span>
             <span>
-              Released{" "}
-              <span className="ml-1 font-mono tabular-nums text-foreground">
-                {formatCurrency(totalReleased, e.currency)}
+              {t("released")}{" "}
+              <span className="ms-1 font-mono tabular-nums text-foreground">
+                {f.currency(totalReleased, e.currency)}
               </span>
             </span>
             {totalCommitted > 0 && (
               <>
                 <span>·</span>
                 <span>
-                  Committed{" "}
-                  <span className="ml-1 font-mono tabular-nums text-foreground">
-                    {formatCurrency(totalCommitted, e.currency)}
+                  {t("committed")}{" "}
+                  <span className="ms-1 font-mono tabular-nums text-foreground">
+                    {f.currency(totalCommitted, e.currency)}
                   </span>
                 </span>
               </>
@@ -180,7 +189,7 @@ export default function VendorEngagementDetailPage({
                 className="gap-1"
               >
                 <X className="size-3.5" />
-                Decline
+                {t("decline")}
               </Button>
               <Button
                 size="sm"
@@ -193,7 +202,7 @@ export default function VendorEngagementDetailPage({
                 ) : (
                   <CheckCircle2 className="size-3.5" />
                 )}
-                Accept request
+                {t("acceptRequest")}
               </Button>
             </div>
           )}
@@ -204,9 +213,7 @@ export default function VendorEngagementDetailPage({
                 size="sm"
                 disabled={cancel.isPending}
                 onClick={() => {
-                  const reason = prompt(
-                    "Reason for cancelling? The planner will see this.",
-                  );
+                  const reason = prompt(t("cancelReasonPrompt"));
                   if (reason !== null) {
                     cancel.mutate({ id: e.id, reason: reason || undefined });
                   }
@@ -214,7 +221,7 @@ export default function VendorEngagementDetailPage({
                 className="gap-1 text-destructive"
               >
                 <X className="size-3.5" />
-                Cancel engagement
+                {t("cancelEngagement")}
               </Button>
             </div>
           )}
@@ -223,7 +230,7 @@ export default function VendorEngagementDetailPage({
         <section className="rounded-2xl border border-rose-100/70 bg-white/85 backdrop-blur-sm">
           <div className="border-b border-rose-100/70 px-5 py-3">
             <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-rose-700/80">
-              Line items
+              {t("lineItems")}
             </p>
           </div>
           <ul className="divide-y divide-rose-100/70">
@@ -247,17 +254,17 @@ export default function VendorEngagementDetailPage({
                     <p className="text-xs text-muted-foreground">
                       ×{i.quantity} ·{" "}
                       <span className="font-mono tabular-nums">
-                        {formatCurrency(
+                        {f.currency(
                           decimalToNumber(i.unit_price),
                           e.currency,
                         )}
                       </span>{" "}
-                      ea
+                      {t("perEach")}
                     </p>
                   </div>
                   <div className="flex shrink-0 items-center gap-3">
                     <span className="font-mono text-sm tabular-nums">
-                      {formatCurrency(
+                      {f.currency(
                         decimalToNumber(i.line_total),
                         e.currency,
                       )}
@@ -279,12 +286,12 @@ export default function VendorEngagementDetailPage({
                         {delivered ? (
                           <>
                             <PackageCheck className="size-3.5" />
-                            Delivered
+                            {t("delivered")}
                           </>
                         ) : (
                           <>
                             <Clock className="size-3.5" />
-                            Mark delivered
+                            {t("markDelivered")}
                           </>
                         )}
                       </Button>
@@ -299,16 +306,15 @@ export default function VendorEngagementDetailPage({
         <section className="rounded-2xl border border-rose-100/70 bg-white/85 backdrop-blur-sm">
           <div className="border-b border-rose-100/70 px-5 py-3">
             <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-rose-700/80">
-              Releases
+              {t("releasesSection")}
             </p>
             <p className="text-xs text-muted-foreground">
-              Funds the planner has earmarked from their balance to you.
-              Admin pays them out off-Stripe.
+              {t("releasesHint")}
             </p>
           </div>
           {e.releases.length === 0 ? (
             <div className="px-5 py-10 text-center text-sm text-muted-foreground">
-              No releases yet.
+              {t("noReleasesYet")}
             </div>
           ) : (
             <ul className="divide-y divide-rose-100/70">
@@ -320,9 +326,16 @@ export default function VendorEngagementDetailPage({
                   <div className="min-w-0">
                     <p className="truncate text-sm font-medium">{r.label}</p>
                     <p className="text-xs text-muted-foreground">
-                      Requested {format(new Date(r.requested_at), "PP")}
+                      {t("releaseRequestedDate", {
+                        date: f.date(r.requested_at, "medium"),
+                      })}
                       {r.paid_at && (
-                        <> · Paid {format(new Date(r.paid_at), "PP")}</>
+                        <>
+                          {" · "}
+                          {t("releasePaidDate", {
+                            date: f.date(r.paid_at, "medium"),
+                          })}
+                        </>
                       )}
                     </p>
                   </div>
@@ -332,10 +345,12 @@ export default function VendorEngagementDetailPage({
                         RELEASE_TONE[r.status] ?? RELEASE_TONE.pending
                       }`}
                     >
-                      {r.status}
+                      {RELEASE_STATUS_KEY[r.status]
+                        ? t(RELEASE_STATUS_KEY[r.status])
+                        : r.status}
                     </span>
                     <span className="font-mono text-sm tabular-nums">
-                      {formatCurrency(decimalToNumber(r.amount), r.currency)}
+                      {f.currency(decimalToNumber(r.amount), r.currency)}
                     </span>
                   </div>
                 </li>

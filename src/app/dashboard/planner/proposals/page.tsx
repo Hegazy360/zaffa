@@ -10,40 +10,46 @@ import {
   MapPin,
   Star,
 } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
 
+import { useFormatters } from "@/lib/use-formatters";
 type StatusKey = "engaged" | "standing" | "backups" | "released" | "withdrew";
 
-const TAB_LABELS: { key: StatusKey; label: string; description: string }[] = [
-  {
-    key: "engaged",
-    label: "Engaged",
-    description: "Events you're actively planning",
-  },
-  {
-    key: "standing",
-    label: "Standing by",
-    description: "Pending — the couple hasn't picked yet",
-  },
-  {
-    key: "backups",
-    label: "Backups",
-    description: "Pending, but another planner is currently engaged",
-  },
-  {
-    key: "released",
-    label: "Released",
-    description: "You were replaced — past engagements",
-  },
-  {
-    key: "withdrew",
-    label: "Withdrew",
-    description: "You stepped away from these proposals",
-  },
+const TAB_KEYS: StatusKey[] = [
+  "engaged",
+  "standing",
+  "backups",
+  "released",
+  "withdrew",
 ];
+
+const TAB_LABEL_KEYS: Record<StatusKey, string> = {
+  engaged: "tabEngaged",
+  standing: "tabStandingBy",
+  backups: "tabBackups",
+  released: "tabReleasedLabel",
+  withdrew: "tabWithdrew",
+};
+
+const TAB_DESC_KEYS: Record<StatusKey, string> = {
+  engaged: "tabEngagedDesc",
+  standing: "tabStandingDesc",
+  backups: "tabBackupsDesc",
+  released: "tabReleasedDesc",
+  withdrew: "tabWithdrewDesc",
+};
+
+const TAB_EMPTY_KEYS: Record<StatusKey, string> = {
+  engaged: "emptyEngaged",
+  standing: "emptyStanding",
+  backups: "emptyBackups",
+  released: "emptyReleased",
+  withdrew: "emptyWithdrew",
+};
 
 function normalizePalette(value: unknown): string[] {
   if (value && typeof value === "object" && !Array.isArray(value)) {
@@ -65,24 +71,8 @@ function decimalToNumber(value: unknown): number {
   return 0;
 }
 
-function formatCurrency(amount: number, currency = "EGP"): string {
-  return new Intl.NumberFormat("en-EG", {
-    style: "currency",
-    currency,
-    minimumFractionDigits: 0,
-  }).format(amount);
-}
-
-function formatDate(date: Date | string | null | undefined): string {
-  if (!date) return "Date open";
-  return new Date(date).toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-  });
-}
-
 export default function ProposalsPage() {
+  const t = useTranslations("planner");
   const [tab, setTab] = useState<StatusKey>("engaged");
   const { data: proposals, isLoading } = trpc.proposals.mine.useQuery();
 
@@ -117,14 +107,13 @@ export default function ProposalsPage() {
         <header className="mb-10">
           <div className="inline-flex items-center gap-2 rounded-full border border-rose-200/70 bg-rose-50/70 px-3.5 py-1 text-[11px] font-medium uppercase tracking-[0.18em] text-rose-700 backdrop-blur-sm">
             <FileText className="size-3" />
-            My proposals
+            {t("proposalsEyebrow")}
           </div>
           <h1 className="font-display mt-3 text-balance text-4xl font-light leading-tight tracking-tight sm:text-5xl">
-            Track every brief you&apos;ve answered
+            {t("proposalsTitle")}
           </h1>
           <p className="mt-3 max-w-xl text-pretty text-sm text-muted-foreground sm:text-base">
-            See where each conversation stands — engaged today, waiting on the
-            couple, or part of your planning history.
+            {t("proposalsSubtitle")}
           </p>
         </header>
 
@@ -133,15 +122,15 @@ export default function ProposalsPage() {
           onValueChange={(v) => setTab(v as StatusKey)}
         >
           <TabsList className="mb-2 flex w-full flex-wrap gap-1 bg-rose-50/60 p-1 ring-1 ring-rose-100/70">
-            {TAB_LABELS.map((t) => {
-              const count = grouped[t.key]?.length ?? 0;
+            {TAB_KEYS.map((key) => {
+              const count = grouped[key]?.length ?? 0;
               return (
-                <TabsTrigger key={t.key} value={t.key} className="gap-1.5">
-                  {t.label}
+                <TabsTrigger key={key} value={key} className="gap-1.5">
+                  {t(TAB_LABEL_KEYS[key])}
                   <span
                     className={cn(
                       "rounded-full px-1.5 py-0.5 text-[10px] font-medium",
-                      tab === t.key
+                      tab === key
                         ? "bg-rose-100 text-rose-700"
                         : "bg-white/70 text-muted-foreground"
                     )}
@@ -153,20 +142,18 @@ export default function ProposalsPage() {
             })}
           </TabsList>
           <p className="mb-6 text-xs text-muted-foreground">
-            {TAB_LABELS.find((t) => t.key === tab)?.description}
+            {t(TAB_DESC_KEYS[tab])}
           </p>
 
-          {TAB_LABELS.map((t) => (
-            <TabsContent key={t.key} value={t.key}>
+          {TAB_KEYS.map((key) => (
+            <TabsContent key={key} value={key}>
               {isLoading ? (
                 <ProposalsSkeleton />
-              ) : (grouped[t.key]?.length ?? 0) === 0 ? (
-                <Empty
-                  body={emptyBodyForTab(t.key)}
-                />
+              ) : (grouped[key]?.length ?? 0) === 0 ? (
+                <Empty body={t(TAB_EMPTY_KEYS[key])} />
               ) : (
                 <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
-                  {grouped[t.key]!.map((p) => (
+                  {grouped[key]!.map((p) => (
                     <ProposalCard key={p.id} proposal={p} />
                   ))}
                 </div>
@@ -177,21 +164,6 @@ export default function ProposalsPage() {
       </div>
     </div>
   );
-}
-
-function emptyBodyForTab(tab: StatusKey): string {
-  switch (tab) {
-    case "engaged":
-      return "Once a couple accepts your proposal, the event lives here.";
-    case "standing":
-      return "You haven't sent any proposals yet, or the couple has already responded to all of them.";
-    case "backups":
-      return "Backups appear when a different planner was selected but you're still in the running.";
-    case "released":
-      return "If a couple ever switches to another planner, the past engagement shows up here with their feedback.";
-    case "withdrew":
-      return "Proposals you've withdrawn live here for your records.";
-  }
 }
 
 interface ProposalRow {
@@ -216,6 +188,8 @@ interface ProposalRow {
 }
 
 function ProposalCard({ proposal }: { proposal: ProposalRow }) {
+  const f = useFormatters();
+  const t = useTranslations("planner");
   const palette = normalizePalette(proposal.event.palette);
   const amount = decimalToNumber(proposal.quote_amount);
   const isAccepted = proposal.status === "accepted";
@@ -243,22 +217,22 @@ function ProposalCard({ proposal }: { proposal: ProposalRow }) {
             </div>
           )}
           {isAccepted && (
-            <span className="absolute left-3 top-3 inline-flex items-center rounded-full bg-emerald-600/90 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-white backdrop-blur-sm">
-              Engaged
+            <span className="absolute start-3 top-3 inline-flex items-center rounded-full bg-emerald-600/90 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-white backdrop-blur-sm">
+              {t("engagedBadge")}
             </span>
           )}
           {isBackup && (
-            <span className="absolute left-3 top-3 inline-flex items-center rounded-full bg-amber-500/90 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-white backdrop-blur-sm">
-              Backup
+            <span className="absolute start-3 top-3 inline-flex items-center rounded-full bg-amber-500/90 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-white backdrop-blur-sm">
+              {t("backupBadge")}
             </span>
           )}
           {isReleased && (
-            <span className="absolute left-3 top-3 inline-flex items-center rounded-full bg-stone-700/85 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-white backdrop-blur-sm">
-              Released
+            <span className="absolute start-3 top-3 inline-flex items-center rounded-full bg-stone-700/85 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-white backdrop-blur-sm">
+              {t("releasedBadge")}
             </span>
           )}
           {palette.length > 0 && (
-            <div className="absolute right-3 top-3 inline-flex items-center gap-1 rounded-full bg-black/55 px-1.5 py-1 backdrop-blur-sm">
+            <div className="absolute end-3 top-3 inline-flex items-center gap-1 rounded-full bg-black/55 px-1.5 py-1 backdrop-blur-sm">
               {palette.slice(0, 4).map((c) => (
                 <span
                   key={c}
@@ -275,12 +249,17 @@ function ProposalCard({ proposal }: { proposal: ProposalRow }) {
           {proposal.event.title}
         </h3>
         <p className="text-[11px] capitalize text-muted-foreground">
-          {proposal.event.event_type} · with {proposal.event.client_first_name}
+          {t("typeWithFirstName", {
+            type: proposal.event.event_type,
+            firstName: proposal.event.client_first_name,
+          })}
         </p>
         <div className="flex items-center gap-3 text-xs text-muted-foreground">
           <span className="inline-flex items-center gap-1">
             <CalendarDays className="size-3" />
-            {formatDate(proposal.event.event_date)}
+            {proposal.event.event_date
+              ? f.date(proposal.event.event_date, "medium")
+              : t("dateOpen")}
           </span>
           {proposal.event.venue && (
             <span className="inline-flex items-center gap-1">
@@ -293,13 +272,15 @@ function ProposalCard({ proposal }: { proposal: ProposalRow }) {
         </div>
         {amount > 0 && (
           <p className="text-xs text-muted-foreground">
-            Quote · {formatCurrency(amount, proposal.quote_currency)}
+            {t("quoteWithAmount", {
+              amount: f.currency(amount, proposal.quote_currency),
+            })}
           </p>
         )}
         {isReleased && proposal.release_rating && (
           <div className="rounded-xl bg-stone-50 p-3 text-xs text-stone-700">
             <p className="flex items-center gap-1 text-[10px] font-medium uppercase tracking-[0.2em] text-stone-500">
-              Their feedback
+              {t("theirFeedback")}
               <span className="inline-flex items-center gap-0.5 text-amber-600">
                 {Array.from({ length: 5 }).map((_, i) => (
                   <Star
@@ -324,10 +305,10 @@ function ProposalCard({ proposal }: { proposal: ProposalRow }) {
             variant="ghost"
             size="sm"
             render={<Link href={href} />}
-            className="-ml-2 gap-1 text-xs"
+            className="-ms-2 gap-1 text-xs"
           >
-            {isAccepted ? "Open event" : "View brief"}
-            <ArrowRight className="size-3" />
+            {isAccepted ? t("openEvent") : t("viewBrief")}
+            <ArrowRight className="size-3 rtl:-scale-x-100" />
           </Button>
         </div>
       </div>
@@ -355,13 +336,14 @@ function ProposalsSkeleton() {
 }
 
 function Empty({ body }: { body: string }) {
+  const t = useTranslations("planner");
   return (
     <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-rose-200/70 bg-white/40 px-6 py-16 text-center backdrop-blur-sm">
       <div className="mb-5 grid size-14 place-items-center rounded-full bg-gradient-to-br from-rose-100 to-amber-100 ring-1 ring-rose-200/60">
         <FileText className="size-6 text-rose-600" />
       </div>
       <h3 className="font-display text-xl font-light tracking-tight">
-        Nothing here yet
+        {t("nothingHereYet")}
       </h3>
       <p className="mt-2 max-w-md text-pretty text-sm text-muted-foreground">
         {body}

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { createClient } from "@/lib/supabase/client";
 import type { UserRole } from "@/types";
 import { Button } from "@/components/ui/button";
@@ -16,6 +17,8 @@ const STEPS = 2;
 export function SignUpForm() {
   const router = useRouter();
   const supabase = createClient();
+  const t = useTranslations("auth");
+  const tCommon = useTranslations("common");
   const [step, setStep] = useState(1);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -92,19 +95,18 @@ export function SignUpForm() {
           </div>
         </div>
         <div className="space-y-2">
-          <h3 className="text-lg font-semibold">Check your email</h3>
+          <h3 className="text-lg font-semibold">{t("checkEmailTitle")}</h3>
           <p className="text-sm text-muted-foreground">
-            We&apos;ve sent a confirmation link to <strong>{email}</strong>.
-            Click the link to verify your account and complete sign up.
+            {t("checkEmailLong", { email })}
           </p>
         </div>
         <p className="text-center text-sm text-muted-foreground">
-          Already have an account?{" "}
+          {t("hasAccount")}{" "}
           <Link
             href="/auth/signin"
             className="font-medium text-primary underline-offset-4 hover:underline"
           >
-            Sign in
+            {t("signIn")}
           </Link>
         </p>
       </div>
@@ -116,7 +118,7 @@ export function SignUpForm() {
       {step === 1 && (
         <div className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="fullName">Full Name</Label>
+            <Label htmlFor="fullName">{t("fullName")}</Label>
             <Input
               id="fullName"
               type="text"
@@ -130,7 +132,7 @@ export function SignUpForm() {
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
+            <Label htmlFor="email">{t("email")}</Label>
             <Input
               id="email"
               type="email"
@@ -144,11 +146,11 @@ export function SignUpForm() {
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="password">Password</Label>
+            <Label htmlFor="password">{t("password")}</Label>
             <Input
               id="password"
               type="password"
-              placeholder="At least 6 characters"
+              placeholder={t("passwordHint")}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
@@ -164,9 +166,9 @@ export function SignUpForm() {
       {step === 2 && (
         <div className="space-y-4">
           <div>
-            <h3 className="mb-1 text-sm font-medium">Choose your role</h3>
+            <h3 className="mb-1 text-sm font-medium">{t("chooseYourRole")}</h3>
             <p className="mb-4 text-sm text-muted-foreground">
-              How will you use Zaffa?
+              {t("chooseRoleHint")}
             </p>
             <RoleSelector selectedRole={role} onSelect={setRole} />
           </div>
@@ -191,8 +193,8 @@ export function SignUpForm() {
             disabled={loading}
             className="gap-2"
           >
-            <ArrowLeft className="size-4" aria-hidden />
-            Back
+            <ArrowLeft className="size-4 rtl:-scale-x-100" aria-hidden />
+            {tCommon("back")}
           </Button>
         ) : (
           <div />
@@ -202,29 +204,29 @@ export function SignUpForm() {
             type="button"
             onClick={handleNext}
             disabled={!canProceedStep1 || loading}
-            className="ml-auto gap-2"
+            className="ms-auto gap-2"
           >
-            Next
-            <ArrowRight className="size-4" aria-hidden />
+            {tCommon("next")}
+            <ArrowRight className="size-4 rtl:-scale-x-100" aria-hidden />
           </Button>
         ) : (
           <Button
             type="submit"
             disabled={!canSubmitStep2 || loading}
-            className="ml-auto w-full"
+            className="ms-auto w-full"
           >
-            {loading ? "Creating account…" : "Create Account"}
+            {loading ? t("creatingAccount") : t("createAccount")}
           </Button>
         )}
       </div>
 
       <p className="text-center text-sm text-muted-foreground">
-        Already have an account?{" "}
+        {t("hasAccount")}{" "}
         <Link
           href="/auth/signin"
           className="font-medium text-primary underline-offset-4 hover:underline"
         >
-          Sign in
+          {t("signIn")}
         </Link>
       </p>
     </form>

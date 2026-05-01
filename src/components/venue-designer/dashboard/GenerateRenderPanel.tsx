@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
+import { useTranslations } from "next-intl";
 import {
   Card,
   CardContent,
@@ -20,8 +21,8 @@ import {
   Image as ImageIcon,
   X,
 } from "lucide-react";
-import { formatDistanceToNow } from "date-fns";
 import { trpc } from "@/lib/trpc";
+import { useFormatters } from "@/lib/use-formatters";
 import { useVenueDesignerStore } from "@/stores/venue-designer-store";
 import {
   MAX_TOTAL_REFERENCES,
@@ -35,7 +36,37 @@ interface GenerateRenderPanelProps {
 
 type View = "form" | "image" | "video-pending" | "video";
 
+const REF_SUMMARY_KEY: Record<ReferenceCategory, string> = {
+  overall_vibe: "refSummaryOverallVibe",
+  tables: "refSummaryTables",
+  flowers: "refSummaryFlowers",
+  lighting: "refSummaryLighting",
+  venue_decor: "refSummaryVenueDecor",
+};
+
+const SIZE_KEY: Record<string, string> = {
+  intimate: "sizeIntimate",
+  medium: "sizeMedium",
+  large: "sizeLarge",
+};
+
+const SETTING_KEY: Record<string, string> = {
+  indoor: "settingIndoor",
+  outdoor: "settingOutdoor",
+  tent: "settingTent",
+};
+
+const EVENT_TYPE_KEY: Record<string, string> = {
+  wedding: "eventTypeWedding",
+  engagement: "eventTypeEngagement",
+  birthday: "eventTypeBirthday",
+  corporate: "eventTypeCorporate",
+  other: "eventTypeOther",
+};
+
 export function GenerateRenderPanel({ designId }: GenerateRenderPanelProps) {
+  const t = useTranslations("designer");
+  const f = useFormatters();
   const eventType = useVenueDesignerStore((s) => s.eventType);
   const setting = useVenueDesignerStore((s) => s.setting);
   const size = useVenueDesignerStore((s) => s.size);
@@ -108,7 +139,7 @@ export function GenerateRenderPanel({ designId }: GenerateRenderPanelProps) {
       }
     },
     onError: (err) => {
-      toast.error(err.message || "Render failed. Please try again.");
+      toast.error(err.message || t("renderFailed"));
     },
   });
 
@@ -141,7 +172,7 @@ export function GenerateRenderPanel({ designId }: GenerateRenderPanelProps) {
           }
           if (pollRef.current) clearInterval(pollRef.current);
         } else if (status.state === "failed") {
-          setVideoError("Video generation failed. Please try again.");
+          setVideoError(t("videoFailed"));
           setView("image");
           if (pollRef.current) clearInterval(pollRef.current);
         }
@@ -161,7 +192,7 @@ export function GenerateRenderPanel({ designId }: GenerateRenderPanelProps) {
 
   const handleRender = useCallback(() => {
     if (totalRefs === 0) {
-      toast.error("Add at least one inspiration reference before rendering.");
+      toast.error(t("needRefBeforeRender"));
       return;
     }
     renderMutation.mutate({
@@ -181,6 +212,7 @@ export function GenerateRenderPanel({ designId }: GenerateRenderPanelProps) {
     flatRefs,
     styleNotes,
     totalRefs,
+    t,
   ]);
 
   const handleMakeVideo = useCallback(() => {
@@ -234,9 +266,6 @@ export function GenerateRenderPanel({ designId }: GenerateRenderPanelProps) {
     a.click();
   };
 
-  // Load a past render/video back into the result viewport. We always clear
-  // the "other" field so exactly one of resultImage/videoUrl is set at a time
-  // — that keeps the strip's filter accurate (only one item is hidden).
   const handleSelectPast = useCallback(
     (item: { id: string; type: string; url: string }) => {
       setVideoError(null);
@@ -244,14 +273,10 @@ export function GenerateRenderPanel({ designId }: GenerateRenderPanelProps) {
         setVideoUrl(item.url);
         setResultImage(null);
         setView("video");
-        // Don't touch lastRenderMediaIdRef — we want the source render link
-        // to remain whatever it was before the user opened this video.
       } else {
         setResultImage(item.url);
         setVideoUrl(null);
         setView("image");
-        // Switching to a past render makes that render the new "current" one
-        // for any video the user generates next.
         lastRenderMediaIdRef.current = item.id;
       }
     },
@@ -260,18 +285,15 @@ export function GenerateRenderPanel({ designId }: GenerateRenderPanelProps) {
 
   const handleDeletePast = useCallback(
     (item: { id: string; url: string }) => {
-      if (!window.confirm("Delete this render? This cannot be undone.")) return;
-      // If we're currently viewing the deleted item, drop it from the viewport.
+      if (!window.confirm(t("deleteRenderConfirm"))) return;
       if (item.url === resultImage) setResultImage(null);
       if (item.url === videoUrl) setVideoUrl(null);
       if (item.url === resultImage || item.url === videoUrl) setView("form");
       deleteMediaMutation.mutate({ id: item.id });
     },
-    [deleteMediaMutation, resultImage, videoUrl]
+    [deleteMediaMutation, resultImage, videoUrl, t]
   );
 
-  // Items shown in the "Previous renders" strip — exclude whatever is
-  // currently in the result viewport so we don't double-show it.
   const previousMedia = useMemo(() => {
     const excluded = new Set<string>(
       [resultImage, videoUrl].filter((u): u is string => !!u)
@@ -281,24 +303,20 @@ export function GenerateRenderPanel({ designId }: GenerateRenderPanelProps) {
 
   const summaryParts = REFERENCE_CATEGORIES.filter(
     (c) => references[c].length > 0
-  ).map(
-    (c) =>
-      `${references[c].length} ${c.replace(/_/g, " ")}${
-        references[c].length === 1 ? "" : "s"
-      }`
-  );
+  ).map((c) => t(REF_SUMMARY_KEY[c], { count: references[c].length }));
+
+  const sizeLabel = t(SIZE_KEY[size] ?? "sizeMedium").toLowerCase();
+  const settingLabel = t(SETTING_KEY[setting] ?? "settingIndoor").toLowerCase();
+  const eventTypeLabel = t(EVENT_TYPE_KEY[eventType] ?? "eventTypeWedding").toLowerCase();
 
   return (
     <Card className="border-rose-200 bg-gradient-to-br from-rose-50/40 via-background to-background">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Sparkles className="size-4 text-rose-500" />
-          AI render
+          {t("aiRenderTitle")}
         </CardTitle>
-        <CardDescription>
-          When you&apos;re happy with your selections, generate a single
-          photoreal image of your venue.
-        </CardDescription>
+        <CardDescription>{t("aiRenderDescription")}</CardDescription>
       </CardHeader>
 
       <CardContent className="space-y-4">
@@ -306,15 +324,18 @@ export function GenerateRenderPanel({ designId }: GenerateRenderPanelProps) {
           <>
             <div className="rounded-lg border bg-background/60 p-3 text-sm">
               <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                Selections summary
+                {t("selectionsSummary")}
               </p>
               <p className="mt-1.5 leading-relaxed">
-                A <span className="font-medium">{size}</span>{" "}
-                <span className="font-medium">{setting}</span>{" "}
-                <span className="font-medium">{eventType}</span>
+                {t("summarySentence", {
+                  size: sizeLabel,
+                  setting: settingLabel,
+                  eventType: eventTypeLabel,
+                })}
                 {palette.colors.length > 0 && (
                   <>
-                    {" "}with palette{" "}
+                    {" "}
+                    {t("summaryWithPalette")}{" "}
                     <span className="inline-flex items-center gap-1 align-middle">
                       {palette.colors.slice(0, 6).map((c) => (
                         <span
@@ -329,13 +350,15 @@ export function GenerateRenderPanel({ designId }: GenerateRenderPanelProps) {
                 {summaryParts.length > 0 ? (
                   <>
                     {" — "}
-                    {summaryParts.join(", ")} reference
-                    {totalRefs === 1 ? "" : "s"}.
+                    {t("summaryRefSuffix", {
+                      parts: summaryParts.join(", "),
+                      totalRefs,
+                    })}
                   </>
                 ) : (
                   <span className="text-muted-foreground">
-                    {" "}
-                    — no references yet. Add a few above.
+                    {" — "}
+                    {t("summaryNoRefs")}
                   </span>
                 )}
               </p>
@@ -350,12 +373,12 @@ export function GenerateRenderPanel({ designId }: GenerateRenderPanelProps) {
               {renderMutation.isPending ? (
                 <>
                   <Loader2 className="size-4 animate-spin" />
-                  Rendering... this can take ~30 seconds
+                  {t("rendering")}
                 </>
               ) : (
                 <>
                   <Camera className="size-4" />
-                  Generate render
+                  {t("generateRender")}
                 </>
               )}
             </Button>
@@ -368,9 +391,6 @@ export function GenerateRenderPanel({ designId }: GenerateRenderPanelProps) {
           (resultImage || videoUrl) && (
             <div className="space-y-3">
               <div className="relative overflow-hidden rounded-lg border bg-muted">
-                {/* The rendered image is the poster: it stays visible while the
-                    video is generating, and remains as the <video> poster so
-                    the swap to playback is seamless. */}
                 {view === "video" && videoUrl ? (
                   <video
                     key={videoUrl}
@@ -387,21 +407,21 @@ export function GenerateRenderPanel({ designId }: GenerateRenderPanelProps) {
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src={resultImage}
-                      alt="AI rendered venue"
+                      alt={t("renderedAlt")}
                       className="h-auto w-full"
                     />
                     {view === "video-pending" && (
                       <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/45 via-black/10 to-transparent" />
                     )}
                     {view === "video-pending" && (
-                      <div className="pointer-events-none absolute bottom-3 left-3 right-3 flex items-center gap-2.5 rounded-lg bg-black/65 px-3 py-2 text-white shadow-lg backdrop-blur">
+                      <div className="pointer-events-none absolute bottom-3 start-3 end-3 flex items-center gap-2.5 rounded-lg bg-black/65 px-3 py-2 text-white shadow-lg backdrop-blur">
                         <Loader2 className="size-4 shrink-0 animate-spin" />
                         <div className="min-w-0 flex-1 text-xs">
                           <p className="font-medium">
-                            Bringing your venue to life&hellip;
+                            {t("videoPendingTitle")}
                           </p>
                           <p className="text-white/70">
-                            Usually 30&ndash;60 seconds. Your render is safe.
+                            {t("videoPendingHint")}
                           </p>
                         </div>
                       </div>
@@ -422,10 +442,10 @@ export function GenerateRenderPanel({ designId }: GenerateRenderPanelProps) {
                   className="gap-2"
                 >
                   <RotateCcw className="size-4" />
-                  {view === "video" ? "Start over" : "Generate again"}
+                  {view === "video" ? t("startOver") : t("generateAgain")}
                 </Button>
 
-                <div className="ml-auto flex flex-wrap gap-2">
+                <div className="ms-auto flex flex-wrap gap-2">
                   {view !== "video" && (
                     <Button
                       variant="outline"
@@ -438,12 +458,12 @@ export function GenerateRenderPanel({ designId }: GenerateRenderPanelProps) {
                       {view === "video-pending" ? (
                         <>
                           <Loader2 className="size-4 animate-spin" />
-                          Generating&hellip;
+                          {t("generatingDots")}
                         </>
                       ) : (
                         <>
                           <Video className="size-4" />
-                          Make it Alive
+                          {t("makeAlive")}
                         </>
                       )}
                     </Button>
@@ -455,7 +475,7 @@ export function GenerateRenderPanel({ designId }: GenerateRenderPanelProps) {
                       className="gap-2 bg-rose-500 text-white hover:bg-rose-600"
                     >
                       <Download className="size-4" />
-                      Download video
+                      {t("downloadVideo")}
                     </Button>
                   ) : resultImage ? (
                     <Button
@@ -463,7 +483,7 @@ export function GenerateRenderPanel({ designId }: GenerateRenderPanelProps) {
                       className="gap-2 bg-rose-500 text-white hover:bg-rose-600"
                     >
                       <Download className="size-4" />
-                      Download
+                      {t("downloadShort")}
                     </Button>
                   ) : null}
                 </div>
@@ -475,10 +495,10 @@ export function GenerateRenderPanel({ designId }: GenerateRenderPanelProps) {
           <section className="space-y-3 border-t border-border/60 pt-5">
             <div className="flex items-center justify-between">
               <h3 className="text-[11px] font-medium uppercase tracking-[0.18em] text-muted-foreground">
-                Previous renders ({previousMedia.length})
+                {t("previousRenders", { count: previousMedia.length })}
               </h3>
               <p className="text-xs text-muted-foreground">
-                Click to view · Hover to delete
+                {t("clickToViewHover")}
               </p>
             </div>
             <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
@@ -491,7 +511,10 @@ export function GenerateRenderPanel({ designId }: GenerateRenderPanelProps) {
                     type="button"
                     onClick={() => handleSelectPast(item)}
                     className="block h-full w-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-400 focus-visible:ring-offset-2"
-                    aria-label={`View ${item.type === "video" ? "video" : "render"} from ${formatDistanceToNow(new Date(item.created_at), { addSuffix: true })}`}
+                    aria-label={t("viewMediaAria", {
+                      type: item.type,
+                      when: f.relativeTime(new Date(item.created_at)),
+                    })}
                   >
                     {item.type === "video" ? (
                       <video
@@ -512,23 +535,21 @@ export function GenerateRenderPanel({ designId }: GenerateRenderPanelProps) {
                       // eslint-disable-next-line @next/next/no-img-element
                       <img
                         src={item.url}
-                        alt="Past render"
+                        alt={t("pastRenderAlt")}
                         className="h-full w-full object-cover"
                       />
                     )}
                     <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/55 via-black/0 to-transparent opacity-0 transition-opacity group-hover:opacity-100" />
-                    <span className="absolute bottom-1.5 left-1.5 rounded-md bg-black/0 px-1.5 py-0.5 text-[10px] font-medium text-white opacity-0 transition-all group-hover:bg-black/65 group-hover:opacity-100">
-                      {formatDistanceToNow(new Date(item.created_at), {
-                        addSuffix: true,
-                      })}
+                    <span className="absolute bottom-1.5 start-1.5 rounded-md bg-black/0 px-1.5 py-0.5 text-[10px] font-medium text-white opacity-0 transition-all group-hover:bg-black/65 group-hover:opacity-100">
+                      {f.relativeTime(new Date(item.created_at))}
                     </span>
-                    <span className="absolute top-1.5 left-1.5 inline-flex items-center gap-1 rounded-md bg-black/60 px-1.5 py-0.5 text-[10px] font-medium text-white">
+                    <span className="absolute top-1.5 start-1.5 inline-flex items-center gap-1 rounded-md bg-black/60 px-1.5 py-0.5 text-[10px] font-medium text-white">
                       {item.type === "video" ? (
                         <Video className="size-2.5" />
                       ) : (
                         <ImageIcon className="size-2.5" />
                       )}
-                      {item.type === "video" ? "Video" : "Image"}
+                      {item.type === "video" ? t("badgeVideo") : t("badgeImage")}
                     </span>
                   </button>
                   <button
@@ -538,8 +559,8 @@ export function GenerateRenderPanel({ designId }: GenerateRenderPanelProps) {
                       handleDeletePast(item);
                     }}
                     disabled={deleteMediaMutation.isPending}
-                    aria-label="Delete this render"
-                    className="absolute right-1.5 top-1.5 grid size-6 place-items-center rounded-full bg-black/60 text-white opacity-0 backdrop-blur-sm transition-opacity hover:bg-black/85 group-hover:opacity-100 disabled:opacity-40"
+                    aria-label={t("deleteRenderAria")}
+                    className="absolute end-1.5 top-1.5 grid size-6 place-items-center rounded-full bg-black/60 text-white opacity-0 backdrop-blur-sm transition-opacity hover:bg-black/85 group-hover:opacity-100 disabled:opacity-40"
                   >
                     <X className="size-3" />
                   </button>

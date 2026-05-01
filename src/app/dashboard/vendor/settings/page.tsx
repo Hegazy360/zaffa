@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2, LogOut, Save, Trash2 } from "lucide-react";
 import { toast } from "sonner";
+import { useTranslations } from "next-intl";
 import { trpc } from "@/lib/trpc";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -14,6 +15,7 @@ export default function VendorSettingsPage() {
   const router = useRouter();
   const supabase = createClient();
   const utils = trpc.useUtils();
+  const t = useTranslations("vendor");
 
   const { data: profile, isLoading } = trpc.profile.me.useQuery();
 
@@ -31,7 +33,7 @@ export default function VendorSettingsPage() {
 
   const update = trpc.profile.update.useMutation({
     onSuccess: () => {
-      toast.success("Profile updated");
+      toast.success(t("profileUpdatedToast"));
       utils.profile.me.invalidate();
     },
     onError: (err) => toast.error(err.message),
@@ -68,24 +70,27 @@ export default function VendorSettingsPage() {
       <div className="mx-auto max-w-2xl px-6 py-12 sm:py-16">
         <header className="mb-10 space-y-3">
           <p className="text-[0.65rem] font-medium uppercase tracking-[0.3em] text-rose-700/80">
-            Your account
+            {t("accountLabel")}
           </p>
           <h1 className="font-display text-balance text-4xl font-light leading-tight tracking-tight sm:text-5xl">
-            Settings
+            {t("settingsTitle")}
           </h1>
           <p className="max-w-lg text-pretty text-sm text-muted-foreground sm:text-base">
-            Personal details — your business profile lives in{" "}
-            <span className="text-foreground">Profile</span>.
+            {t.rich("settingsSubtitle", {
+              profile: (chunks) => (
+                <span className="text-foreground">{chunks}</span>
+              ),
+            })}
           </p>
         </header>
 
         <section className="mb-10 overflow-hidden rounded-2xl border border-rose-100/70 bg-white/80 backdrop-blur-sm">
           <div className="border-b border-rose-100/70 px-6 py-4">
             <h2 className="font-display text-lg font-medium tracking-tight">
-              Personal details
+              {t("personalDetails")}
             </h2>
             <p className="text-xs text-muted-foreground">
-              These show up alongside your messages.
+              {t("personalDetailsHint")}
             </p>
           </div>
           <div className="space-y-5 p-6">
@@ -94,7 +99,7 @@ export default function VendorSettingsPage() {
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
                   src={avatarUrl}
-                  alt={fullName || "avatar"}
+                  alt={fullName || t("avatarFallback")}
                   className="size-16 rounded-full object-cover ring-1 ring-rose-200/60"
                 />
               ) : (
@@ -104,7 +109,7 @@ export default function VendorSettingsPage() {
               )}
               <div>
                 <p className="font-display text-lg font-medium leading-tight tracking-tight">
-                  {fullName || "Your name"}
+                  {fullName || t("yourName")}
                 </p>
                 <p className="text-xs text-muted-foreground">
                   {profile?.email}
@@ -113,7 +118,7 @@ export default function VendorSettingsPage() {
             </div>
             <div className="grid gap-4">
               <div className="space-y-1.5">
-                <Label htmlFor="full-name">Full name</Label>
+                <Label htmlFor="full-name">{t("fullNameLabel")}</Label>
                 <Input
                   id="full-name"
                   value={fullName}
@@ -121,7 +126,7 @@ export default function VendorSettingsPage() {
                 />
               </div>
               <div className="space-y-1.5">
-                <Label htmlFor="email">Email</Label>
+                <Label htmlFor="email">{t("emailLabel")}</Label>
                 <Input
                   id="email"
                   value={profile?.email ?? ""}
@@ -130,7 +135,7 @@ export default function VendorSettingsPage() {
                 />
               </div>
               <div className="space-y-1.5">
-                <Label htmlFor="phone">Phone</Label>
+                <Label htmlFor="phone">{t("phoneLabel")}</Label>
                 <Input
                   id="phone"
                   value={phone}
@@ -138,7 +143,7 @@ export default function VendorSettingsPage() {
                 />
               </div>
               <div className="space-y-1.5">
-                <Label htmlFor="avatar">Avatar URL</Label>
+                <Label htmlFor="avatar">{t("avatarUrlLabel")}</Label>
                 <Input
                   id="avatar"
                   value={avatarUrl}
@@ -157,7 +162,7 @@ export default function VendorSettingsPage() {
                 ) : (
                   <Save className="size-4" />
                 )}
-                Save personal details
+                {t("savePersonalDetails")}
               </Button>
             </div>
           </div>
@@ -165,14 +170,14 @@ export default function VendorSettingsPage() {
 
         <div className="space-y-3">
           <h2 className="font-display text-lg font-medium tracking-tight">
-            Account
+            {t("accountSection")}
           </h2>
           <div className="rounded-2xl border border-rose-100/70 bg-white/70 p-4 backdrop-blur-sm">
             <div className="flex items-center justify-between gap-3">
               <div>
-                <p className="text-sm font-medium">Sign out</p>
+                <p className="text-sm font-medium">{t("signOut")}</p>
                 <p className="text-xs text-muted-foreground">
-                  End this session on this device.
+                  {t("signOutHint")}
                 </p>
               </div>
               <Button
@@ -182,17 +187,16 @@ export default function VendorSettingsPage() {
                 className="gap-1"
               >
                 <LogOut className="size-3.5" />
-                Sign out
+                {t("signOut")}
               </Button>
             </div>
           </div>
           <div className="rounded-2xl border border-stone-200/70 bg-stone-50/50 p-4">
             <div className="flex items-center justify-between gap-3">
               <div>
-                <p className="text-sm font-medium">Delete account</p>
+                <p className="text-sm font-medium">{t("deleteAccount")}</p>
                 <p className="text-xs text-muted-foreground">
-                  Permanently remove your profile and catalog. Reach out to
-                  support to complete this.
+                  {t("deleteAccountHint")}
                 </p>
               </div>
               <Button
@@ -202,7 +206,7 @@ export default function VendorSettingsPage() {
                 className="gap-1 text-destructive"
               >
                 <Trash2 className="size-3.5" />
-                Contact support
+                {t("contactSupport")}
               </Button>
             </div>
           </div>

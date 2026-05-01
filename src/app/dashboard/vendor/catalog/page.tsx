@@ -12,6 +12,7 @@ import {
   X,
 } from "lucide-react";
 import { toast } from "sonner";
+import { useTranslations } from "next-intl";
 import { trpc } from "@/lib/trpc";
 import { useVendorImageUpload } from "@/hooks/use-vendor-image-upload";
 import { Button } from "@/components/ui/button";
@@ -26,8 +27,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { decimalToNumber, formatCurrency } from "@/lib/payments";
+import { decimalToNumber } from "@/lib/payments";
 
+import { useFormatters } from "@/lib/use-formatters";
 interface VendorService {
   id: string;
   name: string;
@@ -49,6 +51,9 @@ function imagesArray(value: unknown): string[] {
 
 export default function VendorCatalogPage() {
   const utils = trpc.useUtils();
+  const f = useFormatters();
+  const t = useTranslations("vendor");
+  const tMarketplace = useTranslations("marketplace");
   const me = trpc.vendors.me.useQuery();
   const list = trpc.vendors.services.list.useQuery(undefined, {
     enabled: !!me.data,
@@ -62,7 +67,7 @@ export default function VendorCatalogPage() {
 
   const remove = trpc.vendors.services.delete.useMutation({
     onSuccess: () => {
-      toast.success("Service removed");
+      toast.success(t("serviceRemovedToast"));
       utils.vendors.services.list.invalidate();
     },
     onError: (e) => toast.error(e.message),
@@ -81,20 +86,19 @@ export default function VendorCatalogPage() {
       <div className="mx-auto max-w-3xl px-6 py-16">
         <div className="rounded-2xl border border-rose-100/70 bg-white/80 p-8 backdrop-blur-sm">
           <p className="mb-1 text-[0.65rem] font-medium uppercase tracking-[0.3em] text-rose-700/80">
-            Almost there
+            {t("almostThere")}
           </p>
           <h1 className="font-display text-3xl font-light tracking-tight">
-            Set up your vendor profile first
+            {t("setUpProfileFirst")}
           </h1>
           <p className="mt-3 text-sm text-muted-foreground">
-            Once your profile is saved, planners can find your catalog and
-            request engagements.
+            {t("setUpProfileFirstBody")}
           </p>
           <Button
             render={<a href="/dashboard/vendor/profile" />}
             className="mt-4 bg-gradient-to-r from-rose-600 to-amber-500 text-white"
           >
-            Set up profile
+            {tMarketplace("setUpProfile")}
           </Button>
         </div>
       </div>
@@ -111,13 +115,13 @@ export default function VendorCatalogPage() {
         <header className="mb-8 flex items-end justify-between gap-4">
           <div>
             <p className="mb-1 text-[0.65rem] font-medium uppercase tracking-[0.3em] text-rose-700/80">
-              Catalog
+              {t("catalogLabel")}
             </p>
             <h1 className="font-display text-3xl font-light tracking-tight sm:text-4xl">
-              Your services
+              {t("yourServices")}
             </h1>
             <p className="mt-1 text-sm text-muted-foreground">
-              These are what planners see when they shortlist you.
+              {t("yourServicesSubtitle")}
             </p>
           </div>
           <Button
@@ -125,7 +129,7 @@ export default function VendorCatalogPage() {
             className="gap-1 bg-gradient-to-r from-rose-600 to-amber-500 text-white"
           >
             <Plus className="size-4" />
-            New service
+            {t("newService")}
           </Button>
         </header>
 
@@ -137,17 +141,17 @@ export default function VendorCatalogPage() {
           <div className="rounded-2xl border border-rose-100/70 bg-white/70 p-12 text-center backdrop-blur-sm">
             <ImageIcon className="mx-auto mb-3 size-8 text-rose-500" />
             <p className="font-display text-xl font-light tracking-tight">
-              No services yet
+              {t("noServicesYet")}
             </p>
             <p className="mt-1 text-sm text-muted-foreground">
-              Add your first item — name, price, and a few images.
+              {t("noServicesYetBody")}
             </p>
             <Button
               onClick={() => setOpen({ mode: "create" })}
               className="mt-4 gap-1 bg-gradient-to-r from-rose-600 to-amber-500 text-white"
             >
               <Plus className="size-4" />
-              Add service
+              {t("addService")}
             </Button>
           </div>
         ) : (
@@ -173,9 +177,9 @@ export default function VendorCatalogPage() {
                       </div>
                     )}
                     {!s.available && (
-                      <span className="absolute left-2 top-2 inline-flex items-center gap-1 rounded-full bg-stone-900/80 px-2 py-0.5 text-[10px] uppercase tracking-wider text-white">
+                      <span className="absolute start-2 top-2 inline-flex items-center gap-1 rounded-full bg-stone-900/80 px-2 py-0.5 text-[10px] uppercase tracking-wider text-white">
                         <EyeOff className="size-3" />
-                        Hidden
+                        {t("hidden")}
                       </span>
                     )}
                   </div>
@@ -183,7 +187,7 @@ export default function VendorCatalogPage() {
                     <div className="flex items-start justify-between gap-2">
                       <p className="font-medium leading-tight">{s.name}</p>
                       <p className="shrink-0 font-mono text-sm tabular-nums text-rose-700">
-                        {formatCurrency(decimalToNumber(s.price_from))}
+                        {f.currency(decimalToNumber(s.price_from))}
                       </p>
                     </div>
                     {s.description && (
@@ -202,7 +206,7 @@ export default function VendorCatalogPage() {
                       </span>
                       {s.lead_time_days != null && (
                         <span className="rounded-full bg-stone-50 px-2 py-0.5 ring-1 ring-stone-200">
-                          Lead {s.lead_time_days}d
+                          {t("leadDays", { days: s.lead_time_days })}
                         </span>
                       )}
                     </div>
@@ -216,20 +220,20 @@ export default function VendorCatalogPage() {
                         }
                       >
                         <Pencil className="size-3.5" />
-                        Edit
+                        {t("editLabel")}
                       </Button>
                       <Button
                         size="sm"
                         variant="ghost"
                         className="gap-1 text-destructive hover:text-destructive"
                         onClick={() => {
-                          if (confirm(`Remove ${s.name}?`)) {
+                          if (confirm(t("removeServiceConfirm", { name: s.name }))) {
                             remove.mutate({ id: s.id });
                           }
                         }}
                       >
                         <Trash2 className="size-3.5" />
-                        Remove
+                        {t("removeLabel")}
                       </Button>
                     </div>
                   </div>
@@ -243,12 +247,12 @@ export default function VendorCatalogPage() {
           <DialogContent className="max-w-2xl">
             <DialogHeader>
               <DialogTitle>
-                {open?.mode === "edit" ? "Edit service" : "New service"}
+                {open?.mode === "edit" ? t("editService") : t("newService")}
               </DialogTitle>
               <DialogDescription>
                 {open?.mode === "edit"
-                  ? "Adjust the details — planners see updates instantly."
-                  : "Add a new item to your catalog."}
+                  ? t("editServiceDesc")
+                  : t("newServiceDesc")}
               </DialogDescription>
             </DialogHeader>
             {open && (
@@ -277,6 +281,7 @@ function ServiceForm({
   service: VendorService | null;
   onDone: () => void;
 }) {
+  const t = useTranslations("vendor");
   const [name, setName] = useState(service?.name ?? "");
   const [description, setDescription] = useState(service?.description ?? "");
   const [priceFrom, setPriceFrom] = useState<string>(
@@ -295,14 +300,14 @@ function ServiceForm({
 
   const create = trpc.vendors.services.create.useMutation({
     onSuccess: () => {
-      toast.success("Service added");
+      toast.success(t("serviceAddedToast"));
       onDone();
     },
     onError: (e) => toast.error(e.message),
   });
   const update = trpc.vendors.services.update.useMutation({
     onSuccess: () => {
-      toast.success("Service updated");
+      toast.success(t("serviceUpdatedToast"));
       onDone();
     },
     onError: (e) => toast.error(e.message),
@@ -317,14 +322,14 @@ function ServiceForm({
       return;
     }
     if (images.length >= 12) {
-      toast.error("Up to 12 images");
+      toast.error(t("imagesMax"));
       return;
     }
     try {
       // Sanity check that it parses as a URL.
       new URL(v);
     } catch {
-      toast.error("Image URL is invalid");
+      toast.error(t("imageUrlInvalid"));
       return;
     }
     setImages([...images, v]);
@@ -335,7 +340,7 @@ function ServiceForm({
     if (!files) return;
     const remaining = 12 - images.length;
     if (remaining <= 0) {
-      toast.error("Up to 12 images");
+      toast.error(t("imagesMax"));
       return;
     }
     const list = Array.from(files).slice(0, remaining);
@@ -355,16 +360,16 @@ function ServiceForm({
     e.preventDefault();
     const priceN = Number(priceFrom);
     if (!name.trim()) {
-      toast.error("Name is required");
+      toast.error(t("nameRequired"));
       return;
     }
     if (!Number.isFinite(priceN) || priceN < 0) {
-      toast.error("Price must be a positive number");
+      toast.error(t("pricePositive"));
       return;
     }
     const leadN = leadTime.trim() === "" ? null : Number(leadTime);
     if (leadN != null && (!Number.isFinite(leadN) || leadN < 0)) {
-      toast.error("Lead time must be a positive integer");
+      toast.error(t("leadPositive"));
       return;
     }
     const payload = {
@@ -388,69 +393,69 @@ function ServiceForm({
     <form onSubmit={onSubmit} className="space-y-4">
       <div className="grid gap-3 sm:grid-cols-2">
         <div className="space-y-1.5 sm:col-span-2">
-          <Label htmlFor="svc-name">Name</Label>
+          <Label htmlFor="svc-name">{t("serviceNameLabel")}</Label>
           <Input
             id="svc-name"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            placeholder="Centerpieces — peony cluster"
+            placeholder={t("serviceNamePlaceholder")}
           />
         </div>
         <div className="space-y-1.5 sm:col-span-2">
-          <Label htmlFor="svc-desc">Description</Label>
+          <Label htmlFor="svc-desc">{t("descriptionLabel")}</Label>
           <Textarea
             id="svc-desc"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             rows={3}
-            placeholder="What's included, sizing, materials, anything a planner should know."
+            placeholder={t("descriptionPlaceholder")}
             className="resize-none"
           />
         </div>
         <div className="space-y-1.5">
-          <Label htmlFor="svc-price">Price (from)</Label>
+          <Label htmlFor="svc-price">{t("priceFromLabel")}</Label>
           <Input
             id="svc-price"
             type="number"
             inputMode="decimal"
             value={priceFrom}
             onChange={(e) => setPriceFrom(e.target.value)}
-            placeholder="0"
+            placeholder={t("priceFromPlaceholder")}
           />
         </div>
         <div className="space-y-1.5">
-          <Label htmlFor="svc-unit">Price unit</Label>
+          <Label htmlFor="svc-unit">{t("priceUnitLabel")}</Label>
           <Input
             id="svc-unit"
             value={priceUnit}
             onChange={(e) => setPriceUnit(e.target.value)}
-            placeholder="per_event"
+            placeholder={t("priceUnitPlaceholder")}
           />
         </div>
         <div className="space-y-1.5">
-          <Label htmlFor="svc-sub">Subcategory</Label>
+          <Label htmlFor="svc-sub">{t("subcategoryLabel")}</Label>
           <Input
             id="svc-sub"
             value={subcategory}
             onChange={(e) => setSubcategory(e.target.value)}
-            placeholder="e.g. tea-light"
+            placeholder={t("subcategoryPlaceholder")}
           />
         </div>
         <div className="space-y-1.5">
-          <Label htmlFor="svc-lead">Lead time (days)</Label>
+          <Label htmlFor="svc-lead">{t("leadTimeLabel")}</Label>
           <Input
             id="svc-lead"
             type="number"
             inputMode="numeric"
             value={leadTime}
             onChange={(e) => setLeadTime(e.target.value)}
-            placeholder="14"
+            placeholder={t("leadTimePlaceholder")}
           />
         </div>
       </div>
 
       <div className="space-y-1.5">
-        <Label>Images</Label>
+        <Label>{t("imagesLabel")}</Label>
         <input
           ref={fileInputRef}
           type="file"
@@ -469,12 +474,12 @@ function ServiceForm({
               className="group relative inline-flex h-20 w-28 overflow-hidden rounded-lg ring-1 ring-rose-100"
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={img} alt="preview" className="size-full object-cover" />
+              <img src={img} alt={t("imagePreviewAlt")} className="size-full object-cover" />
               <button
                 type="button"
                 onClick={() => setImages(images.filter((i) => i !== img))}
-                className="absolute right-1 top-1 inline-flex size-5 items-center justify-center rounded-full bg-stone-900/70 text-white opacity-0 transition group-hover:opacity-100"
-                aria-label="Remove image"
+                className="absolute end-1 top-1 inline-flex size-5 items-center justify-center rounded-full bg-stone-900/70 text-white opacity-0 transition group-hover:opacity-100"
+                aria-label={t("removeImage")}
               >
                 <X className="size-3" />
               </button>
@@ -492,7 +497,7 @@ function ServiceForm({
               ) : (
                 <>
                   <Upload className="size-5" />
-                  <span className="text-[11px] font-medium">Upload</span>
+                  <span className="text-[11px] font-medium">{t("uploadLabel")}</span>
                 </>
               )}
             </button>
@@ -500,30 +505,30 @@ function ServiceForm({
         </div>
         <details className="text-[11px] text-muted-foreground">
           <summary className="cursor-pointer select-none hover:text-foreground">
-            Or paste a URL
+            {t("orPasteUrl")}
           </summary>
           <div className="mt-2 flex gap-2">
             <Input
               value={imageDraft}
               onChange={(e) => setImageDraft(e.target.value)}
-              placeholder="https://res.cloudinary.com/…"
+              placeholder={t("imageUrlPlaceholder")}
             />
             <Button type="button" variant="outline" onClick={addImage} className="gap-1">
               <Plus className="size-3.5" />
-              Add
+              {t("addLabel")}
             </Button>
           </div>
         </details>
         <p className="text-[11px] text-muted-foreground">
-          Up to 12 images. JPG, PNG, WEBP up to 8MB each.
+          {t("imagesHint")}
         </p>
       </div>
 
       <label className="flex cursor-pointer items-center justify-between rounded-xl border border-rose-100/70 bg-white/60 px-4 py-3">
         <span>
-          <span className="block text-sm font-medium">Visible to planners</span>
+          <span className="block text-sm font-medium">{t("visibleToPlanners")}</span>
           <span className="block text-xs text-muted-foreground">
-            Hide while you tweak — planners only see available items.
+            {t("visibleToPlannersHint")}
           </span>
         </span>
         <input
@@ -541,7 +546,7 @@ function ServiceForm({
           className="gap-1 bg-gradient-to-r from-rose-600 to-amber-500 text-white"
         >
           {submitting && <Loader2 className="size-4 animate-spin" />}
-          {mode === "create" ? "Add to catalog" : "Save changes"}
+          {mode === "create" ? t("addToCatalog") : t("saveChanges")}
         </Button>
       </DialogFooter>
     </form>

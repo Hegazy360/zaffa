@@ -1,8 +1,11 @@
 import type { Metadata } from "next";
-import { Cairo, Fraunces, Inter } from "next/font/google";
+import { Cairo, Fraunces, Inter, Reem_Kufi } from "next/font/google";
+import { NextIntlClientProvider } from "next-intl";
+import { getLocale, getMessages } from "next-intl/server";
 import "./globals.css";
 import { Providers } from "./providers";
 import { Toaster } from "@/components/ui/sonner";
+import { isRtlLocale } from "@/i18n/config";
 
 const cairo = Cairo({
   variable: "--font-cairo",
@@ -18,6 +21,14 @@ const fraunces = Fraunces({
   variable: "--font-display",
   subsets: ["latin"],
   axes: ["SOFT", "opsz"],
+});
+
+// Arabic display companion to Fraunces. Rendered into a CSS variable so
+// globals.css can pick it when [dir="rtl"].
+const reemKufi = Reem_Kufi({
+  variable: "--font-display-ar",
+  subsets: ["arabic", "latin"],
+  weight: ["400", "500", "600", "700"],
 });
 
 export const metadata: Metadata = {
@@ -37,13 +48,17 @@ export const metadata: Metadata = {
   ],
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const locale = await getLocale();
+  const messages = await getMessages();
+  const dir = isRtlLocale(locale) ? "rtl" : "ltr";
+
   return (
-    <html lang="en" dir="ltr">
+    <html lang={locale} dir={dir}>
       <head>
         {/* Catch Supabase recovery links that land with #access_token=...&type=recovery
             on any route and forward them to the dedicated reset-password page,
@@ -55,12 +70,14 @@ export default function RootLayout({
         />
       </head>
       <body
-        className={`${cairo.variable} ${inter.variable} ${fraunces.variable} font-sans antialiased`}
+        className={`${cairo.variable} ${inter.variable} ${fraunces.variable} ${reemKufi.variable} font-sans antialiased`}
       >
-        <Providers>
-          {children}
-          <Toaster />
-        </Providers>
+        <NextIntlClientProvider locale={locale} messages={messages}>
+          <Providers>
+            {children}
+            <Toaster />
+          </Providers>
+        </NextIntlClientProvider>
       </body>
     </html>
   );

@@ -1,9 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { format } from "date-fns";
 import { toast } from "sonner";
 import { Loader2, Wallet } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import {
@@ -17,30 +17,32 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { decimalToNumber, formatCurrency } from "@/lib/payments";
+import { decimalToNumber } from "@/lib/payments";
 
+import { useFormatters } from "@/lib/use-formatters";
 export default function AdminVendorPayoutsPage() {
   const pending = trpc.admin.pendingVendorPayouts.useQuery();
+  const f = useFormatters();
+  const t = useTranslations("admin");
 
   return (
     <div className="mx-auto max-w-6xl space-y-8 px-4 py-8 sm:px-6">
       <header>
         <p className="mb-1 text-[0.65rem] font-medium uppercase tracking-[0.3em] text-rose-700/80">
-          Vendor payouts
+          {t("vendorPayoutsEyebrow")}
         </p>
         <h1 className="font-display text-3xl font-light tracking-tight">
-          Vendor releases
+          {t("vendorReleasesHeader")}
         </h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Vendors with pending releases that planners have committed but
-          haven&apos;t been paid out yet.
+          {t("vendorReleasesSubtitle")}
         </p>
       </header>
 
       <div className="rounded-2xl border border-rose-100/70 bg-white/80">
         <div className="border-b border-rose-100/70 px-5 py-3">
           <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-rose-700/80">
-            Awaiting payout
+            {t("awaitingPayout")}
           </p>
         </div>
         {pending.isLoading ? (
@@ -51,7 +53,7 @@ export default function AdminVendorPayoutsPage() {
           <div className="px-5 py-12 text-center">
             <Wallet className="mx-auto mb-2 size-6 text-rose-500" />
             <p className="text-sm text-muted-foreground">
-              No pending vendor releases right now.
+              {t("noVendorReleases")}
             </p>
           </div>
         ) : (
@@ -64,13 +66,14 @@ export default function AdminVendorPayoutsPage() {
                 <div className="min-w-0">
                   <p className="font-medium">{v.businessName}</p>
                   <p className="text-xs capitalize text-muted-foreground">
-                    {v.fullName} · {v.category} · {v.releases.length} releases
+                    {v.fullName} · {v.category} ·{" "}
+                    {t("releasesCount", { count: v.releases.length })}
                   </p>
                 </div>
                 <div className="flex items-center gap-3">
-                  <div className="text-right">
+                  <div className="text-end">
                     <p className="font-mono tabular-nums">
-                      {formatCurrency(v.total, v.currency)}
+                      {f.currency(v.total, v.currency)}
                     </p>
                   </div>
                   <RecordVendorPayoutDialog
@@ -99,6 +102,8 @@ function RecordVendorPayoutDialog({
 }) {
   const [open, setOpen] = useState(false);
   const utils = trpc.useUtils();
+  const f = useFormatters();
+  const t = useTranslations("admin");
   const releases = trpc.admin.vendorPending.useQuery(
     { vendorId },
     { enabled: open },
@@ -115,7 +120,7 @@ function RecordVendorPayoutDialog({
 
   const record = trpc.admin.recordVendorPayout.useMutation({
     onSuccess: () => {
-      toast.success("Vendor payout recorded");
+      toast.success(t("vendorPayoutRecordedToast"));
       utils.admin.pendingVendorPayouts.invalidate();
       utils.admin.vendorPending.invalidate({ vendorId });
       setOpen(false);
@@ -139,7 +144,7 @@ function RecordVendorPayoutDialog({
       .filter(([, v]) => v)
       .map(([id]) => id);
     if (ids.length === 0) {
-      toast.error("Select at least one release");
+      toast.error(t("selectRelease"));
       return;
     }
     record.mutate({
@@ -163,14 +168,13 @@ function RecordVendorPayoutDialog({
           />
         }
       >
-        Record payout
+        {t("recordPayout")}
       </DialogTrigger>
       <DialogContent className="sm:max-w-2xl">
         <DialogHeader>
-          <DialogTitle>Record payout to {vendorName}</DialogTitle>
+          <DialogTitle>{t("recordPayoutTo", { name: vendorName })}</DialogTitle>
           <DialogDescription>
-            Pick the releases this payout covers. They&apos;ll be flipped to
-            paid and locked to this Payout row.
+            {t("recordVendorPayoutDesc")}
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={onSubmit} className="space-y-4">
@@ -181,7 +185,7 @@ function RecordVendorPayoutDialog({
               </div>
             ) : filtered.length === 0 ? (
               <p className="px-5 py-6 text-center text-sm text-muted-foreground">
-                No eligible releases.
+                {t("noEligibleReleases")}
               </p>
             ) : (
               <ul className="divide-y divide-rose-100/70 text-sm">
@@ -206,11 +210,13 @@ function RecordVendorPayoutDialog({
                       <p className="truncate text-xs text-muted-foreground">
                         {r.engagement.title} · {r.planner.business_name}
                         {r.requested_at &&
-                          ` · Requested ${format(new Date(r.requested_at), "PP")}`}
+                          ` · ${t("requestedAt", {
+                            date: f.date(r.requested_at, "medium"),
+                          })}`}
                       </p>
                     </div>
-                    <p className="font-mono text-right tabular-nums">
-                      {formatCurrency(decimalToNumber(r.amount), r.currency)}
+                    <p className="font-mono text-end tabular-nums">
+                      {f.currency(decimalToNumber(r.amount), r.currency)}
                     </p>
                   </li>
                 ))}
@@ -220,7 +226,7 @@ function RecordVendorPayoutDialog({
 
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
-              <Label htmlFor="vmethod">Method</Label>
+              <Label htmlFor="vmethod">{t("method")}</Label>
               <select
                 id="vmethod"
                 value={method}
@@ -231,14 +237,14 @@ function RecordVendorPayoutDialog({
                 }
                 className="h-9 w-full rounded-md border border-input bg-transparent px-3 text-sm"
               >
-                <option value="instapay">Instapay</option>
-                <option value="wire">Wire</option>
-                <option value="cash">Cash</option>
-                <option value="other">Other</option>
+                <option value="instapay">{t("methodInstapay")}</option>
+                <option value="wire">{t("methodWire")}</option>
+                <option value="cash">{t("methodCash")}</option>
+                <option value="other">{t("methodOther")}</option>
               </select>
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="vpaid">Paid at</Label>
+              <Label htmlFor="vpaid">{t("paidAt")}</Label>
               <Input
                 id="vpaid"
                 type="date"
@@ -247,16 +253,16 @@ function RecordVendorPayoutDialog({
               />
             </div>
             <div className="space-y-1.5 col-span-2">
-              <Label htmlFor="vref">Reference</Label>
+              <Label htmlFor="vref">{t("reference")}</Label>
               <Input
                 id="vref"
                 value={reference}
                 onChange={(e) => setReference(e.target.value)}
-                placeholder="Bank transfer #, Instapay note, etc."
+                placeholder={t("vendorReferencePlaceholder")}
               />
             </div>
             <div className="space-y-1.5 col-span-2">
-              <Label htmlFor="vnotes">Notes</Label>
+              <Label htmlFor="vnotes">{t("notes")}</Label>
               <Textarea
                 id="vnotes"
                 rows={3}
@@ -268,9 +274,9 @@ function RecordVendorPayoutDialog({
           </div>
 
           <div className="flex items-center justify-between rounded-xl border border-rose-100/70 bg-rose-50/40 px-4 py-2">
-            <span className="text-xs text-muted-foreground">Total</span>
+            <span className="text-xs text-muted-foreground">{t("total")}</span>
             <span className="font-mono tabular-nums">
-              {formatCurrency(total, currency)}
+              {f.currency(total, currency)}
             </span>
           </div>
           <div className="flex justify-end">
@@ -280,7 +286,7 @@ function RecordVendorPayoutDialog({
               className="gap-1 bg-gradient-to-r from-rose-600 to-amber-500 text-white"
             >
               {record.isPending && <Loader2 className="size-4 animate-spin" />}
-              Record payout
+              {t("recordPayout")}
             </Button>
           </div>
         </form>

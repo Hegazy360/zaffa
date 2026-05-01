@@ -11,8 +11,10 @@ import {
   Sparkles,
   Star,
 } from "lucide-react";
+import { useTranslations, useLocale } from "next-intl";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
+import { useFormatters } from "@/lib/use-formatters";
 
 interface NormalizedPalette {
   colors: string[];
@@ -27,15 +29,6 @@ function normalizePalette(value: unknown): NormalizedPalette {
     return { colors };
   }
   return { colors: [] };
-}
-
-function formatEventDate(date: Date | string | null | undefined): string {
-  if (!date) return "Date not set";
-  return new Date(date).toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  });
 }
 
 function formatType(value: string): string {
@@ -53,6 +46,12 @@ function decimalToNumber(value: unknown): number {
 }
 
 export default function PlannerDashboardPage() {
+  const t = useTranslations("dashboard");
+  const tEyebrow = useTranslations("sidebar.eyebrow");
+  const tSidebar = useTranslations("sidebar");
+  const tPlanner = useTranslations("planner");
+  const f = useFormatters();
+  const locale = useLocale();
   const { data: planner, isLoading: plannerLoading } =
     trpc.planner.me.useQuery();
   const { data: stats } = trpc.planner.stats.useQuery(undefined, {
@@ -99,7 +98,7 @@ export default function PlannerDashboardPage() {
       />
       <div
         aria-hidden
-        className="pointer-events-none absolute -top-40 left-1/2 -z-10 h-[28rem] w-[28rem] -translate-x-1/2 rounded-full bg-gradient-to-br from-rose-200/30 to-amber-200/20 blur-3xl dark:from-rose-900/15 dark:to-amber-900/10"
+        className="pointer-events-none absolute -top-40 start-1/2 -z-10 h-[28rem] w-[28rem] -translate-x-1/2 rounded-full bg-gradient-to-br from-rose-200/30 to-amber-200/20 blur-3xl dark:from-rose-900/15 dark:to-amber-900/10"
       />
 
       <div className="mx-auto max-w-6xl px-6 py-12 sm:py-16">
@@ -108,14 +107,13 @@ export default function PlannerDashboardPage() {
           <div className="space-y-3">
             <div className="inline-flex items-center gap-2 rounded-full border border-rose-200/70 bg-rose-50/70 px-3.5 py-1 text-[11px] font-medium uppercase tracking-[0.18em] text-rose-700 backdrop-blur-sm dark:border-rose-900/50 dark:bg-rose-950/30 dark:text-rose-200">
               <Sparkles className="size-3" />
-              Atelier console
+              {tEyebrow("planner")}
             </div>
             <h1 className="font-display text-balance text-4xl font-light leading-tight tracking-tight sm:text-5xl">
-              Welcome, {firstName}.
+              {t("plannerWelcome", { name: firstName })}
             </h1>
             <p className="max-w-lg text-pretty text-sm text-muted-foreground sm:text-base">
-              {planner.business_name} — fresh briefs, your active engagements,
-              and the month ahead.
+              {planner.business_name} — {t("plannerSubtitle")}
             </p>
           </div>
           <Button
@@ -124,42 +122,40 @@ export default function PlannerDashboardPage() {
             className="group h-11 gap-2 bg-gradient-to-r from-rose-600 to-amber-500 px-5 text-white shadow-lg shadow-rose-500/20 hover:opacity-90 hover:shadow-rose-500/30"
           >
             <Compass className="size-4" />
-            Browse marketplace
-            <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" />
+            {tSidebar("marketplace")}
+            <ArrowRight className="size-4 transition-transform rtl:-scale-x-100 group-hover:translate-x-0.5 rtl:group-hover:-translate-x-0.5" />
           </Button>
         </header>
 
         {/* Stats */}
         <section className="mb-14 grid grid-cols-2 gap-4 lg:grid-cols-4">
           <StatCard
-            label="Active engagements"
+            label={tPlanner("statActiveEngagements")}
             value={stats?.activeEngagements ?? 0}
             icon={<FileText className="size-4 text-rose-600" />}
           />
           <StatCard
-            label="Standing by"
+            label={tPlanner("statStandingBy")}
             value={stats?.pendingProposals ?? 0}
             icon={<Sparkles className="size-4 text-amber-500" />}
           />
           <StatCard
-            label="Avg rating"
+            label={tPlanner("statAvgRating")}
             value={
               stats?.reviewCount
                 ? decimalToNumber(stats.avgRating).toFixed(1)
                 : "—"
             }
             icon={<Star className="size-4 text-amber-500" />}
-            sublabel={
-              stats?.reviewCount
-                ? `${stats.reviewCount} review${stats.reviewCount === 1 ? "" : "s"}`
-                : "No reviews yet"
-            }
+            sublabel={tPlanner("reviewsCount", {
+              count: stats?.reviewCount ?? 0,
+            })}
           />
           <StatCard
-            label="Released"
+            label={tPlanner("statReleased")}
             value={stats?.releasedCount ?? 0}
             icon={<CalendarDays className="size-4 text-stone-500" />}
-            sublabel="Past engagements"
+            sublabel={tPlanner("statReleasedHint")}
           />
         </section>
 
@@ -168,10 +164,10 @@ export default function PlannerDashboardPage() {
           <div className="mb-6 flex items-end justify-between">
             <div>
               <p className="mb-1 text-[0.65rem] font-medium uppercase tracking-[0.3em] text-rose-700/80">
-                New briefs
+                {tPlanner("newBriefsEyebrow")}
               </p>
               <h2 className="font-display text-2xl font-light tracking-tight">
-                Open events looking for a planner
+                {tPlanner("newBriefsTitle")}
               </h2>
             </div>
             <Button
@@ -180,18 +176,18 @@ export default function PlannerDashboardPage() {
               render={<Link href="/dashboard/planner/marketplace" />}
               className="gap-1 text-sm"
             >
-              View all
-              <ArrowRight className="size-3.5" />
+              {tPlanner("viewAll")}
+              <ArrowRight className="size-3.5 rtl:-scale-x-100" />
             </Button>
           </div>
 
           {newBriefs.length === 0 ? (
             <EmptyCard
               icon={<Compass className="size-6 text-rose-600" />}
-              title="No new briefs right now"
-              body="When clients approve a design and start looking for a planner, they show up here."
+              title={tPlanner("noNewBriefsTitle")}
+              body={tPlanner("noNewBriefsBody")}
               ctaHref="/dashboard/planner/marketplace"
-              ctaLabel="Browse marketplace"
+              ctaLabel={tPlanner("browseMarketplace")}
             />
           ) : (
             <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
@@ -209,10 +205,10 @@ export default function PlannerDashboardPage() {
           <div className="mb-6 flex items-end justify-between">
             <div>
               <p className="mb-1 text-[0.65rem] font-medium uppercase tracking-[0.3em] text-rose-700/80">
-                Currently engaged
+                {tPlanner("engagedEyebrow")}
               </p>
               <h2 className="font-display text-2xl font-light tracking-tight">
-                Events you&apos;re actively planning
+                {tPlanner("engagedTitle")}
               </h2>
             </div>
             <Button
@@ -221,18 +217,18 @@ export default function PlannerDashboardPage() {
               render={<Link href="/dashboard/planner/proposals" />}
               className="gap-1 text-sm"
             >
-              All proposals
-              <ArrowRight className="size-3.5" />
+              {tPlanner("allProposals")}
+              <ArrowRight className="size-3.5 rtl:-scale-x-100" />
             </Button>
           </div>
 
           {engaged.length === 0 ? (
             <EmptyCard
               icon={<Sparkles className="size-6 text-rose-600" />}
-              title="No active engagements yet"
-              body="Once a client accepts your proposal, the event will live here for quick access."
+              title={tPlanner("noEngagementsTitle")}
+              body={tPlanner("noEngagementsBody")}
               ctaHref="/dashboard/planner/marketplace"
-              ctaLabel="Find your first brief"
+              ctaLabel={tPlanner("findFirstBrief")}
             />
           ) : (
             <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
@@ -249,36 +245,38 @@ export default function PlannerDashboardPage() {
         <section>
           <div className="mb-6">
             <p className="mb-1 text-[0.65rem] font-medium uppercase tracking-[0.3em] text-rose-700/80">
-              The month ahead
+              {tPlanner("monthAheadEyebrow")}
             </p>
             <h2 className="font-display text-2xl font-light tracking-tight">
-              {today.toLocaleString("en-US", {
+              {new Intl.DateTimeFormat(locale === "ar" ? "ar-EG" : "en-EG", {
                 month: "long",
                 year: "numeric",
-              })}
+              }).format(today)}
             </h2>
           </div>
 
           <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
             <MonthList
-              title="Booked"
+              title={tPlanner("bookedTitle")}
               accent="rose"
-              empty="No bookings this month."
+              empty={tPlanner("noBookingsThisMonth")}
               items={(month?.bookedEvents ?? []).map((e) => ({
                 id: e.id,
                 left: e.title,
-                right: formatEventDate(e.event_date),
+                right: e.event_date
+                  ? f.date(e.event_date, "long")
+                  : tPlanner("dateNotSet"),
                 href: `/dashboard/planner/event/${e.id}`,
               }))}
             />
             <MonthList
-              title="Blocked"
+              title={tPlanner("blockedTitle")}
               accent="stone"
-              empty="No blocked dates this month."
+              empty={tPlanner("noBlocksThisMonth")}
               items={(month?.blocks ?? []).map((b) => ({
                 id: b.id,
-                left: b.reason ?? "Personal",
-                right: `${formatEventDate(b.start_date)} → ${formatEventDate(b.end_date)}`,
+                left: b.reason ?? tPlanner("blockReasonPersonal"),
+                right: `${f.date(b.start_date, "long")} → ${f.date(b.end_date, "long")}`,
                 href: "/dashboard/planner/schedule",
               }))}
             />
@@ -333,6 +331,8 @@ interface BriefCardProps {
 }
 
 function BriefCard({ brief }: BriefCardProps) {
+  const tPlanner = useTranslations("planner");
+  const f = useFormatters();
   const palette = normalizePalette(brief.design?.palette);
   const heroImage = brief.design?.heroImage ?? null;
   return (
@@ -354,7 +354,7 @@ function BriefCard({ brief }: BriefCardProps) {
           </div>
         )}
         {palette.colors.length > 0 && (
-          <div className="absolute right-3 top-3 inline-flex items-center gap-1 rounded-full bg-black/55 px-1.5 py-1 backdrop-blur-sm">
+          <div className="absolute end-3 top-3 inline-flex items-center gap-1 rounded-full bg-black/55 px-1.5 py-1 backdrop-blur-sm">
             {palette.colors.slice(0, 4).map((c) => (
               <span
                 key={c}
@@ -370,12 +370,17 @@ function BriefCard({ brief }: BriefCardProps) {
           {brief.title}
         </h3>
         <p className="text-[11px] capitalize text-muted-foreground">
-          {formatType(brief.event_type)} · with {brief.client_first_name}
+          {tPlanner("typeWithFirstName", {
+            type: formatType(brief.event_type),
+            firstName: brief.client_first_name,
+          })}
         </p>
         <div className="flex items-center gap-3 text-xs text-muted-foreground">
           <span className="inline-flex items-center gap-1">
             <CalendarDays className="size-3" />
-            {formatEventDate(brief.event_date)}
+            {brief.event_date
+              ? f.date(brief.event_date, "long")
+              : tPlanner("dateNotSet")}
           </span>
         </div>
       </div>
@@ -399,6 +404,8 @@ interface EngagementProposal {
 }
 
 function EngagementCard({ proposal }: { proposal: EngagementProposal }) {
+  const tPlanner = useTranslations("planner");
+  const f = useFormatters();
   const palette = normalizePalette(proposal.event.palette);
   return (
     <Link
@@ -418,11 +425,11 @@ function EngagementCard({ proposal }: { proposal: EngagementProposal }) {
             <ImageIcon className="size-7 text-rose-400/70" />
           </div>
         )}
-        <span className="absolute left-3 top-3 inline-flex items-center rounded-full bg-rose-600/90 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-white backdrop-blur-sm">
-          Engaged
+        <span className="absolute start-3 top-3 inline-flex items-center rounded-full bg-rose-600/90 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-white backdrop-blur-sm">
+          {tPlanner("engagedBadge")}
         </span>
         {palette.colors.length > 0 && (
-          <div className="absolute right-3 top-3 inline-flex items-center gap-1 rounded-full bg-black/55 px-1.5 py-1 backdrop-blur-sm">
+          <div className="absolute end-3 top-3 inline-flex items-center gap-1 rounded-full bg-black/55 px-1.5 py-1 backdrop-blur-sm">
             {palette.colors.slice(0, 4).map((c) => (
               <span
                 key={c}
@@ -440,7 +447,9 @@ function EngagementCard({ proposal }: { proposal: EngagementProposal }) {
         <div className="flex items-center gap-3 text-xs text-muted-foreground">
           <span className="inline-flex items-center gap-1">
             <CalendarDays className="size-3" />
-            {formatEventDate(proposal.event.event_date)}
+            {proposal.event.event_date
+              ? f.date(proposal.event.event_date, "long")
+              : tPlanner("dateNotSet")}
           </span>
           {proposal.event.venue && (
             <span className="inline-flex items-center gap-1">
@@ -452,8 +461,10 @@ function EngagementCard({ proposal }: { proposal: EngagementProposal }) {
           )}
         </div>
         <p className="text-[11px] capitalize text-muted-foreground">
-          {formatType(proposal.event.event_type)} · with{" "}
-          {proposal.event.client_first_name}
+          {tPlanner("typeWithFirstName", {
+            type: formatType(proposal.event.event_type),
+            firstName: proposal.event.client_first_name,
+          })}
         </p>
       </div>
     </Link>
@@ -537,7 +548,7 @@ function EmptyCard({
           className="mt-6 h-10 gap-2 bg-gradient-to-r from-rose-600 to-amber-500 px-5 text-white shadow-md shadow-rose-500/20 hover:opacity-90"
         >
           {ctaLabel}
-          <ArrowRight className="size-4" />
+          <ArrowRight className="size-4 rtl:-scale-x-100" />
         </Button>
       )}
     </div>
@@ -545,25 +556,25 @@ function EmptyCard({
 }
 
 function PlannerSetupNeeded() {
+  const tPlanner = useTranslations("planner");
   return (
     <div className="mx-auto max-w-3xl px-6 py-16">
       <div className="rounded-2xl border border-rose-100/70 bg-white/70 p-8 backdrop-blur-sm dark:border-rose-900/30 dark:bg-card/80">
         <p className="mb-1 text-[0.65rem] font-medium uppercase tracking-[0.3em] text-rose-700/80">
-          Almost there
+          {tPlanner("almostThereEyebrow")}
         </p>
         <h1 className="font-display text-3xl font-light tracking-tight">
-          Set up your planner profile
+          {tPlanner("setupProfileTitle")}
         </h1>
         <p className="mt-3 max-w-xl text-sm text-muted-foreground">
-          Your account isn&apos;t a planner yet. Add your business name, bio,
-          and specialties to start receiving briefs from couples.
+          {tPlanner("setupProfileBody")}
         </p>
         <div className="mt-6 flex gap-3">
           <Button
             render={<Link href="/dashboard/planner/settings" />}
             className="bg-gradient-to-r from-rose-600 to-amber-500 text-white"
           >
-            Set up profile
+            {tPlanner("setupProfileCta")}
           </Button>
         </div>
       </div>

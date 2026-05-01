@@ -10,6 +10,7 @@
   --font-sans: var(--font-inter), system-ui, sans-serif;
   --font-display: var(--font-display), "Fraunces", Georgia, serif;
   --font-arabic: var(--font-cairo), system-ui, sans-serif;
+  --font-display-ar: var(--font-display-ar), system-ui, sans-serif;
   --font-mono: var(--font-geist-mono);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
@@ -219,4 +220,25 @@
       transparent 0
     );
   background-size: 4px 4px;
+}
+
+/* RTL overrides: when the document is in Arabic we swap the body font to
+   Cairo (already loaded for both subsets) and the editorial display font
+   to Reem Kufi so headlines feel native instead of falling back to Latin
+   serifs. The class names already use `font-display` / `font-sans`, so
+   redirecting the variables is enough — no per-component changes needed. */
+:root[dir="rtl"] {
+  --font-sans: var(--font-cairo), system-ui, sans-serif;
+  --font-display:
+    var(--font-display-ar), var(--font-cairo), system-ui, sans-serif;
+}
+
+/* Mirror horizontal animations in RTL so marquees still scroll the right
+   visual direction. We swap the @keyframes used by the two marquee tracks. */
+:root[dir="rtl"] .marquee-track {
+  animation-name: marqueeRight;
+}
+
+:root[dir="rtl"] .marquee-track-reverse {
+  animation-name: marqueeLeft;
 }

@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState, type KeyboardEvent } from "react";
 import { Loader2, LogOut, Plus, Save, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
+import { useTranslations } from "next-intl";
 import { trpc } from "@/lib/trpc";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -19,6 +20,7 @@ function specialtiesArray(value: unknown): string[] {
 }
 
 export default function PlannerSettingsPage() {
+  const t = useTranslations("planner");
   const router = useRouter();
   const supabase = createClient();
   const utils = trpc.useUtils();
@@ -59,7 +61,7 @@ export default function PlannerSettingsPage() {
 
   const profileUpdate = trpc.profile.update.useMutation({
     onSuccess: () => {
-      toast.success("Profile updated");
+      toast.success(t("profileUpdatedToast"));
       utils.profile.me.invalidate();
     },
     onError: (e) => toast.error(e.message),
@@ -67,7 +69,7 @@ export default function PlannerSettingsPage() {
 
   const plannerUpdate = trpc.planner.update.useMutation({
     onSuccess: () => {
-      toast.success("Business profile updated");
+      toast.success(t("businessProfileUpdatedToast"));
       utils.planner.me.invalidate();
     },
     onError: (e) => toast.error(e.message),
@@ -104,7 +106,7 @@ export default function PlannerSettingsPage() {
       return;
     }
     if (specialties.length >= 20) {
-      toast.error("Up to 20 specialties");
+      toast.error(t("upTo20SpecialtiesError"));
       return;
     }
     setSpecialties([...specialties, v]);
@@ -135,13 +137,13 @@ export default function PlannerSettingsPage() {
       <div className="mx-auto max-w-2xl px-6 py-12 sm:py-16">
         <header className="mb-10 space-y-3">
           <p className="text-[0.65rem] font-medium uppercase tracking-[0.3em] text-rose-700/80">
-            Your account
+            {t("yourAccountEyebrow")}
           </p>
           <h1 className="font-display text-balance text-4xl font-light leading-tight tracking-tight sm:text-5xl">
-            Settings
+            {t("settingsTitle")}
           </h1>
           <p className="max-w-lg text-pretty text-sm text-muted-foreground sm:text-base">
-            Tune how couples discover you and how you appear on briefs.
+            {t("settingsSubtitle")}
           </p>
         </header>
 
@@ -149,37 +151,36 @@ export default function PlannerSettingsPage() {
         <section className="mb-10 overflow-hidden rounded-2xl border border-rose-100/70 bg-white/80 backdrop-blur-sm">
           <div className="border-b border-rose-100/70 px-6 py-4">
             <h2 className="font-display text-lg font-medium tracking-tight">
-              Business profile
+              {t("businessProfile")}
             </h2>
             <p className="text-xs text-muted-foreground">
-              This is what couples see when reviewing your proposal.
+              {t("businessProfileHint")}
             </p>
           </div>
           <div className="space-y-5 p-6">
             {!planner && (
               <div className="rounded-xl border border-amber-200 bg-amber-50/70 p-3 text-sm text-amber-900">
-                You don&apos;t have a planner profile yet. Save the form below to
-                start receiving briefs.
+                {t("noPlannerProfileWarning")}
               </div>
             )}
             <div className="grid gap-4">
               <div className="space-y-1.5">
-                <Label htmlFor="business">Business name</Label>
+                <Label htmlFor="business">{t("businessNameLabel")}</Label>
                 <Input
                   id="business"
                   value={businessName}
                   onChange={(e) => setBusinessName(e.target.value)}
-                  placeholder="Atelier of Anya"
+                  placeholder={t("businessNamePlaceholder")}
                 />
               </div>
               <div className="space-y-1.5">
-                <Label htmlFor="bio">Bio</Label>
+                <Label htmlFor="bio">{t("bioLabel")}</Label>
                 <Textarea
                   id="bio"
                   value={bio}
                   onChange={(e) => setBio(e.target.value)}
                   rows={4}
-                  placeholder="Where are you based, what do you specialize in, what makes a Zaffa wedding feel like yours?"
+                  placeholder={t("bioPlaceholder")}
                   className="resize-none"
                 />
                 <p className="text-[11px] text-muted-foreground">
@@ -187,16 +188,16 @@ export default function PlannerSettingsPage() {
                 </p>
               </div>
               <div className="space-y-1.5">
-                <Label htmlFor="location">Location</Label>
+                <Label htmlFor="location">{t("locationLabel")}</Label>
                 <Input
                   id="location"
                   value={location}
                   onChange={(e) => setLocation(e.target.value)}
-                  placeholder="Cairo, Egypt"
+                  placeholder={t("locationPlaceholder")}
                 />
               </div>
               <div className="space-y-1.5">
-                <Label htmlFor="specialty">Specialties</Label>
+                <Label htmlFor="specialty">{t("specialtiesLabel")}</Label>
                 <div className="flex flex-wrap items-center gap-2 rounded-xl border border-input bg-transparent p-2">
                   {specialties.map((s) => (
                     <span
@@ -209,7 +210,7 @@ export default function PlannerSettingsPage() {
                         onClick={() =>
                           setSpecialties(specialties.filter((x) => x !== s))
                         }
-                        aria-label={`Remove ${s}`}
+                        aria-label={t("removeTag", { tag: s })}
                         className="text-rose-700/70 hover:text-rose-900"
                       >
                         <X className="size-3" />
@@ -222,7 +223,7 @@ export default function PlannerSettingsPage() {
                     onChange={(e) => setSpecialtyDraft(e.target.value)}
                     onKeyDown={onSpecialtyKey}
                     placeholder={
-                      specialties.length === 0 ? "e.g. Beach weddings" : ""
+                      specialties.length === 0 ? t("specialtyPlaceholder") : ""
                     }
                     className="flex-1 min-w-[120px] bg-transparent text-sm outline-none"
                   />
@@ -234,11 +235,11 @@ export default function PlannerSettingsPage() {
                     className="gap-1"
                   >
                     <Plus className="size-3" />
-                    Add
+                    {t("addAction")}
                   </Button>
                 </div>
                 <p className="text-[11px] text-muted-foreground">
-                  Press Enter or comma to add.
+                  {t("pressEnterOrComma")}
                 </p>
               </div>
             </div>
@@ -253,7 +254,7 @@ export default function PlannerSettingsPage() {
                 ) : (
                   <Save className="size-4" />
                 )}
-                Save business profile
+                {t("saveBusinessProfile")}
               </Button>
             </div>
           </div>
@@ -263,10 +264,10 @@ export default function PlannerSettingsPage() {
         <section className="mb-10 overflow-hidden rounded-2xl border border-rose-100/70 bg-white/80 backdrop-blur-sm">
           <div className="border-b border-rose-100/70 px-6 py-4">
             <h2 className="font-display text-lg font-medium tracking-tight">
-              Personal details
+              {t("personalDetails")}
             </h2>
             <p className="text-xs text-muted-foreground">
-              These show up alongside your messages.
+              {t("personalDetailsHint")}
             </p>
           </div>
           <div className="space-y-5 p-6">
@@ -275,7 +276,7 @@ export default function PlannerSettingsPage() {
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
                   src={avatarUrl}
-                  alt={fullName || "avatar"}
+                  alt={fullName || t("avatarFallbackAlt")}
                   className="size-16 rounded-full object-cover ring-1 ring-rose-200/60"
                 />
               ) : (
@@ -285,7 +286,7 @@ export default function PlannerSettingsPage() {
               )}
               <div>
                 <p className="font-display text-lg font-medium leading-tight tracking-tight">
-                  {fullName || "Your name"}
+                  {fullName || t("yourNameFallback")}
                 </p>
                 <p className="text-xs text-muted-foreground">
                   {profile?.email}
@@ -294,16 +295,16 @@ export default function PlannerSettingsPage() {
             </div>
             <div className="grid gap-4">
               <div className="space-y-1.5">
-                <Label htmlFor="full-name">Full name</Label>
+                <Label htmlFor="full-name">{t("fullNameLabel")}</Label>
                 <Input
                   id="full-name"
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
-                  placeholder="Your name"
+                  placeholder={t("yourNameFallback")}
                 />
               </div>
               <div className="space-y-1.5">
-                <Label htmlFor="email">Email</Label>
+                <Label htmlFor="email">{t("emailLabel")}</Label>
                 <Input
                   id="email"
                   value={profile?.email ?? ""}
@@ -312,16 +313,16 @@ export default function PlannerSettingsPage() {
                 />
               </div>
               <div className="space-y-1.5">
-                <Label htmlFor="phone">Phone</Label>
+                <Label htmlFor="phone">{t("phoneLabel")}</Label>
                 <Input
                   id="phone"
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
-                  placeholder="+20 …"
+                  placeholder={t("phonePlaceholder")}
                 />
               </div>
               <div className="space-y-1.5">
-                <Label htmlFor="avatar">Avatar URL</Label>
+                <Label htmlFor="avatar">{t("avatarUrlLabel")}</Label>
                 <Input
                   id="avatar"
                   value={avatarUrl}
@@ -341,7 +342,7 @@ export default function PlannerSettingsPage() {
                 ) : (
                   <Save className="size-4" />
                 )}
-                Save personal details
+                {t("savePersonalDetails")}
               </Button>
             </div>
           </div>
@@ -349,14 +350,14 @@ export default function PlannerSettingsPage() {
 
         <div className="space-y-3">
           <h2 className="font-display text-lg font-medium tracking-tight">
-            Account
+            {t("accountHeading")}
           </h2>
           <div className="rounded-2xl border border-rose-100/70 bg-white/70 p-4 backdrop-blur-sm">
             <div className="flex items-center justify-between gap-3">
               <div>
-                <p className="text-sm font-medium">Sign out</p>
+                <p className="text-sm font-medium">{t("signOut")}</p>
                 <p className="text-xs text-muted-foreground">
-                  End this session on this device.
+                  {t("signOutHint")}
                 </p>
               </div>
               <Button
@@ -366,17 +367,16 @@ export default function PlannerSettingsPage() {
                 className="gap-1"
               >
                 <LogOut className="size-3.5" />
-                Sign out
+                {t("signOut")}
               </Button>
             </div>
           </div>
           <div className="rounded-2xl border border-stone-200/70 bg-stone-50/50 p-4">
             <div className="flex items-center justify-between gap-3">
               <div>
-                <p className="text-sm font-medium">Delete account</p>
+                <p className="text-sm font-medium">{t("deleteAccount")}</p>
                 <p className="text-xs text-muted-foreground">
-                  Permanently remove your profile, portfolio, and all
-                  proposals. Reach out to support to complete this.
+                  {t("deleteAccountBody")}
                 </p>
               </div>
               <Button
@@ -386,7 +386,7 @@ export default function PlannerSettingsPage() {
                 className="gap-1 text-destructive hover:bg-destructive/10 hover:text-destructive"
               >
                 <Trash2 className="size-3.5" />
-                Contact support
+                {t("contactSupport")}
               </Button>
             </div>
           </div>

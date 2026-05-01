@@ -11,12 +11,12 @@ import {
   Sparkles,
   Star,
 } from "lucide-react";
-import { format } from "date-fns";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { Navbar } from "@/components/layout/navbar";
 import { cn } from "@/lib/utils";
 
+import { useFormatters } from "@/lib/use-formatters";
 function decimalToNumber(value: unknown): number {
   if (value == null) return 0;
   if (typeof value === "number") return value;
@@ -88,6 +88,7 @@ function styleTagsArray(value: unknown): string[] {
 
 export default function PublicPlannerProfilePage() {
   const params = useParams();
+  const f = useFormatters();
   const id = params.id as string;
   const { data: planner, isLoading, error } = trpc.planner.byId.useQuery({
     id,
@@ -107,7 +108,7 @@ export default function PublicPlannerProfilePage() {
             render={<Link href="/" />}
             className="mt-6"
           >
-            <ArrowLeft className="mr-1.5 size-3.5" />
+            <ArrowLeft className="me-1.5 size-3.5" />
             Back home
           </Button>
         </div>
@@ -139,7 +140,7 @@ export default function PublicPlannerProfilePage() {
         />
         <div
           aria-hidden
-          className="pointer-events-none absolute -top-40 left-1/2 -z-10 h-[28rem] w-[28rem] -translate-x-1/2 rounded-full bg-gradient-to-br from-rose-200/30 to-amber-200/20 blur-3xl"
+          className="pointer-events-none absolute -top-40 start-1/2 -z-10 h-[28rem] w-[28rem] -translate-x-1/2 rounded-full bg-gradient-to-br from-rose-200/30 to-amber-200/20 blur-3xl"
         />
 
         <div className="mx-auto max-w-5xl px-6 py-10 sm:py-14">
@@ -148,7 +149,7 @@ export default function PublicPlannerProfilePage() {
               variant="ghost"
               size="sm"
               render={<Link href="/" />}
-              className="-ml-2 gap-1 text-sm text-muted-foreground hover:text-foreground"
+              className="-ms-2 gap-1 text-sm text-muted-foreground hover:text-foreground"
             >
               <ArrowLeft className="size-3.5" />
               Back
@@ -331,7 +332,7 @@ export default function PublicPlannerProfilePage() {
                   <div>
                     <p className="font-display text-xl font-medium leading-none tracking-tight text-amber-900">
                       {rating.toFixed(1)}
-                      <span className="ml-1 text-sm font-light text-amber-700/70">
+                      <span className="ms-1 text-sm font-light text-amber-700/70">
                         / 5
                       </span>
                     </p>
@@ -381,7 +382,7 @@ export default function PublicPlannerProfilePage() {
                           {r.author.full_name}
                         </p>
                         <p className="text-[11px] text-muted-foreground">
-                          {format(new Date(r.created_at), "PPP")}
+                          {f.date(r.created_at, "long")}
                         </p>
                       </div>
                       <StarRow value={r.rating} size={3.5} />

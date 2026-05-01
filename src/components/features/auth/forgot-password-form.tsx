@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { CheckCircle2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -10,6 +11,7 @@ import { Label } from "@/components/ui/label";
 
 export function ForgotPasswordForm() {
   const supabase = createClient();
+  const t = useTranslations("auth");
   const [email, setEmail] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -49,11 +51,9 @@ export function ForgotPasswordForm() {
           </div>
         </div>
         <div className="space-y-2">
-          <h3 className="text-lg font-semibold">Check your email</h3>
+          <h3 className="text-lg font-semibold">{t("forgotSentTitle")}</h3>
           <p className="text-sm text-muted-foreground">
-            If an account exists for <strong>{email}</strong>, we&apos;ve sent a
-            link to reset your password. The link will expire shortly, so use
-            it soon.
+            {t("forgotSentLong", { email })}
           </p>
         </div>
         <p className="text-center text-sm text-muted-foreground">
@@ -61,7 +61,7 @@ export function ForgotPasswordForm() {
             href="/auth/signin"
             className="font-medium text-primary underline-offset-4 hover:underline"
           >
-            Back to sign in
+            {t("backToSignIn")}
           </Link>
         </p>
       </div>
@@ -72,7 +72,7 @@ export function ForgotPasswordForm() {
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="space-y-4">
         <div className="space-y-2">
-          <Label htmlFor="email">Email</Label>
+          <Label htmlFor="email">{t("email")}</Label>
           <Input
             id="email"
             type="email"
@@ -97,16 +97,16 @@ export function ForgotPasswordForm() {
       )}
 
       <Button type="submit" className="w-full" disabled={loading || !email}>
-        {loading ? "Sending link…" : "Send reset link"}
+        {loading ? t("sendingLink") : t("forgotButton")}
       </Button>
 
       <p className="text-center text-sm text-muted-foreground">
-        Remembered it?{" "}
+        {t("rememberedIt")}{" "}
         <Link
           href="/auth/signin"
           className="font-medium text-primary underline-offset-4 hover:underline"
         >
-          Sign in
+          {t("signIn")}
         </Link>
       </p>
     </form>

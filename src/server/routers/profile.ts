@@ -2,6 +2,9 @@ import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import { router, protectedProcedure } from "../trpc";
 import { prisma } from "@/lib/prisma";
+import { locales } from "@/i18n/config";
+
+const localeSchema = z.enum(locales);
 
 export const profileRouter = router({
   me: protectedProcedure.query(async ({ ctx }) => {
@@ -13,6 +16,7 @@ export const profileRouter = router({
         full_name: true,
         avatar_url: true,
         phone: true,
+        locale: true,
         created_at: true,
       },
     });
@@ -44,5 +48,19 @@ export const profileRouter = router({
           phone: true,
         },
       });
+    }),
+
+  // Persist the user's locale choice. The locale switcher writes the cookie
+  // first for an instant UX, then fires this mutation so the choice follows
+  // the user across browsers / devices.
+  setLocale: protectedProcedure
+    .input(z.object({ locale: localeSchema }))
+    .mutation(async ({ ctx, input }) => {
+      await prisma.profile.update({
+        where: { id: ctx.user.id },
+        data: { locale: input.locale },
+        select: { id: true },
+      });
+      return { ok: true };
     }),
 });

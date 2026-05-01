@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { format } from "date-fns";
 import {
   ArrowRight,
   Briefcase,
@@ -11,12 +10,19 @@ import {
   Star,
   Wallet,
 } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
-import { decimalToNumber, formatCurrency } from "@/lib/payments";
+import { decimalToNumber } from "@/lib/payments";
 
+import { useFormatters } from "@/lib/use-formatters";
 export default function VendorDashboardPage() {
   const me = trpc.vendors.me.useQuery();
+  const f = useFormatters();
+  const t = useTranslations("dashboard");
+  const tSidebar = useTranslations("sidebar.eyebrow");
+  const tSidebarLabel = useTranslations("sidebar");
+  const tVendor = useTranslations("vendor");
   const stats = trpc.vendors.stats.useQuery(undefined, {
     enabled: !!me.data,
   });
@@ -60,44 +66,50 @@ export default function VendorDashboardPage() {
       <div className="relative z-10 mx-auto max-w-6xl space-y-10 px-4 py-10 sm:px-6">
         <header className="space-y-2">
           <p className="text-[0.65rem] font-medium uppercase tracking-[0.3em] text-rose-700/80">
-            Vendor console
+            {tSidebar("vendor")}
           </p>
           <h1 className="font-display text-3xl font-light tracking-tight sm:text-4xl">
-            Welcome back, {firstName}
+            {t("vendorWelcome", { name: firstName })}
           </h1>
           <p className="text-sm text-muted-foreground">
-            Catalog, requests, releases, reviews — your whole shop in one view.
+            {t("vendorSubtitle")}
           </p>
         </header>
 
         <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           <Stat
-            label="Pending releases"
+            label={tVendor("pendingReleases")}
             tone="rose"
-            value={formatCurrency(balance.data?.pendingAmount ?? 0)}
-            hint={`${balance.data?.pendingCount ?? 0} awaiting payout`}
+            value={f.currency(balance.data?.pendingAmount ?? 0)}
+            hint={tVendor("pendingAwaitingPayout", {
+              count: balance.data?.pendingCount ?? 0,
+            })}
             icon={<Wallet className="size-4" />}
           />
           <Stat
-            label="Lifetime collected"
-            value={formatCurrency(balance.data?.lifetimePaidOut ?? 0)}
-            hint="Paid out off-platform"
+            label={tVendor("lifetimeCollected")}
+            value={f.currency(balance.data?.lifetimePaidOut ?? 0)}
+            hint={tVendor("paidOffPlatform")}
             icon={<CheckCircle2 className="size-4" />}
           />
           <Stat
-            label="Active engagements"
+            label={tVendor("activeEngagementsLabel")}
             value={String(stats.data?.activeEngagements ?? 0)}
-            hint={`${stats.data?.incomingRequests ?? 0} incoming requests`}
+            hint={tVendor("incomingRequestsCount", {
+              count: stats.data?.incomingRequests ?? 0,
+            })}
             icon={<Briefcase className="size-4" />}
           />
           <Stat
-            label="Reputation"
+            label={tVendor("reputation")}
             value={
               stats.data?.reviewCount
                 ? `${Number(stats.data.avgRating).toFixed(1)} ★`
-                : "No reviews yet"
+                : tVendor("noReviewsYet")
             }
-            hint={`${stats.data?.reviewCount ?? 0} reviews`}
+            hint={tVendor("reviewsCount", {
+              count: stats.data?.reviewCount ?? 0,
+            })}
             icon={<Star className="size-4" />}
           />
         </section>
@@ -107,24 +119,24 @@ export default function VendorDashboardPage() {
             <div className="flex items-center justify-between border-b border-rose-100/70 px-5 py-4">
               <div>
                 <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-rose-700/80">
-                  Inbox
+                  {tSidebarLabel("inbox")}
                 </p>
                 <p className="text-sm text-muted-foreground">
-                  Engagement requests waiting on you.
+                  {tVendor("inboxRequestsHint")}
                 </p>
               </div>
               <Link
                 href="/dashboard/vendor/inbox"
                 className="text-xs font-medium text-rose-700 hover:underline"
               >
-                Open inbox
+                {tVendor("openInbox")}
               </Link>
             </div>
             {requested.length === 0 ? (
               <div className="px-5 py-12 text-center">
                 <Inbox className="mx-auto mb-2 size-6 text-rose-500" />
                 <p className="text-sm text-muted-foreground">
-                  No new requests right now.
+                  {tVendor("noNewRequests")}
                 </p>
               </div>
             ) : (
@@ -146,13 +158,13 @@ export default function VendorDashboardPage() {
                             {e.event.event_date && (
                               <>
                                 {" · "}
-                                {format(new Date(e.event.event_date), "PP")}
+                                {f.date(e.event.event_date, "medium")}
                               </>
                             )}
                           </p>
                         </div>
                         <span className="font-mono text-sm tabular-nums">
-                          {formatCurrency(
+                          {f.currency(
                             decimalToNumber(e.total_amount),
                             e.currency,
                           )}
@@ -169,12 +181,12 @@ export default function VendorDashboardPage() {
             <div className="rounded-2xl border border-rose-100/70 bg-white/80 backdrop-blur-sm">
               <div className="border-b border-rose-100/70 px-5 py-4">
                 <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-rose-700/80">
-                  Active engagements
+                  {tVendor("activeEngagementsLabel")}
                 </p>
               </div>
               {active.length === 0 ? (
                 <div className="px-5 py-8 text-center text-sm text-muted-foreground">
-                  Nothing active yet.
+                  {tVendor("nothingActiveYet")}
                 </div>
               ) : (
                 <ul className="divide-y divide-rose-100/70">
@@ -200,12 +212,12 @@ export default function VendorDashboardPage() {
             <div className="rounded-2xl border border-rose-100/70 bg-white/80 backdrop-blur-sm">
               <div className="border-b border-rose-100/70 px-5 py-4">
                 <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-rose-700/80">
-                  Recent reviews
+                  {tVendor("recentReviews")}
                 </p>
               </div>
               {recentReviews.length === 0 ? (
                 <div className="px-5 py-8 text-center text-sm text-muted-foreground">
-                  No reviews yet — completed engagements unlock them.
+                  {tVendor("noReviewsCompleted")}
                 </div>
               ) : (
                 <ul className="divide-y divide-rose-100/70">
@@ -277,23 +289,24 @@ function Stat({
 }
 
 function VendorSetupNeeded() {
+  const tVendor = useTranslations("vendor");
   return (
     <div className="mx-auto max-w-2xl space-y-6 px-4 py-16 text-center sm:px-6">
       <div className="inline-flex size-12 items-center justify-center rounded-full bg-gradient-to-br from-rose-500 to-amber-500 text-white">
         <Sparkles className="size-5" />
       </div>
       <h1 className="font-display text-3xl font-light tracking-tight">
-        Set up your vendor profile
+        {tVendor("vendorSetupTitle")}
       </h1>
       <p className="text-sm text-muted-foreground">
-        Tell planners who you are, what you do, and how to reach you. Then list
-        your catalog and start receiving engagement requests.
+        {tVendor("vendorSetupBody")}
       </p>
       <Button
         render={<Link href="/dashboard/vendor/profile" />}
         className="gap-1.5 bg-gradient-to-r from-rose-600 to-amber-500 text-white"
       >
-        Get started <ArrowRight className="size-4" />
+        {tVendor("getStarted")}{" "}
+        <ArrowRight className="size-4 rtl:-scale-x-100" />
       </Button>
     </div>
   );

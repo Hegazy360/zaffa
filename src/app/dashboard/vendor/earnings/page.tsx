@@ -1,10 +1,17 @@
 "use client";
 
 import Link from "next/link";
-import { format } from "date-fns";
 import { HandCoins, Loader2, Wallet } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { trpc } from "@/lib/trpc";
-import { decimalToNumber, formatCurrency } from "@/lib/payments";
+import { decimalToNumber } from "@/lib/payments";
+
+import { useFormatters } from "@/lib/use-formatters";
+const RELEASE_STATUS_KEY: Record<string, string> = {
+  pending: "releaseStatusPending",
+  paid: "releaseStatusPaid",
+  cancelled: "releaseStatusCancelled",
+};
 
 const RELEASE_TONE: Record<string, string> = {
   pending: "bg-amber-100 text-amber-900",
@@ -14,6 +21,8 @@ const RELEASE_TONE: Record<string, string> = {
 
 export default function VendorEarningsPage() {
   const balance = trpc.vendorReleases.vendorBalance.useQuery();
+  const f = useFormatters();
+  const t = useTranslations("vendor");
   const releases = trpc.vendorReleases.forVendor.useQuery();
 
   if (balance.isLoading) {
@@ -39,42 +48,45 @@ export default function VendorEarningsPage() {
       <div className="relative z-10 mx-auto max-w-5xl space-y-8 px-4 py-10 sm:px-6">
         <header>
           <p className="mb-1 text-[0.65rem] font-medium uppercase tracking-[0.3em] text-rose-700/80">
-            Earnings
+            {t("earningsLabel")}
           </p>
           <h1 className="font-display text-3xl font-light tracking-tight">
-            Releases & payouts
+            {t("earningsTitle")}
           </h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            What planners owe you, what we&apos;ve paid out off-platform.
+            {t("earningsSubtitle")}
           </p>
         </header>
 
         <div className="grid gap-3 sm:grid-cols-3">
           <Stat
-            label="Pending releases"
+            label={t("pendingReleases")}
             tone="rose"
-            value={formatCurrency(balance.data.pendingAmount, currency)}
-            hint={`${balance.data.pendingCount} awaiting payout`}
+            value={f.currency(balance.data.pendingAmount, currency)}
+            hint={t("pendingAwaitingPayout", {
+              count: balance.data.pendingCount,
+            })}
           />
           <Stat
-            label="Lifetime released"
-            value={formatCurrency(balance.data.lifetimeReleased, currency)}
-            hint={`${balance.data.lifetimeReleasedCount} releases`}
+            label={t("lifetimeReleased")}
+            value={f.currency(balance.data.lifetimeReleased, currency)}
+            hint={t("releasesCount", {
+              count: balance.data.lifetimeReleasedCount,
+            })}
           />
           <Stat
-            label="Paid out"
-            value={formatCurrency(balance.data.lifetimePaidOut, currency)}
+            label={t("paidOut")}
+            value={f.currency(balance.data.lifetimePaidOut, currency)}
           />
         </div>
 
         <section className="rounded-2xl border border-rose-100/70 bg-white/85 backdrop-blur-sm">
           <div className="border-b border-rose-100/70 px-5 py-3">
             <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-rose-700/80">
-              Pending releases
+              {t("pendingReleases")}
             </p>
             <p className="text-xs text-muted-foreground">
-              Money planners have earmarked for you. Admin will record an
-              off-platform payout once it&apos;s in your hands.
+              {t("pendingReleasesHint")}
             </p>
           </div>
           {releases.isLoading ? (
@@ -85,7 +97,7 @@ export default function VendorEarningsPage() {
             <div className="px-5 py-12 text-center">
               <Wallet className="mx-auto mb-2 size-6 text-rose-500" />
               <p className="text-sm text-muted-foreground">
-                No pending releases.
+                {t("noPendingReleases")}
               </p>
             </div>
           ) : (
@@ -107,7 +119,9 @@ export default function VendorEarningsPage() {
                       {" · "}
                       {r.planner.business_name}
                       {" · "}
-                      Requested {format(new Date(r.requested_at), "PP")}
+                      {t("releaseRequestedDate", {
+                        date: f.date(r.requested_at, "medium"),
+                      })}
                     </p>
                   </div>
                   <div className="flex items-center gap-3">
@@ -116,10 +130,12 @@ export default function VendorEarningsPage() {
                         RELEASE_TONE[r.status]
                       }`}
                     >
-                      {r.status}
+                      {RELEASE_STATUS_KEY[r.status]
+                        ? t(RELEASE_STATUS_KEY[r.status])
+                        : r.status}
                     </span>
                     <span className="font-mono tabular-nums">
-                      {formatCurrency(decimalToNumber(r.amount), r.currency)}
+                      {f.currency(decimalToNumber(r.amount), r.currency)}
                     </span>
                   </div>
                 </li>
@@ -131,16 +147,16 @@ export default function VendorEarningsPage() {
         <section className="rounded-2xl border border-rose-100/70 bg-white/85 backdrop-blur-sm">
           <div className="border-b border-rose-100/70 px-5 py-3">
             <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-rose-700/80">
-              Paid releases
+              {t("paidReleases")}
             </p>
             <p className="text-xs text-muted-foreground">
-              Already in your hands.
+              {t("paidReleasesHint")}
             </p>
           </div>
           {paid.length === 0 ? (
             <div className="px-5 py-12 text-center">
               <HandCoins className="mx-auto mb-2 size-6 text-rose-500" />
-              <p className="text-sm text-muted-foreground">No paid releases yet.</p>
+              <p className="text-sm text-muted-foreground">{t("noPaidReleases")}</p>
             </div>
           ) : (
             <ul className="divide-y divide-rose-100/70">
@@ -161,12 +177,17 @@ export default function VendorEarningsPage() {
                       {" · "}
                       {r.planner.business_name}
                       {r.paid_at && (
-                        <> · Paid {format(new Date(r.paid_at), "PP")}</>
+                        <>
+                          {" · "}
+                          {t("releasePaidDate", {
+                            date: f.date(r.paid_at, "medium"),
+                          })}
+                        </>
                       )}
                     </p>
                   </div>
                   <span className="font-mono tabular-nums">
-                    {formatCurrency(decimalToNumber(r.amount), r.currency)}
+                    {f.currency(decimalToNumber(r.amount), r.currency)}
                   </span>
                 </li>
               ))}

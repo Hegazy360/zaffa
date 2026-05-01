@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { format } from "date-fns";
 import { toast } from "sonner";
 import {
   ArrowUpRight,
@@ -10,16 +9,20 @@ import {
   Sparkles,
   Wallet,
 } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
-import { decimalToNumber, formatCurrency } from "@/lib/payments";
+import { decimalToNumber } from "@/lib/payments";
 
+import { useFormatters } from "@/lib/use-formatters";
 export default function PlannerEarningsPage() {
+  const t = useTranslations("planner");
   const balance = trpc.payouts.plannerBalance.useQuery();
+  const f = useFormatters();
   const pending = trpc.payouts.pendingInstallments.useQuery();
   const history = trpc.payouts.payoutHistory.useQuery();
   const requestPayout = trpc.payouts.requestPayout.useMutation({
-    onSuccess: () => toast.success("Payout requested. We'll be in touch."),
+    onSuccess: () => toast.success(t("payoutRequestedToast")),
     onError: (e) => toast.error(e.message),
   });
 
@@ -40,49 +43,48 @@ export default function PlannerEarningsPage() {
     <div className="mx-auto max-w-5xl space-y-8 px-4 py-8 sm:px-6">
       <header>
         <p className="mb-1 text-[0.65rem] font-medium uppercase tracking-[0.3em] text-rose-700/80">
-          Earnings
+          {t("earningsEyebrow")}
         </p>
         <h1 className="font-display text-3xl font-light tracking-tight">
-          Your money flow
+          {t("earningsTitle")}
         </h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Every paid installment, the platform&apos;s cut, and what we owe you.
+          {t("earningsSubtitle")}
         </p>
       </header>
 
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         <Stat
-          label="Available now"
+          label={t("statAvailableNow")}
           tone="rose"
-          value={formatCurrency(balance.data.availableNow, currency)}
-          hint="Free to allocate to vendors"
+          value={f.currency(balance.data.availableNow, currency)}
+          hint={t("statAvailableNowHint")}
         />
         <Stat
-          label="Accrued (lifetime net)"
-          value={formatCurrency(balance.data.accrued, currency)}
-          hint={`Collected gross ${formatCurrency(
-            balance.data.lifetimeCollected,
-            currency,
-          )}`}
+          label={t("statAccrued")}
+          value={f.currency(balance.data.accrued, currency)}
+          hint={t("statAccruedHint", {
+            amount: f.currency(balance.data.lifetimeCollected, currency),
+          })}
         />
         <Stat
-          label="Pending payout"
-          value={formatCurrency(balance.data.pendingNet, currency)}
-          hint={`Across ${pending.data?.length ?? 0} paid installments`}
+          label={t("statPendingPayout")}
+          value={f.currency(balance.data.pendingNet, currency)}
+          hint={t("statPendingPayoutHint", { count: pending.data?.length ?? 0 })}
         />
         <Stat
-          label="Paid out to you"
-          value={formatCurrency(balance.data.paidOutSelf, currency)}
+          label={t("statPaidOutSelf")}
+          value={f.currency(balance.data.paidOutSelf, currency)}
         />
         <Stat
-          label="Paid out to vendors"
-          value={formatCurrency(balance.data.paidOutVendors, currency)}
-          hint="Released and admin-paid"
+          label={t("statPaidOutVendors")}
+          value={f.currency(balance.data.paidOutVendors, currency)}
+          hint={t("statPaidOutVendorsHint")}
         />
         <Stat
-          label="Committed to vendors"
-          value={formatCurrency(balance.data.committedToVendors, currency)}
-          hint="Pending releases"
+          label={t("statCommittedVendors")}
+          value={f.currency(balance.data.committedToVendors, currency)}
+          hint={t("statCommittedVendorsHint")}
         />
       </div>
 
@@ -90,10 +92,10 @@ export default function PlannerEarningsPage() {
         <div className="flex items-center justify-between border-b border-rose-100/70 px-5 py-3">
           <div>
             <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-rose-700/80">
-              Awaiting payout
+              {t("awaitingPayout")}
             </p>
             <p className="text-sm text-muted-foreground">
-              Paid installments that haven&apos;t been paid out to you yet.
+              {t("awaitingPayoutHint")}
             </p>
           </div>
           <Button
@@ -108,7 +110,7 @@ export default function PlannerEarningsPage() {
             ) : (
               <Sparkles className="size-4" />
             )}
-            Request payout
+            {t("requestPayout")}
           </Button>
         </div>
         {pending.isLoading ? (
@@ -119,8 +121,7 @@ export default function PlannerEarningsPage() {
           <div className="px-5 py-12 text-center">
             <Wallet className="mx-auto mb-2 size-6 text-rose-500" />
             <p className="text-sm text-muted-foreground">
-              No pending balance — paid installments will show up here as
-              clients pay.
+              {t("noPendingBalance")}
             </p>
           </div>
         ) : (
@@ -140,21 +141,28 @@ export default function PlannerEarningsPage() {
                       {p.event.title}
                     </Link>
                     {p.paid_at && (
-                      <span className="ml-2 text-foreground/60">
-                        Paid {format(new Date(p.paid_at), "PP")}
+                      <span className="ms-2 text-foreground/60">
+                        {t("paidOnLabel", {
+                          date: f.date(p.paid_at, "medium"),
+                        })}
                       </span>
                     )}
                   </p>
                 </div>
                 <div className="flex shrink-0 flex-col items-end">
                   <span className="font-mono tabular-nums">
-                    {formatCurrency(
+                    {f.currency(
                       decimalToNumber(p.net_to_planner_amount),
                       p.currency
                     )}
                   </span>
                   <span className="text-[10px] text-muted-foreground">
-                    Gross {formatCurrency(decimalToNumber(p.amount), p.currency)}
+                    {t("grossLabel", {
+                      amount: f.currency(
+                        decimalToNumber(p.amount),
+                        p.currency,
+                      ),
+                    })}
                   </span>
                 </div>
               </li>
@@ -166,10 +174,10 @@ export default function PlannerEarningsPage() {
       <div className="rounded-2xl border border-rose-100/70 bg-white/80 backdrop-blur-sm">
         <div className="border-b border-rose-100/70 px-5 py-3">
           <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-rose-700/80">
-            Payout history
+            {t("payoutHistory")}
           </p>
           <p className="text-sm text-muted-foreground">
-            Off-Stripe transfers we&apos;ve recorded to you.
+            {t("payoutHistoryHint")}
           </p>
         </div>
         {history.isLoading ? (
@@ -179,7 +187,7 @@ export default function PlannerEarningsPage() {
         ) : (history.data?.length ?? 0) === 0 ? (
           <div className="px-5 py-12 text-center">
             <HandCoins className="mx-auto mb-2 size-6 text-rose-500" />
-            <p className="text-sm text-muted-foreground">No payouts yet.</p>
+            <p className="text-sm text-muted-foreground">{t("noPayoutsYet")}</p>
           </div>
         ) : (
           <ul className="divide-y divide-rose-100/70">
@@ -190,15 +198,15 @@ export default function PlannerEarningsPage() {
               >
                 <div className="min-w-0">
                   <p className="font-medium">
-                    {format(new Date(p.paid_at), "PP")} ·{" "}
+                    {f.date(p.paid_at, "medium")} ·{" "}
                     <span className="capitalize text-foreground/80">
                       {p.method}
                     </span>
                   </p>
                   <p className="truncate text-xs text-muted-foreground">
-                    {p.installments.length} installments
+                    {t("installmentsCount", { count: p.installments.length })}
                     {p.reference && (
-                      <span className="ml-2 inline-flex items-center gap-1">
+                      <span className="ms-2 inline-flex items-center gap-1">
                         <ArrowUpRight className="size-3" />
                         {p.reference}
                       </span>
@@ -206,7 +214,7 @@ export default function PlannerEarningsPage() {
                   </p>
                 </div>
                 <span className="font-mono tabular-nums">
-                  {formatCurrency(decimalToNumber(p.amount), p.currency)}
+                  {f.currency(decimalToNumber(p.amount), p.currency)}
                 </span>
               </li>
             ))}

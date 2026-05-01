@@ -1,16 +1,18 @@
 import Link from "next/link";
+import { getTranslations } from "next-intl/server";
 
-export default function AdminHome() {
+export default async function AdminHome() {
+  const t = await getTranslations("admin");
   return (
     <div className="mx-auto max-w-3xl px-4 py-12 sm:px-6">
       <p className="mb-1 text-[0.65rem] font-medium uppercase tracking-[0.3em] text-rose-700/80">
-        Admin
+        {t("eyebrow")}
       </p>
       <h1 className="font-display text-3xl font-light tracking-tight">
-        Operations console
+        {t("operationsConsole")}
       </h1>
       <p className="mt-2 text-sm text-muted-foreground">
-        Tools for keeping the platform honest. Choose where you want to start.
+        {t("operationsConsoleSubtitle")}
       </p>
 
       <div className="mt-8 grid gap-3 sm:grid-cols-2">
@@ -19,10 +21,10 @@ export default function AdminHome() {
           className="rounded-2xl border border-rose-100/70 bg-white/80 p-5 transition hover:border-rose-300 hover:shadow-sm"
         >
           <p className="font-display text-lg font-light tracking-tight">
-            Planner payouts
+            {t("plannerPayoutsTitle")}
           </p>
           <p className="mt-1 text-sm text-muted-foreground">
-            Planner balances and recording manual payouts.
+            {t("plannerPayoutsHint")}
           </p>
         </Link>
         <Link
@@ -30,10 +32,10 @@ export default function AdminHome() {
           className="rounded-2xl border border-rose-100/70 bg-white/80 p-5 transition hover:border-rose-300 hover:shadow-sm"
         >
           <p className="font-display text-lg font-light tracking-tight">
-            Vendor payouts
+            {t("vendorPayoutsTitle")}
           </p>
           <p className="mt-1 text-sm text-muted-foreground">
-            Releases planners committed, ready to pay vendors off-platform.
+            {t("vendorPayoutsHint")}
           </p>
         </Link>
       </div>

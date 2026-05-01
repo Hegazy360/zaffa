@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { format } from "date-fns";
 import { toast } from "sonner";
 import {
   AlertCircle,
@@ -16,9 +15,11 @@ import {
   RotateCcw,
   XCircle,
 } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
-import { computeFee, decimalToNumber, formatCurrency } from "@/lib/payments";
+import { computeFee, decimalToNumber } from "@/lib/payments";
+import { useFormatters } from "@/lib/use-formatters";
 import { cn } from "@/lib/utils";
 import { AmendmentDialog } from "./AmendmentDialog";
 
@@ -37,18 +38,29 @@ interface InstallmentLike {
   schedule_id: string | null;
 }
 
-const STATUS_LABELS: Record<
+const STATUS_TONE: Record<
   string,
-  { label: string; tone: "rose" | "emerald" | "amber" | "stone" | "red" }
+  "rose" | "emerald" | "amber" | "stone" | "red"
 > = {
-  pending: { label: "Pending", tone: "rose" },
-  awaiting_payment: { label: "Awaiting payment", tone: "amber" },
-  processing: { label: "Processing", tone: "amber" },
-  paid: { label: "Paid", tone: "emerald" },
-  refunded: { label: "Refunded", tone: "stone" },
-  failed: { label: "Failed", tone: "red" },
-  overdue: { label: "Overdue", tone: "red" },
-  cancelled: { label: "Cancelled", tone: "stone" },
+  pending: "rose",
+  awaiting_payment: "amber",
+  processing: "amber",
+  paid: "emerald",
+  refunded: "stone",
+  failed: "red",
+  overdue: "red",
+  cancelled: "stone",
+};
+
+const STATUS_LABEL_KEY: Record<string, string> = {
+  pending: "statusPending",
+  awaiting_payment: "statusAwaitingPayment",
+  processing: "statusProcessing",
+  paid: "statusPaid",
+  refunded: "statusRefunded",
+  failed: "statusFailed",
+  overdue: "statusOverdue",
+  cancelled: "statusCancelled",
 };
 
 const TONE_CLASS: Record<string, string> = {
@@ -69,7 +81,9 @@ export function SchedulePanel({
   /** When set, polls until the matching installment flips out of awaiting. */
   paidQueryParam?: string | null;
 }) {
+  const t = useTranslations("payments");
   const utils = trpc.useUtils();
+  const f = useFormatters();
   const [showFee, setShowFee] = useState(side === "planner");
   const [amendOpen, setAmendOpen] = useState(false);
   const [pollingInstallmentId, setPollingInstallmentId] = useState<
@@ -141,12 +155,12 @@ export function SchedulePanel({
       <div className="rounded-2xl border border-dashed border-rose-200/70 bg-white/40 px-6 py-12 text-center">
         <CreditCard className="mx-auto mb-3 size-7 text-rose-500" />
         <p className="font-display text-lg font-light tracking-tight">
-          No payment plan yet
+          {t("noPlanTitle")}
         </p>
         <p className="mt-1 text-sm text-muted-foreground">
           {side === "planner"
-            ? "Add a payment plan to your proposal so the couple can confirm it on accept."
-            : "The planner hasn't shared a payment plan yet."}
+            ? t("noPlanPlannerHint")
+            : t("noPlanClientHint")}
         </p>
       </div>
     );
@@ -177,9 +191,9 @@ export function SchedulePanel({
   return (
     <div className="space-y-4">
       <div className="grid gap-3 sm:grid-cols-3">
-        <SummaryStat label="Total" value={formatCurrency(total, currency)} />
-        <SummaryStat label="Paid" value={formatCurrency(paid, currency)} />
-        <SummaryStat label="Owed" value={formatCurrency(owed, currency)} />
+        <SummaryStat label={t("summaryTotal")} value={f.currency(total, currency)} />
+        <SummaryStat label={t("summaryPaid")} value={f.currency(paid, currency)} />
+        <SummaryStat label={t("summaryOwed")} value={f.currency(owed, currency)} />
       </div>
 
       {pendingAmendment && (
@@ -211,13 +225,10 @@ export function SchedulePanel({
         <div className="flex items-center justify-between gap-3 border-b border-rose-100/70 px-5 py-3">
           <div>
             <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-rose-700/80">
-              Payment plan
+              {t("planEyebrow")}
             </p>
             <p className="text-xs text-muted-foreground">
-              Status:{" "}
-              <span className="font-medium text-foreground">
-                {scheduleStatusLabel(schedule.status)}
-              </span>
+              {t("statusLine", { label: scheduleStatusLabel(schedule.status, t) })}
             </p>
           </div>
           <div className="flex items-center gap-2">
@@ -230,11 +241,11 @@ export function SchedulePanel({
               >
                 {showFee ? (
                   <>
-                    <EyeOff className="size-3" /> Hide take-home
+                    <EyeOff className="size-3" /> {t("hideTakeHome")}
                   </>
                 ) : (
                   <>
-                    <Eye className="size-3" /> Show take-home
+                    <Eye className="size-3" /> {t("showTakeHome")}
                   </>
                 )}
               </Button>
@@ -248,7 +259,7 @@ export function SchedulePanel({
                   className="h-7 gap-1.5 text-xs"
                 >
                   <Pencil className="size-3" />
-                  Propose amendment
+                  {t("proposeAmendment")}
                 </Button>
               )}
           </div>
@@ -257,7 +268,7 @@ export function SchedulePanel({
         {installments.length === 0 ? (
           <div className="px-5 py-12 text-center">
             <p className="text-sm text-muted-foreground">
-              No installments on this schedule.
+              {t("noInstallments")}
             </p>
           </div>
         ) : (
@@ -269,7 +280,8 @@ export function SchedulePanel({
                 p.net_to_planner_amount != null
                   ? decimalToNumber(p.net_to_planner_amount)
                   : amount - fee;
-              const statusInfo = STATUS_LABELS[p.status] ?? STATUS_LABELS.pending;
+              const tone = STATUS_TONE[p.status] ?? "rose";
+              const statusKey = STATUS_LABEL_KEY[p.status] ?? "statusPending";
               const isPayable =
                 side === "client" &&
                 (p.status === "pending" || p.status === "failed") &&
@@ -290,18 +302,20 @@ export function SchedulePanel({
                       {p.due_date && (
                         <span className="inline-flex items-center gap-1">
                           <Clock className="size-3" />
-                          Due {format(new Date(p.due_date), "PP")}
+                          {t("due", { date: f.date(p.due_date) })}
                         </span>
                       )}
                       {p.paid_at && (
                         <span className="inline-flex items-center gap-1 text-emerald-700">
                           <Check className="size-3" />
-                          Paid {format(new Date(p.paid_at), "PP")}
+                          {t("paidOn", { date: f.date(p.paid_at) })}
                         </span>
                       )}
                       {side === "planner" && showFee && p.status === "paid" && (
                         <span className="inline-flex items-center gap-1 text-foreground/70">
-                          Take-home {formatCurrency(net, p.currency)}
+                          {t("takeHomeAmount", {
+                            amount: f.currency(net, p.currency),
+                          })}
                         </span>
                       )}
                       {side === "planner" &&
@@ -309,28 +323,29 @@ export function SchedulePanel({
                         p.status !== "paid" &&
                         p.status !== "refunded" && (
                           <span className="text-foreground/60">
-                            ≈ {formatCurrency(amount - fee, p.currency)} after
-                            fee
+                            {t("afterFee", {
+                              amount: f.currency(amount - fee, p.currency),
+                            })}
                           </span>
                         )}
                       {side === "planner" && p.payout_id && (
                         <span className="inline-flex items-center gap-1 rounded-full bg-stone-100 px-1.5 py-0 text-[10px] uppercase tracking-wide text-stone-600">
-                          Paid out
+                          {t("paidOut")}
                         </span>
                       )}
                     </p>
                   </div>
                   <div className="flex shrink-0 items-center gap-3">
                     <span className="text-sm font-medium tabular-nums">
-                      {formatCurrency(amount, p.currency)}
+                      {f.currency(amount, p.currency)}
                     </span>
                     <span
                       className={cn(
                         "inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide ring-1",
-                        TONE_CLASS[statusInfo.tone]
+                        TONE_CLASS[tone]
                       )}
                     >
-                      {statusInfo.label}
+                      {t(statusKey)}
                     </span>
                     {isPayable && !isAwaiting && (
                       <Button
@@ -347,13 +362,13 @@ export function SchedulePanel({
                         ) : (
                           <CreditCard className="size-3" />
                         )}
-                        Pay now
+                        {t("payNow")}
                       </Button>
                     )}
                     {isAwaiting && (
                       <span className="inline-flex items-center gap-1 text-xs text-amber-700">
                         <Loader2 className="size-3 animate-spin" />
-                        Waiting for payment
+                        {t("waitingForPayment")}
                       </span>
                     )}
                   </div>
@@ -389,20 +404,23 @@ function SummaryStat({ label, value }: { label: string; value: string }) {
   );
 }
 
-function scheduleStatusLabel(status: string): string {
+function scheduleStatusLabel(
+  status: string,
+  t: (key: string) => string
+): string {
   switch (status) {
     case "draft":
-      return "Draft";
+      return t("scheduleStatusDraft");
     case "proposed":
-      return "Awaiting client confirmation";
+      return t("scheduleStatusProposed");
     case "active":
-      return "Active";
+      return t("scheduleStatusActive");
     case "amended":
-      return "Active (amended)";
+      return t("scheduleStatusAmended");
     case "completed":
-      return "Completed";
+      return t("scheduleStatusCompleted");
     case "cancelled":
-      return "Cancelled";
+      return t("scheduleStatusCancelled");
     default:
       return status;
   }
@@ -446,6 +464,8 @@ function PendingAmendmentBanner({
   deciding: boolean;
   mineGuess: boolean;
 }) {
+  const t = useTranslations("payments");
+  const f = useFormatters();
   const proposed = Array.isArray(amendment.proposed_installments)
     ? (amendment.proposed_installments as Array<{
         label: string;
@@ -462,7 +482,7 @@ function PendingAmendmentBanner({
         <AlertCircle className="mt-0.5 size-4 shrink-0 text-amber-700" />
         <div className="min-w-0 flex-1">
           <p className="font-medium text-amber-900">
-            Pending amendment to the payment plan
+            {t("pendingAmendmentTitle")}
           </p>
           {amendment.reason && (
             <p className="mt-1 text-sm italic text-amber-900/85">
@@ -477,28 +497,26 @@ function PendingAmendmentBanner({
               >
                 <span>
                   {p.label}
-                  {p.due_date
-                    ? ` · ${format(new Date(p.due_date), "PP")}`
-                    : ""}
+                  {p.due_date ? ` · ${f.date(p.due_date)}` : ""}
                 </span>
                 <span className="font-mono tabular-nums">
-                  {formatCurrency(p.amount, schedule.currency)}
+                  {f.currency(p.amount, schedule.currency)}
                 </span>
               </li>
             ))}
             <li className="flex items-center justify-between gap-3 border-t border-amber-200 pt-1 text-amber-950">
-              <span className="font-medium">New total</span>
+              <span className="font-medium">{t("newTotal")}</span>
               <span className="font-mono font-medium tabular-nums">
-                {formatCurrency(proposedTotal, schedule.currency)}
+                {f.currency(proposedTotal, schedule.currency)}
                 {delta !== 0 && (
                   <span
                     className={cn(
-                      "ml-2 text-xs",
+                      "ms-2 text-xs",
                       delta > 0 ? "text-emerald-700" : "text-rose-700"
                     )}
                   >
                     ({delta > 0 ? "+" : ""}
-                    {formatCurrency(delta, schedule.currency)})
+                    {f.currency(delta, schedule.currency)})
                   </span>
                 )}
               </span>
@@ -515,7 +533,7 @@ function PendingAmendmentBanner({
                   className="h-7 gap-1.5 bg-emerald-600 text-xs text-white hover:bg-emerald-700"
                 >
                   <CheckCircle2 className="size-3" />
-                  Accept
+                  {t("accept")}
                 </Button>
                 <Button
                   size="sm"
@@ -525,7 +543,7 @@ function PendingAmendmentBanner({
                   className="h-7 gap-1.5 text-xs"
                 >
                   <XCircle className="size-3" />
-                  Reject
+                  {t("reject")}
                 </Button>
               </>
             ) : (
@@ -537,13 +555,13 @@ function PendingAmendmentBanner({
                 className="h-7 gap-1.5 text-xs"
               >
                 <RotateCcw className="size-3" />
-                Withdraw request
+                {t("withdrawRequest")}
               </Button>
             )}
             <p className="text-xs text-amber-900/70">
               {side === "planner"
-                ? "The other party requested or you can decide here."
-                : "The other party requested this change."}
+                ? t("otherPartyRequestedPlanner")
+                : t("otherPartyRequestedClient")}
             </p>
           </div>
         </div>

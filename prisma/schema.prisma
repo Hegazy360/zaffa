@@ -123,6 +123,10 @@ model Profile {
   full_name  String
   avatar_url String?
   phone      String?
+  // Two-letter locale ("en", "ar"). Persisted server-side so the choice
+  // follows the user across devices. Middleware seeds the cookie from
+  // Accept-Language for anonymous visitors.
+  locale     String   @default("en")
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
 

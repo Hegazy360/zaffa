@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { motion, useReducedMotion } from "framer-motion";
 import { useRef } from "react";
+import { useTranslations } from "next-intl";
 import { ArrowRight, Sparkles, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useParallax } from "./parallax";
@@ -26,6 +27,7 @@ const HERO_IMAGES = {
 export function HeroEditorial() {
   const sectionRef = useRef<HTMLElement>(null);
   const reduce = useReducedMotion();
+  const t = useTranslations("marketing");
 
   const yPrimary = useParallax(sectionRef, [60, -60]);
   const ySecondary = useParallax(sectionRef, [-40, 40]);
@@ -42,7 +44,7 @@ export function HeroEditorial() {
       />
       <div
         aria-hidden
-        className="pointer-events-none absolute -top-40 -right-32 h-[36rem] w-[36rem] rounded-full bg-gradient-to-br from-rose-200/40 to-amber-200/30 blur-3xl dark:from-rose-900/20 dark:to-amber-900/10"
+        className="pointer-events-none absolute -top-40 -end-32 h-[36rem] w-[36rem] rounded-full bg-gradient-to-br from-rose-200/40 to-amber-200/30 blur-3xl dark:from-rose-900/20 dark:to-amber-900/10"
       />
 
       <div className="container relative mx-auto grid max-w-7xl grid-cols-1 gap-10 px-4 pt-20 pb-24 md:pt-28 md:pb-32 lg:grid-cols-12 lg:gap-16">
@@ -54,7 +56,7 @@ export function HeroEditorial() {
             className="mb-6 inline-flex w-fit items-center gap-2 rounded-full border border-rose-200/60 bg-white/60 px-4 py-1.5 text-xs uppercase tracking-[0.18em] text-rose-700 backdrop-blur-md dark:border-rose-900/40 dark:bg-rose-950/30 dark:text-rose-200"
           >
             <Sparkles className="h-3.5 w-3.5" />
-            Egypt&rsquo;s premier event atelier
+            {t("heroEyebrow")}
           </motion.div>
 
           <motion.h1
@@ -63,15 +65,15 @@ export function HeroEditorial() {
             transition={{ duration: reduce ? 0 : 0.9, delay: 0.05 }}
             className="font-display text-balance text-[clamp(2.75rem,7vw,6rem)] font-light leading-[0.95] tracking-tight"
           >
-            Your{" "}
+            {t("heroTitlePart1")}{" "}
             <span className="font-arabic font-medium text-rose-600 dark:text-rose-300">
-              زفّة
+              {t("heroZaffa")}
             </span>
             ,
             <br />
-            <span className="italic">expertly</span>{" "}
+            <span className="italic">{t("heroTitlePart2Italic")}</span>{" "}
             <span className="bg-gradient-to-br from-rose-600 via-rose-500 to-amber-500 bg-clip-text text-transparent">
-              imagined.
+              {t("heroTitlePart2Tail")}
             </span>
           </motion.h1>
 
@@ -81,9 +83,7 @@ export function HeroEditorial() {
             transition={{ duration: reduce ? 0 : 0.7, delay: 0.15 }}
             className="mt-6 max-w-xl text-pretty text-base text-muted-foreground md:text-lg"
           >
-            From a quiet color story to a candlelit cathedral, Zaffa pairs you
-            with Egypt&rsquo;s finest planners, vendors, and AI atelier &mdash;
-            so every detail of your day feels inevitable.
+            {t("heroSubtitle")}
           </motion.p>
 
           <motion.div
@@ -97,8 +97,8 @@ export function HeroEditorial() {
               render={<Link href="/venue-designer" />}
               className="group h-12 gap-2 bg-gradient-to-r from-rose-600 to-amber-500 px-8 text-base text-white shadow-lg shadow-rose-600/20 transition-all hover:opacity-90 hover:shadow-rose-600/30"
             >
-              Design Your Venue
-              <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+              {t("heroCta")}
+              <ArrowRight className="h-4 w-4 transition-transform rtl:-scale-x-100 group-hover:translate-x-0.5 rtl:group-hover:-translate-x-0.5" />
             </Button>
           </motion.div>
 
@@ -143,7 +143,7 @@ export function HeroEditorial() {
                 <span className="text-sm font-semibold">4.9</span>
               </div>
               <p className="text-xs text-muted-foreground">
-                Loved by 10,000+ couples across Egypt
+                {t("heroSocialProof")}
               </p>
             </div>
           </motion.div>
@@ -168,7 +168,7 @@ export function HeroEditorial() {
 
             <motion.div
               style={{ y: ySecondary }}
-              className="absolute -left-6 -top-6 z-30 hidden h-40 w-32 overflow-hidden rounded-2xl shadow-xl shadow-rose-900/15 ring-1 ring-black/5 sm:block md:h-52 md:w-40 lg:-left-10"
+              className="absolute -start-6 -top-6 z-30 hidden h-40 w-32 overflow-hidden rounded-2xl shadow-xl shadow-rose-900/15 ring-1 ring-black/5 sm:block md:h-52 md:w-40 lg:-start-10"
             >
               <Image
                 src={HERO_IMAGES.secondary}
@@ -181,7 +181,7 @@ export function HeroEditorial() {
 
             <motion.div
               style={{ y: yTertiary }}
-              className="absolute -bottom-8 -right-4 z-30 hidden h-44 w-36 overflow-hidden rounded-2xl shadow-xl shadow-rose-900/15 ring-1 ring-black/5 sm:block md:h-56 md:w-44 lg:-right-10"
+              className="absolute -bottom-8 -end-4 z-30 hidden h-44 w-36 overflow-hidden rounded-2xl shadow-xl shadow-rose-900/15 ring-1 ring-black/5 sm:block md:h-56 md:w-44 lg:-end-10"
             >
               <Image
                 src={HERO_IMAGES.tertiary}
@@ -196,17 +196,17 @@ export function HeroEditorial() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: reduce ? 0 : 0.8, delay: 0.5 }}
-              className="absolute -bottom-2 left-1/2 z-40 flex w-[88%] -translate-x-1/2 items-center gap-3 rounded-2xl border bg-background/85 p-3 shadow-xl backdrop-blur-md sm:left-4 sm:w-auto sm:max-w-xs sm:translate-x-0"
+              className="absolute -bottom-2 start-1/2 z-40 flex w-[88%] -translate-x-1/2 items-center gap-3 rounded-2xl border bg-background/85 p-3 shadow-xl backdrop-blur-md sm:start-4 sm:w-auto sm:max-w-xs sm:translate-x-0"
             >
               <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-rose-100 to-amber-100 dark:from-rose-900/40 dark:to-amber-900/40">
                 <Sparkles className="h-5 w-5 text-rose-600" />
               </div>
               <div className="min-w-0">
                 <p className="text-xs font-semibold leading-tight">
-                  AI Style Match
+                  {t("heroAiStyleMatch")}
                 </p>
                 <p className="truncate text-xs text-muted-foreground">
-                  Garden romance &middot; warm ivory &middot; rose
+                  {t("heroAiStyleHint")}
                 </p>
               </div>
             </motion.div>
@@ -220,9 +220,9 @@ export function HeroEditorial() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 1.4, duration: 0.6 }}
-          className="pointer-events-none absolute bottom-8 left-1/2 hidden -translate-x-1/2 flex-col items-center gap-2 text-[0.65rem] uppercase tracking-[0.3em] text-muted-foreground lg:flex"
+          className="pointer-events-none absolute bottom-8 start-1/2 hidden -translate-x-1/2 flex-col items-center gap-2 text-[0.65rem] uppercase tracking-[0.3em] text-muted-foreground lg:flex"
         >
-          <span>See how it works</span>
+          <span>{t("heroSeeHow")}</span>
           <motion.span
             animate={{ y: [0, 6, 0] }}
             transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}

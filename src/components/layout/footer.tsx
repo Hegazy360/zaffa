@@ -1,29 +1,33 @@
 import Link from "next/link";
+import { getTranslations } from "next-intl/server";
 
-export function Footer() {
+export async function Footer() {
+  const t = await getTranslations("marketing");
+  const tBrand = await getTranslations("brand");
+  const year = new Date().getFullYear();
+
   return (
     <footer className="border-t bg-muted/30">
       <div className="container mx-auto max-w-7xl px-4 py-12">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           <div>
             <h3 className="text-lg font-bold bg-gradient-to-r from-rose-600 to-amber-500 bg-clip-text text-transparent">
-              Zaffa
+              {tBrand("name")}
             </h3>
             <p className="mt-2 text-sm text-muted-foreground">
-              Your dream event, expertly planned. Connecting you with
-              Egypt&apos;s finest wedding planners and vendors.
+              {t("footerBlurb")}
             </p>
           </div>
 
           <div>
-            <h4 className="font-semibold mb-3">Design</h4>
+            <h4 className="font-semibold mb-3">{t("footerDesign")}</h4>
             <ul className="space-y-2 text-sm text-muted-foreground">
               <li>
                 <Link
                   href="/venue-designer"
                   className="hover:text-foreground"
                 >
-                  Venue Designer
+                  {t("footerVenueDesigner")}
                 </Link>
               </li>
               <li>
@@ -31,28 +35,28 @@ export function Footer() {
                   href="/venue-designer/new"
                   className="hover:text-foreground"
                 >
-                  Start a New Design
+                  {t("footerStartNew")}
                 </Link>
               </li>
             </ul>
           </div>
 
           <div>
-            <h4 className="font-semibold mb-3">Company</h4>
+            <h4 className="font-semibold mb-3">{t("footerCompany")}</h4>
             <ul className="space-y-2 text-sm text-muted-foreground">
               <li>
                 <Link href="/about" className="hover:text-foreground">
-                  About
+                  {t("footerAbout")}
                 </Link>
               </li>
               <li>
                 <Link href="/contact" className="hover:text-foreground">
-                  Contact
+                  {t("footerContact")}
                 </Link>
               </li>
               <li>
                 <Link href="/privacy" className="hover:text-foreground">
-                  Privacy Policy
+                  {t("footerPrivacy")}
                 </Link>
               </li>
             </ul>
@@ -60,7 +64,7 @@ export function Footer() {
         </div>
 
         <div className="mt-8 pt-8 border-t text-center text-sm text-muted-foreground">
-          &copy; {new Date().getFullYear()} Zaffa. All rights reserved.
+          {t("footerCopyright", { year })}
         </div>
       </div>
     </footer>

@@ -8,11 +8,14 @@ import {
   Loader2,
   MessageSquare,
 } from "lucide-react";
-import { format, formatDistanceToNow } from "date-fns";
+import { useTranslations } from "next-intl";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 
+import { useFormatters } from "@/lib/use-formatters";
 export default function PlannerMessagesPage() {
+  const f = useFormatters();
+  const t = useTranslations("planner");
   const { data: inbox, isLoading } = trpc.messages.inbox.useQuery();
 
   return (
@@ -25,14 +28,13 @@ export default function PlannerMessagesPage() {
       <div className="mx-auto max-w-4xl px-6 py-12 sm:py-16">
         <header className="mb-10 space-y-3">
           <p className="text-[0.65rem] font-medium uppercase tracking-[0.3em] text-rose-700/80">
-            Conversations
+            {t("conversationsEyebrow")}
           </p>
           <h1 className="font-display text-balance text-4xl font-light leading-tight tracking-tight sm:text-5xl">
-            Messages
+            {t("messagesTitle")}
           </h1>
           <p className="max-w-lg text-pretty text-sm text-muted-foreground sm:text-base">
-            Each conversation belongs to a specific event. The couple sees the
-            same thread.
+            {t("messagesSubtitle")}
           </p>
         </header>
 
@@ -46,17 +48,17 @@ export default function PlannerMessagesPage() {
               <MessageSquare className="size-6 text-rose-600" />
             </div>
             <h3 className="font-display text-xl font-light tracking-tight">
-              No conversations yet
+              {t("noConversationsTitle")}
             </h3>
             <p className="mt-2 max-w-md text-pretty text-sm text-muted-foreground">
-              Once a couple accepts your proposal, the conversation lives here.
+              {t("noConversationsBody")}
             </p>
             <Button
               render={<Link href="/dashboard/planner/marketplace" />}
               className="mt-6 h-10 gap-2 bg-gradient-to-r from-rose-600 to-amber-500 px-5 text-white shadow-md shadow-rose-500/20 hover:opacity-90"
             >
-              Browse marketplace
-              <ArrowRight className="size-4" />
+              {t("browseMarketplace")}
+              <ArrowRight className="size-4 rtl:-scale-x-100" />
             </Button>
           </div>
         ) : (
@@ -88,17 +90,14 @@ export default function PlannerMessagesPage() {
                       </p>
                       {row.lastMessage && (
                         <span className="shrink-0 text-[11px] text-muted-foreground">
-                          {formatDistanceToNow(
-                            new Date(row.lastMessage.created_at),
-                            { addSuffix: true }
-                          )}
+                          {f.relativeTime(row.lastMessage.created_at)}
                         </span>
                       )}
                     </div>
                     {row.event_date && (
                       <p className="mt-0.5 inline-flex items-center gap-1 text-[11px] text-muted-foreground">
                         <CalendarDays className="size-3" />
-                        {format(new Date(row.event_date), "PPP")}
+                        {f.date(row.event_date, "long")}
                       </p>
                     )}
                     <p className="mt-1 truncate text-sm text-muted-foreground">
@@ -111,12 +110,12 @@ export default function PlannerMessagesPage() {
                         </>
                       ) : (
                         <span className="italic">
-                          No messages yet — say hello
+                          {t("noMessagesYetSayHello")}
                         </span>
                       )}
                     </p>
                   </div>
-                  <ArrowRight className="size-4 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
+                  <ArrowRight className="size-4 shrink-0 text-muted-foreground transition-transform rtl:-scale-x-100 group-hover:translate-x-0.5 rtl:group-hover:-translate-x-0.5" />
                 </Link>
               </li>
             ))}

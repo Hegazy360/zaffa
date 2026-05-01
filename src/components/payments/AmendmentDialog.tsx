@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { Loader2, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
+import { useTranslations } from "next-intl";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import {
@@ -15,7 +16,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { decimalToNumber, formatCurrency } from "@/lib/payments";
+import { decimalToNumber } from "@/lib/payments";
+import { useFormatters } from "@/lib/use-formatters";
 
 interface ScheduleSummary {
   id: string;
@@ -54,6 +56,8 @@ export function AmendmentDialog({
   open: boolean;
   onOpenChange: (next: boolean) => void;
 }) {
+  const t = useTranslations("payments");
+  const f = useFormatters();
   const utils = trpc.useUtils();
   // Hydrate the editor from the not-yet-paid installments. Already-paid
   // (or refunded) rows are immutable and must not be in the amendment.
@@ -86,7 +90,7 @@ export function AmendmentDialog({
 
   const request = trpc.paymentSchedules.requestAmendment.useMutation({
     onSuccess: () => {
-      toast.success("Amendment sent for review");
+      toast.success(t("amendmentSentToast"));
       utils.paymentSchedules.forEvent.invalidate({ eventId });
       onOpenChange(false);
     },
@@ -103,7 +107,7 @@ export function AmendmentDialog({
       }))
       .filter((r) => r.label.length > 0 && r.amount > 0);
     if (cleaned.length === 0) {
-      toast.error("Add at least one installment");
+      toast.error(t("minOneInstallment"));
       return;
     }
     request.mutate({
@@ -117,28 +121,22 @@ export function AmendmentDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>Propose an amendment</DialogTitle>
-          <DialogDescription>
-            Edit the not-yet-paid installments. Already-paid rows stay locked.
-            The other party reviews and accepts before it takes effect.
-          </DialogDescription>
+          <DialogTitle>{t("proposeAmendmentTitle")}</DialogTitle>
+          <DialogDescription>{t("proposeAmendmentDesc")}</DialogDescription>
         </DialogHeader>
 
         <form onSubmit={onSubmit} className="space-y-4">
           {lockedPaid.length > 0 && (
             <div className="rounded-xl border border-stone-100 bg-stone-50/60 p-3 text-xs">
               <p className="mb-1 font-medium uppercase tracking-wide text-stone-600">
-                Locked (already paid)
+                {t("lockedAlreadyPaid")}
               </p>
               <ul className="space-y-0.5 text-stone-700">
                 {lockedPaid.map((p) => (
                   <li key={p.id} className="flex justify-between gap-3">
                     <span>{p.label}</span>
                     <span className="font-mono tabular-nums">
-                      {formatCurrency(
-                        decimalToNumber(p.amount),
-                        schedule.currency
-                      )}
+                      {f.currency(decimalToNumber(p.amount), schedule.currency)}
                     </span>
                   </li>
                 ))}
@@ -147,12 +145,12 @@ export function AmendmentDialog({
           )}
 
           <div className="space-y-2">
-            <Label>New installments</Label>
+            <Label>{t("newInstallments")}</Label>
             {rows.map((row, idx) => (
               <div key={idx} className="grid grid-cols-12 gap-2">
                 <Input
                   className="col-span-5"
-                  placeholder="Final"
+                  placeholder={t("finalLabelPlaceholder")}
                   value={row.label}
                   onChange={(e) =>
                     setRows((rs) =>
@@ -166,7 +164,7 @@ export function AmendmentDialog({
                   className="col-span-3"
                   type="number"
                   min="0"
-                  placeholder="0"
+                  placeholder={t("amountPlaceholder")}
                   value={row.amount}
                   onChange={(e) =>
                     setRows((rs) =>
@@ -193,6 +191,7 @@ export function AmendmentDialog({
                   variant="ghost"
                   size="icon-sm"
                   className="col-span-1"
+                  aria-label={t("removeInstallmentAria")}
                   onClick={() =>
                     setRows((rs) => rs.filter((_, i) => i !== idx))
                   }
@@ -214,39 +213,39 @@ export function AmendmentDialog({
               className="gap-1"
             >
               <Plus className="size-3" />
-              Add installment
+              {t("addInstallment")}
             </Button>
           </div>
 
           <div className="space-y-1">
-            <Label htmlFor="amend-reason">Why are you amending?</Label>
+            <Label htmlFor="amend-reason">{t("amendmentReasonLabel")}</Label>
             <Textarea
               id="amend-reason"
               rows={3}
               maxLength={2000}
               value={reason}
               onChange={(e) => setReason(e.target.value)}
-              placeholder="Optional but helpful — e.g. moved the event, scope changed."
+              placeholder={t("amendmentReasonPlaceholder")}
             />
           </div>
 
           <div className="rounded-xl border border-rose-100/70 bg-rose-50/40 px-3 py-2 text-xs">
             <div className="flex justify-between">
-              <span className="text-muted-foreground">Locked subtotal</span>
+              <span className="text-muted-foreground">{t("lockedSubtotal")}</span>
               <span className="font-mono tabular-nums">
-                {formatCurrency(lockedTotal, schedule.currency)}
+                {f.currency(lockedTotal, schedule.currency)}
               </span>
             </div>
             <div className="flex justify-between">
-              <span className="text-muted-foreground">New open subtotal</span>
+              <span className="text-muted-foreground">{t("newOpenSubtotal")}</span>
               <span className="font-mono tabular-nums">
-                {formatCurrency(proposedOpenTotal, schedule.currency)}
+                {f.currency(proposedOpenTotal, schedule.currency)}
               </span>
             </div>
             <div className="mt-1 flex justify-between border-t border-rose-100/60 pt-1 font-medium">
-              <span>Proposed new total</span>
+              <span>{t("proposedNewTotal")}</span>
               <span className="font-mono tabular-nums">
-                {formatCurrency(proposedTotal, schedule.currency)}
+                {f.currency(proposedTotal, schedule.currency)}
               </span>
             </div>
           </div>
@@ -258,7 +257,7 @@ export function AmendmentDialog({
               onClick={() => onOpenChange(false)}
               disabled={request.isPending}
             >
-              Cancel
+              {t("cancel")}
             </Button>
             <Button
               type="submit"
@@ -266,9 +265,9 @@ export function AmendmentDialog({
               className="bg-gradient-to-r from-rose-600 to-amber-500 text-white"
             >
               {request.isPending ? (
-                <Loader2 className="mr-2 size-4 animate-spin" />
+                <Loader2 className="me-2 size-4 animate-spin" />
               ) : null}
-              Send for review
+              {t("sendForReview")}
             </Button>
           </div>
         </form>

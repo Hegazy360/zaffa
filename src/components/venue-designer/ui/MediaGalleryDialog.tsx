@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import {
   Dialog,
   DialogContent,
@@ -18,7 +19,7 @@ import {
   X,
 } from "lucide-react";
 import { trpc } from "@/lib/trpc";
-import { formatDistanceToNow } from "date-fns";
+import { useFormatters } from "@/lib/use-formatters";
 
 interface MediaGalleryDialogProps {
   open: boolean;
@@ -38,6 +39,8 @@ export function MediaGalleryDialog({
   onOpenChange,
   designId,
 }: MediaGalleryDialogProps) {
+  const t = useTranslations("designer");
+  const f = useFormatters();
   const [selected, setSelected] = useState<MediaItem | null>(null);
   const [filter, setFilter] = useState<"all" | "render" | "video">("all");
 
@@ -62,7 +65,7 @@ export function MediaGalleryDialog({
   const videoCount = design?.media?.filter((m) => m.type === "video").length ?? 0;
 
   const handleDelete = (id: string) => {
-    if (window.confirm("Delete this media? This cannot be undone.")) {
+    if (window.confirm(t("deleteMediaConfirm"))) {
       deleteMutation.mutate({ id });
     }
   };
@@ -75,33 +78,38 @@ export function MediaGalleryDialog({
     a.click();
   };
 
+  const filterLabel = (f: "all" | "render" | "video") =>
+    f === "all"
+      ? t("filterAll")
+      : f === "render"
+        ? t("filterImages")
+        : t("filterVideos");
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-3xl max-h-[85vh] flex flex-col">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <ImageIcon className="h-5 w-5 text-rose-500" />
-            Media Gallery
+            {t("mediaGalleryTitle")}
           </DialogTitle>
           <DialogDescription>
-            {renderCount} render{renderCount !== 1 ? "s" : ""} and{" "}
-            {videoCount} video{videoCount !== 1 ? "s" : ""} generated for this
-            design.
+            {t("mediaGalleryDesc", { renderCount, videoCount })}
           </DialogDescription>
         </DialogHeader>
 
         <div className="flex gap-1.5 mb-2">
-          {(["all", "render", "video"] as const).map((f) => (
+          {(["all", "render", "video"] as const).map((fv) => (
             <Button
-              key={f}
-              variant={filter === f ? "default" : "outline"}
+              key={fv}
+              variant={filter === fv ? "default" : "outline"}
               size="sm"
-              className={`h-7 text-xs capitalize ${filter === f ? "bg-rose-500 hover:bg-rose-600 text-white" : ""}`}
-              onClick={() => setFilter(f)}
+              className={`h-7 text-xs ${filter === fv ? "bg-rose-500 hover:bg-rose-600 text-white" : ""}`}
+              onClick={() => setFilter(fv)}
             >
-              {f === "render" && <ImageIcon className="h-3 w-3 mr-1" />}
-              {f === "video" && <Video className="h-3 w-3 mr-1" />}
-              {f === "all" ? "All" : f === "render" ? "Images" : "Videos"}
+              {fv === "render" && <ImageIcon className="h-3 w-3 me-1" />}
+              {fv === "video" && <Video className="h-3 w-3 me-1" />}
+              {filterLabel(fv)}
             </Button>
           ))}
         </div>
@@ -116,7 +124,7 @@ export function MediaGalleryDialog({
                 onClick={() => setSelected(null)}
               >
                 <X className="h-3 w-3" />
-                Back to gallery
+                {t("backToGallery")}
               </Button>
               <div className="flex gap-1.5">
                 <Button
@@ -126,7 +134,7 @@ export function MediaGalleryDialog({
                   onClick={() => handleDownload(selected)}
                 >
                   <Download className="h-3 w-3" />
-                  Download
+                  {t("downloadAction")}
                 </Button>
                 <Button
                   variant="outline"
@@ -140,7 +148,7 @@ export function MediaGalleryDialog({
                   ) : (
                     <Trash2 className="h-3 w-3" />
                   )}
-                  Delete
+                  {t("deleteAction")}
                 </Button>
               </div>
             </div>
@@ -157,16 +165,19 @@ export function MediaGalleryDialog({
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
                   src={selected.url}
-                  alt="Rendered venue"
+                  alt={t("renderedVenueAlt")}
                   className="max-w-full max-h-[55vh] object-contain"
                 />
               )}
             </div>
             <p className="text-xs text-muted-foreground mt-2 text-center">
-              {selected.type === "render" ? "Image" : "Video"} generated{" "}
-              {formatDistanceToNow(new Date(selected.created_at), {
-                addSuffix: true,
-              })}
+              {selected.type === "render"
+                ? t("imageGenerated", {
+                    when: f.relativeTime(new Date(selected.created_at)),
+                  })
+                : t("videoGenerated", {
+                    when: f.relativeTime(new Date(selected.created_at)),
+                  })}
             </p>
           </div>
         ) : isLoading ? (
@@ -178,10 +189,9 @@ export function MediaGalleryDialog({
             <div className="rounded-full bg-muted p-4 mb-3">
               <ImageIcon className="h-8 w-8 text-muted-foreground/40" />
             </div>
-            <p className="text-sm font-medium">No media yet</p>
+            <p className="text-sm font-medium">{t("noMediaTitle")}</p>
             <p className="text-xs text-muted-foreground mt-1 max-w-xs">
-              Use the Render button to generate photorealistic images and videos
-              of your design.
+              {t("noMediaBody")}
             </p>
           </div>
         ) : (
@@ -209,27 +219,25 @@ export function MediaGalleryDialog({
                       // eslint-disable-next-line @next/next/no-img-element
                       <img
                         src={item.url}
-                        alt="Render"
+                        alt={t("renderedVenueAlt")}
                         className="w-full h-full object-cover"
                       />
                     )}
-                    <div className="absolute top-1.5 left-1.5">
+                    <div className="absolute top-1.5 start-1.5">
                       <span className="inline-flex items-center gap-1 rounded-md bg-black/60 px-1.5 py-0.5 text-[10px] font-medium text-white">
                         {item.type === "video" ? (
                           <Video className="h-2.5 w-2.5" />
                         ) : (
                           <ImageIcon className="h-2.5 w-2.5" />
                         )}
-                        {item.type === "video" ? "Video" : "Image"}
+                        {item.type === "video" ? t("badgeVideo") : t("badgeImage")}
                       </span>
                     </div>
                     <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors" />
                   </div>
                   <div className="px-2 py-1.5">
                     <p className="text-[10px] text-muted-foreground">
-                      {formatDistanceToNow(new Date(item.created_at), {
-                        addSuffix: true,
-                      })}
+                      {f.relativeTime(new Date(item.created_at))}
                     </p>
                   </div>
                 </div>

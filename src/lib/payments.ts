@@ -103,17 +103,9 @@ export function paymentSuccessUrlBase(): string {
 }
 
 /**
- * App-wide currency formatter. Uses en-EG locale by default — mirrors what
- * the existing event pages were doing inline. Safe to call client-side.
+ * Re-export the locale-aware formatter under its existing name. Callers
+ * that don't care about locale (server scripts, tRPC contexts) still get
+ * the same English default; React components should prefer the
+ * `useFormatters()` hook so they pick up the active language.
  */
-export function formatCurrency(amount: number, currency = "EGP"): string {
-  try {
-    return new Intl.NumberFormat("en-EG", {
-      style: "currency",
-      currency,
-      minimumFractionDigits: 0,
-    }).format(amount);
-  } catch {
-    return `${amount.toFixed(2)} ${currency}`;
-  }
-}
+export { formatCurrency } from "./formatters";

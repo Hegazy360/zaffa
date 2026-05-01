@@ -116,7 +116,7 @@ export function QuoteTheater() {
                     className="object-cover"
                   />
                 </div>
-                <div className="text-left">
+                <div className="text-start">
                   <p className="text-sm font-medium">{current.author}</p>
                   <p className="text-xs text-muted-foreground">
                     {current.role}
@@ -147,7 +147,7 @@ export function QuoteTheater() {
                     reduce || paused || i !== index ? 0 : ROTATION_MS / 1000,
                   ease: "linear",
                 }}
-                className="absolute inset-y-0 left-0 bg-foreground"
+                className="absolute inset-y-0 start-0 bg-foreground"
               />
             </button>
           ))}

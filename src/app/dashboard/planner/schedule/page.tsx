@@ -11,6 +11,7 @@ import {
   Trash2,
 } from "lucide-react";
 import { toast } from "sonner";
+import { useTranslations, useLocale } from "next-intl";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -79,9 +80,19 @@ function paletteAccent(value: unknown): string {
   return "#e11d48";
 }
 
-const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+const WEEKDAY_KEYS = [
+  "weekdayShortSun",
+  "weekdayShortMon",
+  "weekdayShortTue",
+  "weekdayShortWed",
+  "weekdayShortThu",
+  "weekdayShortFri",
+  "weekdayShortSat",
+] as const;
 
 export default function SchedulePage() {
+  const t = useTranslations("planner");
+  const locale = useLocale();
   const today = new Date();
   const [cursor, setCursor] = useState({
     year: today.getFullYear(),
@@ -102,15 +113,16 @@ export default function SchedulePage() {
 
   const deleteBlock = trpc.availability.deleteBlock.useMutation({
     onSuccess: () => {
-      toast.success("Block removed");
+      toast.success(t("blockRemovedToast"));
       utils.availability.forMonth.invalidate();
     },
     onError: (e) => toast.error(e.message),
   });
 
-  const monthLabel = new Date(
-    Date.UTC(cursor.year, cursor.month, 1)
-  ).toLocaleString("en-US", { month: "long", year: "numeric" });
+  const monthLabel = new Intl.DateTimeFormat(
+    locale === "ar" ? "ar-EG" : "en-EG",
+    { month: "long", year: "numeric" },
+  ).format(new Date(Date.UTC(cursor.year, cursor.month, 1)));
 
   // Build a 6x7 grid of dates
   const grid = useMemo(() => {
@@ -153,14 +165,13 @@ export default function SchedulePage() {
           <div>
             <div className="inline-flex items-center gap-2 rounded-full border border-rose-200/70 bg-rose-50/70 px-3.5 py-1 text-[11px] font-medium uppercase tracking-[0.18em] text-rose-700 backdrop-blur-sm">
               <CalendarDays className="size-3" />
-              Schedule
+              {t("scheduleEyebrow")}
             </div>
             <h1 className="font-display mt-3 text-balance text-4xl font-light leading-tight tracking-tight sm:text-5xl">
               {monthLabel}
             </h1>
             <p className="mt-2 max-w-xl text-pretty text-sm text-muted-foreground">
-              Booked events from accepted proposals, plus any custom blocks
-              you&apos;ve added (vacations, holidays, focus weeks).
+              {t("scheduleSubtitle")}
             </p>
           </div>
           <div className="flex items-center gap-2">
@@ -175,7 +186,7 @@ export default function SchedulePage() {
                 )
               }
             >
-              <ChevronLeft className="size-4" />
+              <ChevronLeft className="size-4 rtl:-scale-x-100" />
             </Button>
             <Button
               variant="outline"
@@ -187,7 +198,7 @@ export default function SchedulePage() {
                 })
               }
             >
-              Today
+              {t("today")}
             </Button>
             <Button
               variant="outline"
@@ -200,14 +211,14 @@ export default function SchedulePage() {
                 )
               }
             >
-              <ChevronRight className="size-4" />
+              <ChevronRight className="size-4 rtl:-scale-x-100" />
             </Button>
             <Button
               onClick={() => setBlockDialog({ mode: "create" })}
               className="gap-1.5 bg-gradient-to-r from-rose-600 to-amber-500 text-white"
             >
               <Plus className="size-4" />
-              Block dates
+              {t("blockDates")}
             </Button>
           </div>
         </header>
@@ -215,9 +226,9 @@ export default function SchedulePage() {
         <div className="overflow-hidden rounded-2xl border border-rose-100/70 bg-white/70 backdrop-blur-sm">
           {/* Weekday header */}
           <div className="grid grid-cols-7 border-b border-rose-100/70 bg-rose-50/40 text-[10px] font-medium uppercase tracking-[0.2em] text-muted-foreground">
-            {WEEKDAYS.map((w) => (
-              <div key={w} className="px-2 py-2 text-center">
-                {w}
+            {WEEKDAY_KEYS.map((key) => (
+              <div key={key} className="px-2 py-2 text-center">
+                {t(key)}
               </div>
             ))}
           </div>
@@ -247,7 +258,7 @@ export default function SchedulePage() {
                   <div
                     key={d.toISOString()}
                     className={cn(
-                      "relative min-h-[110px] border-b border-r border-rose-100/70 p-2 text-xs",
+                      "relative min-h-[110px] border-b border-e border-rose-100/70 p-2 text-xs",
                       !inMonth && "bg-stone-50/40 text-muted-foreground/70"
                     )}
                   >
@@ -268,7 +279,7 @@ export default function SchedulePage() {
                             setBlockDialog({ mode: "create", defaultDate: d })
                           }
                           className="opacity-0 transition-opacity hover:text-rose-700 group-hover:opacity-100"
-                          aria-label="Block this day"
+                          aria-label={t("blockThisDay")}
                         >
                           <Plus className="size-3" />
                         </button>
@@ -303,14 +314,14 @@ export default function SchedulePage() {
                           onClick={() =>
                             setBlockDialog({ mode: "edit", block: b })
                           }
-                          className="flex w-full items-center gap-1.5 truncate rounded-md bg-stone-200/80 px-1.5 py-1 text-left text-[10px] font-medium text-stone-700 ring-1 ring-stone-300/60 hover:bg-stone-200"
+                          className="flex w-full items-center gap-1.5 truncate rounded-md bg-stone-200/80 px-1.5 py-1 text-start text-[10px] font-medium text-stone-700 ring-1 ring-stone-300/60 hover:bg-stone-200"
                         >
                           <span
                             aria-hidden
                             className="block size-1.5 shrink-0 rounded-full bg-stone-500"
                           />
                           <span className="truncate">
-                            {b.reason ?? "Blocked"}
+                            {b.reason ?? t("blockedFallback")}
                           </span>
                         </button>
                       ))}
@@ -329,11 +340,12 @@ export default function SchedulePage() {
           <DialogContent className="sm:max-w-md">
             <DialogHeader>
               <DialogTitle className="font-display text-xl font-light tracking-tight">
-                {blockDialog?.mode === "edit" ? "Edit block" : "Block dates"}
+                {blockDialog?.mode === "edit"
+                  ? t("editBlock")
+                  : t("blockDates")}
               </DialogTitle>
               <DialogDescription>
-                Block out dates for vacation, holidays, or focus weeks. Couples
-                will see a warning if their event date overlaps.
+                {t("blockDatesDialogDesc")}
               </DialogDescription>
             </DialogHeader>
             {blockDialog && (
@@ -380,6 +392,7 @@ function BlockForm({
   onDone: () => void;
   onDelete?: () => void;
 }) {
+  const t = useTranslations("planner");
   const [start, setStart] = useState(
     initial ? dateToInputValue(new Date(initial.start_date)) : ""
   );
@@ -390,14 +403,14 @@ function BlockForm({
 
   const create = trpc.availability.createBlock.useMutation({
     onSuccess: () => {
-      toast.success("Dates blocked");
+      toast.success(t("datesBlockedToast"));
       onDone();
     },
     onError: (e) => toast.error(e.message),
   });
   const update = trpc.availability.updateBlock.useMutation({
     onSuccess: () => {
-      toast.success("Block updated");
+      toast.success(t("blockUpdatedToast"));
       onDone();
     },
     onError: (e) => toast.error(e.message),
@@ -408,7 +421,7 @@ function BlockForm({
   function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!start || !end) {
-      toast.error("Pick a start and end date");
+      toast.error(t("pickStartEndError"));
       return;
     }
     const startDate = inputToUTCDate(start);
@@ -433,7 +446,7 @@ function BlockForm({
     <form onSubmit={onSubmit} className="space-y-4">
       <div className="grid grid-cols-2 gap-3">
         <div className="space-y-1.5">
-          <Label htmlFor="start">Start</Label>
+          <Label htmlFor="start">{t("startLabel")}</Label>
           <Input
             id="start"
             type="date"
@@ -442,7 +455,7 @@ function BlockForm({
           />
         </div>
         <div className="space-y-1.5">
-          <Label htmlFor="end">End</Label>
+          <Label htmlFor="end">{t("endLabel")}</Label>
           <Input
             id="end"
             type="date"
@@ -452,10 +465,10 @@ function BlockForm({
         </div>
       </div>
       <div className="space-y-1.5">
-        <Label htmlFor="reason">Reason (optional)</Label>
+        <Label htmlFor="reason">{t("reasonOptionalLabel")}</Label>
         <Input
           id="reason"
-          placeholder="Vacation, holiday, focus week..."
+          placeholder={t("reasonPlaceholder")}
           value={reason}
           onChange={(e) => setReason(e.target.value)}
           maxLength={280}
@@ -466,15 +479,15 @@ function BlockForm({
           <Button
             type="button"
             variant="ghost"
-            className="mr-auto text-stone-600 hover:text-rose-700"
+            className="me-auto text-stone-600 hover:text-rose-700"
             onClick={onDelete}
           >
-            <Trash2 className="mr-1 size-3.5" />
-            Remove
+            <Trash2 className="me-1 size-3.5" />
+            {t("removeAction")}
           </Button>
         )}
         <DialogClose render={<Button type="button" variant="outline" />}>
-          Cancel
+          {t("cancelAction")}
         </DialogClose>
         <Button
           type="submit"
@@ -482,9 +495,9 @@ function BlockForm({
           className="bg-gradient-to-r from-rose-600 to-amber-500 text-white"
         >
           {submitting ? (
-            <Loader2 className="mr-2 size-4 animate-spin" />
+            <Loader2 className="me-2 size-4 animate-spin" />
           ) : null}
-          {initial?.id ? "Save block" : "Block dates"}
+          {initial?.id ? t("saveBlock") : t("blockDates")}
         </Button>
       </DialogFooter>
     </form>

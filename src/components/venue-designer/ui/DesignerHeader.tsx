@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import {
   Save,
@@ -34,6 +35,7 @@ export function DesignerHeader({
   designId,
 }: DesignerHeaderProps) {
   const router = useRouter();
+  const t = useTranslations("designer");
   const [mediaGalleryOpen, setMediaGalleryOpen] = useState(false);
 
   // Look up which event (if any) this design is already attached to so we
@@ -47,7 +49,7 @@ export function DesignerHeader({
   const utils = trpc.useUtils();
   const createFromDesign = trpc.events.createFromDesign.useMutation({
     onSuccess: (event) => {
-      toast.success("Event created from design");
+      toast.success(t("createdToast"));
       utils.events.list.invalidate();
       utils.venueDesigns.list.invalidate();
       if (designId) utils.venueDesigns.getById.invalidate({ id: designId });
@@ -65,7 +67,7 @@ export function DesignerHeader({
         onClick={() => router.push("/venue-designer")}
       >
         <LayoutGrid className="h-3 w-3" />
-        My Designs
+        {t("myDesigns")}
       </Button>
 
       <div className="h-4 w-px bg-border" />
@@ -75,29 +77,29 @@ export function DesignerHeader({
         value={name}
         onChange={(e) => onNameChange(e.target.value)}
         className="w-48 border-none bg-transparent text-sm font-medium outline-none placeholder:text-muted-foreground"
-        placeholder="Design name..."
+        placeholder={t("designNamePlaceholder")}
       />
 
       <div className="flex items-center gap-1 text-xs text-muted-foreground">
         {saveStatus === "saving" ? (
           <>
             <Loader2 className="h-3 w-3 animate-spin" />
-            <span>Saving...</span>
+            <span>{t("saving")}</span>
           </>
         ) : saveStatus === "saved" ? (
           <>
             <Check className="h-3 w-3 text-green-500" />
-            <span>Saved</span>
+            <span>{t("saved")}</span>
           </>
         ) : (
           <>
             <Circle className="h-2.5 w-2.5 fill-amber-400 text-amber-400" />
-            <span>Unsaved</span>
+            <span>{t("unsaved")}</span>
           </>
         )}
       </div>
 
-      <div className="ml-auto flex items-center gap-1">
+      <div className="ms-auto flex items-center gap-1">
         {designId && (
           <>
             <Button
@@ -107,7 +109,7 @@ export function DesignerHeader({
               onClick={() => setMediaGalleryOpen(true)}
             >
               <ImageIcon className="h-3 w-3" />
-              Gallery
+              {t("gallery")}
             </Button>
             <MediaGalleryDialog
               open={mediaGalleryOpen}
@@ -125,7 +127,7 @@ export function DesignerHeader({
           disabled={saving || saveStatus === "saved"}
         >
           <Save className="h-3 w-3" />
-          Save
+          {t("save")}
         </Button>
 
         {designId &&
@@ -139,7 +141,7 @@ export function DesignerHeader({
               }
             >
               <ExternalLink className="h-3 w-3" />
-              Open event
+              {t("openEvent")}
             </Button>
           ) : (
             <Button
@@ -153,7 +155,7 @@ export function DesignerHeader({
               ) : (
                 <CheckCircle2 className="h-3 w-3" />
               )}
-              Approve & create event
+              {t("approveCreateEvent")}
             </Button>
           ))}
       </div>

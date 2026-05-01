@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type KeyboardEvent } from "react";
+import { useMemo, useState, type KeyboardEvent } from "react";
 import {
   Image as ImageIcon,
   Loader2,
@@ -10,6 +10,7 @@ import {
   X,
 } from "lucide-react";
 import { toast } from "sonner";
+import { useTranslations } from "next-intl";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -34,14 +35,23 @@ import {
 
 type EventTypeOption = "wedding" | "engagement" | "birthday" | "corporate" | "other" | "none";
 
-const EVENT_TYPES: Array<{ value: EventTypeOption; label: string }> = [
-  { value: "none", label: "Any event type" },
-  { value: "wedding", label: "Wedding" },
-  { value: "engagement", label: "Engagement" },
-  { value: "birthday", label: "Birthday" },
-  { value: "corporate", label: "Corporate" },
-  { value: "other", label: "Other" },
+const EVENT_TYPE_VALUES: EventTypeOption[] = [
+  "none",
+  "wedding",
+  "engagement",
+  "birthday",
+  "corporate",
+  "other",
 ];
+
+const EVENT_TYPE_LABEL_KEYS: Record<EventTypeOption, string> = {
+  none: "anyEventType",
+  wedding: "wedding",
+  engagement: "engagement",
+  birthday: "birthday",
+  corporate: "corporate",
+  other: "otherEventType",
+};
 
 interface PortfolioItem {
   id: string;
@@ -59,6 +69,7 @@ function styleTagsArray(value: unknown): string[] {
 }
 
 export default function PortfolioPage() {
+  const t = useTranslations("planner");
   const utils = trpc.useUtils();
   const { data: planner, isLoading: plannerLoading } =
     trpc.planner.me.useQuery();
@@ -73,7 +84,7 @@ export default function PortfolioPage() {
 
   const remove = trpc.planner.portfolio.delete.useMutation({
     onSuccess: () => {
-      toast.success("Portfolio item removed");
+      toast.success(t("portfolioRemovedToast"));
       utils.planner.portfolio.list.invalidate();
     },
     onError: (e) => toast.error(e.message),
@@ -92,13 +103,13 @@ export default function PortfolioPage() {
       <div className="mx-auto max-w-3xl px-6 py-16">
         <div className="rounded-2xl border border-rose-100/70 bg-white/70 p-8 backdrop-blur-sm">
           <p className="mb-1 text-[0.65rem] font-medium uppercase tracking-[0.3em] text-rose-700/80">
-            Almost there
+            {t("almostThereEyebrow")}
           </p>
           <h1 className="font-display text-3xl font-light tracking-tight">
-            Set up your planner profile first
+            {t("setupProfileFirstTitle")}
           </h1>
           <p className="mt-3 max-w-xl text-sm text-muted-foreground">
-            Add your business name in Settings before curating your portfolio.
+            {t("setupProfileFirstBody")}
           </p>
         </div>
       </div>
@@ -116,14 +127,13 @@ export default function PortfolioPage() {
         <header className="mb-10 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <p className="text-[0.65rem] font-medium uppercase tracking-[0.3em] text-rose-700/80">
-              Curate your work
+              {t("portfolioEyebrow")}
             </p>
             <h1 className="font-display mt-3 text-balance text-4xl font-light leading-tight tracking-tight sm:text-5xl">
-              Portfolio
+              {t("portfolioTitle")}
             </h1>
             <p className="mt-2 max-w-xl text-pretty text-sm text-muted-foreground">
-              Show couples the kind of weddings you create. Each item appears
-              alongside your proposals.
+              {t("portfolioSubtitle")}
             </p>
           </div>
           <Button
@@ -131,7 +141,7 @@ export default function PortfolioPage() {
             className="gap-1.5 bg-gradient-to-r from-rose-600 to-amber-500 text-white"
           >
             <Plus className="size-4" />
-            Add piece
+            {t("addPiece")}
           </Button>
         </header>
 
@@ -150,18 +160,17 @@ export default function PortfolioPage() {
               <ImageIcon className="size-6 text-rose-600" />
             </div>
             <h3 className="font-display text-xl font-light tracking-tight">
-              No portfolio yet
+              {t("noPortfolioTitle")}
             </h3>
             <p className="mt-2 max-w-md text-pretty text-sm text-muted-foreground">
-              Add a few of your favourite weddings — couples will see them next
-              to your proposal.
+              {t("noPortfolioBody")}
             </p>
             <Button
               onClick={() => setOpen({ mode: "create" })}
               className="mt-6 gap-1.5 bg-gradient-to-r from-rose-600 to-amber-500 text-white"
             >
               <Plus className="size-4" />
-              Add your first piece
+              {t("addFirstPiece")}
             </Button>
           </div>
         ) : (
@@ -180,7 +189,7 @@ export default function PortfolioPage() {
                       alt={item.caption ?? ""}
                       className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
                     />
-                    <div className="absolute right-2 top-2 flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100">
+                    <div className="absolute end-2 top-2 flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100">
                       <Button
                         size="icon-sm"
                         variant="outline"
@@ -193,7 +202,7 @@ export default function PortfolioPage() {
                         size="icon-sm"
                         variant="outline"
                         onClick={() => {
-                          if (window.confirm("Remove this from your portfolio?")) {
+                          if (window.confirm(t("removeFromPortfolioConfirm"))) {
                             remove.mutate({ id: item.id });
                           }
                         }}
@@ -240,11 +249,12 @@ export default function PortfolioPage() {
           <DialogContent className="sm:max-w-md">
             <DialogHeader>
               <DialogTitle className="font-display text-xl font-light tracking-tight">
-                {open?.mode === "edit" ? "Edit portfolio piece" : "Add to your portfolio"}
+                {open?.mode === "edit"
+                  ? t("editPortfolioPiece")
+                  : t("addToPortfolio")}
               </DialogTitle>
               <DialogDescription>
-                Use a high-quality image. Caption tells the story; tags help
-                couples find you.
+                {t("portfolioFormDesc")}
               </DialogDescription>
             </DialogHeader>
             {open && (
@@ -274,6 +284,7 @@ function PortfolioForm({
   item: PortfolioItem | null;
   onDone: () => void;
 }) {
+  const t = useTranslations("planner");
   const [imageUrl, setImageUrl] = useState(item?.image_url ?? "");
   const [caption, setCaption] = useState(item?.caption ?? "");
   const [eventType, setEventType] = useState<EventTypeOption>(
@@ -282,9 +293,18 @@ function PortfolioForm({
   const [tags, setTags] = useState<string[]>(styleTagsArray(item?.style_tags));
   const [tagDraft, setTagDraft] = useState("");
 
+  const eventTypeItems = useMemo(
+    () =>
+      EVENT_TYPE_VALUES.map((value) => ({
+        value,
+        label: t(EVENT_TYPE_LABEL_KEYS[value]),
+      })),
+    [t],
+  );
+
   const create = trpc.planner.portfolio.create.useMutation({
     onSuccess: () => {
-      toast.success("Added to portfolio");
+      toast.success(t("addedToPortfolioToast"));
       onDone();
     },
     onError: (e) => toast.error(e.message),
@@ -292,7 +312,7 @@ function PortfolioForm({
 
   const update = trpc.planner.portfolio.update.useMutation({
     onSuccess: () => {
-      toast.success("Portfolio piece updated");
+      toast.success(t("portfolioUpdatedToast"));
       onDone();
     },
     onError: (e) => toast.error(e.message),
@@ -321,7 +341,7 @@ function PortfolioForm({
   function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!imageUrl.trim()) {
-      toast.error("Image URL is required");
+      toast.error(t("imageUrlRequired"));
       return;
     }
     const eventTypeOrNull = eventType === "none" ? null : eventType;
@@ -345,7 +365,7 @@ function PortfolioForm({
   return (
     <form onSubmit={onSubmit} className="space-y-4">
       <div className="space-y-1.5">
-        <Label htmlFor="image">Image URL</Label>
+        <Label htmlFor="image">{t("imageUrlLabel")}</Label>
         <Input
           id="image"
           value={imageUrl}
@@ -355,7 +375,7 @@ function PortfolioForm({
         />
         {mode === "edit" && (
           <p className="text-[11px] text-muted-foreground">
-            Image URL is locked once a piece is added.
+            {t("imageUrlLocked")}
           </p>
         )}
       </div>
@@ -368,21 +388,21 @@ function PortfolioForm({
         />
       )}
       <div className="space-y-1.5">
-        <Label htmlFor="caption">Caption</Label>
+        <Label htmlFor="caption">{t("captionLabel")}</Label>
         <Textarea
           id="caption"
           value={caption}
           onChange={(e) => setCaption(e.target.value)}
           rows={2}
           maxLength={500}
-          placeholder="A barefoot vow on the North Coast."
+          placeholder={t("captionPlaceholder")}
           className="resize-none"
         />
       </div>
       <div className="space-y-1.5">
-        <Label htmlFor="event-type">Event type</Label>
+        <Label htmlFor="event-type">{t("eventTypeLabel")}</Label>
         <Select
-          items={EVENT_TYPES}
+          items={eventTypeItems}
           value={eventType}
           onValueChange={(v) => v && setEventType(v as EventTypeOption)}
         >
@@ -390,7 +410,7 @@ function PortfolioForm({
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            {EVENT_TYPES.map((opt) => (
+            {eventTypeItems.map((opt) => (
               <SelectItem key={opt.value} value={opt.value}>
                 {opt.label}
               </SelectItem>
@@ -399,18 +419,18 @@ function PortfolioForm({
         </Select>
       </div>
       <div className="space-y-1.5">
-        <Label htmlFor="tags">Style tags</Label>
+        <Label htmlFor="tags">{t("styleTagsLabel")}</Label>
         <div className="flex flex-wrap items-center gap-2 rounded-xl border border-input bg-transparent p-2">
-          {tags.map((t) => (
+          {tags.map((tag) => (
             <span
-              key={t}
+              key={tag}
               className="inline-flex items-center gap-1 rounded-full bg-rose-50 px-2 py-1 text-xs text-rose-800 ring-1 ring-rose-100"
             >
-              {t}
+              {tag}
               <button
                 type="button"
-                onClick={() => setTags(tags.filter((x) => x !== t))}
-                aria-label={`Remove ${t}`}
+                onClick={() => setTags(tags.filter((x) => x !== tag))}
+                aria-label={t("removeTag", { tag })}
                 className="text-rose-700/70 hover:text-rose-900"
               >
                 <X className="size-3" />
@@ -422,22 +442,22 @@ function PortfolioForm({
             value={tagDraft}
             onChange={(e) => setTagDraft(e.target.value)}
             onKeyDown={onTagKey}
-            placeholder={tags.length === 0 ? "Beachfront, Garden..." : ""}
+            placeholder={tags.length === 0 ? t("tagsPlaceholder") : ""}
             className="flex-1 min-w-[120px] bg-transparent text-sm outline-none"
           />
         </div>
       </div>
       <DialogFooter>
         <DialogClose render={<Button type="button" variant="outline" />}>
-          Cancel
+          {t("cancelAction")}
         </DialogClose>
         <Button
           type="submit"
           disabled={submitting}
           className="bg-gradient-to-r from-rose-600 to-amber-500 text-white"
         >
-          {submitting ? <Loader2 className="mr-2 size-4 animate-spin" /> : null}
-          {mode === "create" ? "Add piece" : "Save changes"}
+          {submitting ? <Loader2 className="me-2 size-4 animate-spin" /> : null}
+          {mode === "create" ? t("addPiece") : t("saveChanges")}
         </Button>
       </DialogFooter>
     </form>

@@ -14,9 +14,11 @@ import {
   Wand2,
 } from "lucide-react";
 import { toast } from "sonner";
+import { useTranslations } from "next-intl";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { useFormatters } from "@/lib/use-formatters";
 import type { EventStatus, EventType } from "@/types";
 
 interface NormalizedPalette {
@@ -32,15 +34,6 @@ function normalizePalette(value: unknown): NormalizedPalette {
     return { colors };
   }
   return { colors: [] };
-}
-
-function formatEventDate(date: Date | string | null | undefined): string {
-  if (!date) return "Date not set";
-  return new Date(date).toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  });
 }
 
 function formatEventType(type: EventType | string): string {
@@ -59,6 +52,8 @@ const statusStyles: Record<EventStatus | string, string> = {
 export default function ClientDashboardPage() {
   const router = useRouter();
   const utils = trpc.useUtils();
+  const t = useTranslations("dashboard");
+  const tc = useTranslations("client");
 
   const { data: profile } = trpc.profile.me.useQuery();
   const { data: designs, isLoading: designsLoading } =
@@ -70,7 +65,7 @@ export default function ClientDashboardPage() {
     onSuccess: (event) => {
       utils.events.list.invalidate();
       utils.venueDesigns.list.invalidate();
-      toast.success("Event created from design");
+      toast.success(tc("createdFromDesignToast"));
       router.push(`/dashboard/client/event/${event.id}`);
     },
     onError: (err) => toast.error(err.message),
@@ -86,7 +81,7 @@ export default function ClientDashboardPage() {
       />
       <div
         aria-hidden
-        className="pointer-events-none absolute -top-40 left-1/2 -z-10 h-[28rem] w-[28rem] -translate-x-1/2 rounded-full bg-gradient-to-br from-rose-200/30 to-amber-200/20 blur-3xl dark:from-rose-900/15 dark:to-amber-900/10"
+        className="pointer-events-none absolute -top-40 start-1/2 -z-10 h-[28rem] w-[28rem] -translate-x-1/2 rounded-full bg-gradient-to-br from-rose-200/30 to-amber-200/20 blur-3xl dark:from-rose-900/15 dark:to-amber-900/10"
       />
 
       <div className="mx-auto max-w-6xl px-6 py-12 sm:py-16">
@@ -95,13 +90,13 @@ export default function ClientDashboardPage() {
           <div className="space-y-3">
             <div className="inline-flex items-center gap-2 rounded-full border border-rose-200/70 bg-rose-50/70 px-3.5 py-1 text-[11px] font-medium uppercase tracking-[0.18em] text-rose-700 backdrop-blur-sm dark:border-rose-900/50 dark:bg-rose-950/30 dark:text-rose-200">
               <Sparkles className="size-3" />
-              Welcome back
+              {t("clientEyebrow")}
             </div>
             <h1 className="font-display text-balance text-4xl font-light leading-tight tracking-tight sm:text-5xl">
-              Hello, {firstName}.
+              {t("clientWelcome", { name: firstName })}
             </h1>
             <p className="max-w-lg text-pretty text-sm text-muted-foreground sm:text-base">
-              Pick up where you left off — your designs and events all live here.
+              {t("clientSubtitle")}
             </p>
           </div>
           <Button
@@ -110,8 +105,8 @@ export default function ClientDashboardPage() {
             className="group h-11 gap-2 bg-gradient-to-r from-rose-600 to-amber-500 px-5 text-white shadow-lg shadow-rose-500/20 hover:opacity-90 hover:shadow-rose-500/30"
           >
             <Wand2 className="size-4" />
-            Start a new design
-            <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" />
+            {t("clientStartNewDesign")}
+            <ArrowRight className="size-4 transition-transform rtl:-scale-x-100 group-hover:translate-x-0.5 rtl:group-hover:-translate-x-0.5" />
           </Button>
         </header>
 
@@ -120,10 +115,10 @@ export default function ClientDashboardPage() {
           <div className="mb-6 flex items-end justify-between">
             <div>
               <p className="mb-1 text-[0.65rem] font-medium uppercase tracking-[0.3em] text-rose-700/80">
-                Your designs
+                {tc("yourDesigns")}
               </p>
               <h2 className="font-display text-2xl font-light tracking-tight">
-                Approve a design to begin
+                {tc("approveDesignToBegin")}
               </h2>
             </div>
             <Button
@@ -132,8 +127,8 @@ export default function ClientDashboardPage() {
               render={<Link href="/venue-designer" />}
               className="gap-1 text-sm"
             >
-              View all
-              <ArrowRight className="size-3.5" />
+              {tc("viewAll")}
+              <ArrowRight className="size-3.5 rtl:-scale-x-100" />
             </Button>
           </div>
 
@@ -186,7 +181,7 @@ export default function ClientDashboardPage() {
                           </div>
                         )}
                         {palette.colors.length > 0 && (
-                          <div className="absolute left-3 top-3 inline-flex items-center gap-1 rounded-full bg-black/55 px-1.5 py-1 backdrop-blur-sm">
+                          <div className="absolute start-3 top-3 inline-flex items-center gap-1 rounded-full bg-black/55 px-1.5 py-1 backdrop-blur-sm">
                             {palette.colors.slice(0, 4).map((c) => (
                               <span
                                 key={c}
@@ -197,9 +192,9 @@ export default function ClientDashboardPage() {
                           </div>
                         )}
                         {isAttached && (
-                          <div className="absolute right-3 top-3 inline-flex items-center gap-1 rounded-full bg-rose-600/90 px-2 py-1 text-[10px] font-medium tracking-wide text-white backdrop-blur-sm">
+                          <div className="absolute end-3 top-3 inline-flex items-center gap-1 rounded-full bg-rose-600/90 px-2 py-1 text-[10px] font-medium tracking-wide text-white backdrop-blur-sm">
                             <CheckCircle2 className="size-3" />
-                            Approved
+                            {tc("approvedTag")}
                           </div>
                         )}
                       </div>
@@ -225,8 +220,8 @@ export default function ClientDashboardPage() {
                             }
                             className="h-8 flex-1 gap-1 text-xs"
                           >
-                            Open
-                            <ArrowRight className="size-3" />
+                            {tc("open")}
+                            <ArrowRight className="size-3 rtl:-scale-x-100" />
                           </Button>
                         ) : (
                           <Button
@@ -243,7 +238,7 @@ export default function ClientDashboardPage() {
                             ) : (
                               <CheckCircle2 className="size-3" />
                             )}
-                            Approve & create event
+                            {tc("approveCreateEvent")}
                           </Button>
                         )}
                       </div>
@@ -262,10 +257,10 @@ export default function ClientDashboardPage() {
           <div className="mb-6 flex items-end justify-between">
             <div>
               <p className="mb-1 text-[0.65rem] font-medium uppercase tracking-[0.3em] text-rose-700/80">
-                Your events
+                {tc("yourEvents")}
               </p>
               <h2 className="font-display text-2xl font-light tracking-tight">
-                Everything in one place
+                {tc("everythingInOnePlace")}
               </h2>
             </div>
           </div>
@@ -313,9 +308,12 @@ interface EventListItem {
 }
 
 function EventCard({ event }: { event: EventListItem }) {
+  const tc = useTranslations("client");
+  const f = useFormatters();
   const heroImage =
     event.designs[0]?.media[0]?.url ?? event.designs[0]?.thumbnail ?? null;
   const palette = normalizePalette(event.designs[0]?.palette);
+  const statusKey = statusLabelKey(event.status);
 
   return (
     <Link
@@ -338,14 +336,14 @@ function EventCard({ event }: { event: EventListItem }) {
         <div className="absolute inset-0 bg-gradient-to-t from-black/35 via-transparent to-transparent" />
         <span
           className={cn(
-            "absolute left-3 top-3 inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide ring-1 backdrop-blur-sm",
+            "absolute start-3 top-3 inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide ring-1 backdrop-blur-sm",
             statusStyles[event.status] ?? statusStyles.draft
           )}
         >
-          {event.status.replace("_", " ")}
+          {tc(statusKey)}
         </span>
         {palette.colors.length > 0 && (
-          <div className="absolute right-3 top-3 inline-flex items-center gap-1 rounded-full bg-black/55 px-1.5 py-1 backdrop-blur-sm">
+          <div className="absolute end-3 top-3 inline-flex items-center gap-1 rounded-full bg-black/55 px-1.5 py-1 backdrop-blur-sm">
             {palette.colors.slice(0, 4).map((c) => (
               <span
                 key={c}
@@ -364,7 +362,7 @@ function EventCard({ event }: { event: EventListItem }) {
         <div className="flex items-center gap-3 text-xs text-muted-foreground">
           <span className="inline-flex items-center gap-1">
             <CalendarDays className="size-3" />
-            {formatEventDate(event.event_date)}
+            {event.event_date ? f.date(event.event_date, "long") : tc("dateNotSet")}
           </span>
           {event.venue && (
             <span className="inline-flex items-center gap-1">
@@ -375,50 +373,74 @@ function EventCard({ event }: { event: EventListItem }) {
         </div>
         <p className="text-[11px] capitalize text-muted-foreground">
           {formatEventType(event.event_type)}
-          {event.designs[0] && ` · linked to ${event.designs[0].name}`}
+          {event.designs[0] && ` · ${tc("linkedTo", { name: event.designs[0].name })}`}
         </p>
       </div>
     </Link>
   );
 }
 
+type ClientStatusKey =
+  | "statusDraft"
+  | "statusPlanning"
+  | "statusConfirmed"
+  | "statusInProgress"
+  | "statusCompleted"
+  | "statusCancelled";
+
+function statusLabelKey(status: string): ClientStatusKey {
+  switch (status) {
+    case "planning":
+      return "statusPlanning";
+    case "confirmed":
+      return "statusConfirmed";
+    case "in_progress":
+      return "statusInProgress";
+    case "completed":
+      return "statusCompleted";
+    case "cancelled":
+      return "statusCancelled";
+    default:
+      return "statusDraft";
+  }
+}
+
 function DesignsEmptyState({ onStart }: { onStart: () => void }) {
+  const tc = useTranslations("client");
   return (
     <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-rose-200/70 bg-white/40 px-6 py-16 text-center backdrop-blur-sm dark:border-rose-900/40 dark:bg-card/40">
       <div className="mb-5 grid size-14 place-items-center rounded-full bg-gradient-to-br from-rose-100 to-amber-100 ring-1 ring-rose-200/60">
         <Wand2 className="size-6 text-rose-600" />
       </div>
       <h3 className="font-display text-xl font-light tracking-tight">
-        No designs yet
+        {tc("noDesignsYet")}
       </h3>
       <p className="mt-2 max-w-md text-pretty text-sm text-muted-foreground">
-        Pick a vibe, palette, and a few references — we&apos;ll bring it to
-        life. You can approve any design to turn it into a real event.
+        {tc("noDesignsBody")}
       </p>
       <Button
         onClick={onStart}
         className="mt-6 h-10 gap-2 bg-gradient-to-r from-rose-600 to-amber-500 px-5 text-white shadow-md shadow-rose-500/20 hover:opacity-90"
       >
         <Plus className="size-4" />
-        Create your first design
+        {tc("createFirstDesign")}
       </Button>
     </div>
   );
 }
 
 function EventsEmptyState() {
+  const tc = useTranslations("client");
   return (
     <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-rose-200/70 bg-white/40 px-6 py-16 text-center backdrop-blur-sm dark:border-rose-900/40 dark:bg-card/40">
       <div className="mb-5 grid size-14 place-items-center rounded-full bg-gradient-to-br from-rose-100 to-amber-100 ring-1 ring-rose-200/60">
         <CalendarDays className="size-6 text-rose-600" />
       </div>
       <h3 className="font-display text-xl font-light tracking-tight">
-        No events yet
+        {tc("noEventsYet")}
       </h3>
       <p className="mt-2 max-w-md text-pretty text-sm text-muted-foreground">
-        Approve a design above and we&apos;ll spin up a full event hub — dates,
-        venue, planner, payments, and conversation, all linked to your
-        approved design.
+        {tc("noEventsBody")}
       </p>
     </div>
   );

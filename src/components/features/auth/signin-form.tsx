@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,6 +13,7 @@ import { OAuthButtons } from "./oauth-buttons";
 export function SignInForm() {
   const router = useRouter();
   const supabase = createClient();
+  const t = useTranslations("auth");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -42,7 +44,7 @@ export function SignInForm() {
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="space-y-4">
         <div className="space-y-2">
-          <Label htmlFor="email">Email</Label>
+          <Label htmlFor="email">{t("email")}</Label>
           <Input
             id="email"
             type="email"
@@ -57,12 +59,12 @@ export function SignInForm() {
         </div>
         <div className="space-y-2">
           <div className="flex items-center justify-between">
-            <Label htmlFor="password">Password</Label>
+            <Label htmlFor="password">{t("password")}</Label>
             <Link
               href="/auth/forgot-password"
               className="text-xs font-medium text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
             >
-              Forgot password?
+              {t("forgotPassword")}
             </Link>
           </div>
           <Input
@@ -89,7 +91,7 @@ export function SignInForm() {
       )}
 
       <Button type="submit" className="w-full" disabled={loading}>
-        {loading ? "Signing in…" : "Sign In"}
+        {loading ? t("signingIn") : t("signIn")}
       </Button>
 
       <div className="relative">
@@ -98,7 +100,7 @@ export function SignInForm() {
         </div>
         <div className="relative flex justify-center text-xs uppercase">
           <span className="bg-card px-2 text-muted-foreground">
-            Or continue with
+            {t("orContinueWith")}
           </span>
         </div>
       </div>
@@ -106,12 +108,12 @@ export function SignInForm() {
       <OAuthButtons />
 
       <p className="text-center text-sm text-muted-foreground">
-        Don&apos;t have an account?{" "}
+        {t("noAccount")}{" "}
         <Link
           href="/auth/signup"
           className="font-medium text-primary underline-offset-4 hover:underline"
         >
-          Sign up
+          {t("signUp")}
         </Link>
       </p>
     </form>

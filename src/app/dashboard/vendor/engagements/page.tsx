@@ -1,19 +1,20 @@
 "use client";
 
 import Link from "next/link";
-import { format } from "date-fns";
 import { Briefcase, Loader2 } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { trpc } from "@/lib/trpc";
-import { decimalToNumber, formatCurrency } from "@/lib/payments";
+import { decimalToNumber } from "@/lib/payments";
 
-const STATUS_LABEL: Record<string, string> = {
-  draft: "Draft",
-  requested: "Awaiting your response",
-  accepted: "Accepted",
-  declined: "Declined",
-  active: "Active",
-  completed: "Completed",
-  cancelled: "Cancelled",
+import { useFormatters } from "@/lib/use-formatters";
+const STATUS_KEY: Record<string, string> = {
+  draft: "statusDraft",
+  requested: "statusRequested",
+  accepted: "statusAccepted",
+  declined: "statusDeclined",
+  active: "statusActive",
+  completed: "statusCompleted",
+  cancelled: "statusCancelled",
 };
 
 const STATUS_TONE: Record<string, string> = {
@@ -28,6 +29,8 @@ const STATUS_TONE: Record<string, string> = {
 
 export default function VendorEngagementsListPage() {
   const incoming = trpc.vendorEngagements.incoming.useQuery();
+  const f = useFormatters();
+  const t = useTranslations("vendor");
 
   if (incoming.isLoading) {
     return (
@@ -48,13 +51,13 @@ export default function VendorEngagementsListPage() {
       <div className="relative z-10 mx-auto max-w-5xl px-4 py-10 sm:px-6">
         <header className="mb-8">
           <p className="mb-1 text-[0.65rem] font-medium uppercase tracking-[0.3em] text-rose-700/80">
-            Engagements
+            {t("engagementsLabel")}
           </p>
           <h1 className="font-display text-3xl font-light tracking-tight sm:text-4xl">
-            Every deal in flight
+            {t("engagementsTitle")}
           </h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            Cancelled, accepted, completed — your full history with planners.
+            {t("engagementsSubtitle")}
           </p>
         </header>
 
@@ -62,11 +65,10 @@ export default function VendorEngagementsListPage() {
           <div className="rounded-2xl border border-rose-100/70 bg-white/70 p-12 text-center backdrop-blur-sm">
             <Briefcase className="mx-auto mb-3 size-8 text-rose-500" />
             <p className="font-display text-xl font-light tracking-tight">
-              No engagements yet
+              {t("noEngagementsYet")}
             </p>
             <p className="mt-1 text-sm text-muted-foreground">
-              Once a planner books items from your catalog, they&apos;ll show up
-              here.
+              {t("noEngagementsBody")}
             </p>
           </div>
         ) : (
@@ -87,10 +89,10 @@ export default function VendorEngagementsListPage() {
                     <p className="truncate text-xs text-muted-foreground">
                       {e.planner.business_name} · {e.event.title}
                       {e.event.event_date && (
-                        <> · {format(new Date(e.event.event_date), "PP")}</>
+                        <> · {f.date(e.event.event_date, "medium")}</>
                       )}
                       {" · "}
-                      {e.items.length} line items
+                      {t("lineItemsCount", { count: e.items.length })}
                     </p>
                   </div>
                   <div className="flex items-center gap-3">
@@ -99,10 +101,10 @@ export default function VendorEngagementsListPage() {
                         STATUS_TONE[e.status] ?? STATUS_TONE.draft
                       }`}
                     >
-                      {STATUS_LABEL[e.status] ?? e.status}
+                      {STATUS_KEY[e.status] ? t(STATUS_KEY[e.status]) : e.status}
                     </span>
                     <span className="font-mono text-sm tabular-nums">
-                      {formatCurrency(
+                      {f.currency(
                         decimalToNumber(e.total_amount),
                         e.currency,
                       )}

@@ -340,7 +340,7 @@ function Field({
         className="block text-[0.65rem] uppercase tracking-[0.25em] text-zinc-400"
       >
         {label}
-        {required && <span className="ml-1 text-rose-300">*</span>}
+        {required && <span className="ms-1 text-rose-300">*</span>}
       </label>
       <input
         id={id}
@@ -396,7 +396,7 @@ function SelectField({
         className="block text-[0.65rem] uppercase tracking-[0.25em] text-zinc-400"
       >
         {label}
-        {required && <span className="ml-1 text-rose-300">*</span>}
+        {required && <span className="ms-1 text-rose-300">*</span>}
       </label>
       <div className="relative">
         <select
@@ -404,7 +404,7 @@ function SelectField({
           value={value}
           required={required}
           onChange={(e) => onChange(e.target.value)}
-          className="peer mt-2 w-full appearance-none border-b border-white/15 bg-transparent pb-2.5 pr-8 text-base text-white outline-none transition-colors focus:border-white/60 [&>option]:bg-zinc-950"
+          className="peer mt-2 w-full appearance-none border-b border-white/15 bg-transparent pb-2.5 pe-8 text-base text-white outline-none transition-colors focus:border-white/60 [&>option]:bg-zinc-950"
         >
           <option value="" disabled className="text-zinc-500">
             Choose...
@@ -418,7 +418,7 @@ function SelectField({
         <svg
           aria-hidden
           viewBox="0 0 24 24"
-          className="pointer-events-none absolute right-0 top-1/2 mt-1 h-4 w-4 -translate-y-1/2 text-zinc-400"
+          className="pointer-events-none absolute end-0 top-1/2 mt-1 h-4 w-4 -translate-y-1/2 text-zinc-400"
         >
           <path
             d="M6 9l6 6 6-6"

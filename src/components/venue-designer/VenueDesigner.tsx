@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
 import { motion, useReducedMotion } from "framer-motion";
+import { useTranslations } from "next-intl";
 import { trpc } from "@/lib/trpc";
 import { useVenueDesignerStore } from "@/stores/venue-designer-store";
 import {
@@ -81,6 +82,7 @@ function normalizePalette(value: unknown): DesignDocument["palette"] {
 
 export function VenueDesigner({ designId }: VenueDesignerProps) {
   const router = useRouter();
+  const t = useTranslations("designer");
   const serialize = useVenueDesignerStore((s) => s.serialize);
   const deserialize = useVenueDesignerStore((s) => s.deserialize);
   const reset = useVenueDesignerStore((s) => s.reset);
@@ -194,7 +196,7 @@ export function VenueDesigner({ designId }: VenueDesignerProps) {
       <div className="flex h-screen w-full items-center justify-center bg-background">
         <div className="flex flex-col items-center gap-3">
           <Loader2 className="h-8 w-8 animate-spin text-rose-500" />
-          <p className="text-sm text-muted-foreground">Loading design...</p>
+          <p className="text-sm text-muted-foreground">{t("loadingDesign")}</p>
         </div>
       </div>
     );
@@ -241,7 +243,7 @@ function DesignerLayout({
       />
       <div
         aria-hidden
-        className="pointer-events-none absolute -top-40 left-1/2 -z-10 h-[28rem] w-[28rem] -translate-x-1/2 rounded-full bg-gradient-to-br from-rose-200/30 to-amber-200/20 blur-3xl dark:from-rose-900/15 dark:to-amber-900/10"
+        className="pointer-events-none absolute -top-40 start-1/2 -z-10 h-[28rem] w-[28rem] -translate-x-1/2 rounded-full bg-gradient-to-br from-rose-200/30 to-amber-200/20 blur-3xl dark:from-rose-900/15 dark:to-amber-900/10"
       />
 
       {/* Sticky compact header */}

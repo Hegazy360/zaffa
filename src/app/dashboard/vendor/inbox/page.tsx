@@ -1,13 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { format } from "date-fns";
 import { CheckCircle2, Inbox as InboxIcon, Loader2, X } from "lucide-react";
 import { toast } from "sonner";
+import { useTranslations } from "next-intl";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
-import { decimalToNumber, formatCurrency } from "@/lib/payments";
+import { decimalToNumber } from "@/lib/payments";
 
+import { useFormatters } from "@/lib/use-formatters";
 type EngagementStatus =
   | "draft"
   | "requested"
@@ -17,14 +18,14 @@ type EngagementStatus =
   | "completed"
   | "cancelled";
 
-const STATUS_LABEL: Record<EngagementStatus, string> = {
-  draft: "Draft",
-  requested: "Awaiting your response",
-  accepted: "Accepted",
-  declined: "Declined",
-  active: "Active",
-  completed: "Completed",
-  cancelled: "Cancelled",
+const STATUS_KEY: Record<EngagementStatus, string> = {
+  draft: "statusDraft",
+  requested: "statusRequested",
+  accepted: "statusAccepted",
+  declined: "statusDeclined",
+  active: "statusActive",
+  completed: "statusCompleted",
+  cancelled: "statusCancelled",
 };
 
 const STATUS_TONE: Record<EngagementStatus, string> = {
@@ -39,10 +40,12 @@ const STATUS_TONE: Record<EngagementStatus, string> = {
 
 export default function VendorInboxPage() {
   const utils = trpc.useUtils();
+  const f = useFormatters();
+  const t = useTranslations("vendor");
   const incoming = trpc.vendorEngagements.incoming.useQuery();
   const respond = trpc.vendorEngagements.vendorRespond.useMutation({
     onSuccess: () => {
-      toast.success("Response sent");
+      toast.success(t("responseSentToast"));
       utils.vendorEngagements.incoming.invalidate();
       utils.vendors.stats.invalidate();
     },
@@ -70,14 +73,13 @@ export default function VendorInboxPage() {
       <div className="relative z-10 mx-auto max-w-4xl px-4 py-10 sm:px-6">
         <header className="mb-8">
           <p className="mb-1 text-[0.65rem] font-medium uppercase tracking-[0.3em] text-rose-700/80">
-            Inbox
+            {t("inboxLabel")}
           </p>
           <h1 className="font-display text-3xl font-light tracking-tight sm:text-4xl">
-            Engagement requests
+            {t("inboxRequestsTitle")}
           </h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            Planners on Zaffa have asked to book the items below. Accept to
-            move into delivery, decline to free up your calendar.
+            {t("inboxRequestsSubtitle")}
           </p>
         </header>
 
@@ -85,16 +87,16 @@ export default function VendorInboxPage() {
           <div className="rounded-2xl border border-rose-100/70 bg-white/70 p-12 text-center backdrop-blur-sm">
             <InboxIcon className="mx-auto mb-3 size-8 text-rose-500" />
             <p className="font-display text-xl font-light tracking-tight">
-              Inbox zero
+              {t("inboxZero")}
             </p>
             <p className="mt-1 text-sm text-muted-foreground">
-              You&apos;ll see requests here as planners shortlist your catalog.
+              {t("inboxZeroBody")}
             </p>
           </div>
         ) : (
           <div className="space-y-8">
             {pending.length > 0 && (
-              <Section title="Awaiting your response">
+              <Section title={t("awaitingResponseSection")}>
                 <ul className="space-y-3">
                   {pending.map((e) => (
                     <EngagementCard
@@ -113,7 +115,7 @@ export default function VendorInboxPage() {
               </Section>
             )}
             {others.length > 0 && (
-              <Section title="Recent activity">
+              <Section title={t("recentActivity")}>
                 <ul className="space-y-3">
                   {others.map((e) => (
                     <EngagementCard key={e.id} engagement={e} />
@@ -180,6 +182,8 @@ function EngagementCard({
   onDecline,
   pending,
 }: EngagementCardProps) {
+  const f = useFormatters();
+  const t = useTranslations("vendor");
   const status = engagement.status;
   return (
     <li className="overflow-hidden rounded-2xl border border-rose-100/70 bg-white/85 backdrop-blur-sm">
@@ -195,7 +199,7 @@ function EngagementCard({
             <p className="truncate text-xs text-muted-foreground">
               {engagement.planner.business_name} · {engagement.event.title}
               {engagement.event.event_date && (
-                <> · {format(new Date(engagement.event.event_date), "PP")}</>
+                <> · {f.date(engagement.event.event_date, "medium")}</>
               )}
             </p>
           </Link>
@@ -204,10 +208,10 @@ function EngagementCard({
           <span
             className={`rounded-full px-2 py-0.5 text-[10px] uppercase tracking-wider ${STATUS_TONE[status]}`}
           >
-            {STATUS_LABEL[status]}
+            {t(STATUS_KEY[status])}
           </span>
           <span className="font-mono text-sm tabular-nums">
-            {formatCurrency(
+            {f.currency(
               decimalToNumber(engagement.total_amount),
               engagement.currency,
             )}
@@ -237,7 +241,7 @@ function EngagementCard({
               <div className="flex shrink-0 items-center gap-3 text-xs text-muted-foreground">
                 <span>×{i.quantity}</span>
                 <span className="font-mono tabular-nums">
-                  {formatCurrency(
+                  {f.currency(
                     decimalToNumber(i.line_total),
                     engagement.currency,
                   )}
@@ -256,7 +260,7 @@ function EngagementCard({
               className="gap-1"
             >
               <X className="size-3.5" />
-              Decline
+              {t("decline")}
             </Button>
             <Button
               size="sm"
@@ -269,7 +273,7 @@ function EngagementCard({
               ) : (
                 <CheckCircle2 className="size-3.5" />
               )}
-              Accept
+              {t("accept")}
             </Button>
           </div>
         )}

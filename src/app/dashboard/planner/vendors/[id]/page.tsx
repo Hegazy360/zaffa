@@ -3,7 +3,6 @@
 import { use, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { format } from "date-fns";
 import {
   ArrowLeft,
   Image as ImageIcon,
@@ -18,6 +17,7 @@ import {
   X,
 } from "lucide-react";
 import { toast } from "sonner";
+import { useTranslations } from "next-intl";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { CurrencyInput } from "@/components/ui/currency-input";
@@ -39,8 +39,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { decimalToNumber, formatCurrency } from "@/lib/payments";
+import { decimalToNumber } from "@/lib/payments";
 
+import { useFormatters } from "@/lib/use-formatters";
 type CartItem = {
   key: string;
   service_id: string | null;
@@ -64,6 +65,8 @@ export default function PlannerVendorProfilePage({
 }) {
   const { id } = use(params);
   const router = useRouter();
+  const t = useTranslations("planner");
+  const f = useFormatters();
   const utils = trpc.useUtils();
   const vendor = trpc.vendors.byId.useQuery({ id });
   const reviews = trpc.vendorReviews.forVendor.useQuery({ vendorId: id });
@@ -78,7 +81,7 @@ export default function PlannerVendorProfilePage({
 
   const request = trpc.vendorEngagements.request.useMutation({
     onSuccess: (created) => {
-      toast.success("Engagement requested");
+      toast.success(t("engagementRequestedToast"));
       utils.vendorEngagements.mineForPlanner.invalidate();
       setOpen(false);
       setCart([]);
@@ -120,7 +123,7 @@ export default function PlannerVendorProfilePage({
         },
       ];
     });
-    toast.success(`${service.name} added to cart`);
+    toast.success(t("addedToCartToast", { name: service.name }));
   }
 
   function addCustom() {
@@ -129,7 +132,7 @@ export default function PlannerVendorProfilePage({
       {
         key: `c-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
         service_id: null,
-        name: "Custom item",
+        name: t("customItemDefault"),
         description: null,
         quantity: 1,
         unit_price: 0,
@@ -147,19 +150,19 @@ export default function PlannerVendorProfilePage({
 
   function submit() {
     if (!eventId) {
-      toast.error("Pick an event first");
+      toast.error(t("pickEventFirstError"));
       return;
     }
     if (!title.trim()) {
-      toast.error("Give the engagement a title");
+      toast.error(t("giveEngagementTitleError"));
       return;
     }
     if (cart.length === 0) {
-      toast.error("Add at least one item");
+      toast.error(t("addAtLeastOneItemError"));
       return;
     }
     if (cart.some((c) => !c.name.trim() || c.unit_price < 0 || c.quantity < 1)) {
-      toast.error("Every line needs a name, qty ≥ 1, and price ≥ 0");
+      toast.error(t("lineNeedsValidValuesError"));
       return;
     }
     request.mutate({
@@ -189,7 +192,7 @@ export default function PlannerVendorProfilePage({
   if (!vendor.data) {
     return (
       <div className="mx-auto max-w-3xl px-6 py-16 text-center">
-        <p className="text-sm text-muted-foreground">Vendor not found.</p>
+        <p className="text-sm text-muted-foreground">{t("vendorNotFound")}</p>
       </div>
     );
   }
@@ -203,7 +206,7 @@ export default function PlannerVendorProfilePage({
   const eventItems = events.map((e) => ({
     value: e.id,
     label: e.event_date
-      ? `${e.title} · ${format(new Date(e.event_date), "PP")}`
+      ? `${e.title} · ${f.date(e.event_date, "medium")}`
       : e.title,
   }));
 
@@ -218,8 +221,8 @@ export default function PlannerVendorProfilePage({
           href="/dashboard/planner/vendors"
           className="inline-flex items-center gap-1 text-xs text-muted-foreground transition hover:text-rose-700"
         >
-          <ArrowLeft className="size-3" />
-          Back to vendors
+          <ArrowLeft className="size-3 rtl:-scale-x-100" />
+          {t("backToVendors")}
         </Link>
 
         <header className="overflow-hidden rounded-2xl border border-rose-100/70 bg-white/85 backdrop-blur-sm">
@@ -241,13 +244,13 @@ export default function PlannerVendorProfilePage({
                 <span className="inline-flex items-center gap-0.5">
                   <Star className="size-3 text-amber-500" />
                   {Number(v.avg_rating).toFixed(1)}
-                  <span className="ml-0.5 text-muted-foreground">
-                    ({v.review_count} reviews)
+                  <span className="ms-0.5 text-muted-foreground">
+                    {t("reviewsCountParens", { count: v.review_count })}
                   </span>
                 </span>
                 {v.verified && (
                   <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] uppercase tracking-wider text-emerald-800 ring-1 ring-emerald-100">
-                    Verified
+                    {t("verifiedBadge")}
                   </span>
                 )}
               </div>
@@ -259,15 +262,15 @@ export default function PlannerVendorProfilePage({
             >
               <ShoppingCart className="size-4" />
               {cart.length === 0
-                ? "Cart empty"
-                : `Request engagement (${cart.length})`}
+                ? t("cartEmpty")
+                : t("requestEngagementCount", { count: cart.length })}
             </Button>
           </div>
         </header>
 
         {events.length === 0 && (
           <div className="rounded-xl border border-amber-200 bg-amber-50/70 p-3 text-xs text-amber-900">
-            You need at least one accepted event to request a vendor.
+            {t("needAcceptedEvent")}
           </div>
         )}
 
@@ -276,14 +279,14 @@ export default function PlannerVendorProfilePage({
             <div className="rounded-2xl border border-rose-100/70 bg-white/85 backdrop-blur-sm">
               <div className="border-b border-rose-100/70 px-5 py-3">
                 <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-rose-700/80">
-                  Catalog
+                  {t("catalog")}
                 </p>
               </div>
               {v.services.length === 0 ? (
                 <div className="px-5 py-12 text-center">
                   <Store className="mx-auto mb-2 size-6 text-rose-500" />
                   <p className="text-sm text-muted-foreground">
-                    No items listed yet.
+                    {t("noItemsListed")}
                   </p>
                 </div>
               ) : (
@@ -315,7 +318,7 @@ export default function PlannerVendorProfilePage({
                               {s.name}
                             </p>
                             <p className="font-mono text-sm tabular-nums text-rose-700">
-                              {formatCurrency(decimalToNumber(s.price_from))}
+                              {f.currency(decimalToNumber(s.price_from))}
                             </p>
                           </div>
                           {s.description && (
@@ -340,7 +343,7 @@ export default function PlannerVendorProfilePage({
                             className="mt-auto w-full gap-1"
                           >
                             <Plus className="size-3.5" />
-                            Add to cart
+                            {t("addToCart")}
                           </Button>
                         </div>
                       </div>
@@ -354,7 +357,7 @@ export default function PlannerVendorProfilePage({
               <div className="rounded-2xl border border-rose-100/70 bg-white/85 backdrop-blur-sm">
                 <div className="border-b border-rose-100/70 px-5 py-3">
                   <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-rose-700/80">
-                    Portfolio
+                    {t("portfolioHeading")}
                   </p>
                 </div>
                 <div className="grid gap-3 p-5 sm:grid-cols-3">
@@ -383,12 +386,12 @@ export default function PlannerVendorProfilePage({
             <div className="rounded-2xl border border-rose-100/70 bg-white/85 backdrop-blur-sm">
               <div className="border-b border-rose-100/70 px-5 py-3">
                 <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-rose-700/80">
-                  Reviews
+                  {t("reviewsHeading")}
                 </p>
               </div>
               {(reviews.data ?? []).length === 0 ? (
                 <div className="px-5 py-10 text-center text-sm text-muted-foreground">
-                  No reviews yet.
+                  {t("noReviewsYet")}
                 </div>
               ) : (
                 <ul className="divide-y divide-rose-100/70">
@@ -406,7 +409,7 @@ export default function PlannerVendorProfilePage({
                         </p>
                       </div>
                       <p className="text-[11px] text-muted-foreground">
-                        {format(new Date(r.created_at), "PP")}
+                        {f.date(r.created_at, "medium")}
                         {r.engagement && (
                           <> · {r.engagement.title}</>
                         )}
@@ -425,15 +428,15 @@ export default function PlannerVendorProfilePage({
             <div className="rounded-2xl border border-rose-100/70 bg-white/85 backdrop-blur-sm">
               <div className="border-b border-rose-100/70 px-5 py-3">
                 <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-rose-700/80">
-                  Engagement cart
+                  {t("engagementCart")}
                 </p>
                 <p className="text-xs text-muted-foreground">
-                  Snapshot pricing — adjusts feed into the request.
+                  {t("engagementCartHint")}
                 </p>
               </div>
               {cart.length === 0 ? (
                 <div className="px-5 py-10 text-center text-sm text-muted-foreground">
-                  Add items from the catalog or a custom line.
+                  {t("emptyCart")}
                 </div>
               ) : (
                 <ul className="divide-y divide-rose-100/70">
@@ -500,13 +503,13 @@ export default function PlannerVendorProfilePage({
                               ),
                             })
                           }
-                          className="h-8 flex-1 text-right text-sm"
+                          className="h-8 flex-1 text-end text-sm"
                         />
                       </div>
-                      <p className="text-right text-xs text-muted-foreground">
-                        Subtotal{" "}
+                      <p className="text-end text-xs text-muted-foreground">
+                        {t("subtotal")}{" "}
                         <span className="font-mono tabular-nums text-foreground">
-                          {formatCurrency(c.unit_price * c.quantity, currency)}
+                          {f.currency(c.unit_price * c.quantity, currency)}
                         </span>
                       </p>
                     </li>
@@ -515,9 +518,9 @@ export default function PlannerVendorProfilePage({
               )}
               <div className="space-y-2 border-t border-rose-100/70 px-5 py-3">
                 <div className="flex items-center justify-between text-sm">
-                  <span>Total</span>
+                  <span>{t("total")}</span>
                   <span className="font-mono tabular-nums">
-                    {formatCurrency(total, currency)}
+                    {f.currency(total, currency)}
                   </span>
                 </div>
                 <Button
@@ -527,7 +530,7 @@ export default function PlannerVendorProfilePage({
                   className="w-full gap-1"
                 >
                   <Plus className="size-3.5" />
-                  Add custom line
+                  {t("addCustomLine")}
                 </Button>
                 {cart.length > 0 && (
                   <Button
@@ -537,7 +540,7 @@ export default function PlannerVendorProfilePage({
                     className="w-full gap-1 text-destructive"
                   >
                     <Trash2 className="size-3.5" />
-                    Clear cart
+                    {t("clearCart")}
                   </Button>
                 )}
               </div>
@@ -548,22 +551,21 @@ export default function PlannerVendorProfilePage({
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogContent className="max-w-lg">
             <DialogHeader>
-              <DialogTitle>Request engagement</DialogTitle>
+              <DialogTitle>{t("requestEngagement")}</DialogTitle>
               <DialogDescription>
-                Pick the event, give the deal a title, and we&apos;ll send the
-                request to the vendor.
+                {t("requestEngagementDesc")}
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-4">
               <div className="space-y-1.5">
-                <Label htmlFor="evt">Event</Label>
+                <Label htmlFor="evt">{t("eventLabel")}</Label>
                 <Select
                   items={eventItems}
                   value={eventId}
                   onValueChange={(v) => setEventId(v ?? "")}
                 >
                   <SelectTrigger id="evt">
-                    <SelectValue placeholder="Select an event" />
+                    <SelectValue placeholder={t("selectAnEvent")} />
                   </SelectTrigger>
                   <SelectContent>
                     {eventItems.map((e) => (
@@ -575,16 +577,18 @@ export default function PlannerVendorProfilePage({
                 </Select>
               </div>
               <div className="space-y-1.5">
-                <Label htmlFor="title">Title</Label>
+                <Label htmlFor="title">{t("titleLabel")}</Label>
                 <Input
                   id="title"
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
-                  placeholder={`${v.business_name} — main package`}
+                  placeholder={t("engagementTitlePlaceholder", {
+                    name: v.business_name,
+                  })}
                 />
               </div>
               <div className="space-y-1.5">
-                <Label htmlFor="cur">Currency</Label>
+                <Label htmlFor="cur">{t("currencyLabel")}</Label>
                 <CurrencyInput
                   id="cur"
                   value={currency}
@@ -593,20 +597,20 @@ export default function PlannerVendorProfilePage({
                 />
               </div>
               <div className="space-y-1.5">
-                <Label htmlFor="notes">Notes for the vendor</Label>
+                <Label htmlFor="notes">{t("notesForVendorLabel")}</Label>
                 <Textarea
                   id="notes"
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
                   rows={3}
-                  placeholder="Setup instructions, delivery time, anything else."
+                  placeholder={t("vendorNotesPlaceholder")}
                   className="resize-none"
                 />
               </div>
               <div className="rounded-xl border border-rose-100/70 bg-rose-50/30 px-3 py-2 text-xs">
-                <span className="text-muted-foreground">Total</span>{" "}
+                <span className="text-muted-foreground">{t("total")}</span>{" "}
                 <span className="font-mono tabular-nums">
-                  {formatCurrency(total, currency)}
+                  {f.currency(total, currency)}
                 </span>
               </div>
             </div>
@@ -621,7 +625,7 @@ export default function PlannerVendorProfilePage({
                 ) : (
                   <Send className="size-4" />
                 )}
-                Send request
+                {t("sendRequest")}
               </Button>
             </DialogFooter>
           </DialogContent>

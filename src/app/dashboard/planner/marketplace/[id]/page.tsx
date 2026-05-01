@@ -16,12 +16,14 @@ import {
   UserCircle,
 } from "lucide-react";
 import { toast } from "sonner";
+import { useTranslations } from "next-intl";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { CurrencyInput } from "@/components/ui/currency-input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { useFormatters } from "@/lib/use-formatters";
 import {
   Dialog,
   DialogContent,
@@ -48,12 +50,19 @@ interface RefItem {
   category: string;
 }
 
-const REFERENCE_CATEGORY_LABELS: Record<string, string> = {
-  overall_vibe: "Overall vibe",
-  tables: "Tables & seating",
-  flowers: "Florals",
-  lighting: "Lighting",
-  venue_decor: "Decor & structure",
+const REFERENCE_CATEGORY_KEYS: Record<
+  string,
+  | "refOverallVibe"
+  | "refTables"
+  | "refFlowers"
+  | "refLighting"
+  | "refVenueDecor"
+> = {
+  overall_vibe: "refOverallVibe",
+  tables: "refTables",
+  flowers: "refFlowers",
+  lighting: "refLighting",
+  venue_decor: "refVenueDecor",
 };
 
 // Pull all reference images out of the design.references JSON (grouped by
@@ -90,36 +99,16 @@ function decimalToNumber(value: unknown): number {
   return 0;
 }
 
-function formatDate(date: Date | string | null | undefined): string {
-  if (!date) return "Date open";
-  return new Date(date).toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  });
-}
-
-function formatCurrency(amount: number, currency = "EGP"): string {
-  // Intl.NumberFormat throws RangeError when the currency code isn't a valid
-  // ISO 4217 string (e.g. while the planner is still typing). Fall back to a
-  // plain "amount code" rendering so the live take-home preview never tears
-  // the page down.
-  try {
-    return new Intl.NumberFormat("en-EG", {
-      style: "currency",
-      currency,
-      minimumFractionDigits: 0,
-    }).format(amount);
-  } catch {
-    return `${amount.toFixed(0)} ${currency}`;
-  }
-}
-
 export default function BriefDetailPage() {
   const params = useParams();
+  const t = useTranslations("marketplace");
+  const f = useFormatters();
   const router = useRouter();
   const id = params.id as string;
   const utils = trpc.useUtils();
+  const formatBriefDate = (
+    date: Date | string | null | undefined,
+  ): string => (date ? f.date(date, "long") : t("dateOpen"));
 
   const { data: brief, isLoading, error } = trpc.marketplace.byId.useQuery({
     id,
@@ -131,7 +120,7 @@ export default function BriefDetailPage() {
 
   const withdraw = trpc.proposals.withdraw.useMutation({
     onSuccess: () => {
-      toast.success("Proposal withdrawn");
+      toast.success(t("proposalWithdrawn"));
       utils.marketplace.byId.invalidate({ id });
       utils.proposals.mine.invalidate();
     },
@@ -142,7 +131,7 @@ export default function BriefDetailPage() {
     return (
       <div className="mx-auto max-w-3xl px-6 py-24 text-center">
         <h2 className="font-display text-2xl font-light tracking-tight">
-          Brief not available
+          {t("briefNotAvailable")}
         </h2>
         <p className="mt-2 text-sm text-muted-foreground">{error.message}</p>
         <Button
@@ -150,7 +139,7 @@ export default function BriefDetailPage() {
           render={<Link href="/dashboard/planner/marketplace" />}
           className="mt-6"
         >
-          Back to marketplace
+          {t("backToMarketplace")}
         </Button>
       </div>
     );
@@ -184,10 +173,10 @@ export default function BriefDetailPage() {
             variant="ghost"
             size="sm"
             render={<Link href="/dashboard/planner/marketplace" />}
-            className="-ml-2 gap-1 text-sm text-muted-foreground hover:text-foreground"
+            className="-ms-2 gap-1 text-sm text-muted-foreground hover:text-foreground"
           >
-            <ArrowLeft className="size-3.5" />
-            Back to marketplace
+            <ArrowLeft className="size-3.5 rtl:-scale-x-100" />
+            {t("backToMarketplace")}
           </Button>
         </div>
 
@@ -201,7 +190,7 @@ export default function BriefDetailPage() {
           <div className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-muted-foreground">
             <span className="inline-flex items-center gap-1.5">
               <CalendarDays className="size-4" />
-              {formatDate(brief.event_date)}
+              {formatBriefDate(brief.event_date)}
             </span>
             {brief.venue && (
               <span className="inline-flex items-center gap-1.5">
@@ -211,15 +200,14 @@ export default function BriefDetailPage() {
             )}
             <span className="inline-flex items-center gap-1.5">
               <UserCircle className="size-4" />
-              with {brief.client_first_name}
+              {t("withSomeone", { firstName: brief.client_first_name })}
             </span>
           </div>
         </header>
 
         {!brief.is_open && !myProposal && (
           <div className="mb-6 rounded-2xl border border-amber-200 bg-amber-50/70 p-4 text-sm text-amber-900">
-            This event already has an active planner. New proposals aren&apos;t
-            being accepted right now.
+            {t("alreadyHasPlanner")}
           </div>
         )}
 
@@ -227,23 +215,25 @@ export default function BriefDetailPage() {
           <div className="mb-6 flex items-start gap-3 rounded-2xl border border-amber-200 bg-amber-50/70 p-4 text-sm text-amber-900">
             <AlertTriangle className="mt-0.5 size-4 shrink-0" />
             <div>
-              <p className="font-medium">Heads up — schedule conflict</p>
+              <p className="font-medium">{t("scheduleConflictTitle")}</p>
               <ul className="mt-1 space-y-0.5 text-amber-800">
                 {conflictRows.map((c) =>
                   c.kind === "block" ? (
                     <li key={c.id}>
-                      You blocked these dates ({formatDate(c.start_date)} –{" "}
-                      {formatDate(c.end_date)})
-                      {c.reason ? ` — ${c.reason}` : ""}
+                      {t("scheduleConflictBlocked", {
+                        start: formatBriefDate(c.start_date),
+                        end: formatBriefDate(c.end_date),
+                        reason: c.reason ? ` — ${c.reason}` : "",
+                      })}
                     </li>
                   ) : (
                     <li key={c.id}>
-                      You&apos;re already booked: {c.title}
+                      {t("scheduleConflictBooked", { title: c.title })}
                     </li>
                   )
                 )}
               </ul>
-              <p className="mt-1 text-xs">You can still apply if it works.</p>
+              <p className="mt-1 text-xs">{t("scheduleConflictApply")}</p>
             </div>
           </div>
         )}
@@ -275,7 +265,7 @@ export default function BriefDetailPage() {
                 {palette.length > 0 && (
                   <div>
                     <p className="mb-2 text-[10px] font-medium uppercase tracking-[0.2em] text-muted-foreground">
-                      Palette
+                      {t("palette")}
                     </p>
                     <div className="flex flex-wrap gap-2">
                       {palette.map((c) => (
@@ -298,7 +288,7 @@ export default function BriefDetailPage() {
                 {design?.style_notes && (
                   <div>
                     <p className="mb-2 text-[10px] font-medium uppercase tracking-[0.2em] text-muted-foreground">
-                      Style notes
+                      {t("styleNotes")}
                     </p>
                     <p className="text-sm text-foreground/90">
                       {design.style_notes}
@@ -311,18 +301,21 @@ export default function BriefDetailPage() {
                   return (
                     <div>
                       <p className="mb-2 text-[10px] font-medium uppercase tracking-[0.2em] text-muted-foreground">
-                        References ({refs.length})
+                        {t("references", { count: refs.length })}
                       </p>
                       <div className="grid grid-cols-3 gap-2">
-                        {refs.slice(0, 12).map((r) => (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img
-                            key={r.id}
-                            src={r.thumbnailUrl ?? r.url}
-                            alt={REFERENCE_CATEGORY_LABELS[r.category] ?? ""}
-                            className="aspect-square w-full rounded-lg object-cover"
-                          />
-                        ))}
+                        {refs.slice(0, 12).map((r) => {
+                          const altKey = REFERENCE_CATEGORY_KEYS[r.category];
+                          return (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img
+                              key={r.id}
+                              src={r.thumbnailUrl ?? r.url}
+                              alt={altKey ? t(altKey) : ""}
+                              className="aspect-square w-full rounded-lg object-cover"
+                            />
+                          );
+                        })}
                       </div>
                     </div>
                   );
@@ -354,7 +347,7 @@ export default function BriefDetailPage() {
                   return (
                     <div>
                       <p className="mb-2 text-[10px] font-medium uppercase tracking-[0.2em] text-muted-foreground">
-                        Cinematic preview
+                        {t("cinematicPreview")}
                       </p>
                       <div className="grid grid-cols-1 gap-2">
                         {videos.slice(0, 2).map((v) => (
@@ -378,24 +371,24 @@ export default function BriefDetailPage() {
             <div className="space-y-5">
               <div className="rounded-2xl border border-rose-100/70 bg-white/70 p-5 backdrop-blur-sm">
                 <p className="mb-3 text-[10px] font-medium uppercase tracking-[0.2em] text-muted-foreground">
-                  Brief
+                  {t("brief")}
                 </p>
                 <dl className="space-y-3 text-sm">
                   <div className="flex justify-between gap-3">
-                    <dt className="text-muted-foreground">Event type</dt>
+                    <dt className="text-muted-foreground">{t("eventType")}</dt>
                     <dd className="capitalize">{brief.event_type}</dd>
                   </div>
                   <div className="flex justify-between gap-3">
-                    <dt className="text-muted-foreground">Date</dt>
-                    <dd>{formatDate(brief.event_date)}</dd>
+                    <dt className="text-muted-foreground">{t("date")}</dt>
+                    <dd>{formatBriefDate(brief.event_date)}</dd>
                   </div>
                   <div className="flex justify-between gap-3">
-                    <dt className="text-muted-foreground">Venue</dt>
-                    <dd className="text-right">{brief.venue || "Open"}</dd>
+                    <dt className="text-muted-foreground">{t("venue")}</dt>
+                    <dd className="text-end">{brief.venue || t("open")}</dd>
                   </div>
                   <div className="flex justify-between gap-3">
-                    <dt className="text-muted-foreground">Budget</dt>
-                    <dd>{budget > 0 ? formatCurrency(budget) : "Not shared"}</dd>
+                    <dt className="text-muted-foreground">{t("budget")}</dt>
+                    <dd>{budget > 0 ? f.currency(budget) : t("notShared")}</dd>
                   </div>
                 </dl>
               </div>
@@ -416,14 +409,14 @@ export default function BriefDetailPage() {
                 ) : !brief.is_open ? (
                   <div className="text-center">
                     <p className="text-sm text-muted-foreground">
-                      An active planner is engaged on this event.
+                      {t("anotherPlannerEngaged")}
                     </p>
                     <Button
                       className="mt-3"
                       variant="outline"
                       onClick={() => router.push("/dashboard/planner/marketplace")}
                     >
-                      Browse other briefs
+                      {t("browseOtherBriefs")}
                     </Button>
                   </div>
                 ) : (
@@ -469,23 +462,25 @@ function MyProposalState({
   withdrawing: boolean;
   onEdited: () => void;
 }) {
+  const t = useTranslations("marketplace");
+  const f = useFormatters();
   const [editOpen, setEditOpen] = useState(false);
 
   const statusLabel: Record<string, { label: string; className: string }> = {
     pending: {
-      label: "Standing by",
+      label: t("statusStanding"),
       className: "bg-amber-50 text-amber-800 ring-amber-200",
     },
     accepted: {
-      label: "Accepted",
+      label: t("statusAccepted"),
       className: "bg-emerald-50 text-emerald-800 ring-emerald-200",
     },
     released: {
-      label: "Released",
+      label: t("statusReleased"),
       className: "bg-stone-100 text-stone-700 ring-stone-200",
     },
     declined: {
-      label: "Withdrawn",
+      label: t("statusWithdrawn"),
       className: "bg-stone-100 text-stone-500 ring-stone-200",
     },
   };
@@ -496,7 +491,7 @@ function MyProposalState({
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-muted-foreground">
-          Your proposal
+          {t("yourProposal")}
         </p>
         <span
           className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide ring-1 ${s.className}`}
@@ -521,16 +516,16 @@ function MyProposalState({
             <div className="overflow-hidden rounded-xl border border-rose-100/70 bg-white/60">
               <div className="flex items-center justify-between gap-3 px-3 py-2.5">
                 <span className="text-[10px] font-medium uppercase tracking-[0.2em] text-muted-foreground">
-                  Quote
+                  {t("quote")}
                 </span>
                 <span className="font-display text-xl font-light tracking-tight">
-                  {formatCurrency(amount, proposal.quote_currency)}
+                  {f.currency(amount, proposal.quote_currency)}
                 </span>
               </div>
               {breakdown.length > 0 && (
                 <div className="border-t border-rose-100/70 bg-rose-50/30 px-3 py-2">
                   <p className="mb-1.5 text-[10px] font-medium uppercase tracking-[0.2em] text-rose-700/80">
-                    Breakdown
+                    {t("breakdown")}
                   </p>
                   <ul className="space-y-1">
                     {breakdown.map((row, idx) => (
@@ -540,7 +535,7 @@ function MyProposalState({
                       >
                         <span className="text-foreground/80">{row.label}</span>
                         <span className="font-mono tabular-nums text-foreground/70">
-                          {formatCurrency(row.amount, proposal.quote_currency)}
+                          {f.currency(row.amount, proposal.quote_currency)}
                         </span>
                       </li>
                     ))}
@@ -552,7 +547,7 @@ function MyProposalState({
         })()}
       <div>
         <p className="mb-1 text-[10px] font-medium uppercase tracking-[0.2em] text-muted-foreground">
-          Cover letter
+          {t("coverLetter")}
         </p>
         <p className="whitespace-pre-wrap text-sm text-foreground/90">
           {proposal.cover_letter}
@@ -562,15 +557,15 @@ function MyProposalState({
         <div className="flex flex-col gap-2 pt-2">
           <Dialog open={editOpen} onOpenChange={setEditOpen}>
             <DialogTrigger render={<Button variant="outline" />}>
-              Edit proposal
+              {t("editProposal")}
             </DialogTrigger>
             <DialogContent className="sm:max-w-lg">
               <DialogHeader>
                 <DialogTitle className="font-display text-xl font-light tracking-tight">
-                  Edit your proposal
+                  {t("editYourProposal")}
                 </DialogTitle>
                 <DialogDescription>
-                  Tweak the cover letter or quote while it&apos;s still pending.
+                  {t("editProposalDesc")}
                 </DialogDescription>
               </DialogHeader>
               <ProposalForm
@@ -590,11 +585,11 @@ function MyProposalState({
             className="text-stone-600 hover:text-rose-700"
           >
             {withdrawing ? (
-              <Loader2 className="mr-2 size-4 animate-spin" />
+              <Loader2 className="me-2 size-4 animate-spin" />
             ) : (
-              <Trash2 className="mr-2 size-4" />
+              <Trash2 className="me-2 size-4" />
             )}
-            Withdraw proposal
+            {t("withdrawProposal")}
           </Button>
         </div>
       )}
@@ -611,34 +606,33 @@ function ProposeDialog({
   eventTitle: string;
   onSubmitted: () => void;
 }) {
+  const t = useTranslations("marketplace");
   const [open, setOpen] = useState(false);
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <div className="text-center">
         <p className="mb-3 text-[10px] font-medium uppercase tracking-[0.2em] text-muted-foreground">
-          Submit a proposal
+          {t("submitProposal")}
         </p>
         <p className="mb-4 text-sm text-muted-foreground">
-          Share your approach and a quote. The couple will see your portfolio
-          and reviews next to your message.
+          {t("submitProposalBody")}
         </p>
         <DialogTrigger
           render={
             <Button className="bg-gradient-to-r from-rose-600 to-amber-500 text-white" />
           }
         >
-          <Send className="mr-2 size-4" />
-          Write a proposal
+          <Send className="me-2 size-4" />
+          {t("writeProposal")}
         </DialogTrigger>
       </div>
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
           <DialogTitle className="font-display text-xl font-light tracking-tight">
-            Propose for {eventTitle}
+            {t("proposeFor", { title: eventTitle })}
           </DialogTitle>
           <DialogDescription>
-            Lead with what you noticed about the design and how you&apos;d
-            bring it to life.
+            {t("proposeDesc")}
           </DialogDescription>
         </DialogHeader>
         <ProposalForm
@@ -670,19 +664,19 @@ const PLAN_TEMPLATES: Record<string, number[]> = {
   "30/40/30": [0.3, 0.4, 0.3],
   "25/25/25/25": [0.25, 0.25, 0.25, 0.25],
 };
-const DEFAULT_LABELS = ["Deposit", "Mid-event", "Final", "Final"];
-// Default platform fee mirrored from the server. We can fetch it via tRPC
-// later if we want to make it configurable per planner.
+
 const PLANNER_FORM_DEFAULT_FEE_PCT = 8;
 
 function makeTemplateRows(
   template: string,
-  total: number
+  total: number,
+  defaultLabels: string[],
+  installmentN: (n: number) => string,
 ): InstallmentRow[] {
   const fractions = PLAN_TEMPLATES[template];
   if (!fractions || total <= 0) return [];
   return fractions.map((f, i) => ({
-    label: DEFAULT_LABELS[i] ?? `Installment ${i + 1}`,
+    label: defaultLabels[i] ?? installmentN(i + 1),
     amount: (Math.round(total * f * 100) / 100).toString(),
     due_date: "",
   }));
@@ -699,6 +693,15 @@ function ProposalForm({
   proposal?: ProposalSummary;
   onDone: () => void;
 }) {
+  const t = useTranslations("marketplace");
+  const f = useFormatters();
+  const installmentN = (n: number) => t("installmentN", { n });
+  const DEFAULT_LABELS = [
+    t("deposit"),
+    t("midEvent"),
+    t("final"),
+    t("final"),
+  ];
   const initialBreakdown: BreakdownRow[] = (() => {
     if (
       proposal?.quote_breakdown &&
@@ -757,7 +760,7 @@ function ProposalForm({
     if (template === "custom") return;
     const total = Number(quote) || 0;
     if (total <= 0) return;
-    setInstallments(makeTemplateRows(template, total));
+    setInstallments(makeTemplateRows(template, total, DEFAULT_LABELS, installmentN));
     // We deliberately omit `installments` from deps — including it would
     // create a render loop because we're the writer.
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -771,7 +774,8 @@ function ProposalForm({
     onError: (e) => toast.error(e.message),
   });
   const proposeSchedule = trpc.paymentSchedules.propose.useMutation({
-    onError: (e) => toast.error(`Couldn't save payment plan: ${e.message}`),
+    onError: (e) =>
+      toast.error(t("scheduleSaveFailed", { message: e.message })),
   });
 
   const submitting =
@@ -821,17 +825,17 @@ function ProposalForm({
       Number(quote) ||
       installments.reduce((s, r) => s + (Number(r.amount) || 0), 0);
     if (total <= 0) {
-      toast.error("Set a quote first to auto-fill the plan");
+      toast.error(t("setQuoteFirst"));
       setInstallments([]);
       return;
     }
-    setInstallments(makeTemplateRows(name, total));
+    setInstallments(makeTemplateRows(name, total, DEFAULT_LABELS, installmentN));
   }
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (coverLetter.trim().length < 20) {
-      toast.error("Cover letter should be at least 20 characters");
+      toast.error(t("coverLetterTooShort"));
       return;
     }
     const quoteAmount = quote ? Number(quote) : null;
@@ -844,7 +848,7 @@ function ProposalForm({
       const sum = installmentRows.reduce((s, r) => s + r.amount, 0);
       if (Math.abs(sum - quoteAmount) > 0.5) {
         toast.error(
-          `Plan total (${sum}) doesn't match quote (${quoteAmount}).`
+          t("planMismatch", { sum, quote: quoteAmount }),
         );
         return;
       }
@@ -886,7 +890,9 @@ function ProposalForm({
         });
       }
 
-      toast.success(mode === "create" ? "Proposal sent" : "Proposal updated");
+      toast.success(
+        mode === "create" ? t("proposalSent") : t("proposalUpdated"),
+      );
       utils.paymentSchedules.forEvent.invalidate();
       onDone();
     } catch {
@@ -897,13 +903,13 @@ function ProposalForm({
   return (
     <form onSubmit={onSubmit} className="space-y-4">
       <div className="space-y-1.5">
-        <Label htmlFor="cover">Cover letter</Label>
+        <Label htmlFor="cover">{t("coverLetter")}</Label>
         <Textarea
           id="cover"
           rows={6}
           value={coverLetter}
           onChange={(e) => setCoverLetter(e.target.value)}
-          placeholder="What drew you to this brief? How would you bring this design to life?"
+          placeholder={t("coverLetterPlaceholder")}
           className="resize-none"
         />
         <p className="text-[11px] text-muted-foreground">
@@ -912,7 +918,7 @@ function ProposalForm({
       </div>
       <div className="grid grid-cols-3 gap-3">
         <div className="col-span-2 space-y-1.5">
-          <Label htmlFor="quote">Quote (optional)</Label>
+          <Label htmlFor="quote">{t("quoteOptional")}</Label>
           <Input
             id="quote"
             type="number"
@@ -923,7 +929,7 @@ function ProposalForm({
           />
         </div>
         <div className="space-y-1.5">
-          <Label htmlFor="currency">Currency</Label>
+          <Label htmlFor="currency">{t("currency")}</Label>
           <CurrencyInput
             id="currency"
             value={currency}
@@ -935,7 +941,7 @@ function ProposalForm({
 
       <div className="space-y-2">
         <div className="flex items-center justify-between">
-          <Label>Breakdown (optional)</Label>
+          <Label>{t("breakdownOptional")}</Label>
           <Button
             type="button"
             variant="ghost"
@@ -944,14 +950,14 @@ function ProposalForm({
               setBreakdown((rows) => [...rows, { label: "", amount: "" }])
             }
           >
-            Add row
+            {t("addRow")}
           </Button>
         </div>
         {breakdown.map((row, idx) => (
           <div key={idx} className="grid grid-cols-12 gap-2">
             <Input
               className="col-span-7"
-              placeholder="Decor & florals"
+              placeholder={t("decorFlorals")}
               value={row.label}
               onChange={(e) =>
                 setBreakdown((rows) =>
@@ -991,28 +997,27 @@ function ProposalForm({
 
       <div className="space-y-3 rounded-2xl border border-rose-100/70 bg-rose-50/40 p-4">
         <div>
-          <Label className="text-sm">Payment plan</Label>
+          <Label className="text-sm">{t("paymentPlan")}</Label>
           <p className="mt-0.5 text-xs text-muted-foreground">
-            Optional. Pick a template or build a custom plan. The client
-            confirms it when they accept your proposal.
+            {t("paymentPlanDesc")}
           </p>
         </div>
         <div className="flex flex-wrap gap-1.5">
           {(["50/50", "30/40/30", "25/25/25/25", "custom"] as const).map(
-            (t) => (
+            (key) => (
               <Button
-                key={t}
+                key={key}
                 type="button"
                 size="sm"
-                variant={template === t ? "default" : "outline"}
-                onClick={() => applyTemplate(t)}
+                variant={template === key ? "default" : "outline"}
+                onClick={() => applyTemplate(key)}
                 className={
-                  template === t
+                  template === key
                     ? "h-7 bg-gradient-to-r from-rose-600 to-amber-500 text-white"
                     : "h-7"
                 }
               >
-                {t === "custom" ? "Custom" : t}
+                {key === "custom" ? t("custom") : key}
               </Button>
             )
           )}
@@ -1022,9 +1027,9 @@ function ProposalForm({
               size="sm"
               variant="ghost"
               onClick={() => setInstallments([])}
-              className="h-7 ml-auto text-muted-foreground hover:text-rose-700"
+              className="h-7 ms-auto text-muted-foreground hover:text-rose-700"
             >
-              Clear
+              {t("clear")}
             </Button>
           )}
         </div>
@@ -1033,7 +1038,7 @@ function ProposalForm({
           <div key={idx} className="grid grid-cols-12 gap-2">
             <Input
               className="col-span-5"
-              placeholder="Deposit"
+              placeholder={t("deposit")}
               value={row.label}
               onChange={(e) =>
                 setInstallments((rows) =>
@@ -1091,41 +1096,42 @@ function ProposalForm({
               setInstallments((rows) => [
                 ...rows,
                 {
-                  label: DEFAULT_LABELS[rows.length] ?? `Installment ${rows.length + 1}`,
+                  label:
+                    DEFAULT_LABELS[rows.length] ?? installmentN(rows.length + 1),
                   amount: "",
                   due_date: "",
                 },
               ])
             }
           >
-            Add installment
+            {t("addInstallment")}
           </Button>
         )}
 
         {installmentTotal > 0 && (
           <div className="rounded-xl border border-rose-100/70 bg-white/80 px-3 py-2 text-xs">
             <p className="mb-1 text-[10px] font-medium uppercase tracking-[0.2em] text-rose-700/80">
-              Take-home preview
+              {t("takeHomePreview")}
             </p>
             <ul className="space-y-0.5">
               <li className="flex justify-between">
-                <span className="text-muted-foreground">Client pays</span>
+                <span className="text-muted-foreground">{t("clientPays")}</span>
                 <span className="font-mono tabular-nums">
-                  {formatCurrency(installmentTotal, currency)}
+                  {f.currency(installmentTotal, currency)}
                 </span>
               </li>
               <li className="flex justify-between">
                 <span className="text-muted-foreground">
-                  Platform fee ({PLANNER_FORM_DEFAULT_FEE_PCT}%)
+                  {t("platformFee", { pct: PLANNER_FORM_DEFAULT_FEE_PCT })}
                 </span>
                 <span className="font-mono tabular-nums text-foreground/70">
-                  − {formatCurrency(feeAmount, currency)}
+                  − {f.currency(feeAmount, currency)}
                 </span>
               </li>
               <li className="flex justify-between border-t border-rose-100/60 pt-1 font-medium">
-                <span>Your take-home</span>
+                <span>{t("yourTakeHome")}</span>
                 <span className="font-mono tabular-nums">
-                  {formatCurrency(takeHome, currency)}
+                  {f.currency(takeHome, currency)}
                 </span>
               </li>
             </ul>
@@ -1140,11 +1146,11 @@ function ProposalForm({
           className="bg-gradient-to-r from-rose-600 to-amber-500 text-white"
         >
           {submitting ? (
-            <Loader2 className="mr-2 size-4 animate-spin" />
+            <Loader2 className="me-2 size-4 animate-spin" />
           ) : (
-            <Sparkles className="mr-2 size-4" />
+            <Sparkles className="me-2 size-4" />
           )}
-          {mode === "create" ? "Send proposal" : "Save changes"}
+          {mode === "create" ? t("sendProposal") : t("saveChanges")}
         </Button>
       </div>
     </form>

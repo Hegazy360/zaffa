@@ -11,11 +11,12 @@ import {
   CheckCircle2,
   Image as ImageIcon,
 } from "lucide-react";
-import { formatDistanceToNow } from "date-fns";
+import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { Navbar } from "@/components/layout/navbar";
+import { useFormatters } from "@/lib/use-formatters";
 
 interface NormalizedPalette {
   colors: string[];
@@ -35,6 +36,8 @@ function normalizePalette(value: unknown): NormalizedPalette {
 export default function VenueDesignerGalleryPage() {
   const router = useRouter();
   const reduceMotion = useReducedMotion();
+  const t = useTranslations("designer");
+  const f = useFormatters();
   const { data: designs, isLoading } = trpc.venueDesigns.list.useQuery();
   const utils = trpc.useUtils();
 
@@ -44,7 +47,7 @@ export default function VenueDesignerGalleryPage() {
 
   const approveMutation = trpc.events.createFromDesign.useMutation({
     onSuccess: (event) => {
-      toast.success("Event created from design");
+      toast.success(t("createdToast"));
       utils.events.list.invalidate();
       utils.venueDesigns.list.invalidate();
       router.push(`/dashboard/client/event/${event.id}`);
@@ -59,7 +62,7 @@ export default function VenueDesignerGalleryPage() {
   ) => {
     e.stopPropagation();
     e.preventDefault();
-    if (window.confirm(`Delete "${name}"? This cannot be undone.`)) {
+    if (window.confirm(t("deleteDesignConfirm", { name }))) {
       deleteMutation.mutate({ id });
     }
   };
@@ -76,6 +79,49 @@ export default function VenueDesignerGalleryPage() {
     router.push(`/dashboard/client/event/${eventId}`);
   };
 
+  const eventTypeLabel = (value: string) => {
+    switch (value) {
+      case "wedding":
+        return t("eventTypeWedding");
+      case "engagement":
+        return t("eventTypeEngagement");
+      case "birthday":
+        return t("eventTypeBirthday");
+      case "corporate":
+        return t("eventTypeCorporate");
+      case "other":
+        return t("eventTypeOther");
+      default:
+        return value;
+    }
+  };
+
+  const sizeLabel = (value: string) => {
+    switch (value) {
+      case "intimate":
+        return t("sizeIntimate");
+      case "medium":
+        return t("sizeMedium");
+      case "large":
+        return t("sizeLarge");
+      default:
+        return value;
+    }
+  };
+
+  const settingLabel = (value: string) => {
+    switch (value) {
+      case "indoor":
+        return t("settingIndoor");
+      case "outdoor":
+        return t("settingOutdoor");
+      case "tent":
+        return t("settingTent");
+      default:
+        return value;
+    }
+  };
+
   return (
     <>
     <Navbar />
@@ -86,7 +132,7 @@ export default function VenueDesignerGalleryPage() {
       />
       <div
         aria-hidden
-        className="pointer-events-none absolute -top-40 left-1/2 -z-10 h-[28rem] w-[28rem] -translate-x-1/2 rounded-full bg-gradient-to-br from-rose-200/30 to-amber-200/20 blur-3xl dark:from-rose-900/15 dark:to-amber-900/10"
+        className="pointer-events-none absolute -top-40 start-1/2 -z-10 h-[28rem] w-[28rem] -translate-x-1/2 rounded-full bg-gradient-to-br from-rose-200/30 to-amber-200/20 blur-3xl dark:from-rose-900/15 dark:to-amber-900/10"
       />
 
       <div className="mx-auto max-w-6xl px-6 py-16 sm:py-20">
@@ -99,13 +145,13 @@ export default function VenueDesignerGalleryPage() {
           <div className="space-y-3">
             <div className="inline-flex items-center gap-2 rounded-full border border-rose-200/70 bg-rose-50/70 px-3.5 py-1 text-[11px] font-medium tracking-[0.18em] text-rose-700 uppercase backdrop-blur-sm dark:border-rose-900/50 dark:bg-rose-950/30 dark:text-rose-200">
               <Sparkles className="size-3" />
-              Your atelier
+              {t("atelierEyebrow")}
             </div>
             <h1 className="font-display text-balance text-4xl leading-tight font-light tracking-tight sm:text-5xl">
-              My designs
+              {t("myDesigns")}
             </h1>
             <p className="max-w-lg text-pretty text-sm text-muted-foreground sm:text-base">
-              Each design is a complete brief — basics, palette, references, and the AI renders you&apos;ve generated for it.
+              {t("gallerySubtitle")}
             </p>
           </div>
           <Button
@@ -114,7 +160,7 @@ export default function VenueDesignerGalleryPage() {
             className="h-11 gap-2 bg-gradient-to-r from-rose-600 to-amber-500 px-5 text-white shadow-lg shadow-rose-500/20 hover:opacity-90 hover:shadow-rose-500/30"
           >
             <Plus className="size-4" />
-            New design
+            {t("newDesign")}
           </Button>
         </motion.header>
 
@@ -148,10 +194,10 @@ export default function VenueDesignerGalleryPage() {
               <Sparkles className="size-7 text-rose-600 dark:text-rose-300" />
             </div>
             <h2 className="font-display text-2xl font-light tracking-tight">
-              No designs yet
+              {t("noDesignsTitle")}
             </h2>
             <p className="mt-2 max-w-md text-pretty text-sm text-muted-foreground">
-              Start your first one — pick a vibe, palette, and a few references, and we&apos;ll bring it to life with AI.
+              {t("noDesignsBody")}
             </p>
             <div aria-hidden className="champagne-hairline mx-auto mt-6 h-px w-32" />
             <Button
@@ -160,7 +206,7 @@ export default function VenueDesignerGalleryPage() {
               className="mt-7 h-11 gap-2 bg-gradient-to-r from-rose-600 to-amber-500 px-5 text-white shadow-lg shadow-rose-500/20 hover:opacity-90"
             >
               <Plus className="size-4" />
-              Create your first design
+              {t("createFirstDesign")}
             </Button>
           </motion.div>
         ) : (
@@ -205,7 +251,7 @@ export default function VenueDesignerGalleryPage() {
                             <Sparkles className="size-5 text-rose-500 dark:text-rose-300" />
                           </div>
                           <p className="text-[11px] tracking-wide text-muted-foreground">
-                            No render yet
+                            {t("noRenderYet")}
                           </p>
                         </div>
                       </div>
@@ -213,9 +259,9 @@ export default function VenueDesignerGalleryPage() {
 
                     <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 transition-opacity group-hover:opacity-100" />
 
-                    <div className="absolute left-2.5 top-2.5 flex items-center gap-1.5">
-                      <span className="inline-flex items-center rounded-full bg-black/55 px-2 py-0.5 text-[10px] font-medium tracking-wide text-white capitalize backdrop-blur-sm">
-                        {design.event_type}
+                    <div className="absolute start-2.5 top-2.5 flex items-center gap-1.5">
+                      <span className="inline-flex items-center rounded-full bg-black/55 px-2 py-0.5 text-[10px] font-medium tracking-wide text-white backdrop-blur-sm">
+                        {eventTypeLabel(design.event_type)}
                       </span>
                       {palette.colors.length > 0 && (
                         <span className="inline-flex items-center gap-0.5 rounded-full bg-black/55 px-1.5 py-1 backdrop-blur-sm">
@@ -233,17 +279,17 @@ export default function VenueDesignerGalleryPage() {
                     <button
                       type="button"
                       onClick={(e) => handleDelete(e, design.id, design.name)}
-                      aria-label={`Delete ${design.name}`}
-                      className="absolute right-2.5 top-2.5 grid size-7 place-items-center rounded-full bg-black/55 text-white opacity-0 backdrop-blur-sm transition-opacity hover:bg-black/80 group-hover:opacity-100"
+                      aria-label={t("deleteDesignAria", { name: design.name })}
+                      className="absolute end-2.5 top-2.5 grid size-7 place-items-center rounded-full bg-black/55 text-white opacity-0 backdrop-blur-sm transition-opacity hover:bg-black/80 group-hover:opacity-100"
                     >
                       <Trash2 className="size-3.5" />
                     </button>
 
                     <div
                       aria-hidden
-                      className="pointer-events-none absolute bottom-3 right-3 grid size-9 translate-y-2 place-items-center rounded-full bg-white/95 text-rose-600 opacity-0 shadow-lg transition-all group-hover:translate-y-0 group-hover:opacity-100 dark:bg-rose-50/90"
+                      className="pointer-events-none absolute bottom-3 end-3 grid size-9 translate-y-2 place-items-center rounded-full bg-white/95 text-rose-600 opacity-0 shadow-lg transition-all group-hover:translate-y-0 group-hover:opacity-100 dark:bg-rose-50/90"
                     >
-                      <ArrowRight className="size-4" />
+                      <ArrowRight className="size-4 rtl:-scale-x-100" />
                     </div>
                   </div>
 
@@ -252,20 +298,16 @@ export default function VenueDesignerGalleryPage() {
                       <h3 className="font-display text-lg leading-tight font-medium tracking-tight">
                         {design.name}
                       </h3>
-                      <p className="mt-1 text-xs text-muted-foreground capitalize">
-                        {design.size} · {design.setting}
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        {sizeLabel(design.size)} · {settingLabel(design.setting)}
                       </p>
                     </div>
                     <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
-                      <span>
-                        {formatDistanceToNow(new Date(design.updated_at), {
-                          addSuffix: true,
-                        })}
-                      </span>
+                      <span>{f.relativeTime(new Date(design.updated_at))}</span>
                       {design._count.media > 0 && (
                         <span className="inline-flex items-center gap-1 rounded-full bg-rose-50 px-1.5 py-0.5 text-rose-700 ring-1 ring-rose-200/60 dark:bg-rose-950/40 dark:text-rose-300 dark:ring-rose-900/50">
                           <ImageIcon className="size-3" />
-                          {design._count.media}
+                          {f.number(design._count.media)}
                         </span>
                       )}
                     </div>
@@ -279,8 +321,8 @@ export default function VenueDesignerGalleryPage() {
                         className="inline-flex w-full items-center justify-center gap-1.5 rounded-lg border border-rose-200/70 bg-rose-50/60 px-3 py-1.5 text-xs font-medium text-rose-700 transition-colors hover:bg-rose-100/70"
                       >
                         <CheckCircle2 className="size-3.5" />
-                        Approved · Open event
-                        <ArrowRight className="size-3" />
+                        {t("approvedOpenEvent")}
+                        <ArrowRight className="size-3 rtl:-scale-x-100" />
                       </button>
                     ) : (
                       <button
@@ -298,7 +340,7 @@ export default function VenueDesignerGalleryPage() {
                         ) : (
                           <CheckCircle2 className="size-3.5" />
                         )}
-                        Approve & create event
+                        {t("approveCreateEvent")}
                       </button>
                     )}
                   </div>

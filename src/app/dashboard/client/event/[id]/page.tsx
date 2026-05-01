@@ -31,8 +31,9 @@ import {
   UserCircle,
   Wand2,
 } from "lucide-react";
-import { format, formatDistanceToNow } from "date-fns";
+import { format } from "date-fns";
 import { toast } from "sonner";
+import { useTranslations } from "next-intl";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -58,6 +59,7 @@ import { cn } from "@/lib/utils";
 import type { EventStatus } from "@/types";
 import { SchedulePanel } from "@/components/payments/SchedulePanel";
 
+import { useFormatters } from "@/lib/use-formatters";
 const TABS = [
   "overview",
   "design",
@@ -67,13 +69,34 @@ const TABS = [
 ] as const;
 type TabValue = (typeof TABS)[number];
 
-const STATUS_OPTIONS: Array<{ value: EventStatus; label: string }> = [
-  { value: "draft", label: "Draft" },
-  { value: "planning", label: "Planning" },
-  { value: "confirmed", label: "Confirmed" },
-  { value: "in_progress", label: "In progress" },
-  { value: "completed", label: "Completed" },
-  { value: "cancelled", label: "Cancelled" },
+type ClientStatusKey =
+  | "statusDraft"
+  | "statusPlanning"
+  | "statusConfirmed"
+  | "statusInProgress"
+  | "statusCompleted"
+  | "statusCancelled";
+
+const STATUS_KEYS: Record<EventStatus, ClientStatusKey> = {
+  draft: "statusDraft",
+  planning: "statusPlanning",
+  confirmed: "statusConfirmed",
+  in_progress: "statusInProgress",
+  completed: "statusCompleted",
+  cancelled: "statusCancelled",
+};
+
+function statusLabelKey(status: string): ClientStatusKey {
+  return STATUS_KEYS[status as EventStatus] ?? "statusDraft";
+}
+
+const STATUS_VALUES: EventStatus[] = [
+  "draft",
+  "planning",
+  "confirmed",
+  "in_progress",
+  "completed",
+  "cancelled",
 ];
 
 const statusStyles: Record<string, string> = {
@@ -95,14 +118,6 @@ function normalizePalette(value: unknown): string[] {
   return [];
 }
 
-function formatCurrency(amount: number, currency = "EGP"): string {
-  return new Intl.NumberFormat("en-EG", {
-    style: "currency",
-    currency,
-    minimumFractionDigits: 0,
-  }).format(amount);
-}
-
 function decimalToNumber(value: unknown): number {
   if (value == null) return 0;
   if (typeof value === "number") return value;
@@ -116,6 +131,8 @@ function decimalToNumber(value: unknown): number {
 
 export default function EventDetailPage() {
   const params = useParams();
+  const f = useFormatters();
+  const tc = useTranslations("client");
   const router = useRouter();
   const searchParams = useSearchParams();
   const eventId = params.id as string;
@@ -138,7 +155,7 @@ export default function EventDetailPage() {
     return (
       <div className="mx-auto max-w-3xl px-6 py-24 text-center">
         <h2 className="font-display text-2xl font-light tracking-tight">
-          Event not found
+          {tc("eventNotFound")}
         </h2>
         <p className="mt-2 text-sm text-muted-foreground">
           {error.message}
@@ -148,7 +165,7 @@ export default function EventDetailPage() {
           render={<Link href="/dashboard/client" />}
           className="mt-6"
         >
-          Back to dashboard
+          {tc("backToDashboard")}
         </Button>
       </div>
     );
@@ -209,10 +226,10 @@ export default function EventDetailPage() {
             variant="ghost"
             size="sm"
             render={<Link href="/dashboard/client" />}
-            className="-ml-2 gap-1 text-sm text-muted-foreground hover:text-foreground"
+            className="-ms-2 gap-1 text-sm text-muted-foreground hover:text-foreground"
           >
-            <ArrowLeft className="size-3.5" />
-            All events
+            <ArrowLeft className="size-3.5 rtl:-scale-x-100" />
+            {tc("allEvents")}
           </Button>
           <span
             className={cn(
@@ -220,8 +237,8 @@ export default function EventDetailPage() {
               statusStyles[event.status] ?? statusStyles.draft
             )}
           >
-            <CircleDot className="mr-1 size-2.5" />
-            {event.status.replace("_", " ")}
+            <CircleDot className="me-1 size-2.5" />
+            {tc(statusLabelKey(event.status))}
           </span>
         </div>
 
@@ -238,8 +255,8 @@ export default function EventDetailPage() {
               <span className="inline-flex items-center gap-1.5">
                 <CalendarDays className="size-4" />
                 {event.event_date
-                  ? format(new Date(event.event_date), "PPP")
-                  : "Date not set"}
+                  ? f.date(event.event_date, "long")
+                  : tc("dateNotSet")}
               </span>
               {event.venue && (
                 <span className="inline-flex items-center gap-1.5">
@@ -251,21 +268,21 @@ export default function EventDetailPage() {
 
             <div className="mt-6 grid grid-cols-3 gap-3">
               <Stat
-                label="Days to go"
+                label={tc("daysToGo")}
                 value={
                   daysUntil == null
                     ? "—"
                     : daysUntil < 0
-                      ? "Past"
+                      ? tc("past")
                       : `${daysUntil}`
                 }
               />
               <Stat
-                label="Budget"
-                value={budget > 0 ? formatCurrency(budget) : "—"}
+                label={tc("budget")}
+                value={budget > 0 ? f.currency(budget) : "—"}
               />
               <Stat
-                label="Paid"
+                label={tc("paid")}
                 value={
                   totalAll > 0
                     ? `${Math.round((totalPaid / totalAll) * 100)}%`
@@ -273,7 +290,10 @@ export default function EventDetailPage() {
                 }
                 hint={
                   totalAll > 0
-                    ? `${formatCurrency(totalPaid)} of ${formatCurrency(totalAll)}`
+                    ? tc("paidOfTotal", {
+                        paid: f.currency(totalPaid),
+                        total: f.currency(totalAll),
+                      })
                     : undefined
                 }
               />
@@ -295,23 +315,23 @@ export default function EventDetailPage() {
           <TabsList className="mb-6 flex w-full flex-wrap gap-1 bg-rose-50/60 p-1 ring-1 ring-rose-100/70">
             <TabsTrigger value="overview" className="gap-1.5">
               <Sparkles className="size-3.5" />
-              Overview
+              {tc("tabOverview")}
             </TabsTrigger>
             <TabsTrigger value="design" className="gap-1.5">
               <Wand2 className="size-3.5" />
-              Design
+              {tc("tabDesign")}
             </TabsTrigger>
             <TabsTrigger value="proposals" className="gap-1.5">
               <FileText className="size-3.5" />
-              Proposals
+              {tc("tabProposals")}
             </TabsTrigger>
             <TabsTrigger value="payments" className="gap-1.5">
               <CreditCard className="size-3.5" />
-              Payments
+              {tc("tabPayments")}
             </TabsTrigger>
             <TabsTrigger value="messages" className="gap-1.5">
               <MessageSquare className="size-3.5" />
-              Messages
+              {tc("tabMessages")}
             </TabsTrigger>
           </TabsList>
 
@@ -456,15 +476,16 @@ function ApprovedDesignCard({
   heroImage: string | null;
   palette: string[];
 }) {
+  const tc = useTranslations("client");
   if (!design) {
     return (
       <div className="flex h-full flex-col items-center justify-center rounded-2xl border border-dashed border-rose-200/70 bg-white/40 p-6 text-center backdrop-blur-sm">
         <Wand2 className="mb-3 size-6 text-rose-500" />
         <p className="font-display text-base font-medium tracking-tight">
-          No design attached
+          {tc("noDesignAttached")}
         </p>
         <p className="mt-1 max-w-xs text-xs text-muted-foreground">
-          Pick a design from the Design tab to anchor this event.
+          {tc("noDesignAttachedHint")}
         </p>
       </div>
     );
@@ -489,9 +510,9 @@ function ApprovedDesignCard({
           </div>
         )}
         <div className="absolute inset-0 bg-gradient-to-t from-black/35 via-transparent to-transparent" />
-        <div className="absolute left-3 top-3 inline-flex items-center gap-1 rounded-full bg-white/90 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-rose-700 backdrop-blur-sm">
+        <div className="absolute start-3 top-3 inline-flex items-center gap-1 rounded-full bg-white/90 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-rose-700 backdrop-blur-sm">
           <CheckCircle2 className="size-3" />
-          Approved design
+          {tc("approvedDesign")}
         </div>
       </div>
       <div className="space-y-2 p-4">
@@ -510,8 +531,8 @@ function ApprovedDesignCard({
           </div>
         )}
         <p className="inline-flex items-center gap-1 text-xs text-muted-foreground">
-          Open in venue designer
-          <ArrowRight className="size-3 transition-transform group-hover:translate-x-0.5" />
+          {tc("openInVenueDesigner")}
+          <ArrowRight className="size-3 transition-transform group-hover:translate-x-0.5 rtl:-scale-x-100" />
         </p>
       </div>
     </Link>
@@ -546,6 +567,8 @@ function OverviewTab({
   onSaved: () => void;
   onDelete: () => void;
 }) {
+  const f = useFormatters();
+  const tc = useTranslations("client");
   const [editing, setEditing] = useState(false);
   const [title, setTitle] = useState(event.title);
   const [eventDate, setEventDate] = useState(
@@ -559,7 +582,7 @@ function OverviewTab({
 
   const update = trpc.events.update.useMutation({
     onSuccess: () => {
-      toast.success("Event updated");
+      toast.success(tc("eventUpdatedToast"));
       setEditing(false);
       onSaved();
     },
@@ -568,7 +591,7 @@ function OverviewTab({
 
   const remove = trpc.events.delete.useMutation({
     onSuccess: () => {
-      toast.success("Event deleted");
+      toast.success(tc("eventDeletedToast"));
       onDelete();
     },
     onError: (err) => toast.error(err.message),
@@ -592,7 +615,7 @@ function OverviewTab({
         <div className="overflow-hidden rounded-2xl border border-rose-100/70 bg-white/80 backdrop-blur-sm dark:border-rose-900/30 dark:bg-card/80">
           <div className="flex items-center justify-between border-b border-rose-100/70 px-5 py-3 dark:border-rose-900/30">
             <h3 className="font-display text-base font-medium tracking-tight">
-              Event details
+              {tc("eventDetails")}
             </h3>
             {!editing ? (
               <Button
@@ -602,7 +625,7 @@ function OverviewTab({
                 className="h-8 gap-1 text-xs"
               >
                 <Pencil className="size-3" />
-                Edit
+                {tc("edit")}
               </Button>
             ) : (
               <div className="flex items-center gap-2">
@@ -627,7 +650,7 @@ function OverviewTab({
                   }}
                   className="h-8 text-xs"
                 >
-                  Cancel
+                  {tc("cancel")}
                 </Button>
                 <Button
                   size="sm"
@@ -640,14 +663,14 @@ function OverviewTab({
                   ) : (
                     <Check className="size-3" />
                   )}
-                  Save
+                  {tc("save")}
                 </Button>
               </div>
             )}
           </div>
 
           <div className="grid gap-4 p-5 sm:grid-cols-2">
-            <DetailRow label="Title">
+            <DetailRow label={tc("title")}>
               {editing ? (
                 <Input
                   value={title}
@@ -658,7 +681,7 @@ function OverviewTab({
               )}
             </DetailRow>
 
-            <DetailRow label="Event date">
+            <DetailRow label={tc("eventDate")}>
               {editing ? (
                 <Input
                   type="date"
@@ -668,29 +691,29 @@ function OverviewTab({
               ) : (
                 <p className="font-medium">
                   {event.event_date
-                    ? format(new Date(event.event_date), "PPP")
-                    : "Not set"}
+                    ? f.date(event.event_date, "long")
+                    : tc("notSet")}
                 </p>
               )}
             </DetailRow>
 
-            <DetailRow label="Venue address" className="sm:col-span-2">
+            <DetailRow label={tc("venueAddress")} className="sm:col-span-2">
               {editing ? (
                 <Input
                   value={venue}
                   onChange={(e) => setVenue(e.target.value)}
-                  placeholder="e.g. Sofitel Cairo El Gezirah, Zamalek"
+                  placeholder={tc("venuePlaceholder")}
                 />
               ) : (
                 <p className="font-medium">
                   {event.venue || (
-                    <span className="text-muted-foreground">Not set</span>
+                    <span className="text-muted-foreground">{tc("notSet")}</span>
                   )}
                 </p>
               )}
             </DetailRow>
 
-            <DetailRow label="Budget (EGP)">
+            <DetailRow label={tc("budgetEgp")}>
               {editing ? (
                 <Input
                   type="number"
@@ -702,16 +725,19 @@ function OverviewTab({
               ) : (
                 <p className="font-medium">
                   {decimalToNumber(event.budget) > 0
-                    ? formatCurrency(decimalToNumber(event.budget))
+                    ? f.currency(decimalToNumber(event.budget))
                     : "—"}
                 </p>
               )}
             </DetailRow>
 
-            <DetailRow label="Status">
+            <DetailRow label={tc("status")}>
               {editing ? (
                 <Select
-                  items={STATUS_OPTIONS}
+                  items={STATUS_VALUES.map((v) => ({
+                    value: v,
+                    label: tc(STATUS_KEYS[v]),
+                  }))}
                   value={status}
                   onValueChange={(v) => v && setStatus(v as EventStatus)}
                 >
@@ -719,9 +745,9 @@ function OverviewTab({
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    {STATUS_OPTIONS.map((opt) => (
-                      <SelectItem key={opt.value} value={opt.value}>
-                        {opt.label}
+                    {STATUS_VALUES.map((v) => (
+                      <SelectItem key={v} value={v}>
+                        {tc(STATUS_KEYS[v])}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -733,7 +759,7 @@ function OverviewTab({
                     statusStyles[event.status] ?? statusStyles.draft
                   )}
                 >
-                  {event.status.replace("_", " ")}
+                  {tc(statusLabelKey(event.status))}
                 </span>
               )}
             </DetailRow>
@@ -744,10 +770,9 @@ function OverviewTab({
         <div className="mt-6 rounded-2xl border border-stone-200/70 bg-stone-50/50 p-4 dark:border-stone-800 dark:bg-card/40">
           <div className="flex items-center justify-between gap-3">
             <div>
-              <p className="text-sm font-medium">Delete this event</p>
+              <p className="text-sm font-medium">{tc("deleteEvent")}</p>
               <p className="text-xs text-muted-foreground">
-                The event and all of its messages and payments will be removed.
-                The linked design stays in your atelier.
+                {tc("deleteEventBody")}
               </p>
             </div>
             <Button
@@ -755,18 +780,14 @@ function OverviewTab({
               size="sm"
               disabled={remove.isPending}
               onClick={() => {
-                if (
-                  window.confirm(
-                    `Delete "${event.title}"? This cannot be undone.`
-                  )
-                ) {
+                if (window.confirm(tc("deleteConfirm", { title: event.title }))) {
                   remove.mutate({ id: event.id });
                 }
               }}
               className="gap-1 text-destructive hover:bg-destructive/10 hover:text-destructive"
             >
               <Trash2 className="size-3.5" />
-              Delete
+              {tc("delete")}
             </Button>
           </div>
         </div>
@@ -777,7 +798,7 @@ function OverviewTab({
         <div className="sticky top-24 overflow-hidden rounded-2xl border border-rose-100/70 bg-white/80 backdrop-blur-sm dark:border-rose-900/30 dark:bg-card/80">
           <div className="border-b border-rose-100/70 px-5 py-3 dark:border-rose-900/30">
             <p className="text-[0.65rem] font-medium uppercase tracking-[0.3em] text-rose-700/80">
-              Your planner
+              {tc("yourPlanner")}
             </p>
           </div>
           {event.planner ? (
@@ -806,7 +827,7 @@ function OverviewTab({
               </div>
               {event.planner.location && (
                 <p className="text-xs text-muted-foreground">
-                  <MapPin className="mr-1 inline size-3" />
+                  <MapPin className="me-1 inline size-3" />
                   {event.planner.location}
                 </p>
               )}
@@ -814,10 +835,10 @@ function OverviewTab({
           ) : (
             <div className="space-y-2 p-5 text-center">
               <p className="text-sm text-muted-foreground">
-                No planner assigned yet.
+                {tc("noPlannerYet")}
               </p>
               <p className="text-xs text-muted-foreground">
-                We&apos;ll match you with one based on your design.
+                {tc("noPlannerYetHint")}
               </p>
             </div>
           )}
@@ -859,13 +880,15 @@ function DesignTab({
   approvedDesign: DesignSnapshot | null;
   onAttached: () => void;
 }) {
+  const tc = useTranslations("client");
+  const f = useFormatters();
   const { data: allDesigns } = trpc.venueDesigns.list.useQuery();
   const utils = trpc.useUtils();
   const [open, setOpen] = useState(false);
 
   const attach = trpc.events.attachDesign.useMutation({
     onSuccess: () => {
-      toast.success("Design attached to event");
+      toast.success(tc("designAttachedToast"));
       setOpen(false);
       onAttached();
       utils.venueDesigns.list.invalidate();
@@ -885,7 +908,7 @@ function DesignTab({
       <div className="overflow-hidden rounded-2xl border border-rose-100/70 bg-white/80 backdrop-blur-sm dark:border-rose-900/30 dark:bg-card/80">
         <div className="flex items-center justify-between border-b border-rose-100/70 px-5 py-3 dark:border-rose-900/30">
           <h3 className="font-display text-base font-medium tracking-tight">
-            The design we&apos;re building
+            {tc("designWeAreBuilding")}
           </h3>
           <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger
@@ -898,19 +921,19 @@ function DesignTab({
               }
             >
               <Wand2 className="size-3" />
-              Swap design
+              {tc("swapDesign")}
             </DialogTrigger>
             <DialogContent className="sm:max-w-md">
               <DialogHeader>
-                <DialogTitle>Swap the approved design</DialogTitle>
+                <DialogTitle>{tc("swapApprovedDesign")}</DialogTitle>
                 <DialogDescription>
-                  Pick another design from your atelier to anchor this event.
+                  {tc("swapApprovedDesignDesc")}
                 </DialogDescription>
               </DialogHeader>
               <div className="max-h-[60vh] space-y-2 overflow-y-auto">
                 {candidates.length === 0 ? (
                   <p className="py-6 text-center text-sm text-muted-foreground">
-                    No other designs to choose from yet.
+                    {tc("noOtherDesigns")}
                   </p>
                 ) : (
                   candidates.map((d) => {
@@ -926,7 +949,7 @@ function DesignTab({
                             designId: d.id,
                           })
                         }
-                        className="flex w-full items-center gap-3 rounded-xl border border-rose-100/70 bg-white/60 p-2.5 text-left transition-all hover:bg-rose-50/60 disabled:opacity-50 dark:border-rose-900/30 dark:bg-card/60"
+                        className="flex w-full items-center gap-3 rounded-xl border border-rose-100/70 bg-white/60 p-2.5 text-start transition-all hover:bg-rose-50/60 disabled:opacity-50 dark:border-rose-900/30 dark:bg-card/60"
                       >
                         <div className="size-12 shrink-0 overflow-hidden rounded-lg bg-muted">
                           {img ? (
@@ -950,7 +973,7 @@ function DesignTab({
                             {d.event_type} · {d.size} · {d.setting}
                           </p>
                         </div>
-                        <ArrowRight className="size-4 text-muted-foreground" />
+                        <ArrowRight className="size-4 text-muted-foreground rtl:-scale-x-100" />
                       </button>
                     );
                   })
@@ -992,18 +1015,16 @@ function DesignTab({
                 </p>
                 {approvedDesign.approved_at && (
                   <p className="mt-1 text-xs text-muted-foreground">
-                    Approved{" "}
-                    {formatDistanceToNow(
-                      new Date(approvedDesign.approved_at),
-                      { addSuffix: true }
-                    )}
+                    {tc("approvedRelative", {
+                      when: f.relativeTime(approvedDesign.approved_at),
+                    })}
                   </p>
                 )}
               </div>
               {normalizePalette(approvedDesign.palette).length > 0 && (
                 <div>
                   <p className="text-[0.6rem] font-medium uppercase tracking-[0.25em] text-muted-foreground">
-                    Palette
+                    {tc("palette")}
                   </p>
                   <div className="mt-2 flex items-center gap-1.5">
                     {normalizePalette(approvedDesign.palette)
@@ -1023,8 +1044,8 @@ function DesignTab({
                 render={<Link href={`/venue-designer/${approvedDesign.id}`} />}
                 className="gap-1 bg-gradient-to-r from-rose-600 to-amber-500 text-white hover:opacity-90"
               >
-                Open in venue designer
-                <ArrowRight className="size-3.5" />
+                {tc("openInVenueDesigner")}
+                <ArrowRight className="size-3.5 rtl:-scale-x-100" />
               </Button>
             </div>
           </div>
@@ -1032,10 +1053,10 @@ function DesignTab({
           <div className="px-5 py-12 text-center">
             <Wand2 className="mx-auto mb-3 size-7 text-rose-500" />
             <p className="font-display text-lg font-light tracking-tight">
-              No design attached yet
+              {tc("noDesignAttachedYet")}
             </p>
             <p className="mt-1 text-sm text-muted-foreground">
-              Use the swap button above to pick from your atelier.
+              {tc("useSwapHint")}
             </p>
           </div>
         )}
@@ -1049,6 +1070,7 @@ function DesignTab({
 // ---------------------------------------------------------------------------
 
 function PaymentsTab({ eventId }: { eventId: string }) {
+  const tc = useTranslations("client");
   const searchParams = useSearchParams();
 
   // Stripe Checkout returns to this page with ?paid=<installmentId>. We
@@ -1058,9 +1080,9 @@ function PaymentsTab({ eventId }: { eventId: string }) {
 
   useEffect(() => {
     if (paid) {
-      toast.success("Thanks — confirming your payment now");
+      toast.success(tc("thanksConfirmingPayment"));
     } else if (cancelled) {
-      toast.message("Checkout cancelled");
+      toast.message(tc("checkoutCancelled"));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -1077,6 +1099,8 @@ function PaymentsTab({ eventId }: { eventId: string }) {
 // ---------------------------------------------------------------------------
 
 function MessagesTab({ eventId }: { eventId: string }) {
+  const tc = useTranslations("client");
+  const f = useFormatters();
   const utils = trpc.useUtils();
   const { data: profile } = trpc.profile.me.useQuery();
   const { data: messages, isLoading } = trpc.messages.byEvent.useQuery(
@@ -1111,10 +1135,10 @@ function MessagesTab({ eventId }: { eventId: string }) {
     <div className="flex h-[60vh] flex-col overflow-hidden rounded-2xl border border-rose-100/70 bg-white/80 backdrop-blur-sm dark:border-rose-900/30 dark:bg-card/80">
       <div className="border-b border-rose-100/70 px-5 py-3 dark:border-rose-900/30">
         <h3 className="font-display text-base font-medium tracking-tight">
-          Messages
+          {tc("messagesTab")}
         </h3>
         <p className="text-xs text-muted-foreground">
-          Talk to your planner — everything stays attached to this event.
+          {tc("messagesIntro")}
         </p>
       </div>
 
@@ -1127,11 +1151,10 @@ function MessagesTab({ eventId }: { eventId: string }) {
           <div className="flex h-full flex-col items-center justify-center text-center">
             <MessageSquare className="mb-3 size-7 text-rose-500" />
             <p className="font-display text-base font-medium tracking-tight">
-              Say hello
+              {tc("sayHello")}
             </p>
             <p className="mt-1 max-w-sm text-xs text-muted-foreground">
-              Share thoughts about the design, ask questions, or coordinate
-              logistics. Your planner sees these messages too.
+              {tc("sayHelloHint")}
             </p>
           </div>
         ) : (
@@ -1166,9 +1189,7 @@ function MessagesTab({ eventId }: { eventId: string }) {
                     )}
                   >
                     {!isMine && `${m.sender.full_name} · `}
-                    {formatDistanceToNow(new Date(m.created_at), {
-                      addSuffix: true,
-                    })}
+                    {f.relativeTime(m.created_at)}
                   </p>
                 </div>
               </div>
@@ -1189,7 +1210,7 @@ function MessagesTab({ eventId }: { eventId: string }) {
               }
             }}
             rows={1}
-            placeholder="Write a message…"
+            placeholder={tc("writeMessagePlaceholder")}
             className="min-h-9 resize-none"
           />
           <Button
@@ -1254,6 +1275,7 @@ function ProposalsTab({
   eventId: string;
   currentPlannerId: string | null;
 }) {
+  const tc = useTranslations("client");
   const utils = trpc.useUtils();
   const { data: proposals, isLoading } = trpc.proposals.byEvent.useQuery({
     eventId,
@@ -1261,7 +1283,7 @@ function ProposalsTab({
 
   const accept = trpc.proposals.accept.useMutation({
     onSuccess: () => {
-      toast.success("Planner accepted");
+      toast.success(tc("plannerAcceptedToast"));
       utils.proposals.byEvent.invalidate({ eventId });
       utils.events.byId.invalidate({ id: eventId });
     },
@@ -1288,11 +1310,10 @@ function ProposalsTab({
           <FileText className="size-5 text-rose-600" />
         </div>
         <p className="font-display text-lg font-light tracking-tight">
-          No proposals yet
+          {tc("noProposalsYet")}
         </p>
         <p className="mt-1 max-w-md mx-auto text-sm text-muted-foreground">
-          Once your design is approved, planners can introduce themselves
-          here. We&apos;ll let you know when the first one arrives.
+          {tc("noProposalsBody")}
         </p>
       </div>
     );
@@ -1308,7 +1329,7 @@ function ProposalsTab({
       {accepted && (
         <section>
           <p className="mb-3 text-[0.65rem] font-medium uppercase tracking-[0.3em] text-rose-700/80">
-            Currently engaged
+            {tc("currentlyEngaged")}
           </p>
           <ProposalCard
             proposal={accepted}
@@ -1324,7 +1345,7 @@ function ProposalsTab({
       {pending.length > 0 && (
         <section>
           <p className="mb-3 text-[0.65rem] font-medium uppercase tracking-[0.3em] text-rose-700/80">
-            {accepted ? "Backups standing by" : "Awaiting your decision"}
+            {accepted ? tc("backupsStandingBy") : tc("awaitingDecision")}
           </p>
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
             {pending.map((p) => (
@@ -1353,7 +1374,7 @@ function ProposalsTab({
       {released.length > 0 && (
         <section>
           <p className="mb-3 text-[0.65rem] font-medium uppercase tracking-[0.3em] text-stone-500">
-            Past planners
+            {tc("pastPlanners")}
           </p>
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
             {released.map((p) => (
@@ -1374,7 +1395,7 @@ function ProposalsTab({
       {declined.length > 0 && (
         <section>
           <p className="mb-3 text-[0.65rem] font-medium uppercase tracking-[0.3em] text-stone-500">
-            Withdrew
+            {tc("withdrew")}
           </p>
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
             {declined.map((p) => (
@@ -1399,11 +1420,10 @@ function ProposalsTab({
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle className="font-display text-xl font-light tracking-tight">
-              Switch planners
+              {tc("switchPlanners")}
             </DialogTitle>
             <DialogDescription>
-              Switching releases your current planner. Share a rating and a
-              short note so the change is on the record for both of you.
+              {tc("switchPlannersDesc")}
             </DialogDescription>
           </DialogHeader>
           {switchOpen && (
@@ -1439,6 +1459,8 @@ function ProposalCard({
   isAccepting: boolean;
 }) {
   const utils = trpc.useUtils();
+  const f = useFormatters();
+  const tc = useTranslations("client");
   const amount = decimalToNumber(proposal.quote_amount);
   const rating = decimalToNumber(proposal.planner.avg_rating);
   const isAccepted = proposal.status === "accepted";
@@ -1463,7 +1485,7 @@ function ProposalCard({
       : null;
   const acceptSchedule = trpc.paymentSchedules.acceptProposed.useMutation({
     onSuccess: () => {
-      toast.success("Planner accepted");
+      toast.success(tc("plannerAcceptedToast"));
       utils.proposals.byEvent.invalidate({ eventId });
       utils.events.byId.invalidate({ id: eventId });
       utils.paymentSchedules.forEvent.invalidate({ eventId });
@@ -1555,7 +1577,7 @@ function ProposalCard({
 
       <div className="mt-4 rounded-xl bg-rose-50/40 p-3">
         <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-rose-700/80">
-          Cover letter
+          {tc("coverLetter")}
         </p>
         <p className="mt-1 whitespace-pre-wrap text-sm text-foreground/90">
           {proposal.cover_letter}
@@ -1579,16 +1601,16 @@ function ProposalCard({
             <div className="mt-3 overflow-hidden rounded-xl border border-rose-100/70 bg-white/60">
               <div className="flex items-center justify-between gap-3 px-3 py-2.5">
                 <span className="text-[10px] font-medium uppercase tracking-[0.2em] text-muted-foreground">
-                  Quote
+                  {tc("quote")}
                 </span>
                 <span className="font-display text-lg font-light tracking-tight">
-                  {formatCurrency(amount, proposal.quote_currency)}
+                  {f.currency(amount, proposal.quote_currency)}
                 </span>
               </div>
               {breakdown.length > 0 && (
                 <div className="border-t border-rose-100/70 bg-rose-50/30 px-3 py-2">
                   <p className="mb-1.5 text-[10px] font-medium uppercase tracking-[0.2em] text-rose-700/80">
-                    Breakdown
+                    {tc("breakdown")}
                   </p>
                   <ul className="space-y-1">
                     {breakdown.map((row, idx) => (
@@ -1598,7 +1620,7 @@ function ProposalCard({
                       >
                         <span className="text-foreground/80">{row.label}</span>
                         <span className="font-mono tabular-nums text-foreground/70">
-                          {formatCurrency(row.amount, proposal.quote_currency)}
+                          {f.currency(row.amount, proposal.quote_currency)}
                         </span>
                       </li>
                     ))}
@@ -1612,7 +1634,7 @@ function ProposalCard({
       {planner.reviews.length > 0 && (
         <div className="mt-3 space-y-2">
           <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-muted-foreground">
-            Recent reviews
+            {tc("recentReviews")}
           </p>
           {planner.reviews.slice(0, 1).map((r) => (
             <div
@@ -1629,7 +1651,7 @@ function ProposalCard({
                     )}
                   />
                 ))}
-                <span className="ml-1 text-[11px] text-muted-foreground">
+                <span className="ms-1 text-[11px] text-muted-foreground">
                   {r.author.full_name}
                 </span>
               </div>
@@ -1647,10 +1669,10 @@ function ProposalCard({
         <div className="mt-3 overflow-hidden rounded-xl border border-rose-100/70 bg-rose-50/30">
           <div className="flex items-center justify-between gap-3 border-b border-rose-100/70 bg-white/60 px-3 py-2">
             <span className="text-[10px] font-medium uppercase tracking-[0.2em] text-rose-700/80">
-              Payment plan
+              {tc("paymentPlan")}
             </span>
             <span className="text-[10px] text-muted-foreground">
-              Locked when you accept
+              {tc("lockedWhenAccept")}
             </span>
           </div>
           <ul className="divide-y divide-rose-100/70 px-3">
@@ -1663,12 +1685,12 @@ function ProposalCard({
                   <p className="truncate text-foreground/90">{i.label}</p>
                   {i.due_date && (
                     <p className="text-[10px] text-muted-foreground">
-                      Due {format(new Date(i.due_date), "PP")}
+                      {tc("due", { date: f.date(i.due_date, "medium") })}
                     </p>
                   )}
                 </div>
                 <span className="font-mono tabular-nums text-foreground/80">
-                  {formatCurrency(
+                  {f.currency(
                     decimalToNumber(i.amount),
                     proposedSchedule.currency
                   )}
@@ -1677,9 +1699,9 @@ function ProposalCard({
             ))}
           </ul>
           <div className="flex items-center justify-between gap-3 border-t border-rose-100/70 bg-white/60 px-3 py-2 text-sm font-medium">
-            <span>Total</span>
+            <span>{tc("total")}</span>
             <span className="font-mono tabular-nums">
-              {formatCurrency(
+              {f.currency(
                 decimalToNumber(proposedSchedule.total_amount),
                 proposedSchedule.currency
               )}
@@ -1706,20 +1728,20 @@ function ProposalCard({
           className="gap-1.5"
         >
           <ExternalLink className="size-3.5" />
-          View full profile
+          {tc("viewFullProfile")}
         </Button>
         {isAccepted ? (
           <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-1 text-[11px] font-medium text-emerald-800 ring-1 ring-emerald-200">
             <CheckCircle2 className="size-3" />
-            Engaged
+            {tc("engaged")}
           </span>
         ) : isReleased ? (
           <span className="inline-flex items-center gap-1 rounded-full bg-stone-100 px-2.5 py-1 text-[11px] font-medium text-stone-700 ring-1 ring-stone-200">
-            Released
+            {tc("released")}
           </span>
         ) : isDeclined ? (
           <span className="inline-flex items-center gap-1 rounded-full bg-stone-100 px-2.5 py-1 text-[11px] font-medium text-stone-500 ring-1 ring-stone-200">
-            Withdrew
+            {tc("withdrew")}
           </span>
         ) : someoneEngaged ? (
           <Button
@@ -1727,7 +1749,7 @@ function ProposalCard({
             onClick={onSwitch}
             className="gap-1.5 bg-gradient-to-r from-rose-600 to-amber-500 text-white"
           >
-            Switch to this planner
+            {tc("switchToThisPlanner")}
           </Button>
         ) : proposedSchedule && proposedSchedule.status === "proposed" ? (
           <Button
@@ -1743,7 +1765,7 @@ function ProposalCard({
             ) : (
               <CheckCircle2 className="size-3.5" />
             )}
-            Accept proposal & plan
+            {tc("acceptProposalAndPlan")}
           </Button>
         ) : (
           <Button
@@ -1757,7 +1779,7 @@ function ProposalCard({
             ) : (
               <CheckCircle2 className="size-3.5" />
             )}
-            Accept proposal
+            {tc("acceptProposal")}
           </Button>
         )}
       </div>
@@ -1772,6 +1794,7 @@ function ReviewSection({
   eventId: string;
   plannerId: string;
 }) {
+  const tc = useTranslations("client");
   const [open, setOpen] = useState(false);
   const utils = trpc.useUtils();
   const { data: review, isLoading } = trpc.reviews.mineForEvent.useQuery({
@@ -1781,7 +1804,7 @@ function ReviewSection({
 
   const remove = trpc.reviews.delete.useMutation({
     onSuccess: () => {
-      toast.success("Review removed");
+      toast.success(tc("reviewRemovedToast"));
       utils.reviews.mineForEvent.invalidate({ eventId, plannerId });
       utils.proposals.byEvent.invalidate({ eventId });
       utils.planner.byId.invalidate({ id: plannerId });
@@ -1793,7 +1816,7 @@ function ReviewSection({
     return (
       <div className="mt-3 flex items-center gap-2 rounded-xl bg-stone-50 p-3 text-xs text-muted-foreground">
         <Loader2 className="size-3 animate-spin" />
-        Loading your review…
+        {tc("loadingReview")}
       </div>
     );
   }
@@ -1804,7 +1827,7 @@ function ReviewSection({
         <div className="flex items-start justify-between gap-2">
           <div className="min-w-0 flex-1">
             <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-amber-700/90">
-              Your review
+              {tc("yourReview")}
             </p>
             <div className="mt-1 flex items-center gap-1 text-amber-500">
               {Array.from({ length: 5 }).map((_, i) => (
@@ -1829,8 +1852,8 @@ function ReviewSection({
                 <Button variant="ghost" size="sm" className="h-7 px-2 text-xs" />
               }
             >
-              <Pencil className="mr-1 size-3" />
-              Edit
+              <Pencil className="me-1 size-3" />
+              {tc("edit")}
             </DialogTrigger>
             <ReviewDialogContent
               eventId={eventId}
@@ -1844,17 +1867,13 @@ function ReviewSection({
           type="button"
           disabled={remove.isPending}
           onClick={() => {
-            if (
-              confirm(
-                "Remove your review? This will update the planner's rating."
-              )
-            ) {
+            if (confirm(tc("removeReviewConfirm"))) {
               remove.mutate({ id: review.id });
             }
           }}
           className="mt-2 text-[11px] text-stone-500 underline-offset-4 hover:text-rose-700 hover:underline disabled:opacity-50"
         >
-          {remove.isPending ? "Removing…" : "Remove review"}
+          {remove.isPending ? tc("removingReview") : tc("removeReview")}
         </button>
       </div>
     );
@@ -1865,10 +1884,10 @@ function ReviewSection({
       <div className="mt-3 flex items-center justify-between gap-3 rounded-xl border border-dashed border-rose-200/80 bg-rose-50/30 p-3">
         <div className="min-w-0">
           <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-rose-700/80">
-            Share your experience
+            {tc("shareExperience")}
           </p>
           <p className="mt-0.5 text-xs text-foreground/80">
-            Help other couples by rating this planner.
+            {tc("rateThisPlanner")}
           </p>
         </div>
         <DialogTrigger
@@ -1880,7 +1899,7 @@ function ReviewSection({
           }
         >
           <Star className="size-3.5" />
-          Leave a review
+          {tc("leaveReview")}
         </DialogTrigger>
       </div>
       <ReviewDialogContent
@@ -1904,6 +1923,7 @@ function ReviewDialogContent({
   existing: { rating: number; comment: string | null } | null;
   onClose: () => void;
 }) {
+  const tc = useTranslations("client");
   const utils = trpc.useUtils();
   const [rating, setRating] = useState(existing?.rating ?? 5);
   const [hover, setHover] = useState<number | null>(null);
@@ -1911,7 +1931,9 @@ function ReviewDialogContent({
 
   const upsert = trpc.reviews.upsert.useMutation({
     onSuccess: () => {
-      toast.success(existing ? "Review updated" : "Review posted");
+      toast.success(
+        existing ? tc("reviewUpdatedToast") : tc("reviewPostedToast")
+      );
       utils.reviews.mineForEvent.invalidate({ eventId, plannerId });
       utils.proposals.byEvent.invalidate({ eventId });
       utils.planner.byId.invalidate({ id: plannerId });
@@ -1936,15 +1958,15 @@ function ReviewDialogContent({
     <DialogContent className="sm:max-w-md">
       <DialogHeader>
         <DialogTitle className="font-display text-xl font-light tracking-tight">
-          {existing ? "Edit your review" : "Leave a review"}
+          {existing ? tc("editReview") : tc("leaveReview")}
         </DialogTitle>
         <DialogDescription>
-          Your rating and note appear publicly on the planner&apos;s profile.
+          {tc("reviewVisibilityHint")}
         </DialogDescription>
       </DialogHeader>
       <form onSubmit={onSubmit} className="space-y-4">
         <div className="space-y-2">
-          <Label>Rating</Label>
+          <Label>{tc("rating")}</Label>
           <div
             className="flex items-center gap-1.5"
             onMouseLeave={() => setHover(null)}
@@ -1955,7 +1977,7 @@ function ReviewDialogContent({
                 <button
                   key={v}
                   type="button"
-                  aria-label={`${v} star${v === 1 ? "" : "s"}`}
+                  aria-label={tc("starsAria", { count: v })}
                   onClick={() => setRating(v)}
                   onMouseEnter={() => setHover(v)}
                   className="rounded-md p-0.5 transition-transform hover:scale-110"
@@ -1971,26 +1993,26 @@ function ReviewDialogContent({
                 </button>
               );
             })}
-            <span className="ml-2 text-sm text-muted-foreground">
-              {display} / 5
+            <span className="ms-2 text-sm text-muted-foreground">
+              {tc("ratingFraction", { value: display })}
             </span>
           </div>
         </div>
         <div className="space-y-2">
           <Label htmlFor="review-comment">
-            Comment{" "}
-            <span className="text-xs text-muted-foreground">(optional)</span>
+            {tc("comment")}{" "}
+            <span className="text-xs text-muted-foreground">{tc("optional")}</span>
           </Label>
           <Textarea
             id="review-comment"
             value={comment}
             onChange={(e) => setComment(e.target.value)}
-            placeholder="What stood out? Communication, taste, day-of execution…"
+            placeholder={tc("reviewPlaceholder")}
             rows={5}
             maxLength={2000}
           />
-          <p className="text-right text-[11px] text-muted-foreground">
-            {comment.length} / 2000
+          <p className="text-end text-[11px] text-muted-foreground">
+            {tc("charCount", { count: comment.length, max: 2000 })}
           </p>
         </div>
         <div className="flex justify-end gap-2 pt-2">
@@ -2000,7 +2022,7 @@ function ReviewDialogContent({
             onClick={onClose}
             disabled={upsert.isPending}
           >
-            Cancel
+            {tc("cancel")}
           </Button>
           <Button
             type="submit"
@@ -2008,11 +2030,11 @@ function ReviewDialogContent({
             className="bg-gradient-to-r from-rose-600 to-amber-500 text-white"
           >
             {upsert.isPending ? (
-              <Loader2 className="mr-2 size-4 animate-spin" />
+              <Loader2 className="me-2 size-4 animate-spin" />
             ) : (
-              <Star className="mr-2 size-4" />
+              <Star className="me-2 size-4" />
             )}
-            {existing ? "Save changes" : "Post review"}
+            {existing ? tc("saveChanges") : tc("postReview")}
           </Button>
         </div>
       </form>
@@ -2029,12 +2051,13 @@ function SwitchPlannerForm({
   toProposalId: string;
   onDone: () => void;
 }) {
+  const tc = useTranslations("client");
   const [rating, setRating] = useState(4);
   const [reason, setReason] = useState("");
 
   const switchMutation = trpc.proposals.switch.useMutation({
     onSuccess: () => {
-      toast.success("Planner switched");
+      toast.success(tc("plannerSwitchedToast"));
       onDone();
     },
     onError: (e) => toast.error(e.message),
@@ -2043,7 +2066,7 @@ function SwitchPlannerForm({
   function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (reason.trim().length < 10) {
-      toast.error("Tell them at least a sentence about why");
+      toast.error(tc("switchReasonRequired"));
       return;
     }
     switchMutation.mutate({
@@ -2057,7 +2080,7 @@ function SwitchPlannerForm({
   return (
     <form onSubmit={onSubmit} className="space-y-4">
       <div className="space-y-2">
-        <Label>Rating for the outgoing planner</Label>
+        <Label>{tc("ratingForOutgoing")}</Label>
         <div className="flex items-center gap-1">
           {Array.from({ length: 5 }).map((_, i) => {
             const v = i + 1;
@@ -2067,7 +2090,7 @@ function SwitchPlannerForm({
                 type="button"
                 onClick={() => setRating(v)}
                 className="text-amber-500 transition-transform hover:scale-110"
-                aria-label={`${v} stars`}
+                aria-label={tc("starsAria", { count: v })}
               >
                 <Star
                   className={cn(
@@ -2081,13 +2104,13 @@ function SwitchPlannerForm({
         </div>
       </div>
       <div className="space-y-1.5">
-        <Label htmlFor="reason">Reason for switching</Label>
+        <Label htmlFor="reason">{tc("reasonForSwitching")}</Label>
         <Textarea
           id="reason"
           rows={4}
           value={reason}
           onChange={(e) => setReason(e.target.value)}
-          placeholder="What worked, what didn't, what you'd hope is different next time."
+          placeholder={tc("switchReasonPlaceholder")}
           className="resize-none"
         />
       </div>
@@ -2098,9 +2121,9 @@ function SwitchPlannerForm({
           className="bg-gradient-to-r from-rose-600 to-amber-500 text-white"
         >
           {switchMutation.isPending ? (
-            <Loader2 className="mr-2 size-4 animate-spin" />
+            <Loader2 className="me-2 size-4 animate-spin" />
           ) : null}
-          Switch planners
+          {tc("switchPlanners")}
         </Button>
       </div>
     </form>

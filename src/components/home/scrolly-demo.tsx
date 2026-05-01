@@ -6,6 +6,7 @@ import { useReducedMotion } from "framer-motion";
 import { useGSAP } from "@gsap/react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { useTranslations } from "next-intl";
 
 if (typeof window !== "undefined") {
   gsap.registerPlugin(ScrollTrigger);
@@ -16,11 +17,11 @@ if (typeof window !== "undefined") {
 /* -------------------------------------------------------------------------- */
 
 const PALETTE = [
-  { hex: "#FEF6EC", name: "Cream linen" },
-  { hex: "#F8D9CB", name: "Petal" },
-  { hex: "#E89AA0", name: "Rose hush" },
-  { hex: "#F8BF77", name: "Warm amber" },
-  { hex: "#8A3A45", name: "Bordeaux" },
+  { hex: "#FEF6EC", nameKey: "paletteCreamLinen" as const },
+  { hex: "#F8D9CB", nameKey: "palettePetal" as const },
+  { hex: "#E89AA0", nameKey: "paletteRoseHush" as const },
+  { hex: "#F8BF77", nameKey: "paletteWarmAmber" as const },
+  { hex: "#8A3A45", nameKey: "paletteBordeaux" as const },
 ];
 
 // Each reference demonstrates one note in the palette — cream linen, petal,
@@ -47,26 +48,10 @@ const RENDER_IMAGE =
   "https://images.unsplash.com/photo-1758810742443-b82f48355828?auto=format&fit=crop&w=2400&q=85";
 
 const STEPS = [
-  {
-    eyebrow: "01",
-    title: "Build the palette.",
-    sub: "Five colors. One mood. Drag, lock, shuffle until it sings.",
-  },
-  {
-    eyebrow: "02",
-    title: "Drop in your inspiration.",
-    sub: "Pinterest-quality references, ranked for the look you're after.",
-  },
-  {
-    eyebrow: "03",
-    title: "Render the room.",
-    sub: "Generated in 3.2 seconds by your private AI atelier.",
-  },
-  {
-    eyebrow: "04",
-    title: "Bring it to life.",
-    sub: "Still becomes scene. Share it with your planner before the deposit.",
-  },
+  { eyebrow: "01", titleKey: "step01Title", subKey: "step01Sub" },
+  { eyebrow: "02", titleKey: "step02Title", subKey: "step02Sub" },
+  { eyebrow: "03", titleKey: "step03Title", subKey: "step03Sub" },
+  { eyebrow: "04", titleKey: "step04Title", subKey: "step04Sub" },
 ] as const;
 
 /* -------------------------------------------------------------------------- */
@@ -74,6 +59,7 @@ const STEPS = [
 /* -------------------------------------------------------------------------- */
 
 export function ScrollyDemo() {
+  const t = useTranslations("marketing");
   const reduce = useReducedMotion();
   const sectionRef = useRef<HTMLElement>(null);
   const progressRef = useRef<HTMLSpanElement>(null);
@@ -192,7 +178,7 @@ export function ScrollyDemo() {
     <section
       ref={sectionRef}
       className="relative isolate overflow-hidden bg-gradient-to-b from-rose-50/70 via-background to-background text-foreground"
-      aria-label="See how Zaffa designs your venue"
+      aria-label={t("scrollyAriaLabel")}
     >
       {/* Atmosphere — same DNA as the rest of the page */}
       <div
@@ -201,11 +187,11 @@ export function ScrollyDemo() {
       />
       <div
         aria-hidden
-        className="pointer-events-none absolute -top-40 left-1/2 h-[42rem] w-[42rem] -translate-x-1/2 rounded-full bg-gradient-to-br from-rose-200/35 to-amber-200/30 blur-3xl"
+        className="pointer-events-none absolute -top-40 start-1/2 h-[42rem] w-[42rem] -translate-x-1/2 rounded-full bg-gradient-to-br from-rose-200/35 to-amber-200/30 blur-3xl"
       />
       <div
         aria-hidden
-        className="pointer-events-none absolute right-[-10%] top-1/3 h-[24rem] w-[24rem] rounded-full bg-gradient-to-br from-amber-200/25 to-rose-200/20 blur-3xl"
+        className="pointer-events-none absolute end-[-10%] top-1/3 h-[24rem] w-[24rem] rounded-full bg-gradient-to-br from-amber-200/25 to-rose-200/20 blur-3xl"
       />
       {/* champagne hairline at the top tying us to the section above */}
       <div
@@ -216,7 +202,7 @@ export function ScrollyDemo() {
       {/* HUD: eyebrow + step numerals + progress hairline */}
       <div className="pointer-events-none absolute inset-x-0 top-0 z-30 px-6 pt-6 sm:pt-10">
         <div className="mx-auto flex max-w-6xl items-center justify-between text-[0.7rem] uppercase tracking-[0.3em]">
-          <span className="text-rose-700">The atelier</span>
+          <span className="text-rose-700">{t("scrollyEyebrow")}</span>
           <span className="text-muted-foreground">
             {STEPS.map((s, i) => (
               <span
@@ -230,14 +216,14 @@ export function ScrollyDemo() {
                 {s.eyebrow}
               </span>
             ))}
-            <span className="ml-2">/ 04</span>
+            <span className="ms-2">{t("scrollyOf")}</span>
           </span>
         </div>
         <div className="relative mx-auto mt-3 h-px max-w-6xl bg-rose-900/10">
           <span
             ref={progressRef}
             aria-hidden
-            className="absolute inset-y-0 left-0 right-0 origin-left scale-x-0 bg-gradient-to-r from-rose-500 to-amber-500"
+            className="absolute inset-y-0 start-0 end-0 origin-left scale-x-0 bg-gradient-to-r from-rose-500 to-amber-500"
           />
         </div>
       </div>
@@ -271,7 +257,7 @@ export function ScrollyDemo() {
                     {p.hex}
                   </span>
                   <span className="text-[0.55rem] uppercase tracking-[0.25em] text-muted-foreground">
-                    {p.name}
+                    {t(p.nameKey)}
                   </span>
                 </div>
               ))}
@@ -307,7 +293,11 @@ export function ScrollyDemo() {
                 >
                   <Image
                     src={src}
-                    alt={`Editorial reference matching the ${PALETTE[i % PALETTE.length].name.toLowerCase()} palette`}
+                    alt={t("scrollyRefAlt", {
+                      palette: t(
+                        PALETTE[i % PALETTE.length].nameKey,
+                      ).toLowerCase(),
+                    })}
                     fill
                     sizes="(min-width: 1024px) 16vw, 33vw"
                     className="object-cover"
@@ -328,9 +318,9 @@ export function ScrollyDemo() {
               style={{ opacity: 0 }}
             >
               {/* Sidebar — single compact "inputs" card with palette + refs */}
-              <aside className="absolute left-0 top-0 w-[24%] rounded-2xl border border-rose-900/10 bg-white/75 p-2.5 shadow-md shadow-rose-900/10 backdrop-blur-md">
+              <aside className="absolute start-0 top-0 w-[24%] rounded-2xl border border-rose-900/10 bg-white/75 p-2.5 shadow-md shadow-rose-900/10 backdrop-blur-md">
                 <p className="text-[0.55rem] uppercase tracking-[0.25em] text-muted-foreground">
-                  Inputs
+                  {t("scrollyInputs")}
                 </p>
                 <div className="mt-2 flex items-center gap-1">
                   {PALETTE.map((p) => (
@@ -360,7 +350,7 @@ export function ScrollyDemo() {
               </aside>
 
               {/* Render canvas */}
-              <div className="absolute bottom-0 left-[28%] right-0 top-0">
+              <div className="absolute bottom-0 start-[28%] end-0 top-0">
                 <div
                   ref={stepIdx === 2 ? renderImgRef : undefined}
                   className="absolute inset-0 overflow-hidden rounded-3xl shadow-2xl shadow-rose-900/20 ring-1 ring-rose-900/10 will-change-transform"
@@ -368,7 +358,7 @@ export function ScrollyDemo() {
                 >
                   <Image
                     src={RENDER_IMAGE}
-                    alt="AI-rendered venue"
+                    alt={t("scrollyRenderAlt")}
                     fill
                     sizes="(min-width: 1024px) 70vw, 100vw"
                     className={
@@ -386,14 +376,14 @@ export function ScrollyDemo() {
                     >
                       <div className="absolute inset-x-0 top-0 h-12 bg-gradient-to-b from-black/55 to-transparent" />
                       <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-black/70 to-transparent" />
-                      <div className="absolute left-5 top-5 inline-flex items-center gap-2 rounded-full border border-white/30 bg-black/35 px-3 py-1.5 text-[0.6rem] uppercase tracking-[0.25em] text-white backdrop-blur-md">
+                      <div className="absolute start-5 top-5 inline-flex items-center gap-2 rounded-full border border-white/30 bg-black/35 px-3 py-1.5 text-[0.6rem] uppercase tracking-[0.25em] text-white backdrop-blur-md">
                         <span className="relative inline-flex h-1.5 w-1.5">
                           <span className="absolute inset-0 animate-ping rounded-full bg-rose-300 opacity-75" />
                           <span className="relative h-1.5 w-1.5 rounded-full bg-rose-300" />
                         </span>
-                        Live preview
+                        {t("scrollyLivePreview")}
                       </div>
-                      <div className="absolute right-5 top-5 rounded-md border border-white/25 bg-black/35 px-2.5 py-1 font-mono text-[0.65rem] tracking-wide text-white/85 backdrop-blur-md">
+                      <div className="absolute end-5 top-5 rounded-md border border-white/25 bg-black/35 px-2.5 py-1 font-mono text-[0.65rem] tracking-wide text-white/85 backdrop-blur-md">
                         01:24 / 08:00
                       </div>
                       <div className="absolute inset-x-5 bottom-5 flex items-center gap-3">
@@ -429,13 +419,13 @@ export function ScrollyDemo() {
               style={{ opacity: 0 }}
             >
               <p className="text-[0.7rem] uppercase tracking-[0.3em] text-rose-700">
-                Step {s.eyebrow} / 04
+                {t("scrollyStepLabel", { n: s.eyebrow })}
               </p>
               <h3 className="mt-3 font-display text-balance text-3xl font-light leading-[1.05] tracking-tight text-foreground md:text-5xl">
-                {s.title}
+                {t(s.titleKey)}
               </h3>
               <p className="mt-3 max-w-xl text-pretty text-sm text-muted-foreground md:text-base">
-                {s.sub}
+                {t(s.subKey)}
               </p>
             </div>
           ))}

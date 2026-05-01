@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import {
   Card,
   CardContent,
@@ -19,6 +20,7 @@ import { cn } from "@/lib/utils";
 const HEX_RE = /^#([0-9a-f]{3}|[0-9a-f]{6})$/i;
 
 export function PaletteCard() {
+  const t = useTranslations("designer");
   const palette = useVenueDesignerStore((s) => s.palette);
   const setPalette = useVenueDesignerStore((s) => s.setPalette);
   const [draft, setDraft] = useState("");
@@ -47,16 +49,13 @@ export function PaletteCard() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Color palette</CardTitle>
-        <CardDescription>
-          Pick a starting palette or build your own. The AI will weave these
-          colors through the final render.
-        </CardDescription>
+        <CardTitle>{t("stepPaletteTitle")}</CardTitle>
+        <CardDescription>{t("paletteDescription")}</CardDescription>
       </CardHeader>
       <CardContent className="space-y-5">
         <div className="space-y-2">
           <Label className="text-xs uppercase tracking-wide text-muted-foreground">
-            Curated palettes
+            {t("curatedPalettesLabel")}
           </Label>
           <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
             {PALETTE_PRESETS.map((preset) => (
@@ -67,7 +66,7 @@ export function PaletteCard() {
                   setPalette({ name: preset.id, colors: preset.colors })
                 }
                 className={cn(
-                  "rounded-lg border p-2.5 text-left transition-colors hover:bg-accent",
+                  "rounded-lg border p-2.5 text-start transition-colors hover:bg-accent",
                   isPresetActive(preset.id)
                     ? "border-rose-400 bg-rose-50/60 ring-1 ring-rose-300"
                     : "border-input"
@@ -93,13 +92,13 @@ export function PaletteCard() {
 
         <div className="space-y-2">
           <Label className="text-xs uppercase tracking-wide text-muted-foreground">
-            Custom
+            {t("customLabel")}
           </Label>
           <div className="flex flex-wrap items-center gap-2">
             {palette.colors.map((color, i) => (
               <div
                 key={`${color}-${i}`}
-                className="group relative flex items-center gap-1.5 rounded-full border bg-background py-1 pr-1 pl-1.5"
+                className="group relative flex items-center gap-1.5 rounded-full border bg-background py-1 pe-1 ps-1.5"
               >
                 <span
                   className="size-5 rounded-full ring-1 ring-foreground/10"
@@ -110,7 +109,7 @@ export function PaletteCard() {
                   type="button"
                   onClick={() => removeColor(i)}
                   className="rounded-full p-0.5 text-muted-foreground opacity-70 hover:bg-muted hover:text-foreground"
-                  aria-label={`Remove ${color}`}
+                  aria-label={t("removeColorAria", { color })}
                 >
                   <X className="size-3" />
                 </button>
@@ -118,7 +117,7 @@ export function PaletteCard() {
             ))}
             {palette.colors.length === 0 && (
               <span className="text-xs text-muted-foreground">
-                No colors yet. Pick a preset above or add custom hex values.
+                {t("noColorsYet")}
               </span>
             )}
           </div>
@@ -144,7 +143,7 @@ export function PaletteCard() {
               className="gap-1.5"
             >
               <Plus className="size-3.5" />
-              Add color
+              {t("addColor")}
             </Button>
             {palette.colors.length > 0 && (
               <Button
@@ -154,7 +153,7 @@ export function PaletteCard() {
                 onClick={() => setPalette({ colors: [] })}
                 className="text-muted-foreground"
               >
-                Clear
+                {t("clearColors")}
               </Button>
             )}
           </div>

@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { CheckCircle2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -16,6 +17,7 @@ const MIN_PASSWORD_LENGTH = 6;
 export function ResetPasswordForm() {
   const router = useRouter();
   const supabase = createClient();
+  const t = useTranslations("auth");
   const [status, setStatus] = useState<Status>("checking");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -63,11 +65,11 @@ export function ResetPasswordForm() {
     setError(null);
 
     if (password.length < MIN_PASSWORD_LENGTH) {
-      setError(`Password must be at least ${MIN_PASSWORD_LENGTH} characters.`);
+      setError(t("resetMinLength", { min: MIN_PASSWORD_LENGTH }));
       return;
     }
     if (password !== confirmPassword) {
-      setError("Passwords do not match.");
+      setError(t("passwordsNoMatch"));
       return;
     }
 
@@ -100,9 +102,9 @@ export function ResetPasswordForm() {
           </div>
         </div>
         <div className="space-y-2">
-          <h3 className="text-lg font-semibold">Password updated</h3>
+          <h3 className="text-lg font-semibold">{t("resetUpdated")}</h3>
           <p className="text-sm text-muted-foreground">
-            Your password has been changed. Redirecting you to sign in…
+            {t("resetUpdatedHint")}
           </p>
         </div>
       </div>
@@ -113,7 +115,7 @@ export function ResetPasswordForm() {
     return (
       <div className="flex flex-col items-center gap-3 py-8 text-sm text-muted-foreground">
         <div className="h-8 w-8 animate-spin rounded-full border-2 border-muted border-t-primary" />
-        Verifying your reset link…
+        {t("resetCheckingLink")}
       </div>
     );
   }
@@ -125,21 +127,20 @@ export function ResetPasswordForm() {
           role="alert"
           className="rounded-lg border border-destructive/50 bg-destructive/10 px-4 py-3 text-sm text-destructive"
         >
-          This password reset link is invalid or has expired. Please request a
-          new one.
+          {t("resetLinkInvalid")}
         </div>
         <Button
           render={<Link href="/auth/forgot-password" />}
           className="w-full"
         >
-          Request a new link
+          {t("resetRequestNew")}
         </Button>
         <p className="text-center text-sm text-muted-foreground">
           <Link
             href="/auth/signin"
             className="font-medium text-primary underline-offset-4 hover:underline"
           >
-            Back to sign in
+            {t("backToSignIn")}
           </Link>
         </p>
       </div>
@@ -150,11 +151,11 @@ export function ResetPasswordForm() {
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="space-y-4">
         <div className="space-y-2">
-          <Label htmlFor="password">New password</Label>
+          <Label htmlFor="password">{t("resetNewPassword")}</Label>
           <Input
             id="password"
             type="password"
-            placeholder="At least 6 characters"
+            placeholder={t("passwordHint")}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
@@ -165,7 +166,7 @@ export function ResetPasswordForm() {
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="confirmPassword">Confirm new password</Label>
+          <Label htmlFor="confirmPassword">{t("resetConfirmNewPassword")}</Label>
           <Input
             id="confirmPassword"
             type="password"
@@ -191,7 +192,7 @@ export function ResetPasswordForm() {
       )}
 
       <Button type="submit" className="w-full" disabled={loading}>
-        {loading ? "Updating password…" : "Update password"}
+        {loading ? t("resetUpdatingPassword") : t("resetUpdatePassword")}
       </Button>
 
       <p className="text-center text-sm text-muted-foreground">
@@ -199,7 +200,7 @@ export function ResetPasswordForm() {
           href="/auth/signin"
           className="font-medium text-primary underline-offset-4 hover:underline"
         >
-          Back to sign in
+          {t("backToSignIn")}
         </Link>
       </p>
     </form>

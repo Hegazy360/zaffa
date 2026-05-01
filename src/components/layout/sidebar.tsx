@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
 import type { UserRole } from "@/types";
 import {
@@ -28,11 +29,13 @@ interface SidebarProps {
 
 interface NavLink {
   href: string;
-  label: string;
+  // Translation key under the `sidebar` namespace. We swap from a static
+  // `label` to a key so the same nav model works for both LTR English and
+  // RTL Arabic without each surface re-importing copy.
+  labelKey: string;
   icon: LucideIcon;
   // Optional: list of additional path prefixes that should still highlight
-  // this link as active. Used so /dashboard/client/event/[id] keeps "My
-  // events" lit even though the URL has more segments than the nav href.
+  // this link as active.
   match?: string[];
 }
 
@@ -40,129 +43,122 @@ const roleLinks: Record<UserRole, NavLink[]> = {
   client: [
     {
       href: "/dashboard/client",
-      label: "My events",
+      labelKey: "myEvents",
       icon: CalendarDays,
       match: ["/dashboard/client/event"],
     },
     {
       href: "/venue-designer",
-      label: "Venue designer",
+      labelKey: "venueDesigner",
       icon: Wand2,
     },
     {
       href: "/dashboard/client/messages",
-      label: "Messages",
+      labelKey: "messages",
       icon: MessageSquare,
     },
     {
       href: "/dashboard/client/settings",
-      label: "Settings",
+      labelKey: "settings",
       icon: Settings,
     },
   ],
   planner: [
-    { href: "/dashboard/planner", label: "Dashboard", icon: Home },
+    { href: "/dashboard/planner", labelKey: "dashboard", icon: Home },
     {
       href: "/dashboard/planner/marketplace",
-      label: "Marketplace",
+      labelKey: "marketplace",
       icon: Compass,
     },
     {
       href: "/dashboard/planner/vendors",
-      label: "Vendors",
+      labelKey: "vendors",
       icon: Store,
     },
     {
       href: "/dashboard/planner/proposals",
-      label: "My proposals",
+      labelKey: "myProposals",
       icon: FileText,
       match: ["/dashboard/planner/event"],
     },
     {
       href: "/dashboard/planner/schedule",
-      label: "Schedule",
+      labelKey: "schedule",
       icon: CalendarDays,
     },
     {
       href: "/dashboard/planner/messages",
-      label: "Messages",
+      labelKey: "messages",
       icon: MessageSquare,
     },
     {
       href: "/dashboard/planner/earnings",
-      label: "Earnings",
+      labelKey: "earnings",
       icon: Wallet,
     },
     {
       href: "/dashboard/planner/portfolio",
-      label: "Portfolio",
+      labelKey: "portfolio",
       icon: ImageIcon,
     },
     {
       href: "/dashboard/planner/settings",
-      label: "Settings",
+      labelKey: "settings",
       icon: Settings,
     },
   ],
   vendor: [
-    { href: "/dashboard/vendor", label: "Dashboard", icon: Home },
+    { href: "/dashboard/vendor", labelKey: "dashboard", icon: Home },
     {
       href: "/dashboard/vendor/catalog",
-      label: "Catalog",
+      labelKey: "catalog",
       icon: Briefcase,
     },
     {
       href: "/dashboard/vendor/inbox",
-      label: "Inbox",
+      labelKey: "inbox",
       icon: Inbox,
     },
     {
       href: "/dashboard/vendor/engagements",
-      label: "Engagements",
+      labelKey: "engagements",
       icon: FileText,
       match: ["/dashboard/vendor/engagements"],
     },
     {
       href: "/dashboard/vendor/earnings",
-      label: "Earnings",
+      labelKey: "earnings",
       icon: Wallet,
     },
     {
       href: "/dashboard/vendor/profile",
-      label: "Profile",
+      labelKey: "profile",
       icon: UserRound,
     },
     {
       href: "/dashboard/vendor/settings",
-      label: "Settings",
+      labelKey: "settings",
       icon: Settings,
     },
   ],
   admin: [
-    { href: "/dashboard/admin", label: "Overview", icon: Home },
+    { href: "/dashboard/admin", labelKey: "overview", icon: Home },
     {
       href: "/dashboard/admin/payouts",
-      label: "Planner payouts",
+      labelKey: "plannerPayouts",
       icon: Wallet,
     },
     {
       href: "/dashboard/admin/vendor-payouts",
-      label: "Vendor payouts",
+      labelKey: "vendorPayouts",
       icon: Store,
     },
     {
       href: "/dashboard/admin/audit",
-      label: "Audit",
+      labelKey: "audit",
       icon: ShieldCheck,
     },
   ],
-};
-
-const roleEyebrow: Record<UserRole, string> = {
-  client: "Your atelier",
-  planner: "Atelier console",
-  vendor: "Vendor console",
-  admin: "Operations console",
 };
 
 function isLinkActive(pathname: string | null, link: NavLink): boolean {
@@ -183,10 +179,11 @@ function isLinkActive(pathname: string | null, link: NavLink): boolean {
 
 export function Sidebar({ role }: SidebarProps) {
   const pathname = usePathname();
+  const t = useTranslations("sidebar");
   const links = roleLinks[role];
 
   return (
-    <aside className="hidden min-h-[calc(100vh-4rem)] w-64 shrink-0 border-r border-rose-100/70 bg-gradient-to-b from-background via-rose-50/25 to-background lg:block">
+    <aside className="hidden min-h-[calc(100vh-4rem)] w-64 shrink-0 border-e border-rose-100/70 bg-gradient-to-b from-background via-rose-50/25 to-background lg:block">
       <div className="relative isolate flex h-full flex-col px-5 py-6">
         <div
           aria-hidden
@@ -194,10 +191,10 @@ export function Sidebar({ role }: SidebarProps) {
         />
 
         <p className="relative z-10 mb-1 text-[0.65rem] font-medium uppercase tracking-[0.3em] text-rose-700/80">
-          {roleEyebrow[role]}
+          {t(`eyebrow.${role}`)}
         </p>
         <p className="font-display relative z-10 mb-5 text-2xl font-light leading-tight tracking-tight">
-          Dashboard
+          {t("title")}
         </p>
         <div
           aria-hidden
@@ -222,7 +219,7 @@ export function Sidebar({ role }: SidebarProps) {
                 {active && (
                   <span
                     aria-hidden
-                    className="absolute inset-y-2 left-0 w-0.5 rounded-full bg-gradient-to-b from-rose-500 to-amber-500"
+                    className="absolute inset-y-2 start-0 w-0.5 rounded-full bg-gradient-to-b from-rose-500 to-amber-500"
                   />
                 )}
                 <Icon
@@ -231,7 +228,7 @@ export function Sidebar({ role }: SidebarProps) {
                     active ? "text-rose-600" : "text-muted-foreground/80"
                   )}
                 />
-                {link.label}
+                {t(link.labelKey)}
               </Link>
             );
           })}
@@ -243,6 +240,7 @@ export function Sidebar({ role }: SidebarProps) {
 
 export function MobileSidebar({ role }: SidebarProps) {
   const pathname = usePathname();
+  const t = useTranslations("sidebar");
   const links = roleLinks[role];
 
   return (
@@ -262,7 +260,7 @@ export function MobileSidebar({ role }: SidebarProps) {
             )}
           >
             <Icon className="h-3 w-3" />
-            {link.label}
+            {t(link.labelKey)}
           </Link>
         );
       })}

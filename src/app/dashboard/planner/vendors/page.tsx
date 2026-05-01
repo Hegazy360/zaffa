@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import Link from "next/link";
 import { Loader2, Search, Star, Store } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { trpc } from "@/lib/trpc";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -13,26 +14,44 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { decimalToNumber, formatCurrency } from "@/lib/payments";
+import { decimalToNumber } from "@/lib/payments";
 
-const CATEGORIES = [
-  { value: "all", label: "All categories" },
-  { value: "catering", label: "Catering" },
-  { value: "photography", label: "Photography" },
-  { value: "videography", label: "Videography" },
-  { value: "flowers", label: "Flowers" },
-  { value: "music", label: "Music" },
-  { value: "decoration", label: "Decoration" },
-  { value: "venue", label: "Venue" },
-  { value: "makeup", label: "Makeup" },
-  { value: "fashion", label: "Fashion" },
-  { value: "transportation", label: "Transportation" },
-  { value: "other", label: "Other" },
+import { useFormatters } from "@/lib/use-formatters";
+const CATEGORY_VALUES = [
+  "all",
+  "catering",
+  "photography",
+  "videography",
+  "flowers",
+  "music",
+  "decoration",
+  "venue",
+  "makeup",
+  "fashion",
+  "transportation",
+  "other",
 ] as const;
 
-type CategoryOption = (typeof CATEGORIES)[number]["value"];
+type CategoryOption = (typeof CATEGORY_VALUES)[number];
+
+const CATEGORY_LABEL_KEYS: Record<CategoryOption, string> = {
+  all: "categoryAll",
+  catering: "categoryCatering",
+  photography: "categoryPhotography",
+  videography: "categoryVideography",
+  flowers: "categoryFlowers",
+  music: "categoryMusic",
+  decoration: "categoryDecoration",
+  venue: "categoryVenue",
+  makeup: "categoryMakeup",
+  fashion: "categoryFashion",
+  transportation: "categoryTransportation",
+  other: "categoryOther",
+};
 
 export default function PlannerVendorsPage() {
+  const t = useTranslations("planner");
+  const f = useFormatters();
   const [category, setCategory] = useState<CategoryOption>("all");
   const [location, setLocation] = useState("");
   const [query, setQuery] = useState("");
@@ -44,6 +63,15 @@ export default function PlannerVendorsPage() {
     query: submitted.query || undefined,
     take: 30,
   });
+
+  const categoryItems = useMemo(
+    () =>
+      CATEGORY_VALUES.map((value) => ({
+        value,
+        label: t(CATEGORY_LABEL_KEYS[value]),
+      })),
+    [t],
+  );
 
   function imagesArray(value: unknown): string[] {
     if (Array.isArray(value)) {
@@ -61,14 +89,13 @@ export default function PlannerVendorsPage() {
       <div className="relative z-10 mx-auto max-w-6xl px-4 py-10 sm:px-6">
         <header className="mb-8 space-y-2">
           <p className="text-[0.65rem] font-medium uppercase tracking-[0.3em] text-rose-700/80">
-            Vendors
+            {t("vendorsEyebrow")}
           </p>
           <h1 className="font-display text-3xl font-light tracking-tight sm:text-4xl">
-            Build the team for the night
+            {t("vendorsTitle")}
           </h1>
           <p className="text-sm text-muted-foreground">
-            Florists, catering, photographers, music — search by category and
-            location, then book line by line.
+            {t("vendorsSubtitle")}
           </p>
         </header>
 
@@ -82,15 +109,15 @@ export default function PlannerVendorsPage() {
           <Input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search by name or specialty"
+            placeholder={t("searchByNamePlaceholder")}
           />
           <Input
             value={location}
             onChange={(e) => setLocation(e.target.value)}
-            placeholder="Location (e.g. Cairo)"
+            placeholder={t("locationFilterPlaceholder")}
           />
           <Select
-            items={CATEGORIES}
+            items={categoryItems}
             value={category}
             onValueChange={(v) => v && setCategory(v as CategoryOption)}
           >
@@ -98,7 +125,7 @@ export default function PlannerVendorsPage() {
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              {CATEGORIES.map((c) => (
+              {categoryItems.map((c) => (
                 <SelectItem key={c.value} value={c.value}>
                   {c.label}
                 </SelectItem>
@@ -110,7 +137,7 @@ export default function PlannerVendorsPage() {
             className="gap-1 bg-gradient-to-r from-rose-600 to-amber-500 text-white"
           >
             <Search className="size-4" />
-            Search
+            {t("searchAction")}
           </Button>
         </form>
 
@@ -122,11 +149,10 @@ export default function PlannerVendorsPage() {
           <div className="rounded-2xl border border-rose-100/70 bg-white/70 p-12 text-center backdrop-blur-sm">
             <Store className="mx-auto mb-3 size-8 text-rose-500" />
             <p className="font-display text-xl font-light tracking-tight">
-              No vendors match yet
+              {t("noVendorsMatchTitle")}
             </p>
             <p className="mt-1 text-sm text-muted-foreground">
-              Loosen the filters and try again — we&apos;re still onboarding
-              talent.
+              {t("noVendorsMatchBody")}
             </p>
           </div>
         ) : (
@@ -156,7 +182,7 @@ export default function PlannerVendorsPage() {
                         <Store className="size-8" />
                       </div>
                     )}
-                    <span className="absolute left-2 top-2 rounded-full bg-stone-900/70 px-2 py-0.5 text-[10px] uppercase tracking-wider text-white">
+                    <span className="absolute start-2 top-2 rounded-full bg-stone-900/70 px-2 py-0.5 text-[10px] uppercase tracking-wider text-white">
                       {v.category}
                     </span>
                   </div>
@@ -168,7 +194,7 @@ export default function PlannerVendorsPage() {
                       <span className="inline-flex items-center gap-0.5 text-xs">
                         <Star className="size-3 text-amber-500" />
                         {Number(v.avg_rating).toFixed(1)}
-                        <span className="ml-0.5 text-muted-foreground">
+                        <span className="ms-0.5 text-muted-foreground">
                           ({v._count.reviews})
                         </span>
                       </span>
@@ -192,7 +218,7 @@ export default function PlannerVendorsPage() {
                           >
                             {s.name} ·{" "}
                             <span className="font-mono">
-                              {formatCurrency(decimalToNumber(s.price_from))}
+                              {f.currency(decimalToNumber(s.price_from))}
                             </span>
                           </span>
                         ))}

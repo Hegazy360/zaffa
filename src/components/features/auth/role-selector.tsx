@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import type { UserRole } from "@/types";
 import {
   Card,
@@ -13,26 +14,27 @@ import { User, CalendarDays, Store } from "lucide-react";
 
 const roles: {
   role: UserRole;
-  title: string;
-  description: string;
+  // Translation keys, looked up in the auth.roles namespace.
+  titleKey: "clientTitle" | "plannerTitle" | "vendorTitle";
+  descriptionKey: "clientDescription" | "plannerDescription" | "vendorDescription";
   icon: React.ComponentType<{ className?: string }>;
 }[] = [
   {
     role: "client",
-    title: "Client",
-    description: "Planning an event? Find planners and vendors to bring your vision to life.",
+    titleKey: "clientTitle",
+    descriptionKey: "clientDescription",
     icon: User,
   },
   {
     role: "planner",
-    title: "Event Planner",
-    description: "Manage events, connect with clients and vendors, grow your business.",
+    titleKey: "plannerTitle",
+    descriptionKey: "plannerDescription",
     icon: CalendarDays,
   },
   {
     role: "vendor",
-    title: "Vendor",
-    description: "Showcase your services and get discovered by planners and clients.",
+    titleKey: "vendorTitle",
+    descriptionKey: "vendorDescription",
     icon: Store,
   },
 ];
@@ -43,9 +45,10 @@ interface RoleSelectorProps {
 }
 
 export function RoleSelector({ selectedRole, onSelect }: RoleSelectorProps) {
+  const t = useTranslations("auth.roles");
   return (
     <div className="grid gap-4 sm:grid-cols-3">
-      {roles.map(({ role, title, description, icon: Icon }) => (
+      {roles.map(({ role, titleKey, descriptionKey, icon: Icon }) => (
         <Card
           key={role}
           role="button"
@@ -69,11 +72,11 @@ export function RoleSelector({ selectedRole, onSelect }: RoleSelectorProps) {
             <div className="mb-2 flex size-10 items-center justify-center rounded-lg bg-primary/10">
               <Icon className="size-5 text-primary" aria-hidden />
             </div>
-            <CardTitle className="text-base">{title}</CardTitle>
+            <CardTitle className="text-base">{t(titleKey)}</CardTitle>
           </CardHeader>
           <CardContent>
             <CardDescription className="text-sm leading-relaxed">
-              {description}
+              {t(descriptionKey)}
             </CardDescription>
           </CardContent>
         </Card>

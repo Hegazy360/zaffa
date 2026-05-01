@@ -25,7 +25,7 @@ import {
   Users,
   Wand2,
 } from "lucide-react";
-import { format, formatDistanceToNow } from "date-fns";
+import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
@@ -43,6 +43,7 @@ import {
 import { cn } from "@/lib/utils";
 import { SchedulePanel } from "@/components/payments/SchedulePanel";
 
+import { useFormatters } from "@/lib/use-formatters";
 const TABS = ["overview", "design", "vendors", "payments", "messages"] as const;
 type TabValue = (typeof TABS)[number];
 
@@ -63,14 +64,6 @@ function normalizePalette(value: unknown): string[] {
     }
   }
   return [];
-}
-
-function formatCurrency(amount: number, currency = "EGP"): string {
-  return new Intl.NumberFormat("en-EG", {
-    style: "currency",
-    currency,
-    minimumFractionDigits: 0,
-  }).format(amount);
 }
 
 function decimalToNumber(value: unknown): number {
@@ -133,6 +126,8 @@ function useDaysUntil(date: Date | string | null | undefined): number | null {
 export default function PlannerEventDetailPage() {
   const params = useParams();
   const searchParams = useSearchParams();
+  const f = useFormatters();
+  const t = useTranslations("planner");
   const eventId = params.id as string;
 
   const initialTab = (searchParams.get("tab") as TabValue) || "overview";
@@ -150,7 +145,7 @@ export default function PlannerEventDetailPage() {
     return (
       <div className="mx-auto max-w-3xl px-6 py-24 text-center">
         <h2 className="font-display text-2xl font-light tracking-tight">
-          Event not found
+          {t("eventNotFound")}
         </h2>
         <p className="mt-2 text-sm text-muted-foreground">{error.message}</p>
         <Button
@@ -158,7 +153,7 @@ export default function PlannerEventDetailPage() {
           render={<Link href="/dashboard/planner/proposals" />}
           className="mt-6"
         >
-          Back to proposals
+          {t("backToProposals")}
         </Button>
       </div>
     );
@@ -210,10 +205,10 @@ export default function PlannerEventDetailPage() {
             variant="ghost"
             size="sm"
             render={<Link href="/dashboard/planner/proposals" />}
-            className="-ml-2 gap-1 text-sm text-muted-foreground hover:text-foreground"
+            className="-ms-2 gap-1 text-sm text-muted-foreground hover:text-foreground"
           >
-            <ArrowLeft className="size-3.5" />
-            All proposals
+            <ArrowLeft className="size-3.5 rtl:-scale-x-100" />
+            {t("allProposals")}
           </Button>
           <span
             className={cn(
@@ -221,7 +216,7 @@ export default function PlannerEventDetailPage() {
               statusStyles[event.status] ?? statusStyles.draft
             )}
           >
-            <CircleDot className="mr-1 size-2.5" />
+            <CircleDot className="me-1 size-2.5" />
             {event.status.replace("_", " ")}
           </span>
         </div>
@@ -238,8 +233,8 @@ export default function PlannerEventDetailPage() {
               <span className="inline-flex items-center gap-1.5">
                 <CalendarDays className="size-4" />
                 {event.event_date
-                  ? format(new Date(event.event_date), "PPP")
-                  : "Date not set"}
+                  ? f.date(event.event_date, "long")
+                  : t("dateNotSet")}
               </span>
               {event.venue && (
                 <span className="inline-flex items-center gap-1.5">
@@ -255,21 +250,21 @@ export default function PlannerEventDetailPage() {
 
             <div className="mt-6 grid grid-cols-3 gap-3">
               <Stat
-                label="Days to go"
+                label={t("statDaysToGo")}
                 value={
                   daysUntil == null
                     ? "—"
                     : daysUntil < 0
-                      ? "Past"
+                      ? t("pastValue")
                       : `${daysUntil}`
                 }
               />
               <Stat
-                label="Budget"
-                value={budget > 0 ? formatCurrency(budget) : "—"}
+                label={t("statBudget")}
+                value={budget > 0 ? f.currency(budget) : "—"}
               />
               <Stat
-                label="Paid"
+                label={t("statPaid")}
                 value={
                   totalAll > 0
                     ? `${Math.round((totalPaid / totalAll) * 100)}%`
@@ -277,7 +272,10 @@ export default function PlannerEventDetailPage() {
                 }
                 hint={
                   totalAll > 0
-                    ? `${formatCurrency(totalPaid)} of ${formatCurrency(totalAll)}`
+                    ? t("paidOfTotal", {
+                        paid: f.currency(totalPaid),
+                        total: f.currency(totalAll),
+                      })
                     : undefined
                 }
               />
@@ -306,23 +304,23 @@ export default function PlannerEventDetailPage() {
           <TabsList className="mb-6 flex w-full flex-wrap gap-1 bg-rose-50/60 p-1 ring-1 ring-rose-100/70">
             <TabsTrigger value="overview" className="gap-1.5">
               <Sparkles className="size-3.5" />
-              Overview
+              {t("tabOverview")}
             </TabsTrigger>
             <TabsTrigger value="design" className="gap-1.5">
               <Wand2 className="size-3.5" />
-              Design
+              {t("tabDesign")}
             </TabsTrigger>
             <TabsTrigger value="vendors" className="gap-1.5">
               <Users className="size-3.5" />
-              Vendors
+              {t("tabVendors")}
             </TabsTrigger>
             <TabsTrigger value="payments" className="gap-1.5">
               <CreditCard className="size-3.5" />
-              Payments
+              {t("tabPayments")}
             </TabsTrigger>
             <TabsTrigger value="messages" className="gap-1.5">
               <MessageSquare className="size-3.5" />
-              Messages
+              {t("tabMessages")}
             </TabsTrigger>
           </TabsList>
 
@@ -396,15 +394,16 @@ function ApprovedDesignCard({
   heroImage: string | null;
   palette: string[];
 }) {
+  const t = useTranslations("planner");
   if (!design) {
     return (
       <div className="flex h-full flex-col items-center justify-center rounded-2xl border border-dashed border-rose-200/70 bg-white/40 p-6 text-center backdrop-blur-sm">
         <Wand2 className="mb-3 size-6 text-rose-500" />
         <p className="font-display text-base font-medium tracking-tight">
-          No approved design
+          {t("noApprovedDesign")}
         </p>
         <p className="mt-1 max-w-xs text-xs text-muted-foreground">
-          The couple hasn&apos;t locked a design yet.
+          {t("noApprovedDesignBody")}
         </p>
       </div>
     );
@@ -425,9 +424,9 @@ function ApprovedDesignCard({
             <Sparkles className="size-7 text-rose-400/70" />
           </div>
         )}
-        <div className="absolute left-3 top-3 inline-flex items-center gap-1 rounded-full bg-white/90 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-rose-700 backdrop-blur-sm">
+        <div className="absolute start-3 top-3 inline-flex items-center gap-1 rounded-full bg-white/90 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-rose-700 backdrop-blur-sm">
           <CheckCircle2 className="size-3" />
-          Approved design
+          {t("approvedDesign")}
         </div>
       </div>
       <div className="space-y-2 p-4">
@@ -462,44 +461,46 @@ interface OverviewEventProps {
 }
 
 function OverviewTab({ event }: { event: OverviewEventProps }) {
+  const f = useFormatters();
+  const t = useTranslations("planner");
   return (
     <div className="grid gap-6 lg:grid-cols-3">
       <div className="lg:col-span-2">
         <div className="overflow-hidden rounded-2xl border border-rose-100/70 bg-white/80 backdrop-blur-sm">
           <div className="flex items-center justify-between border-b border-rose-100/70 px-5 py-3">
             <h3 className="font-display text-base font-medium tracking-tight">
-              Event details
+              {t("eventDetails")}
             </h3>
             <span className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
-              Edited by the couple
+              {t("editedByCouple")}
             </span>
           </div>
           <div className="grid gap-4 p-5 sm:grid-cols-2">
-            <DetailRow label="Title">
+            <DetailRow label={t("detailTitle")}>
               <p className="font-medium">{event.title}</p>
             </DetailRow>
-            <DetailRow label="Event date">
+            <DetailRow label={t("detailEventDate")}>
               <p className="font-medium">
                 {event.event_date
-                  ? format(new Date(event.event_date), "PPP")
-                  : "Not set"}
+                  ? f.date(event.event_date, "long")
+                  : t("notSet")}
               </p>
             </DetailRow>
-            <DetailRow label="Venue address" className="sm:col-span-2">
+            <DetailRow label={t("detailVenueAddress")} className="sm:col-span-2">
               <p className="font-medium">
                 {event.venue || (
-                  <span className="text-muted-foreground">Not set</span>
+                  <span className="text-muted-foreground">{t("notSet")}</span>
                 )}
               </p>
             </DetailRow>
-            <DetailRow label="Budget (EGP)">
+            <DetailRow label={t("detailBudgetEgp")}>
               <p className="font-medium">
                 {decimalToNumber(event.budget) > 0
-                  ? formatCurrency(decimalToNumber(event.budget))
+                  ? f.currency(decimalToNumber(event.budget))
                   : "—"}
               </p>
             </DetailRow>
-            <DetailRow label="Status">
+            <DetailRow label={t("detailStatus")}>
               <span
                 className={cn(
                   "inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide ring-1",
@@ -517,7 +518,7 @@ function OverviewTab({ event }: { event: OverviewEventProps }) {
         <div className="sticky top-24 overflow-hidden rounded-2xl border border-rose-100/70 bg-white/80 backdrop-blur-sm">
           <div className="border-b border-rose-100/70 px-5 py-3">
             <p className="text-[0.65rem] font-medium uppercase tracking-[0.3em] text-rose-700/80">
-              The couple
+              {t("theCouple")}
             </p>
           </div>
           <div className="space-y-3 p-5">
@@ -536,12 +537,11 @@ function OverviewTab({ event }: { event: OverviewEventProps }) {
               )}
               <div>
                 <p className="text-sm font-medium">{event.client.full_name}</p>
-                <p className="text-xs text-muted-foreground">Client</p>
+                <p className="text-xs text-muted-foreground">{t("clientLabel")}</p>
               </div>
             </div>
             <p className="text-xs text-muted-foreground">
-              Use the Messages tab to coordinate. The couple sees the same
-              thread.
+              {t("useMessagesTabHint")}
             </p>
           </div>
         </div>
@@ -613,15 +613,15 @@ function flattenReferences(value: unknown): FlatRef[] {
 }
 
 function DesignTab({ design }: { design: DesignSnapshot | null }) {
+  const t = useTranslations("planner");
   if (!design) {
     return (
       <div className="rounded-2xl border border-dashed border-rose-200/70 bg-white/40 p-12 text-center">
         <p className="font-display text-lg font-light tracking-tight">
-          No approved design yet
+          {t("noApprovedDesignYetTitle")}
         </p>
         <p className="mt-1 text-sm text-muted-foreground">
-          The couple will lock a design here. You&apos;ll see the full visual
-          spec once they do.
+          {t("noApprovedDesignYetBody")}
         </p>
       </div>
     );
@@ -669,7 +669,7 @@ function DesignTab({ design }: { design: DesignSnapshot | null }) {
           {palette.length > 0 && (
             <div>
               <p className="mb-2 text-[10px] font-medium uppercase tracking-[0.2em] text-muted-foreground">
-                Palette
+                {t("paletteHeading")}
               </p>
               <div className="flex flex-wrap gap-2">
                 {palette.map((c) => (
@@ -693,7 +693,7 @@ function DesignTab({ design }: { design: DesignSnapshot | null }) {
       {refs.length > 0 && (
         <div className="rounded-2xl border border-rose-100/70 bg-white/80 p-5 backdrop-blur-sm">
           <p className="mb-3 text-[10px] font-medium uppercase tracking-[0.2em] text-muted-foreground">
-            References ({refs.length})
+            {t("referencesCount", { count: refs.length })}
           </p>
           <div className="grid grid-cols-3 gap-2 sm:grid-cols-4 md:grid-cols-6">
             {refs.map((r) => (
@@ -712,7 +712,7 @@ function DesignTab({ design }: { design: DesignSnapshot | null }) {
       {videos.length > 0 && (
         <div className="rounded-2xl border border-rose-100/70 bg-white/80 p-5 backdrop-blur-sm">
           <p className="mb-3 text-[10px] font-medium uppercase tracking-[0.2em] text-muted-foreground">
-            Cinematic preview
+            {t("cinematicPreview")}
           </p>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             {videos.map((v) => (
@@ -746,6 +746,8 @@ const ENGAGEMENT_STATUS_TONE: Record<string, string> = {
 
 function VendorsTab({ event }: { event: VendorsTabEvent }) {
   const utils = trpc.useUtils();
+  const f = useFormatters();
+  const t = useTranslations("planner");
   const engagements = trpc.vendorEngagements.forEvent.useQuery({
     eventId: event.id,
   });
@@ -755,14 +757,14 @@ function VendorsTab({ event }: { event: VendorsTabEvent }) {
   const walletBalance = trpc.payouts.plannerBalance.useQuery();
   const completeMutation = trpc.vendorEngagements.complete.useMutation({
     onSuccess: () => {
-      toast.success("Marked complete");
+      toast.success(t("markedCompleteToast"));
       utils.vendorEngagements.forEvent.invalidate({ eventId: event.id });
     },
     onError: (e) => toast.error(e.message),
   });
   const cancelMutation = trpc.vendorEngagements.cancel.useMutation({
     onSuccess: () => {
-      toast.success("Cancelled");
+      toast.success(t("cancelledToast"));
       utils.vendorEngagements.forEvent.invalidate({ eventId: event.id });
     },
     onError: (e) => toast.error(e.message),
@@ -781,21 +783,25 @@ function VendorsTab({ event }: { event: VendorsTabEvent }) {
       <div className="flex items-center justify-between gap-3 rounded-2xl border border-rose-100/70 bg-gradient-to-br from-rose-50 to-amber-50/60 px-5 py-3">
         <div>
           <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-rose-700/80">
-            Available for this event
+            {t("availableForEvent")}
           </p>
           <p className="font-display text-xl font-light leading-tight tracking-tight">
-            {formatCurrency(canReleaseHere)}
+            {f.currency(canReleaseHere)}
           </p>
           <p className="text-[11px] text-muted-foreground">
-            Earned from this event{" "}
-            {formatCurrency(eventBalance.data?.accrued ?? 0)} · committed{" "}
-            {formatCurrency(eventBalance.data?.committedToVendors ?? 0)} ·
-            paid out{" "}
-            {formatCurrency(eventBalance.data?.paidToVendors ?? 0)}.
+            {t("earnedCommittedPaid", {
+              accrued: f.currency(eventBalance.data?.accrued ?? 0),
+              committed: f.currency(
+                eventBalance.data?.committedToVendors ?? 0,
+              ),
+              paid: f.currency(eventBalance.data?.paidToVendors ?? 0),
+            })}
             {walletAvailable < eventAvailable && (
               <>
                 {" "}
-                Wallet-wide cap {formatCurrency(walletAvailable)}.
+                {t("walletWideCap", {
+                  amount: f.currency(walletAvailable),
+                })}
               </>
             )}
           </p>
@@ -805,17 +811,17 @@ function VendorsTab({ event }: { event: VendorsTabEvent }) {
           className="gap-1 bg-gradient-to-r from-rose-600 to-amber-500 text-white"
         >
           <Plus className="size-4" />
-          Add vendor
+          {t("addVendor")}
         </Button>
       </div>
 
       <div className="overflow-hidden rounded-2xl border border-rose-100/70 bg-white/80 backdrop-blur-sm">
         <div className="flex items-center justify-between border-b border-rose-100/70 px-5 py-3">
           <h3 className="font-display text-base font-medium tracking-tight">
-            Engagements
+            {t("engagementsHeading")}
           </h3>
           <span className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
-            Per-vendor deals for this event
+            {t("engagementsHint")}
           </span>
         </div>
         {engagements.isLoading ? (
@@ -826,18 +832,17 @@ function VendorsTab({ event }: { event: VendorsTabEvent }) {
           <div className="px-5 py-12 text-center">
             <Users className="mx-auto mb-3 size-7 text-rose-500" />
             <p className="font-display text-lg font-light tracking-tight">
-              No vendors yet
+              {t("noVendorsYetTitle")}
             </p>
             <p className="mt-1 text-sm text-muted-foreground">
-              Browse the marketplace and request a deal — line items, total,
-              and releases are tracked per engagement here.
+              {t("noVendorsYetBody")}
             </p>
             <Button
               render={<Link href="/dashboard/planner/vendors" />}
               size="sm"
               className="mt-4 gap-1 bg-gradient-to-r from-rose-600 to-amber-500 text-white"
             >
-              Browse vendors
+              {t("browseVendors")}
             </Button>
           </div>
         ) : (
@@ -848,7 +853,7 @@ function VendorsTab({ event }: { event: VendorsTabEvent }) {
                 engagement={e}
                 onComplete={() => completeMutation.mutate({ id: e.id })}
                 onCancel={() => {
-                  const reason = prompt("Cancel reason?");
+                  const reason = prompt(t("cancelReasonPrompt"));
                   if (reason !== null) {
                     cancelMutation.mutate({
                       id: e.id,
@@ -913,6 +918,8 @@ function EngagementRow({
   eventId: string;
 }) {
   const utils = trpc.useUtils();
+  const f = useFormatters();
+  const t = useTranslations("planner");
   const [releaseOpen, setReleaseOpen] = useState(false);
   const [reviewOpen, setReviewOpen] = useState(false);
 
@@ -946,7 +953,7 @@ function EngagementRow({
             {status}
           </span>
           <span className="font-mono text-sm tabular-nums">
-            {formatCurrency(
+            {f.currency(
               decimalToNumber(engagement.total_amount),
               engagement.currency,
             )}
@@ -977,11 +984,11 @@ function EngagementRow({
               <span>×{i.quantity}</span>
               {i.delivered_at && (
                 <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] uppercase tracking-wider text-emerald-800 ring-1 ring-emerald-100">
-                  Delivered
+                  {t("deliveredBadge")}
                 </span>
               )}
               <span className="font-mono tabular-nums">
-                {formatCurrency(
+                {f.currency(
                   decimalToNumber(i.line_total),
                   engagement.currency,
                 )}
@@ -994,7 +1001,12 @@ function EngagementRow({
       {engagement.releases.length > 0 && (
         <div className="rounded-xl border border-rose-100/70">
           <p className="border-b border-rose-100/70 px-3 py-2 text-[10px] font-medium uppercase tracking-[0.2em] text-rose-700/80">
-            Releases · remaining {formatCurrency(Math.max(0, remaining), engagement.currency)}
+            {t("releasesRemaining", {
+              amount: f.currency(
+                Math.max(0, remaining),
+                engagement.currency,
+              ),
+            })}
           </p>
           <ul className="divide-y divide-rose-100/70 text-sm">
             {engagement.releases.map((r) => (
@@ -1005,9 +1017,17 @@ function EngagementRow({
                 <div>
                   <p className="font-medium">{r.label}</p>
                   <p className="text-[11px] text-muted-foreground">
-                    Requested {format(new Date(r.requested_at), "PP")}
+                    {t("requestedOnLabel", {
+                      date: f.date(r.requested_at, "medium"),
+                    })}
                     {r.paid_at && (
-                      <> · Paid {format(new Date(r.paid_at), "PP")}</>
+                      <>
+                        {" "}
+                        ·{" "}
+                        {t("paidOnLabel", {
+                          date: f.date(r.paid_at, "medium"),
+                        })}
+                      </>
                     )}
                   </p>
                 </div>
@@ -1025,7 +1045,7 @@ function EngagementRow({
                     {r.status}
                   </span>
                   <span className="font-mono text-xs tabular-nums">
-                    {formatCurrency(
+                    {f.currency(
                       decimalToNumber(r.amount),
                       r.currency,
                     )}
@@ -1047,7 +1067,7 @@ function EngagementRow({
             className="gap-1"
           >
             <Plus className="size-3.5" />
-            Release funds
+            {t("releaseFunds")}
           </Button>
         )}
         {(status === "accepted" || status === "active") && (
@@ -1059,7 +1079,7 @@ function EngagementRow({
             className="gap-1"
           >
             <CheckCircle2 className="size-3.5" />
-            Mark complete
+            {t("markComplete")}
           </Button>
         )}
         {status === "completed" && (
@@ -1070,7 +1090,7 @@ function EngagementRow({
             className="gap-1"
           >
             <Sparkles className="size-3.5" />
-            Leave review
+            {t("leaveReview")}
           </Button>
         )}
         {(status === "requested" || status === "accepted" || status === "active") && (
@@ -1082,7 +1102,7 @@ function EngagementRow({
             className="gap-1 text-destructive"
           >
             <Trash2 className="size-3.5" />
-            Cancel
+            {t("cancelAction")}
           </Button>
         )}
       </div>
@@ -1121,15 +1141,16 @@ function ReleaseDialog({
   currency: string;
   onCreated: () => void;
 }) {
-  const [label, setLabel] = useState("Deposit");
+  const t = useTranslations("planner");
+  const [label, setLabel] = useState(t("depositDefault"));
   const [amount, setAmount] = useState("");
   const [notes, setNotes] = useState("");
   const create = trpc.vendorReleases.create.useMutation({
     onSuccess: () => {
-      toast.success("Release queued for admin payout");
+      toast.success(t("releaseQueuedToast"));
       onCreated();
       onOpenChange(false);
-      setLabel("Deposit");
+      setLabel(t("depositDefault"));
       setAmount("");
       setNotes("");
     },
@@ -1139,15 +1160,14 @@ function ReleaseDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>Release funds</DialogTitle>
+          <DialogTitle>{t("releaseFunds")}</DialogTitle>
           <DialogDescription>
-            Earmarks money from your accrued balance to this vendor. Admin
-            pays the vendor off-platform once the release is in the queue.
+            {t("releaseFundsDesc")}
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-3">
           <div className="space-y-1.5">
-            <Label htmlFor="rl-label">Label</Label>
+            <Label htmlFor="rl-label">{t("releaseLabel")}</Label>
             <Input
               id="rl-label"
               value={label}
@@ -1155,7 +1175,9 @@ function ReleaseDialog({
             />
           </div>
           <div className="space-y-1.5">
-            <Label htmlFor="rl-amt">Amount ({currency})</Label>
+            <Label htmlFor="rl-amt">
+              {t("releaseAmountLabel", { currency })}
+            </Label>
             <Input
               id="rl-amt"
               type="number"
@@ -1165,7 +1187,7 @@ function ReleaseDialog({
             />
           </div>
           <div className="space-y-1.5">
-            <Label htmlFor="rl-notes">Notes</Label>
+            <Label htmlFor="rl-notes">{t("releaseNotesLabel")}</Label>
             <Textarea
               id="rl-notes"
               value={notes}
@@ -1181,12 +1203,12 @@ function ReleaseDialog({
             onClick={() => {
               const n = Number(amount);
               if (!Number.isFinite(n) || n <= 0) {
-                toast.error("Amount must be greater than 0");
+                toast.error(t("amountMustBePositiveError"));
                 return;
               }
               create.mutate({
                 engagement_id: engagementId,
-                label: label.trim() || "Release",
+                label: label.trim() || t("releaseDefault"),
                 amount: n,
                 notes: notes.trim() || null,
               });
@@ -1194,7 +1216,7 @@ function ReleaseDialog({
             className="gap-1 bg-gradient-to-r from-rose-600 to-amber-500 text-white"
           >
             {create.isPending && <Loader2 className="size-4 animate-spin" />}
-            Queue release
+            {t("queueRelease")}
           </Button>
         </div>
       </DialogContent>
@@ -1215,6 +1237,7 @@ function ReviewDialog({
   vendorId: string;
   vendorName: string;
 }) {
+  const t = useTranslations("planner");
   const utils = trpc.useUtils();
   const existing = trpc.vendorReviews.mineForEngagement.useQuery(
     { engagementId, vendorId },
@@ -1233,7 +1256,7 @@ function ReviewDialog({
 
   const upsert = trpc.vendorReviews.upsert.useMutation({
     onSuccess: () => {
-      toast.success("Review saved");
+      toast.success(t("reviewSavedToast"));
       utils.vendorReviews.forVendor.invalidate({ vendorId });
       utils.vendorReviews.mineForEngagement.invalidate({
         engagementId,
@@ -1248,15 +1271,14 @@ function ReviewDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>Review {vendorName}</DialogTitle>
+          <DialogTitle>{t("reviewVendor", { name: vendorName })}</DialogTitle>
           <DialogDescription>
-            Show other planners how the engagement went. You can edit your
-            review later.
+            {t("reviewVendorDesc")}
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-3">
           <div className="space-y-1.5">
-            <Label>Rating</Label>
+            <Label>{t("ratingLabel")}</Label>
             <div className="flex gap-1">
               {[1, 2, 3, 4, 5].map((n) => (
                 <button
@@ -1267,7 +1289,7 @@ function ReviewDialog({
                     "text-2xl",
                     n <= rating ? "text-amber-500" : "text-stone-300",
                   )}
-                  aria-label={`${n} stars`}
+                  aria-label={t("starsAriaLabel", { n })}
                 >
                   ★
                 </button>
@@ -1275,7 +1297,7 @@ function ReviewDialog({
             </div>
           </div>
           <div className="space-y-1.5">
-            <Label htmlFor="rv-cmt">Comment (optional)</Label>
+            <Label htmlFor="rv-cmt">{t("commentOptionalLabel")}</Label>
             <Textarea
               id="rv-cmt"
               value={comment}
@@ -1299,7 +1321,7 @@ function ReviewDialog({
             className="gap-1 bg-gradient-to-r from-rose-600 to-amber-500 text-white"
           >
             {upsert.isPending && <Loader2 className="size-4 animate-spin" />}
-            Save review
+            {t("saveReview")}
           </Button>
         </div>
       </DialogContent>
@@ -1317,6 +1339,8 @@ function PaymentsTab({ eventId }: { eventId: string }) {
 
 function MessagesTab({ eventId }: { eventId: string }) {
   const utils = trpc.useUtils();
+  const t = useTranslations("planner");
+  const f = useFormatters();
   const { data: profile } = trpc.profile.me.useQuery();
   const { data: messages, isLoading } = trpc.messages.byEvent.useQuery(
     { eventId },
@@ -1349,10 +1373,10 @@ function MessagesTab({ eventId }: { eventId: string }) {
     <div className="flex h-[60vh] flex-col overflow-hidden rounded-2xl border border-rose-100/70 bg-white/80 backdrop-blur-sm">
       <div className="border-b border-rose-100/70 px-5 py-3">
         <h3 className="font-display text-base font-medium tracking-tight">
-          Messages
+          {t("messagesTitle")}
         </h3>
         <p className="text-xs text-muted-foreground">
-          Talk with the couple — everything stays attached to this event.
+          {t("talkWithCoupleHint")}
         </p>
       </div>
 
@@ -1365,11 +1389,10 @@ function MessagesTab({ eventId }: { eventId: string }) {
           <div className="flex h-full flex-col items-center justify-center text-center">
             <MessageSquare className="mb-3 size-7 text-rose-500" />
             <p className="font-display text-base font-medium tracking-tight">
-              Say hello
+              {t("sayHelloTitle")}
             </p>
             <p className="mt-1 max-w-sm text-xs text-muted-foreground">
-              Start the conversation — share next steps, ask for context, or
-              confirm details.
+              {t("sayHelloBody")}
             </p>
           </div>
         ) : (
@@ -1404,9 +1427,7 @@ function MessagesTab({ eventId }: { eventId: string }) {
                     )}
                   >
                     {!isMine && `${m.sender.full_name} · `}
-                    {formatDistanceToNow(new Date(m.created_at), {
-                      addSuffix: true,
-                    })}
+                    {f.relativeTime(m.created_at)}
                   </p>
                 </div>
               </div>
@@ -1427,7 +1448,7 @@ function MessagesTab({ eventId }: { eventId: string }) {
               }
             }}
             rows={1}
-            placeholder="Write a message…"
+            placeholder={t("writeMessagePlaceholder")}
             className="min-h-9 resize-none"
           />
           <Button

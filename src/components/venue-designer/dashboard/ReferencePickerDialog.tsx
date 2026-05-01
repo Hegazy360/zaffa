@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
+import { useTranslations } from "next-intl";
 import {
   Dialog,
   DialogContent,
@@ -24,7 +25,6 @@ import { useVenueDesignerStore } from "@/stores/venue-designer-store";
 import {
   MAX_REFERENCES_PER_CATEGORY,
   MAX_TOTAL_REFERENCES,
-  REFERENCE_CATEGORY_LABELS,
   type Ref,
   type ReferenceCategory,
   type EventType,
@@ -62,6 +62,14 @@ const SETTING_HINT: Record<Setting, string> = {
   tent: "tent",
 };
 
+const CATEGORY_LABEL_KEY: Record<ReferenceCategory, string> = {
+  overall_vibe: "categoryOverallVibe",
+  tables: "categoryTables",
+  flowers: "categoryFlowers",
+  lighting: "categoryLighting",
+  venue_decor: "categoryVenueDecor",
+};
+
 function buildDefaultQuery(
   category: ReferenceCategory,
   eventType: EventType,
@@ -85,6 +93,7 @@ export function ReferencePickerDialog({
   onOpenChange,
   category,
 }: ReferencePickerDialogProps) {
+  const t = useTranslations("designer");
   const refs = useVenueDesignerStore((s) => s.references[category]);
   const eventType = useVenueDesignerStore((s) => s.eventType);
   const setting = useVenueDesignerStore((s) => s.setting);
@@ -93,24 +102,24 @@ export function ReferencePickerDialog({
   const removeReference = useVenueDesignerStore((s) => s.removeReference);
   const totalRefs = useVenueDesignerStore((s) => s.totalReferences());
 
+  const categoryLabel = t(CATEGORY_LABEL_KEY[category]);
+
   const reportAddFailure = useCallback(
     (result: Extract<AddReferenceResult, { ok: false }>) => {
       switch (result.reason) {
         case "category_full":
           toast.error(
-            `You can pick up to ${MAX_REFERENCES_PER_CATEGORY} references per category.`
+            t("refsCategoryFull", { max: MAX_REFERENCES_PER_CATEGORY })
           );
           break;
         case "total_full":
-          toast.error(
-            `You've reached the total of ${MAX_TOTAL_REFERENCES} references across all categories. Remove one to add another.`
-          );
+          toast.error(t("refsTotalFull", { max: MAX_TOTAL_REFERENCES }));
           break;
         case "duplicate":
           break;
       }
     },
-    []
+    [t]
   );
 
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -180,13 +189,13 @@ export function ReferencePickerDialog({
       if (!files || files.length === 0) return;
       if (refs.length >= MAX_REFERENCES_PER_CATEGORY) {
         toast.error(
-          `You already have the max ${MAX_REFERENCES_PER_CATEGORY} references for this category.`
+          t("refsCategoryAlreadyMax", { max: MAX_REFERENCES_PER_CATEGORY })
         );
         return;
       }
       const file = files[0];
       if (!file.type.startsWith("image/")) {
-        toast.error("Please upload an image file.");
+        toast.error(t("uploadImageOnly"));
         return;
       }
       try {
@@ -202,15 +211,13 @@ export function ReferencePickerDialog({
         const result = addReference(category, ref);
         if (!result.ok) reportAddFailure(result);
       } catch (err) {
-        toast.error(
-          err instanceof Error ? err.message : "Upload failed. Please try again."
-        );
+        toast.error(err instanceof Error ? err.message : t("uploadFailed"));
       } finally {
         setUploading(false);
         if (fileInputRef.current) fileInputRef.current.value = "";
       }
     },
-    [addReference, category, refs.length, uploadMutation, reportAddFailure]
+    [addReference, category, refs.length, uploadMutation, reportAddFailure, t]
   );
 
   const handlePinterestPick = useCallback(
@@ -229,7 +236,7 @@ export function ReferencePickerDialog({
       }
       if (refs.length >= MAX_REFERENCES_PER_CATEGORY) {
         toast.error(
-          `You can pick up to ${MAX_REFERENCES_PER_CATEGORY} references per category.`
+          t("refsCategoryFull", { max: MAX_REFERENCES_PER_CATEGORY })
         );
         return;
       }
@@ -244,22 +251,20 @@ export function ReferencePickerDialog({
           sourceId: pin.id,
           sourceUrl: pin.pinUrl,
           attribution: pin.pinner?.username
-            ? `via @${pin.pinner.username} on Pinterest`
-            : "via Pinterest",
+            ? t("pinterestViaUser", { username: pin.pinner.username })
+            : t("pinterestVia"),
         };
         const result = addReference(category, ref);
         if (!result.ok) reportAddFailure(result);
       } catch (err) {
         toast.error(
-          err instanceof Error
-            ? err.message
-            : "Could not add this Pinterest image."
+          err instanceof Error ? err.message : t("pinterestAddFailed")
         );
       } finally {
         setPinterestRehostingId(null);
       }
     },
-    [addReference, removeReference, rehostMutation, category, refs, reportAddFailure]
+    [addReference, removeReference, rehostMutation, category, refs, reportAddFailure, t]
   );
 
   const handleSearchSubmit = (e: React.FormEvent) => {
@@ -274,32 +279,36 @@ export function ReferencePickerDialog({
       <DialogContent className="sm:max-w-3xl">
         <DialogHeader>
           <DialogTitle>
-            {REFERENCE_CATEGORY_LABELS[category]} references
+            {t("categoryReferencesTitle", { category: categoryLabel })}
           </DialogTitle>
           <DialogDescription>
-            Pick up to {MAX_REFERENCES_PER_CATEGORY} per category and{" "}
-            {MAX_TOTAL_REFERENCES} overall. {refs.length}/
-            {MAX_REFERENCES_PER_CATEGORY} in this category &middot; {totalRefs}/
-            {MAX_TOTAL_REFERENCES} total.
+            {t("referencesPickerDesc", {
+              perCategory: MAX_REFERENCES_PER_CATEGORY,
+              total: MAX_TOTAL_REFERENCES,
+              usedCat: refs.length,
+              maxCat: MAX_REFERENCES_PER_CATEGORY,
+              usedTotal: totalRefs,
+              maxTotal: MAX_TOTAL_REFERENCES,
+            })}
           </DialogDescription>
         </DialogHeader>
 
         <Tabs defaultValue="pinterest">
           <TabsList>
-            <TabsTrigger value="pinterest">Search Pinterest</TabsTrigger>
-            <TabsTrigger value="browse">Browse curated</TabsTrigger>
-            <TabsTrigger value="upload">Upload your own</TabsTrigger>
+            <TabsTrigger value="pinterest">{t("tabPinterest")}</TabsTrigger>
+            <TabsTrigger value="browse">{t("tabBrowse")}</TabsTrigger>
+            <TabsTrigger value="upload">{t("tabUpload")}</TabsTrigger>
           </TabsList>
 
           <TabsContent value="pinterest" className="mt-4 space-y-3">
             <form onSubmit={handleSearchSubmit} className="flex gap-2">
               <div className="relative flex-1">
-                <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+                <Search className="pointer-events-none absolute start-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
                 <Input
                   value={searchInput}
                   onChange={(e) => setSearchInput(e.target.value)}
-                  placeholder="e.g. boho wedding florals tablescape"
-                  className="pl-9"
+                  placeholder={t("pinterestPlaceholder")}
+                  className="ps-9"
                   autoFocus
                 />
               </div>
@@ -308,7 +317,7 @@ export function ReferencePickerDialog({
                 disabled={searchInput.trim().length < 2}
                 className="bg-rose-500 text-white hover:bg-rose-600"
               >
-                Search
+                {t("searchAction")}
               </Button>
             </form>
 
@@ -316,43 +325,38 @@ export function ReferencePickerDialog({
               <div className="flex h-64 flex-col items-center justify-center text-center text-sm text-muted-foreground">
                 <Search className="mb-2 size-6" />
                 <p>
-                  Search Pinterest for{" "}
-                  <span className="font-medium text-foreground">
-                    {REFERENCE_CATEGORY_LABELS[category].toLowerCase()}
-                  </span>{" "}
-                  inspiration.
+                  {t("pinterestPromptLine", {
+                    category: categoryLabel.toLowerCase(),
+                  })}
                 </p>
-                <p className="mt-1 text-xs">
-                  We&apos;ve pre-filled a query based on your event &mdash;
-                  refine it and hit Search.
-                </p>
+                <p className="mt-1 text-xs">{t("pinterestPromptHint")}</p>
               </div>
             ) : pinterestQuery.isLoading ? (
               <div className="flex h-64 items-center justify-center text-muted-foreground">
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Searching Pinterest&hellip;
+                <Loader2 className="me-2 h-4 w-4 animate-spin" />
+                {t("searchingPinterest")}
               </div>
             ) : pinterestQuery.isError ? (
               <div className="flex h-64 flex-col items-center justify-center text-center text-sm text-destructive">
                 <p>{pinterestQuery.error.message}</p>
                 <p className="mt-1 text-xs text-muted-foreground">
-                  Make sure the Pinterest worker is deployed and{" "}
+                  {t("pinterestErrorHintBefore")}{" "}
                   <code className="rounded bg-muted px-1">
                     PINTEREST_PROXY_URL
                   </code>{" "}
-                  /{" "}
+                  {t("pinterestErrorHintAnd")}{" "}
                   <code className="rounded bg-muted px-1">
                     PINTEREST_PROXY_SECRET
                   </code>{" "}
-                  are set.
+                  {t("pinterestErrorHintAfter")}
                 </p>
               </div>
             ) : !pinterestQuery.data?.results.length ? (
               <div className="flex h-64 items-center justify-center text-sm text-muted-foreground">
-                No pins for &ldquo;{activeQuery}&rdquo;. Try a different query.
+                {t("noPinsForQuery", { query: activeQuery })}
               </div>
             ) : (
-              <div className="grid max-h-[58vh] grid-cols-2 gap-3 overflow-y-auto pr-1 sm:grid-cols-3 md:grid-cols-4">
+              <div className="grid max-h-[58vh] grid-cols-2 gap-3 overflow-y-auto pe-1 sm:grid-cols-3 md:grid-cols-4">
                 {pinterestQuery.data.results.map((pin) => {
                   const refId = `pinterest:${pin.id}`;
                   const selected = refs.some((r) => r.id === refId);
@@ -375,12 +379,12 @@ export function ReferencePickerDialog({
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img
                           src={pin.thumbnailUrl}
-                          alt={pin.description || "Pinterest pin"}
+                          alt={pin.description || t("pinAlt")}
                           loading="lazy"
                           className="h-full w-full object-cover transition-transform group-hover:scale-[1.02]"
                         />
                         {selected && (
-                          <div className="absolute right-1.5 top-1.5 grid size-6 place-items-center rounded-full bg-rose-500 text-white shadow">
+                          <div className="absolute end-1.5 top-1.5 grid size-6 place-items-center rounded-full bg-rose-500 text-white shadow">
                             <Check className="size-3.5" />
                           </div>
                         )}
@@ -394,8 +398,8 @@ export function ReferencePickerDialog({
                         href={pin.pinUrl}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="absolute bottom-1 right-1 inline-flex items-center gap-0.5 rounded bg-black/60 px-1.5 py-0.5 text-[10px] text-white opacity-0 transition-opacity hover:bg-black/80 group-hover:opacity-100"
-                        title="Open on Pinterest"
+                        className="absolute bottom-1 end-1 inline-flex items-center gap-0.5 rounded bg-black/60 px-1.5 py-0.5 text-[10px] text-white opacity-0 transition-opacity hover:bg-black/80 group-hover:opacity-100"
+                        title={t("openOnPinterest")}
                       >
                         <ExternalLink className="size-2.5" />
                       </a>
@@ -409,19 +413,20 @@ export function ReferencePickerDialog({
           <TabsContent value="browse" className="mt-4">
             {inspirationQuery.isLoading ? (
               <div className="flex h-64 items-center justify-center text-muted-foreground">
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Loading inspiration...
+                <Loader2 className="me-2 h-4 w-4 animate-spin" />
+                {t("loadingInspiration")}
               </div>
             ) : !inspirationQuery.data || inspirationQuery.data.length === 0 ? (
               <div className="flex h-64 flex-col items-center justify-center text-center text-sm text-muted-foreground">
-                <p>No inspiration images yet for this category.</p>
+                <p>{t("noInspirationTitle")}</p>
                 <p className="mt-1 text-xs">
-                  Run <code className="rounded bg-muted px-1">npm run db:seed-images</code>{" "}
-                  to populate the gallery, or upload your own.
+                  {t("noInspirationHintBefore")}{" "}
+                  <code className="rounded bg-muted px-1">npm run db:seed-images</code>{" "}
+                  {t("noInspirationHintAfter")}
                 </p>
               </div>
             ) : (
-              <div className="grid max-h-[60vh] grid-cols-2 gap-3 overflow-y-auto pr-1 sm:grid-cols-3 md:grid-cols-4">
+              <div className="grid max-h-[60vh] grid-cols-2 gap-3 overflow-y-auto pe-1 sm:grid-cols-3 md:grid-cols-4">
                 {inspirationQuery.data.map((item) => {
                   const refId = `inspiration:${item.id}`;
                   const selected = refs.some((r) => r.id === refId);
@@ -447,12 +452,12 @@ export function ReferencePickerDialog({
                         className="h-full w-full object-cover transition-transform group-hover:scale-[1.02]"
                       />
                       {selected && (
-                        <div className="absolute right-1.5 top-1.5 grid size-6 place-items-center rounded-full bg-rose-500 text-white shadow">
+                        <div className="absolute end-1.5 top-1.5 grid size-6 place-items-center rounded-full bg-rose-500 text-white shadow">
                           <Check className="size-3.5" />
                         </div>
                       )}
                       {item.subcategory && (
-                        <div className="absolute bottom-0 left-0 right-0 truncate bg-gradient-to-t from-black/70 to-transparent px-2 py-1 text-left text-[10px] capitalize text-white">
+                        <div className="absolute bottom-0 start-0 end-0 truncate bg-gradient-to-t from-black/70 to-transparent px-2 py-1 text-start text-[10px] capitalize text-white">
                           {item.subcategory.replace(/_/g, " ")}
                         </div>
                       )}
@@ -466,10 +471,9 @@ export function ReferencePickerDialog({
           <TabsContent value="upload" className="mt-4">
             <div className="rounded-lg border border-dashed p-6 text-center">
               <Upload className="mx-auto mb-3 size-8 text-muted-foreground" />
-              <p className="text-sm font-medium">Upload an inspiration photo</p>
+              <p className="text-sm font-medium">{t("uploadInspirationTitle")}</p>
               <p className="mt-1 text-xs text-muted-foreground">
-                JPG or PNG up to ~10MB. Personal Pinterest finds, mood boards,
-                or shots from past events all work.
+                {t("uploadInspirationDesc")}
               </p>
               <input
                 ref={fileInputRef}
@@ -488,18 +492,18 @@ export function ReferencePickerDialog({
                 {uploading ? (
                   <>
                     <Loader2 className="size-3.5 animate-spin" />
-                    Uploading...
+                    {t("uploadingDots")}
                   </>
                 ) : (
                   <>
                     <Upload className="size-3.5" />
-                    Choose image
+                    {t("chooseImage")}
                   </>
                 )}
               </Button>
               {remaining <= 0 && (
                 <p className="mt-2 text-xs text-muted-foreground">
-                  Remove a reference above to upload another.
+                  {t("removeRefToUpload")}
                 </p>
               )}
             </div>
@@ -507,7 +511,7 @@ export function ReferencePickerDialog({
             {refs.filter((r) => r.source === "upload").length > 0 && (
               <div className="mt-4">
                 <p className="mb-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                  Your uploads in this category
+                  {t("yourUploadsLabel")}
                 </p>
                 <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
                   {refs
@@ -520,15 +524,15 @@ export function ReferencePickerDialog({
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img
                           src={r.url}
-                          alt="Uploaded reference"
+                          alt={t("uploadedRefAlt")}
                           className="h-full w-full object-cover"
                         />
                         <button
                           type="button"
                           onClick={() => removeReference(category, r.id)}
-                          className="absolute right-1.5 top-1.5 rounded-full bg-black/60 px-2 py-0.5 text-[10px] text-white"
+                          className="absolute end-1.5 top-1.5 rounded-full bg-black/60 px-2 py-0.5 text-[10px] text-white"
                         >
-                          Remove
+                          {t("removeShort")}
                         </button>
                       </div>
                     ))}

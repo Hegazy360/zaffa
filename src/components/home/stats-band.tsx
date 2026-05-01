@@ -75,7 +75,7 @@ function Stat({ value, suffix, label, decimals = 0, index }: StatProps) {
         delay: index * 0.08,
         ease: [0.16, 1, 0.3, 1],
       }}
-      className="px-4 py-6 first:pt-0 md:py-2 md:first:pt-2 md:first:pl-0"
+      className="px-4 py-6 first:pt-0 md:py-2 md:first:pt-2 md:first:ps-0"
     >
       <div className="font-display text-4xl font-light leading-none tracking-tight md:text-6xl">
         <motion.span>{display}</motion.span>

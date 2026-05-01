@@ -17,6 +17,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { motion, useReducedMotion } from "framer-motion";
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { useVenueDesignerStore } from "@/stores/venue-designer-store";
 import { cn } from "@/lib/utils";
@@ -37,21 +38,23 @@ export type StepId = (typeof STEP_IDS)[number];
 
 interface StepDef {
   id: StepId;
-  label: string;
   icon: LucideIcon;
-  hint?: string;
+  labelKey: "stepBasicsLabel" | "stepPaletteLabel" | "stepVibeLabel" | "stepTablesLabel" | "stepFloralsLabel" | "stepLightingLabel" | "stepDecorLabel" | "stepNotesLabel" | "stepGenerateLabel";
+  hintKey: "stepBasicsHint" | "stepPaletteHint" | "stepVibeHint" | "stepTablesHint" | "stepFloralsHint" | "stepLightingHint" | "stepDecorHint" | "stepNotesHint" | "stepGenerateHint";
+  titleKey: "stepBasicsTitle" | "stepPaletteTitle" | "stepVibeTitle" | "stepTablesTitle" | "stepFloralsTitle" | "stepLightingTitle" | "stepDecorTitle" | "stepNotesTitle" | "stepGenerateTitle";
+  subtitleKey: "stepBasicsSubtitle" | "stepPaletteSubtitle" | "stepVibeSubtitle" | "stepTablesSubtitle" | "stepFloralsSubtitle" | "stepLightingSubtitle" | "stepDecorSubtitle" | "stepNotesSubtitle" | "stepGenerateSubtitle";
 }
 
 const STEPS: StepDef[] = [
-  { id: "basics", label: "Basics", icon: Settings, hint: "Event type, setting, size" },
-  { id: "palette", label: "Palette", icon: Palette, hint: "Colors that anchor the design" },
-  { id: "vibe", label: "Vibe", icon: Sparkles, hint: "Overall mood references" },
-  { id: "tables", label: "Tables", icon: Utensils, hint: "Tables & seating references" },
-  { id: "florals", label: "Florals", icon: Flower2, hint: "Floral references" },
-  { id: "lighting", label: "Lighting", icon: Lamp, hint: "Lighting references" },
-  { id: "decor", label: "Decor", icon: Frame, hint: "Decor & structure references" },
-  { id: "notes", label: "Notes", icon: FileText, hint: "Free-text style notes" },
-  { id: "generate", label: "Generate", icon: Wand2, hint: "Render your venue" },
+  { id: "basics", icon: Settings, labelKey: "stepBasicsLabel", hintKey: "stepBasicsHint", titleKey: "stepBasicsTitle", subtitleKey: "stepBasicsSubtitle" },
+  { id: "palette", icon: Palette, labelKey: "stepPaletteLabel", hintKey: "stepPaletteHint", titleKey: "stepPaletteTitle", subtitleKey: "stepPaletteSubtitle" },
+  { id: "vibe", icon: Sparkles, labelKey: "stepVibeLabel", hintKey: "stepVibeHint", titleKey: "stepVibeTitle", subtitleKey: "stepVibeSubtitle" },
+  { id: "tables", icon: Utensils, labelKey: "stepTablesLabel", hintKey: "stepTablesHint", titleKey: "stepTablesTitle", subtitleKey: "stepTablesSubtitle" },
+  { id: "florals", icon: Flower2, labelKey: "stepFloralsLabel", hintKey: "stepFloralsHint", titleKey: "stepFloralsTitle", subtitleKey: "stepFloralsSubtitle" },
+  { id: "lighting", icon: Lamp, labelKey: "stepLightingLabel", hintKey: "stepLightingHint", titleKey: "stepLightingTitle", subtitleKey: "stepLightingSubtitle" },
+  { id: "decor", icon: Frame, labelKey: "stepDecorLabel", hintKey: "stepDecorHint", titleKey: "stepDecorTitle", subtitleKey: "stepDecorSubtitle" },
+  { id: "notes", icon: FileText, labelKey: "stepNotesLabel", hintKey: "stepNotesHint", titleKey: "stepNotesTitle", subtitleKey: "stepNotesSubtitle" },
+  { id: "generate", icon: Wand2, labelKey: "stepGenerateLabel", hintKey: "stepGenerateHint", titleKey: "stepGenerateTitle", subtitleKey: "stepGenerateSubtitle" },
 ];
 
 const STEP_INDEX_BY_ID: Record<StepId, number> = STEPS.reduce(
@@ -61,39 +64,6 @@ const STEP_INDEX_BY_ID: Record<StepId, number> = STEPS.reduce(
   },
   {} as Record<StepId, number>
 );
-
-const STEP_TITLE: Record<StepId, string> = {
-  basics: "Event basics",
-  palette: "Color palette",
-  vibe: "Overall vibe & mood",
-  tables: "Tables & seating",
-  florals: "Florals",
-  lighting: "Lighting",
-  decor: "Decor & structure",
-  notes: "Style notes",
-  generate: "Generate your render",
-};
-
-const STEP_SUBTITLE: Record<StepId, string> = {
-  basics:
-    "Tell us what you're planning. These choices shape the entire render.",
-  palette:
-    "Pick a curated palette or build your own. The AI weaves these colors through linens, florals, and lighting.",
-  vibe:
-    "The big-picture feeling of your event — moodboards or whole venues that capture the energy you want.",
-  tables:
-    "Table styles, linens, place settings, and seating arrangements you love.",
-  florals:
-    "Centerpieces, arches, bouquets, hanging florals, and any greenery you want featured.",
-  lighting:
-    "Chandeliers, string lights, candles, uplighting — anything that sets the mood.",
-  decor:
-    "Backdrops, signage, dance floors, drapery, and structural pieces that frame the space.",
-  notes:
-    "Anything else worth telling the AI? Cultural details, must-haves, vibe words.",
-  generate:
-    "Review your selections and turn them into a single photoreal render — then bring it to life.",
-};
 
 function isValidStepId(value: string | null | undefined): value is StepId {
   return !!value && (STEP_IDS as readonly string[]).includes(value);
@@ -154,6 +124,7 @@ export function DesignerStepper({
   activeStep,
   onStepChange,
 }: DesignerStepperProps) {
+  const t = useTranslations("designer");
   const palette = useVenueDesignerStore((s) => s.palette);
   const references = useVenueDesignerStore((s) => s.references);
   const styleNotes = useVenueDesignerStore((s) => s.styleNotes);
@@ -180,7 +151,7 @@ export function DesignerStepper({
 
   return (
     <nav
-      aria-label="Designer steps"
+      aria-label={t("designerStepsAria")}
       className="mx-auto w-full max-w-4xl px-6 pt-12 pb-10 sm:pt-16 sm:pb-12"
     >
       <div className="relative">
@@ -188,7 +159,7 @@ export function DesignerStepper({
             visually starts/ends at the centers of the first and last circles. */}
         <div
           aria-hidden
-          className="pointer-events-none absolute top-5 right-5 left-5 h-px"
+          className="pointer-events-none absolute top-5 end-5 start-5 h-px"
         >
           <div className="h-px w-full bg-border" />
           <motion.div
@@ -198,7 +169,7 @@ export function DesignerStepper({
               duration: reduceMotion ? 0 : 0.5,
               ease: [0.22, 1, 0.36, 1],
             }}
-            className="absolute inset-y-0 left-0 h-px bg-gradient-to-r from-rose-300 via-rose-500 to-amber-500"
+            className="absolute inset-y-0 start-0 h-px bg-gradient-to-r from-rose-300 via-rose-500 to-amber-500"
           />
         </div>
 
@@ -214,7 +185,7 @@ export function DesignerStepper({
                 <motion.button
                   type="button"
                   onClick={() => onStepChange(step.id)}
-                  title={step.hint}
+                  title={t(step.hintKey)}
                   aria-current={isActive ? "step" : undefined}
                   whileHover={reduceMotion ? undefined : { scale: 1.06 }}
                   whileTap={reduceMotion ? undefined : { scale: 0.96 }}
@@ -244,7 +215,7 @@ export function DesignerStepper({
                         : "text-muted-foreground"
                   )}
                 >
-                  {step.label}
+                  {t(step.labelKey)}
                 </span>
               </li>
             );
@@ -255,10 +226,10 @@ export function DesignerStepper({
       {/* Mobile-only active step caption */}
       <p className="mt-6 text-center sm:hidden">
         <span className="text-[11px] font-medium tracking-[0.18em] text-muted-foreground uppercase">
-          Step {activeIdx + 1} of {STEPS.length}
+          {t("stepIndicator", { n: activeIdx + 1, total: STEPS.length })}
         </span>
         <span className="mt-1 block font-display text-base text-foreground">
-          {STEP_TITLE[activeStep]}
+          {t(STEPS[activeIdx].titleKey)}
         </span>
       </p>
     </nav>
@@ -272,20 +243,21 @@ interface StepHeadingProps {
 }
 
 export function StepHeading({ step, index, total }: StepHeadingProps) {
-  const StepIcon =
-    STEPS.find((s) => s.id === step)?.icon ?? Sparkles;
+  const t = useTranslations("designer");
+  const stepDef = STEPS.find((s) => s.id === step);
+  const StepIcon = stepDef?.icon ?? Sparkles;
 
   return (
     <header className="space-y-4 text-center">
       <div className="inline-flex items-center gap-2 rounded-full border border-rose-200/70 bg-rose-50/70 px-3.5 py-1 text-[11px] font-medium tracking-[0.18em] text-rose-700 uppercase backdrop-blur-sm dark:border-rose-900/50 dark:bg-rose-950/30 dark:text-rose-200">
         <StepIcon className="size-3" />
-        Step {index + 1} of {total}
+        {t("stepIndicator", { n: index + 1, total })}
       </div>
       <h1 className="font-display text-balance text-3xl leading-tight font-light tracking-tight sm:text-4xl">
-        {STEP_TITLE[step]}
+        {stepDef ? t(stepDef.titleKey) : ""}
       </h1>
       <p className="mx-auto max-w-xl text-pretty text-sm text-muted-foreground sm:text-base">
-        {STEP_SUBTITLE[step]}
+        {stepDef ? t(stepDef.subtitleKey) : ""}
       </p>
       <div aria-hidden className="champagne-hairline mx-auto h-px w-32" />
     </header>
@@ -298,11 +270,21 @@ interface StepNavFooterProps {
 }
 
 export function StepNavFooter({ step, onStepChange }: StepNavFooterProps) {
+  const t = useTranslations("designer");
   const idx = STEP_INDEX_BY_ID[step];
   const prev = idx > 0 ? STEP_IDS[idx - 1] : null;
   const next = idx < STEP_IDS.length - 1 ? STEP_IDS[idx + 1] : null;
 
   if (!prev && !next) return null;
+
+  const prevTitle = prev
+    ? t(STEPS[STEP_INDEX_BY_ID[prev]].titleKey)
+    : t("stepBack");
+  const nextTitle = next
+    ? next === "generate"
+      ? t("stepContinueGenerate")
+      : t(STEPS[STEP_INDEX_BY_ID[next]].titleKey)
+    : "";
 
   return (
     <div className="mt-2 flex items-center justify-between gap-3 border-t border-border/60 pt-6">
@@ -313,9 +295,9 @@ export function StepNavFooter({ step, onStepChange }: StepNavFooterProps) {
         disabled={!prev}
         className="gap-1.5 text-sm text-muted-foreground hover:text-foreground disabled:opacity-40"
       >
-        <ChevronLeft className="size-4" />
-        <span className="hidden sm:inline">{prev ? STEP_TITLE[prev] : "Back"}</span>
-        <span className="sm:hidden">Back</span>
+        <ChevronLeft className="size-4 rtl:-scale-x-100" />
+        <span className="hidden sm:inline">{prevTitle}</span>
+        <span className="sm:hidden">{t("stepBack")}</span>
       </Button>
       {next && (
         <Button
@@ -329,13 +311,11 @@ export function StepNavFooter({ step, onStepChange }: StepNavFooterProps) {
               : "bg-foreground text-background hover:bg-foreground/90"
           )}
         >
-          <span className="hidden sm:inline">
-            {next === "generate" ? "Continue to Generate" : STEP_TITLE[next]}
-          </span>
+          <span className="hidden sm:inline">{nextTitle}</span>
           <span className="sm:hidden">
-            {next === "generate" ? "Generate" : "Next"}
+            {next === "generate" ? t("stepGenerateShort") : t("stepNext")}
           </span>
-          <ChevronRight className="size-4" />
+          <ChevronRight className="size-4 rtl:-scale-x-100" />
         </Button>
       )}
     </div>
