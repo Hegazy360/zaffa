@@ -6,16 +6,21 @@ import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
 import type { UserRole } from "@/types";
 import {
+  Activity,
   CalendarDays,
   Compass,
   FileText,
   Home,
   Inbox,
   MessageSquare,
+  Radar,
+  Send,
   Settings,
   ShieldCheck,
   Store,
+  Target,
   UserRound,
+  Users,
   Wallet,
   Wand2,
   Briefcase,
@@ -37,6 +42,10 @@ interface NavLink {
   // Optional: list of additional path prefixes that should still highlight
   // this link as active.
   match?: string[];
+  // When true, the link only highlights on an exact `pathname === href`.
+  // Used for parent links that have visible children in the nav (e.g. the
+  // Outreach kanban + Outreach > Templates pair) to avoid double-highlighting.
+  exact?: boolean;
 }
 
 const roleLinks: Record<UserRole, NavLink[]> = {
@@ -144,6 +153,40 @@ const roleLinks: Record<UserRole, NavLink[]> = {
   admin: [
     { href: "/dashboard/admin", labelKey: "overview", icon: Home },
     {
+      href: "/dashboard/admin/users",
+      labelKey: "users",
+      icon: Users,
+      match: ["/dashboard/admin/users"],
+    },
+    {
+      href: "/dashboard/admin/activity",
+      labelKey: "activity",
+      icon: Activity,
+    },
+    {
+      href: "/dashboard/admin/prospects",
+      labelKey: "prospects",
+      icon: Target,
+      match: ["/dashboard/admin/prospects"],
+    },
+    {
+      href: "/dashboard/admin/discovery",
+      labelKey: "discovery",
+      icon: Radar,
+      match: ["/dashboard/admin/discovery"],
+    },
+    {
+      href: "/dashboard/admin/outreach",
+      labelKey: "outreach",
+      icon: Send,
+      exact: true,
+    },
+    {
+      href: "/dashboard/admin/outreach/templates",
+      labelKey: "templates",
+      icon: FileText,
+    },
+    {
       href: "/dashboard/admin/payouts",
       labelKey: "plannerPayouts",
       icon: Wallet,
@@ -164,6 +207,7 @@ const roleLinks: Record<UserRole, NavLink[]> = {
 function isLinkActive(pathname: string | null, link: NavLink): boolean {
   if (!pathname) return false;
   if (pathname === link.href) return true;
+  if (link.exact) return false;
   // Exact-match for the role root (e.g. /dashboard/client) so it doesn't light
   // up for every child route. For other links, allow startsWith so nested
   // routes (e.g. /dashboard/client/event/123) keep "My events" highlighted.

@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label";
 import { RoleSelector } from "./role-selector";
 import { ArrowLeft, ArrowRight, CheckCircle2 } from "lucide-react";
 import Link from "next/link";
+import { trpc } from "@/lib/trpc";
 
 const STEPS = 2;
 
@@ -19,6 +20,8 @@ export function SignUpForm() {
   const supabase = createClient();
   const t = useTranslations("auth");
   const tCommon = useTranslations("common");
+  // Best-effort: link any matching Prospect row to this fresh account.
+  const claimProspect = trpc.profile.claimProspect.useMutation();
   const [step, setStep] = useState(1);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -77,6 +80,12 @@ export function SignUpForm() {
     }
 
     if (authData.session) {
+      // Fire-and-forget — don't block the redirect on the prospect lookup.
+      claimProspect.mutate(undefined, {
+        onError: () => {
+          /* swallow: best-effort lead linking */
+        },
+      });
       router.push("/dashboard");
       router.refresh();
       return;

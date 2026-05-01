@@ -668,3 +668,140 @@ model PlannerBlock {
   @@index([planner_id, start_date])
   @@map("planner_blocks")
 }
+
+// ----- Prospecting pipeline -----
+//
+// We treat planners and vendors that *don't have an account yet* as
+// Prospects. Discovery jobs ingest them from public sources; an admin can
+// also enter them manually. Outreach is fully manual — we draft the
+// message, the admin copies + sends it.
+
+enum ProspectSource {
+  instagram
+  tiktok
+  facebook
+  directory
+  web
+  manual
+}
+
+enum ProspectType {
+  planner
+  vendor
+  unknown
+}
+
+enum ProspectStatus {
+  new
+  qualified
+  drafted
+  contacted
+  replied
+  signed_up
+  rejected
+}
+
+enum DiscoveryRunStatus {
+  queued
+  running
+  completed
+  failed
+}
+
+model Prospect {
+  id              String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  source          ProspectSource
+  // ID assigned by the source (e.g. IG user id, FB page id). Combined with
+  // `source` it gives us a stable cross-run identity for upserts.
+  source_id       String?
+  source_url      String?
+  display_name    String
+  // Public handle (IG/TikTok username, FB page slug, etc.).
+  handle          String?
+  prospect_type   ProspectType   @default(unknown)
+  vendor_category VendorCategory?
+  email           String?
+  whatsapp        String?
+  phone           String?
+  instagram       String?
+  facebook        String?
+  tiktok          String?
+  website         String?
+  bio             String?
+  city            String?
+  country         String?        @default("EG")
+  followers       Int?
+  avatar_url      String?
+  // Cloudinary / source URLs of representative work.
+  sample_images   Json           @default("[]")
+  status          ProspectStatus @default(new)
+  // 0–100 LLM-assigned signal-quality score (higher = better fit).
+  qualifying_score Int?
+  notes           String?
+  draft_email     String?
+  draft_whatsapp  String?
+  draft_instagram String?
+  contacted_at    DateTime?
+  contacted_via   String?
+  replied_at      DateTime?
+  // Filled by the signup matcher when this prospect creates an account.
+  signed_up_user_id String?      @unique @db.Uuid
+  // Verbatim payload from the source row for forensics/debugging.
+  raw_payload     Json?
+  discovery_run_id String?       @db.Uuid
+  created_at      DateTime       @default(now())
+  updated_at      DateTime       @updatedAt
+  last_seen_at    DateTime?
+
+  discovery_run DiscoveryRun? @relation(fields: [discovery_run_id], references: [id], onDelete: SetNull)
+
+  @@unique([source, source_id])
+  @@index([status])
+  @@index([prospect_type])
+  @@index([vendor_category])
+  @@index([handle])
+  @@map("prospects")
+}
+
+model DiscoveryRun {
+  id              String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  source          ProspectSource
+  query           String
+  // Free-form classifier (e.g. "hashtag", "location", "search", "directory").
+  query_type      String
+  // Tunes per-source result limits + LLM query expansion. One of
+  // "quick" | "standard" | "deep".
+  depth           String             @default("standard")
+  status          DiscoveryRunStatus @default(queued)
+  prospects_found Int                @default(0)
+  prospects_new   Int                @default(0)
+  cost_usd        Decimal?           @db.Decimal(8, 4)
+  error           String?
+  raw_payload     Json?
+  triggered_by    String             @db.Uuid
+  prospects       Prospect[]
+  created_at      DateTime           @default(now())
+  started_at      DateTime?
+  completed_at    DateTime?
+
+  @@index([status])
+  @@index([source])
+  @@map("discovery_runs")
+}
+
+model OutreachTemplate {
+  id         String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name       String
+  // "email" | "whatsapp" | "instagram"
+  channel    String
+  type       ProspectType
+  category   VendorCategory?
+  subject    String?
+  body       String
+  active     Boolean         @default(true)
+  created_at DateTime        @default(now())
+  updated_at DateTime        @updatedAt
+
+  @@index([channel, type, active])
+  @@map("outreach_templates")
+}
