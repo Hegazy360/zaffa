@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "dev:cron": "npx dotenvx run --env-file=.env.local -- node scripts/dev-cron.mjs",
     "build": "prisma generate && next build",
     "start": "next start",
     "lint": "eslint",
