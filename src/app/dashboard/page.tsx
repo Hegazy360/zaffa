@@ -22,6 +22,9 @@ export default async function DashboardPage() {
 
   const role = profile?.role as UserRole | undefined;
 
+  if (role === "admin") {
+    redirect("/dashboard/admin");
+  }
   if (role === "planner") {
     redirect("/dashboard/planner");
   }
