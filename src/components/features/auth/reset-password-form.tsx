@@ -4,11 +4,10 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
-import { CheckCircle2 } from "lucide-react";
+import { ArrowRight, CheckCircle2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { PasswordField } from "./password-field";
 
 type Status = "checking" | "ready" | "invalid";
 
@@ -21,6 +20,8 @@ export function ResetPasswordForm() {
   const [status, setStatus] = useState<Status>("checking");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -34,10 +35,13 @@ export function ResetPasswordForm() {
     const { data: subscription } = supabase.auth.onAuthStateChange(
       (event, session) => {
         if (cancelled) return;
-        if (event === "PASSWORD_RECOVERY" || (event === "INITIAL_SESSION" && session)) {
+        if (
+          event === "PASSWORD_RECOVERY" ||
+          (event === "INITIAL_SESSION" && session)
+        ) {
           setStatus("ready");
         }
-      }
+      },
     );
 
     supabase.auth.getSession().then(({ data }) => {
@@ -95,15 +99,23 @@ export function ResetPasswordForm() {
 
   if (success) {
     return (
-      <div className="space-y-6 text-center">
+      <div className="space-y-7 text-center">
         <div className="flex justify-center">
-          <div className="flex size-16 items-center justify-center rounded-full bg-primary/10">
-            <CheckCircle2 className="size-8 text-primary" aria-hidden />
+          <div className="relative">
+            <div
+              aria-hidden
+              className="absolute inset-0 -m-2 rounded-full bg-gradient-to-br from-rose-500/30 to-amber-500/30 blur-xl"
+            />
+            <div className="relative flex size-20 items-center justify-center rounded-full bg-gradient-to-br from-rose-500 to-amber-500 text-white shadow-lg shadow-rose-500/30 ring-1 ring-white/40">
+              <CheckCircle2 className="size-9" aria-hidden />
+            </div>
           </div>
         </div>
-        <div className="space-y-2">
-          <h3 className="text-lg font-semibold">{t("resetUpdated")}</h3>
-          <p className="text-sm text-muted-foreground">
+        <div className="space-y-3">
+          <h2 className="font-display text-3xl font-light tracking-tight">
+            {t("resetUpdated")}
+          </h2>
+          <p className="text-pretty text-sm text-muted-foreground sm:text-base">
             {t("resetUpdatedHint")}
           </p>
         </div>
@@ -113,8 +125,8 @@ export function ResetPasswordForm() {
 
   if (status === "checking") {
     return (
-      <div className="flex flex-col items-center gap-3 py-8 text-sm text-muted-foreground">
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-muted border-t-primary" />
+      <div className="flex flex-col items-center gap-4 py-12 text-sm text-muted-foreground">
+        <div className="size-9 animate-spin rounded-full border-2 border-muted border-t-rose-500" />
         {t("resetCheckingLink")}
       </div>
     );
@@ -122,7 +134,7 @@ export function ResetPasswordForm() {
 
   if (status === "invalid") {
     return (
-      <div className="space-y-4">
+      <div className="space-y-5">
         <div
           role="alert"
           className="rounded-lg border border-destructive/50 bg-destructive/10 px-4 py-3 text-sm text-destructive"
@@ -131,14 +143,16 @@ export function ResetPasswordForm() {
         </div>
         <Button
           render={<Link href="/auth/forgot-password" />}
-          className="w-full"
+          size="lg"
+          className="group h-11 w-full gap-2 bg-gradient-to-r from-rose-600 to-amber-500 text-white shadow-lg shadow-rose-600/20 transition-all hover:opacity-90 hover:shadow-rose-600/30"
         >
           {t("resetRequestNew")}
+          <ArrowRight className="size-4 transition-transform rtl:-scale-x-100 group-hover:translate-x-0.5 rtl:group-hover:-translate-x-0.5" />
         </Button>
         <p className="text-center text-sm text-muted-foreground">
           <Link
             href="/auth/signin"
-            className="font-medium text-primary underline-offset-4 hover:underline"
+            className="font-medium text-rose-700 underline-offset-4 hover:underline dark:text-rose-300"
           >
             {t("backToSignIn")}
           </Link>
@@ -150,55 +164,60 @@ export function ResetPasswordForm() {
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="space-y-4">
-        <div className="space-y-2">
-          <Label htmlFor="password">{t("resetNewPassword")}</Label>
-          <Input
-            id="password"
-            type="password"
-            placeholder={t("passwordHint")}
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            minLength={MIN_PASSWORD_LENGTH}
-            autoComplete="new-password"
-            disabled={loading}
-            className="h-10"
-          />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="confirmPassword">{t("resetConfirmNewPassword")}</Label>
-          <Input
-            id="confirmPassword"
-            type="password"
-            placeholder="••••••••"
-            value={confirmPassword}
-            onChange={(e) => setConfirmPassword(e.target.value)}
-            required
-            minLength={MIN_PASSWORD_LENGTH}
-            autoComplete="new-password"
-            disabled={loading}
-            className="h-10"
-          />
-        </div>
+        <PasswordField
+          id="password"
+          label={t("resetNewPassword")}
+          value={password}
+          onChange={setPassword}
+          autoComplete="new-password"
+          required
+          minLength={MIN_PASSWORD_LENGTH}
+          disabled={loading}
+          showStrength
+          show={showPassword}
+          onToggleShow={() => setShowPassword((v) => !v)}
+          placeholder={t("passwordHint")}
+        />
+        <PasswordField
+          id="confirmPassword"
+          label={t("resetConfirmNewPassword")}
+          value={confirmPassword}
+          onChange={setConfirmPassword}
+          autoComplete="new-password"
+          required
+          minLength={MIN_PASSWORD_LENGTH}
+          disabled={loading}
+          show={showConfirmPassword}
+          onToggleShow={() => setShowConfirmPassword((v) => !v)}
+        />
       </div>
 
       {error && (
         <div
           role="alert"
+          aria-live="polite"
           className="rounded-lg border border-destructive/50 bg-destructive/10 px-4 py-3 text-sm text-destructive"
         >
           {error}
         </div>
       )}
 
-      <Button type="submit" className="w-full" disabled={loading}>
+      <Button
+        type="submit"
+        size="lg"
+        disabled={loading}
+        className="group h-11 w-full gap-2 bg-gradient-to-r from-rose-600 to-amber-500 text-white shadow-lg shadow-rose-600/20 transition-all hover:opacity-90 hover:shadow-rose-600/30"
+      >
         {loading ? t("resetUpdatingPassword") : t("resetUpdatePassword")}
+        {!loading && (
+          <ArrowRight className="size-4 transition-transform rtl:-scale-x-100 group-hover:translate-x-0.5 rtl:group-hover:-translate-x-0.5" />
+        )}
       </Button>
 
       <p className="text-center text-sm text-muted-foreground">
         <Link
           href="/auth/signin"
-          className="font-medium text-primary underline-offset-4 hover:underline"
+          className="font-medium text-rose-700 underline-offset-4 hover:underline dark:text-rose-300"
         >
           {t("backToSignIn")}
         </Link>
