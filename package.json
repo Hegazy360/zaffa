@@ -12,6 +12,7 @@
     "db:migrate": "prisma migrate dev",
     "db:seed": "npx tsx prisma/seed.ts",
     "db:seed-images": "npx dotenvx run --env-file=.env.local -- npx tsx prisma/seed-images.ts",
+    "db:seed-outreach-templates": "npx dotenvx run --env-file=.env.local -- npx tsx prisma/seed-outreach-templates.ts",
     "db:push": "prisma db push",
     "deploy:worker": "wrangler deploy --cwd workers/pinterest-search",
     "i18n:translate": "node scripts/translate-messages.mjs"

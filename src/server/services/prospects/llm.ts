@@ -22,7 +22,7 @@ function authHeaders(): Record<string, string> {
   return {
     Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
     "Content-Type": "application/json",
-    "HTTP-Referer": process.env.OPENROUTER_REFERER ?? "https://zaffa.app",
+    "HTTP-Referer": process.env.OPENROUTER_REFERER ?? "https://zaffa.ai",
     "X-Title": "Zaffa prospects",
   };
 }
@@ -142,9 +142,23 @@ Channel limits:
 - whatsapp: <= 110 words. Output JSON: { "body": string }
 - instagram: <= 80 words. Output JSON: { "body": string }
 
-Tone: warm, professional, in the LANGUAGE of the prospect's location/profile
-(default English, switch to Arabic when the bio is Arabic). Always end with
-a soft call-to-action and a link to https://zaffa.app.`;
+Personalization rules:
+- Use the prospect's FIRST NAME only (derived from display_name). Do NOT
+  address them by their business/brand name and do NOT include the business
+  or brand name anywhere in the body. If display_name is itself a business
+  (e.g. "Cairo Catering Co."), greet them with a friendly fallback like
+  "Hey there" rather than the business name.
+- Pull the 1-2 specific details from concrete facts in their bio
+  (a recent shoot, a city, a vibe, a specialty), NOT from the business name.
+- The product is called Zaffa. Never write zaffa.app or any other domain.
+- IMPORTANT: end with a soft CTA and copy the EXACT URL provided in the
+  payload's "signup_url" field. Do not modify it, do not URL-encode it
+  again, do not invent a different path. That URL is a personalized
+  invitation link tied to this prospect.
+
+Tone: warm, friendly, conversational, in the LANGUAGE of the prospect's
+location/profile (default English, switch to Arabic when the bio is
+Arabic).`;
 
 export interface DraftedMessage {
   subject?: string;
@@ -198,6 +212,17 @@ Return strictly JSON: { "variants": string[] } with exactly N entries.`;
   return cleaned;
 }
 
+// Builds the personalized invitation URL we want the LLM to drop into the
+// CTA. `/join` is a short-friendly redirect to the professional signup page
+// that reads ?invitation= and renders a customised welcome banner.
+function buildSignupUrl(displayName: string | null | undefined): string {
+  const base =
+    process.env.ZAFFA_PUBLIC_BASE_URL?.replace(/\/$/, "") ?? "https://zaffa.ai";
+  const name = (displayName ?? "").trim();
+  if (!name) return `${base}/join`;
+  return `${base}/join?invitation=${encodeURIComponent(name)}`;
+}
+
 export async function draftMessage(input: {
   channel: "email" | "whatsapp" | "instagram";
   template: { subject?: string | null; body: string };
@@ -211,6 +236,7 @@ export async function draftMessage(input: {
     summary?: string | null;
   };
 }): Promise<DraftedMessage> {
+  const signupUrl = buildSignupUrl(input.prospect.display_name);
   const out = await callJson<DraftedMessage>([
     { role: "system", content: DRAFT_SYSTEM },
     {
@@ -219,11 +245,26 @@ export async function draftMessage(input: {
         channel: input.channel,
         template: input.template,
         prospect: input.prospect,
+        signup_url: signupUrl,
       }),
     },
   ]);
+  // Defensive post-processing: if the LLM dropped a bare "zaffa.ai" without
+  // the invitation param, swap in the personalized one. This keeps every
+  // outreach message tied to a tracked invitation link even if the model
+  // gets sloppy.
+  let body = out.body ?? "";
+  if (!body.includes(signupUrl)) {
+    body = body.replace(
+      /https?:\/\/zaffa\.ai\/?(?!\S)/gi,
+      signupUrl,
+    );
+    if (!body.includes(signupUrl)) {
+      body = `${body.trimEnd()}\n\n${signupUrl}`;
+    }
+  }
   return {
     subject: out.subject?.slice(0, 200),
-    body: out.body ?? "",
+    body,
   };
 }
