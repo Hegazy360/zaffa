@@ -1,27 +1,36 @@
-// Seeds the OutreachTemplate table with a baseline set of high-quality
-// outreach templates for the prospecting pipeline.
+// Seeds the OutreachTemplate table with the canonical set of cold-outreach
+// templates used by the prospecting pipeline.
 //
-// We cover all three channels (email / whatsapp / instagram) for every
-// ProspectType (planner / vendor / unknown), plus a handful of
-// vendor-category-specific variants for our highest-volume verticals
-// (photography, flowers, decoration, catering, makeup, music, venue,
-// videography). The router prefers a category-specific match before
-// falling back to the generic "vendor" template, so adding more later
-// just plugs in without code changes.
+// Tone: Egyptian Arabic (masry / colloquial), warm and human. The pitch is
+//   - free for the planner/vendor (no listing fees, no subscription)
+//   - couples & planners post briefs → you get a notification with the full
+//     details → you submit a proposal in a couple of minutes
+//   - we just want to make finding work easier, more transparent, and less
+//     of a chase
+//   - door is always open: any question, just reply
 //
-// IMPORTANT: these template bodies are passed verbatim to the LLM in
-// `draftMessage()`. The LLM rewrites them for each prospect, weaving in
-// 1-2 specific facts (name, handle, city, bio) and translating to Arabic
-// when the prospect's bio is Arabic. So we write in clear English with a
-// warm, casual, human voice and a soft CTA pointing at https://zaffa.ai.
-// We deliberately do NOT reference the business name — the LLM picks
-// something more specific (a recent shoot, a city, a vibe) from the
-// prospect's bio for that.
+// Each template body is passed verbatim to the LLM in `draftMessage()`. The
+// LLM rewrites it for each prospect, weaving in 1-2 specific facts (a city,
+// a recent shoot, a vibe) and appending the personalized invitation URL.
+// We deliberately do NOT mention the prospect's business name; the LLM
+// uses {first_name} for the greeting and pulls something concrete from the
+// bio for the compliment.
+//
+// We seed only the three primary buckets (planner / vendor / unknown) per
+// channel — the new pitch doesn't change meaningfully across vendor
+// categories, and the LLM personalizes every send anyway. If you ever need
+// a category-specific override, the admin UI can add one without changing
+// this file.
+//
+// IMPORTANT: this script wipes the entire OutreachTemplate table before
+// inserting. Any templates created via the admin UI will be removed —
+// re-add them through the UI after running. This matches the "delete all
+// and replace" semantics the founder asked for.
 //
 // Run with: npm run db:seed-outreach-templates
 
 import { PrismaClient } from "../src/generated/prisma/client";
-import type { ProspectType, VendorCategory } from "../src/generated/prisma/client";
+import type { ProspectType } from "../src/generated/prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
 
 const connectionString =
@@ -36,363 +45,162 @@ interface TemplateSeed {
   name: string;
   channel: "email" | "whatsapp" | "instagram";
   type: ProspectType;
-  category?: VendorCategory | null;
   subject?: string | null;
   body: string;
 }
 
 // ---------------------------------------------------------------------------
-// EMAIL — friendly but still email-shaped, ~120-160 words. Subject is
-// mandatory. Tone: a real person writing, not a deck.
+// EMAIL — Egyptian Arabic, low-key and short. Subject is mandatory but kept
+// flat (no teasers, no hype). We end on the bare https://zaffa.ai sentinel;
+// the LLM swaps it for the personalized /join?invitation=… URL during
+// draftMessage().
 // ---------------------------------------------------------------------------
 
 const EMAIL_TEMPLATES: TemplateSeed[] = [
   {
-    name: "Email · Planner · Founding partner invite",
+    name: "Email · Planner · Egyptian Arabic intro",
     channel: "email",
     type: "planner",
-    subject: "Loved your work — quick hello from Zaffa",
-    body: `Hi {first_name},
+    subject: "من زفّة",
+    body: `ازيك يا {first_name}،
 
-Hope you're doing well! I came across your work while looking at the planners doing really beautiful events in Egypt right now and honestly, I had to reach out.
+شُفت شغلك في تنظيم الأفراح وعجبني، فحبّيت أبعتلك.
 
-I'm with Zaffa (zaffa.ai) — we're a new Egyptian wedding and events marketplace, built to connect couples directly with planners and vendors. AI-powered style matching, clean quoting, payments handled through Stripe so you stop chasing deposits. The boring stuff, finally not boring.
+أنا من زفّة (zaffa.ai)، منصّة مصرية جديدة للأفراح والمناسبات. الفكرة باختصار: لمّا أيّ كابل يدوّر على منظّم، بيكتب تفاصيل فرحه على المنصّة — تاريخ، ميزانية، عدد المعازيم، الأسلوب اللي عايزه. بيوصلك إشعار بالتفاصيل دي، ولو الشغل يناسبك تبعت عرضك في دقيقتين.
 
-We're putting together a small founding group of planners and would genuinely love to have you in it. Founding partners get a verified profile, top placement, no listing fees in the first year, and direct input on what we build next.
+مفيش اشتراك ولا رسوم، المنصّة مجانية عليك. الفكرة بس إننا نسهّل وصول الشغل ونخلّي العملية شفّافة من غير جري ورا حد.
 
-Would you be up for a quick 20-minute call this week? If now's not the right moment, totally fine — just wanted to put it on your radar.
+دي دعوتك تنضمّ من اللينك ده:
+https://zaffa.ai
 
-Warmly,
-The Zaffa team
-https://zaffa.ai`,
+أيّ سؤال، ردّ على الإيميل ده في أيّ وقت.
+
+تحياتي،
+فريق زفّة`,
   },
   {
-    name: "Email · Vendor · Generic intro",
+    name: "Email · Vendor · Egyptian Arabic intro",
     channel: "email",
     type: "vendor",
-    subject: "Loved your work — quick hello from Zaffa",
-    body: `Hi {first_name},
+    subject: "من زفّة",
+    body: `ازيك يا {first_name}،
 
-Hope you're well! I've been spending some time discovering the best wedding and event vendors in Egypt and your work really stood out — wanted to reach out and say hi.
+شُفت شغلك وعجبني، فحبّيت أبعتلك.
 
-I'm with Zaffa (zaffa.ai), a new Egyptian wedding and events marketplace. The short version: couples and planners come to us already serious about booking, and we hand off real briefs with budgets attached. Deposits and balance flow through Stripe, so you don't have to chase anyone for anything.
+أنا من زفّة (zaffa.ai)، منصّة مصرية جديدة للأفراح والمناسبات. لمّا أيّ منظّم يدوّر على مورّد لمناسبة، بيكتب التفاصيل على المنصّة — التاريخ، الميزانية، الحاجات المطلوبة. بيوصلك إشعار وتقدر تبعت عرضك لو الشغل يناسبك.
 
-We're building a small founding group of vendors and we'd love you in it. Founding partners get a verified profile, priority placement, and zero commission on their first three bookings.
+كل حاجة من على المنصّة، والاشتراك مجاني عليك. الفكرة بس إننا نوفّر عليك الوقت ونوصّلك شغل بطريقة مرتّبة وشفّافة.
 
-Would a quick 15-minute call this week work? Happy to just send screenshots if a call feels like too much — whatever's easiest for you.
+دي دعوتك تنضمّ:
+https://zaffa.ai
 
-Best,
-The Zaffa team
-https://zaffa.ai`,
+أيّ سؤال، ردّ في أيّ وقت.
+
+تحياتي،
+فريق زفّة`,
   },
   {
-    name: "Email · Photographer · Portfolio-led",
-    channel: "email",
-    type: "vendor",
-    category: "photography",
-    subject: "Your photography stopped me — quick hello",
-    body: `Hi {first_name},
-
-Hope you're doing well! I've been deep in wedding photography from Egypt the past couple of weeks and your work genuinely stopped me. Just wanted to reach out and say so.
-
-I'm with Zaffa (zaffa.ai), a new Egyptian wedding marketplace. Couples on the platform build a visual style profile and we surface the photographers whose work matches their taste — so the inquiries you get already love your aesthetic, with a real date and budget attached. No DM ping-pong, no chasing deposits.
-
-We're inviting a small founding group of photographers in right now: verified profile, featured placement, and zero commission on your first three weddings.
-
-Would 15 minutes this week work for a quick walkthrough? Happy to share what other photographers are seeing so far.
-
-Best,
-The Zaffa team
-https://zaffa.ai`,
-  },
-  {
-    name: "Email · Florist · Portfolio-led",
-    channel: "email",
-    type: "vendor",
-    category: "flowers",
-    subject: "Couples on Zaffa would love your florals",
-    body: `Hi {first_name},
-
-Hope you're doing well! I've been looking at florists working on weddings in Egypt and your work is exactly the aesthetic our couples are saving to their mood boards. Had to reach out.
-
-I'm with Zaffa (zaffa.ai), a new Egyptian wedding marketplace. Couples build a visual style profile and we match them with florists whose work they already love — so the briefs you get arrive with a real wedding date, a real budget, and someone who's actually excited about your style. Deposits and final payments run through Stripe.
-
-We're handpicking a small founding group of florists right now: verified profile, top placement, and zero commission on your first three weddings.
-
-Would you have 15 minutes this week to take a quick look? Totally no pressure if it's not a fit.
-
-Warmly,
-The Zaffa team
-https://zaffa.ai`,
-  },
-  {
-    name: "Email · Decoration vendor · Portfolio-led",
-    channel: "email",
-    type: "vendor",
-    category: "decoration",
-    subject: "Your styling is gorgeous — quick hello",
-    body: `Hi {first_name},
-
-Hope you're well! I've been looking at the event designers and decorators doing the most beautiful work in Egypt and yours really stood out — the styling, the lighting, the overall feel. Wanted to reach out and say hi.
-
-I'm with Zaffa (zaffa.ai), a new Egyptian wedding and events marketplace. Couples and planners discover decorators here through real portfolios and AI-powered style matches, then book directly through the platform with Stripe-backed deposits. Briefs are clear, budgets are real, and you don't waste time on tire-kickers.
-
-We're putting together a small founding group of decorators: verified profile, top placement, and zero commission on your first three events.
-
-Would 15 minutes this week work for a quick look? Happy to just send a few screenshots if a call feels like too much.
-
-Best,
-The Zaffa team
-https://zaffa.ai`,
-  },
-  {
-    name: "Email · Catering · Portfolio-led",
-    channel: "email",
-    type: "vendor",
-    category: "catering",
-    subject: "Your menu kept coming up — quick hello",
-    body: `Hi {first_name},
-
-Hope you're doing well! I've been mapping out the catering teams that the best planners in Egypt actually book and your name kept coming up. Wanted to reach out.
-
-I'm with Zaffa (zaffa.ai), a new Egyptian wedding and events marketplace. Couples and planners come to us with a confirmed venue, guest count, and a real budget — we hand off qualified leads through a clean dashboard, with deposits and balance handled via Stripe. So less chasing, more cooking.
-
-We're putting together a small founding group of caterers right now: verified profile, top placement, and zero commission on your first three bookings.
-
-Would a quick 20-minute call this week work? Always happy to share what other caterers are seeing so far.
-
-Warmly,
-The Zaffa team
-https://zaffa.ai`,
-  },
-  {
-    name: "Email · Makeup artist · Portfolio-led",
-    channel: "email",
-    type: "vendor",
-    category: "makeup",
-    subject: "Your bridal looks are stunning — quick hello",
-    body: `Hi {first_name},
-
-Hope you're well! I've been looking at the bridal makeup artists doing really beautiful work in Egypt and yours really stood out — the looks are clean, modern, and exactly what brides on our platform are saving.
-
-I'm with Zaffa (zaffa.ai), a new Egyptian wedding marketplace. Brides build a visual style profile and we surface the artists whose work matches their taste, so inquiries arrive with a real wedding date and a real budget. Deposits and final payments run through Stripe — no chasing.
-
-We're inviting a small founding group of makeup artists in right now: verified profile, featured placement, and zero commission on your first three weddings.
-
-Would 15 minutes this week work? Happy to send screenshots if a call feels like too much.
-
-Best,
-The Zaffa team
-https://zaffa.ai`,
-  },
-  {
-    name: "Email · Music / DJ / Band · Portfolio-led",
-    channel: "email",
-    type: "vendor",
-    category: "music",
-    subject: "Your sound is exactly the vibe — quick hello",
-    body: `Hi {first_name},
-
-Hope you're doing well! I've been listening through the live bands and DJs that planners in Egypt actually book and your sound is exactly the vibe couples on our platform are looking for. Wanted to reach out.
-
-I'm with Zaffa (zaffa.ai), a new Egyptian wedding and events marketplace. Couples and planners come to us with a confirmed venue, date, and budget; we surface the right entertainment based on style and energy, and handle deposits and balance through Stripe so you don't chase anyone.
-
-We're putting together a small founding group of music acts right now: verified profile, priority placement, and zero commission on your first three bookings.
-
-Would 15 minutes this week work for a quick look? Or I can just send screenshots — whatever's easier.
-
-Best,
-The Zaffa team
-https://zaffa.ai`,
-  },
-  {
-    name: "Email · Venue · Portfolio-led",
-    channel: "email",
-    type: "vendor",
-    category: "venue",
-    subject: "Your venue is gorgeous — quick hello",
-    body: `Hi {first_name},
-
-Hope you're well! I've been mapping out the most beautiful wedding venues in Egypt and yours is exactly the kind of space couples on our platform are saving to their shortlists. Had to reach out.
-
-I'm with Zaffa (zaffa.ai), a new Egyptian wedding and events marketplace. Couples filter venues by setting, capacity, and budget, so the inquiries that land in your inbox are already serious. Site-visit requests, deposits, and balance payments all flow through a single Stripe-backed dashboard — much less back-and-forth.
-
-We're putting together a small founding group of venues right now: verified listing with a hero gallery, top placement in search, and zero commission on the first three bookings.
-
-Would a quick 20-minute call this week work? Happy to just send screenshots if you'd prefer.
-
-Warmly,
-The Zaffa team
-https://zaffa.ai`,
-  },
-  {
-    name: "Email · Videographer · Portfolio-led",
-    channel: "email",
-    type: "vendor",
-    category: "videography",
-    subject: "Your wedding films are beautiful — quick hello",
-    body: `Hi {first_name},
-
-Hope you're doing well! I've been watching wedding films from Egypt the past couple of weeks and your work genuinely stopped me — the pacing, the colour, the way you cut emotion into a highlight reel. Wanted to reach out.
-
-I'm with Zaffa (zaffa.ai), a new Egyptian wedding marketplace. Couples build a visual and stylistic profile and we surface the videographers whose work matches their taste, so briefs arrive with a real date and a real budget. Deposits and balance run through Stripe — no chasing.
-
-We're inviting a small founding group of videographers in right now: verified profile, featured placement, and zero commission on your first three weddings.
-
-Could I take 15 minutes of your time this week to walk you through it?
-
-Best,
-The Zaffa team
-https://zaffa.ai`,
-  },
-  {
-    name: "Email · Unknown / general · Soft intro",
+    name: "Email · Unknown / general · Egyptian Arabic intro",
     channel: "email",
     type: "unknown",
-    subject: "Quick hello from Zaffa",
-    body: `Hi {first_name},
+    subject: "من زفّة",
+    body: `ازيك يا {first_name}،
 
-Hope you're doing well! I came across your work and just wanted to reach out and say hi.
+شُفت شغلك وحبّيت أبعتلك.
 
-I'm with Zaffa (zaffa.ai), a new Egyptian wedding and events marketplace. We connect couples directly with planners and vendors — AI-powered style matching, clean briefs, payments handled through Stripe.
+أنا من زفّة (zaffa.ai)، منصّة مصرية جديدة للأفراح والمناسبات بتربط العرسان بالمنظّمين والمورّدين. لمّا حد يدوّر على فريق لمناسبة، بيوصل إشعار للناس اللي شغلهم مناسب بكل التفاصيل وبيقدروا يبعتوا عروضهم.
 
-I'd love to learn a bit more about what you do — whether you're a planner, a vendor, or somewhere in between — and see if there's a way Zaffa could help you reach more of the right couples.
+المنصّة مجانية. لو شغلك ليه علاقة بعالم الأفراح، يا ريت تردّ بسطر صغير عن طبيعة شغلك وأنا هاكمّل معاك. أو خد جولة من اللينك ده:
+https://zaffa.ai
 
-Would you mind sending a quick reply with a sentence or two about your work? I can take it from there. Happy to share more about the platform on a call if it sounds interesting.
+أيّ سؤال، أنا موجود.
 
-Warmly,
-The Zaffa team
-https://zaffa.ai`,
+تحياتي،
+فريق زفّة`,
   },
 ];
 
 // ---------------------------------------------------------------------------
-// WHATSAPP — short and warm, ~60-80 words. Egyptian flavour, friendly. The
-// LLM will translate to Arabic when the prospect's bio is Arabic.
+// WHATSAPP — قصيرة ولـ low-key، حوالي 50-70 كلمة. مفيش subject. مفيش
+// emoji زيادة (الـ 👋 في الافتتاحية كافي).
 // ---------------------------------------------------------------------------
 
 const WHATSAPP_TEMPLATES: TemplateSeed[] = [
   {
-    name: "WhatsApp · Planner · Founding partner",
+    name: "WhatsApp · Planner · Egyptian Arabic intro",
     channel: "whatsapp",
     type: "planner",
-    body: `Hey {first_name}! 👋 Hope you're doing well.
+    body: `ازيك يا {first_name}، شُفت شغلك وعجبني فحبّيت أبعتلك.
 
-I'm reaching out from Zaffa (zaffa.ai), a new Egyptian wedding marketplace — your work caught my eye and we'd genuinely love to have you in our small founding group of planners.
+أنا من زفّة (zaffa.ai)، منصّة مصرية جديدة للأفراح. لمّا أيّ كابل يدوّر على منظّم، بيوصلك إشعار بتفاصيل المناسبة (تاريخ، ميزانية، عدد المعازيم) وتقدر تبعت عرضك في دقيقتين. مفيش اشتراك، كله مجاني.
 
-Founding partners get a verified profile, top placement, no listing fees in the first year, and a direct line into our roadmap.
+دي دعوتك تنضمّ:
+https://zaffa.ai
 
-Could I steal 20 minutes this week for a quick walkthrough? No pressure if it's not the right moment. 🌹`,
+أيّ سؤال، كلّمني هنا.`,
   },
   {
-    name: "WhatsApp · Vendor · Founding partner",
+    name: "WhatsApp · Vendor · Egyptian Arabic intro",
     channel: "whatsapp",
     type: "vendor",
-    body: `Hey {first_name}! 👋 Hope you're well.
+    body: `ازيك يا {first_name}، شُفت شغلك وعجبني فحبّيت أبعتلك.
 
-Reaching out from Zaffa (zaffa.ai) — a new Egyptian wedding & events marketplace. Your work really stood out while we were looking at the best vendors in Egypt and we'd love to have you in our founding group.
+أنا من زفّة (zaffa.ai)، منصّة مصرية جديدة للأفراح والمناسبات. لمّا أيّ منظّم يدوّر على مورّد لمناسبة، بيوصلك إشعار بالتفاصيل وتقدر تبعت عرضك لو الشغل يناسبك. مفيش اشتراك، كله مجاني.
 
-Founding partners get a verified profile, priority placement, and zero commission on the first three bookings.
+دي دعوتك تنضمّ:
+https://zaffa.ai
 
-Up for a quick 15-minute call this week? Or I can send screenshots — whatever's easier. 🙏`,
+أيّ سؤال، أنا موجود.`,
   },
   {
-    name: "WhatsApp · Photographer · Founding",
-    channel: "whatsapp",
-    type: "vendor",
-    category: "photography",
-    body: `Hey {first_name}! 👋 Hope you're doing well.
-
-I'm with Zaffa (zaffa.ai) — a new Egyptian wedding marketplace. Your photography genuinely stopped me while I was looking through photographers in Egypt and I had to reach out.
-
-We're putting together a small founding group of photographers: verified profile, featured placement, zero commission on your first three weddings.
-
-15 minutes this week for a quick chat? Or screenshots, totally up to you. 📸`,
-  },
-  {
-    name: "WhatsApp · Florist · Founding",
-    channel: "whatsapp",
-    type: "vendor",
-    category: "flowers",
-    body: `Hey {first_name}! 👋 Hope you're well.
-
-I'm with Zaffa (zaffa.ai), a new Egyptian wedding marketplace. Couples here build a visual style profile and we match them with florists whose work they already love — and yours is exactly what they're saving.
-
-We'd love to bring you in as a founding florist: verified profile, top placement, zero commission on your first three weddings.
-
-15 minutes this week for a quick chat? 🌸`,
-  },
-  {
-    name: "WhatsApp · Unknown / general",
+    name: "WhatsApp · Unknown / general · Egyptian Arabic intro",
     channel: "whatsapp",
     type: "unknown",
-    body: `Hey {first_name}! 👋 Hope you're doing well.
+    body: `ازيك يا {first_name}، شُفت شغلك وحبّيت أبعتلك.
 
-Quick hello from Zaffa (zaffa.ai) — we're a new Egyptian wedding & events marketplace connecting couples with planners and vendors.
+أنا من زفّة (zaffa.ai)، منصّة مصرية جديدة للأفراح والمناسبات بتربط العرسان بالمنظّمين والمورّدين. كل اللي شغله مناسب لأيّ مناسبة بيوصله إشعار وبيبعت عرضه. المنصّة مجانية.
 
-I came across your work and wanted to reach out. Whether you're a planner, vendor, or something in between, I'd love to learn what you do and see if there's a fit.
-
-Could you share a sentence or two about your work? I'll take it from there. 🌹`,
+لو شغلك ليه علاقة بالعالم ده، اللينك ده ليك:
+https://zaffa.ai`,
   },
 ];
 
 // ---------------------------------------------------------------------------
-// INSTAGRAM DM — very short, casual, ~40-60 words, low-friction. The first
-// message has to earn the second; we ask for permission, not a meeting.
+// INSTAGRAM DM — أقصر حاجة، 30-50 كلمة. مفيش emoji ولا hype — chat
+// عادي ما بين شخصين.
 // ---------------------------------------------------------------------------
 
 const INSTAGRAM_TEMPLATES: TemplateSeed[] = [
   {
-    name: "Instagram · Planner · Soft intro",
+    name: "Instagram · Planner · Egyptian Arabic soft intro",
     channel: "instagram",
     type: "planner",
-    body: `heyy {first_name} 👋 your feed is gorgeous, the styling on your last few events is unreal.
+    body: `ازيك يا {first_name}، شُفت شغلك وعجبني.
 
-I'm with Zaffa (zaffa.ai), a new Egyptian wedding marketplace — putting together a tiny founding group of planners and would love you in it.
+أنا من زفّة (zaffa.ai)، منصّة مصرية جديدة للأفراح. لمّا حد يدوّر على منظّم، بيوصلك إشعار بالتفاصيل وتقدر تبعت عرضك. كله مجاني.
 
-cool if I drop a few quick details here? no call needed unless you want one 🌹`,
+اللينك ده ليك:
+https://zaffa.ai`,
   },
   {
-    name: "Instagram · Vendor · Soft intro",
+    name: "Instagram · Vendor · Egyptian Arabic soft intro",
     channel: "instagram",
     type: "vendor",
-    body: `heyy {first_name} 👋 your work caught my eye, really beautiful stuff.
+    body: `ازيك يا {first_name}، شُفت شغلك وعجبني.
 
-I'm with Zaffa (zaffa.ai), a new Egyptian wedding & events marketplace. we're putting together a small founding group of vendors and your portfolio is exactly the energy we want couples to discover.
+أنا من زفّة (zaffa.ai)، منصّة مصرية جديدة للأفراح. أيّ منظّم بيدوّر على مورّد لمناسبة، بيوصلك إشعار وتقدر تبعت عرضك. كله مجاني.
 
-cool if I send a few quick details here? promise it's quick 🙏`,
+اللينك ده ليك:
+https://zaffa.ai`,
   },
   {
-    name: "Instagram · Photographer · Soft intro",
-    channel: "instagram",
-    type: "vendor",
-    category: "photography",
-    body: `heyy {first_name} 👋 your photography is stunning, the candid stuff especially 😍
-
-I'm with Zaffa (zaffa.ai), a new Egyptian wedding marketplace. we're handpicking a tiny founding group of photographers right now and your work is exactly the vibe.
-
-cool if I drop a few details here? 📸`,
-  },
-  {
-    name: "Instagram · Florist · Soft intro",
-    channel: "instagram",
-    type: "vendor",
-    category: "flowers",
-    body: `heyy {first_name} 👋 the florals on your feed are beautiful — couples on Zaffa are literally saving work like yours 🌸
-
-I'm with Zaffa (zaffa.ai), a new Egyptian wedding marketplace. inviting a tiny founding group of florists in now.
-
-cool if I drop a few quick details here?`,
-  },
-  {
-    name: "Instagram · Unknown / general",
+    name: "Instagram · Unknown / general · Egyptian Arabic soft intro",
     channel: "instagram",
     type: "unknown",
-    body: `heyy {first_name} 👋 came across your feed and loved the work.
+    body: `ازيك يا {first_name}، شُفت شغلك وحبّيت أبعتلك.
 
-I'm with Zaffa (zaffa.ai) — a new Egyptian wedding & events marketplace. not totally sure yet if you're a planner, vendor, or something else, but if there's a fit I'd love to chat.
-
-mind sharing a sentence or two about what you do? 🌹`,
+أنا من زفّة (zaffa.ai)، منصّة مصرية جديدة للأفراح. لو شغلك ليه علاقة بالعالم ده، خد جولة من هنا:
+https://zaffa.ai`,
   },
 ];
 
@@ -403,47 +211,30 @@ const ALL_TEMPLATES: TemplateSeed[] = [
 ];
 
 async function main() {
+  // Wipe everything first — the founder asked for a full replacement of
+  // the previous English founding-partner pitch with the new Egyptian
+  // Arabic copy. Anything custom in the table will be removed; if you
+  // need it preserved, snapshot first.
+  const removed = await prisma.outreachTemplate.deleteMany({});
+  console.log(`Removed ${removed.count} existing templates.`);
+
   console.log(`Seeding ${ALL_TEMPLATES.length} outreach templates…`);
-
   let created = 0;
-  let updated = 0;
   for (const tpl of ALL_TEMPLATES) {
-    // We use `name` as the upsert key. There's no DB-level unique on name
-    // but we treat it as one in seeding so re-running is idempotent.
-    const existing = await prisma.outreachTemplate.findFirst({
-      where: { name: tpl.name },
-      select: { id: true },
+    await prisma.outreachTemplate.create({
+      data: {
+        name: tpl.name,
+        channel: tpl.channel,
+        type: tpl.type,
+        category: null,
+        subject: tpl.subject ?? null,
+        body: tpl.body,
+        active: true,
+      },
     });
-    if (existing) {
-      await prisma.outreachTemplate.update({
-        where: { id: existing.id },
-        data: {
-          channel: tpl.channel,
-          type: tpl.type,
-          category: tpl.category ?? null,
-          subject: tpl.subject ?? null,
-          body: tpl.body,
-          active: true,
-        },
-      });
-      updated += 1;
-    } else {
-      await prisma.outreachTemplate.create({
-        data: {
-          name: tpl.name,
-          channel: tpl.channel,
-          type: tpl.type,
-          category: tpl.category ?? null,
-          subject: tpl.subject ?? null,
-          body: tpl.body,
-          active: true,
-        },
-      });
-      created += 1;
-    }
+    created += 1;
   }
-
-  console.log(`Done. Created ${created}, updated ${updated}.`);
+  console.log(`Done. Created ${created} templates.`);
 }
 
 main()

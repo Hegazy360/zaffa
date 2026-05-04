@@ -156,9 +156,14 @@ Personalization rules:
   again, do not invent a different path. That URL is a personalized
   invitation link tied to this prospect.
 
-Tone: warm, friendly, conversational, in the LANGUAGE of the prospect's
-location/profile (default English, switch to Arabic when the bio is
-Arabic).`;
+Tone: warm, friendly, conversational. ALWAYS preserve the LANGUAGE and
+REGISTER of the template body — if it's Egyptian Arabic (masry / colloquial
+"ازيك / إحنا / عايز" style, NOT formal MSA), keep it Egyptian Arabic; if
+it's English, keep it English. Do not switch languages just because the
+prospect's bio happens to be in the other language. The only exception:
+if the template is in English but the prospect is clearly Arabic-only
+(bio entirely Arabic, no English handle), you may translate it into the
+same Egyptian Arabic colloquial register.`;
 
 export interface DraftedMessage {
   subject?: string;
