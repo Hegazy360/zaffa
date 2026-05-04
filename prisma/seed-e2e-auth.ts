@@ -57,21 +57,6 @@ async function main() {
   const serviceKey = requireEnv("SUPABASE_SERVICE_ROLE_KEY");
   const password = requireEnv("E2E_TEST_PASSWORD");
 
-  // Temporary diagnostic for the first CI run — log lengths + the first
-  // and last bytes as hex so we can spot trailing whitespace / encoding
-  // issues without leaking the actual secret. Remove once E2E is stable.
-  const diag = (label: string, v: string) => {
-    const b = Buffer.from(v, "utf-8");
-    const head = b.slice(0, 4).toString("hex");
-    const tail = b.slice(Math.max(0, b.length - 4)).toString("hex");
-    console.log(
-      `[seed-e2e-auth] ${label}: len=${b.length} head=${head} tail=${tail}`,
-    );
-  };
-  diag("NEXT_PUBLIC_SUPABASE_URL", supabaseUrl);
-  diag("SUPABASE_SERVICE_ROLE_KEY", serviceKey);
-  diag("E2E_TEST_PASSWORD", password);
-
   const connectionString =
     process.env.DIRECT_DATABASE_URL ?? process.env.DATABASE_URL;
   if (!connectionString) {

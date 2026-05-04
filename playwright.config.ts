@@ -38,12 +38,20 @@ export default defineConfig({
     },
   ],
 
-  // Boots `next dev` on E2E_PORT against .env.test before the spec runs.
+  // Boots `next dev` on E2E_PORT before the spec runs.
+  //
+  // Locally we load `.env.test` through dotenvx so individual runs don't
+  // have to remember to `source` anything. In CI the env lives in the job
+  // block (secrets + literal vars), so the dotenvx indirection would just
+  // fail on the missing file — run `next dev` directly there.
+  //
   // The seed step + Stripe CLI listener are expected to be kicked off
   // separately by `scripts/e2e-bootstrap.sh` (or the CI workflow) so the
   // dev server doesn't have to manage their lifecycle.
   webServer: {
-    command: `npx dotenvx run --env-file=.env.test -- npx next dev -p ${PORT}`,
+    command: process.env.CI
+      ? `npx next dev -p ${PORT}`
+      : `npx dotenvx run --env-file=.env.test -- npx next dev -p ${PORT}`,
     url: BASE_URL,
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,
