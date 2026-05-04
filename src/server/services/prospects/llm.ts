@@ -183,8 +183,12 @@ that:
   Mansoura, Tanta, Sokhna, etc.) AND/OR Arabic phrasing AND/OR synonyms
 - Avoid duplicates and avoid generic non-wedding queries
 - Are short (under 80 chars each)
-- For source "instagram"/"tiktok": prefer hashtag-style (#weddingegypt) and
-  handle-style searches; for "web": natural search phrases.
+- For source "instagram": output a SINGLE hashtag token (no "#", no spaces,
+  ASCII letters/digits/underscore only, e.g. "weddingegypt", "cairobride").
+  NEVER return multi-word phrases or full URLs.
+- For source "tiktok": prefer hashtag-style ("#weddingegypt") OR a short
+  search phrase (<= 4 words). NEVER return full URLs.
+- For source "web"/"facebook": natural search phrases.
 
 Return strictly JSON: { "variants": string[] } with exactly N entries.`;
   const out = await callJson<{ variants: string[] }>([

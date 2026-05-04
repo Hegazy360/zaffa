@@ -101,6 +101,73 @@ async function tryExpand(
   }
 }
 
+// "When did we last successfully scrape this exact (source, query)?"
+// We use that timestamp as Apify's `onlyPostsNewerThan` cursor so each
+// run focuses on creators with fresh posts since we last looked. Cursors
+// older than 60 days are ignored (we'd rather rescan than miss content).
+const IG_CURSOR_MAX_AGE_MS = 60 * 24 * 60 * 60 * 1000;
+
+async function getInstagramCursor(
+  source: ProspectSource,
+  query: string,
+): Promise<Date | undefined> {
+  const since = new Date(Date.now() - IG_CURSOR_MAX_AGE_MS);
+  const last = await prisma.discoveryRun.findFirst({
+    where: {
+      source,
+      query,
+      status: DiscoveryRunStatus.completed,
+      started_at: { gte: since, not: null },
+    },
+    orderBy: { started_at: "desc" },
+    select: { started_at: true },
+  });
+  return last?.started_at ?? undefined;
+}
+
+// Lower-cased set of every handle we already know about for a given
+// social source. The IG/TikTok snowball passes use this to avoid spending
+// Apify credits re-scraping prospects we already have. Capped to 5k rows
+// since beyond that the per-call payload starts to matter; any miss just
+// means an occasional duplicate Apify hit, which the upsert layer handles
+// cleanly.
+async function getKnownSocialHandles(
+  source: ProspectSource,
+): Promise<string[]> {
+  // We pull from two columns:
+  //   - `handle` for prospects whose primary source matches.
+  //   - the per-network column (`instagram`/`tiktok`) for prospects
+  //     captured from another source but whose contact card includes a
+  //     handle on this network.
+  const handleField = source === ProspectSource.instagram
+    ? "instagram"
+    : source === ProspectSource.tiktok
+      ? "tiktok"
+      : null;
+  const rows = await prisma.prospect.findMany({
+    where: {
+      OR: [
+        { source, handle: { not: null } },
+        ...(handleField ? [{ [handleField]: { not: null } } as const] : []),
+      ],
+    },
+    select: { handle: true, instagram: true, tiktok: true },
+    take: 5000,
+  });
+  const set = new Set<string>();
+  for (const r of rows) {
+    if (r.handle) set.add(r.handle.toLowerCase());
+    const cross =
+      handleField === "instagram"
+        ? r.instagram
+        : handleField === "tiktok"
+          ? r.tiktok
+          : null;
+    if (cross) set.add(cross.toLowerCase().replace(/^@/, ""));
+  }
+  return Array.from(set);
+}
+
 async function fetchRows(
   source: ProspectSource,
   query: string,
@@ -142,20 +209,60 @@ async function fetchRows(
       // posts), so the only way past that ceiling is to scrape several
       // related hashtag URLs. The actor accepts a list, so this is a
       // single billed run regardless of how many hashtags we add.
+      //
+      // To keep finding NEW prospects on repeat runs we layer two tricks:
+      //   1. `onlyPostsNewerThan` — pulls only posts since our last run,
+      //      so quick/standard keep surfacing freshly-active creators
+      //      without paying to re-scan the same hashtag page.
+      //   2. mention-snowball — second profile-mode pass on `@mentions`
+      //      harvested from primary captions, with `excludeHandles`
+      //      filtering out leads already in our DB. This naturally
+      //      rotates through the long tail of cross-tagged vendors
+      //      across consecutive runs.
+      //
+      // Deep mode intentionally SKIPS the cursor: combined with the
+      // exclude-list it produces a self-rotating discovery loop where
+      // each successive run consumes ~25 more cross-tagged vendors from
+      // the same set of hashtag pages, instead of seeing the same 4
+      // top-of-page accounts every time.
       const extras = await tryExpand(query, "instagram", limits.igVariants);
+      const [cursor, excludeHandles] = await Promise.all([
+        depth === "deep"
+          ? Promise.resolve(undefined)
+          : getInstagramCursor(source, query),
+        getKnownSocialHandles(source),
+      ]);
       return instagramDiscover({
         query,
         type: queryType === "hashtag" ? "hashtag" : "search",
         resultsLimit: limits.igPosts,
         extraQueries: extras,
+        onlyPostsNewerThan: cursor,
+        mentionEnrich: depth === "deep" ? 25 : depth === "standard" ? 8 : 0,
+        excludeHandles,
       });
     }
     case ProspectSource.tiktok: {
+      // Same self-rotating loop as IG — see its branch for the rationale.
+      // TikTok's hashtag/search modes don't accept a date cursor, but the
+      // snowball pass (profile mode) does, so we feed the cursor to that
+      // pass to keep it focused on recent activity. The exclude-list is
+      // what makes consecutive runs find new prospects from the same
+      // hashtag/search results.
       const extras = await tryExpand(query, "tiktok", limits.ttVariants);
+      const excludeHandles = await getKnownSocialHandles(source);
+      // Cursor for the snowball's profile scrape: we only care about the
+      // last ~3 months of activity from each cross-tagged creator.
+      const ttSnowballCursor = new Date(
+        Date.now() - 90 * 24 * 60 * 60 * 1000,
+      );
       return tiktokDiscover({
         query,
         resultsLimit: limits.ttVideos,
         extraQueries: extras,
+        mentionEnrich: depth === "deep" ? 25 : depth === "standard" ? 8 : 0,
+        excludeHandles,
+        onlyPostsNewerThan: ttSnowballCursor,
       });
     }
     case ProspectSource.facebook: {

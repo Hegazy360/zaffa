@@ -93,9 +93,13 @@ export default function AdminDiscoveryPage() {
               query: query.trim(),
               query_type:
                 source === "instagram"
-                  ? query.trim().startsWith("#") || !query.includes(" ")
-                    ? "hashtag"
-                    : "search"
+                  ? // IG profile URLs can only contain ASCII handle chars,
+                    // so anything else (multi-word, Arabic, etc.) MUST be
+                    // routed through hashtag mode. Only an explicit `@`
+                    // prefix forces a profile lookup.
+                    query.trim().startsWith("@")
+                    ? "search"
+                    : "hashtag"
                   : source === "tiktok"
                     ? "search"
                     : source === "directory"
