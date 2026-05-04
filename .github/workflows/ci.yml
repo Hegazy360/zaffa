@@ -48,7 +48,8 @@ jobs:
   build:
     name: Production build
     runs-on: ubuntu-latest
-    needs: [lint-typecheck]
+    # Don't burn CI minutes compiling if unit tests or types are red.
+    needs: [lint-typecheck, test]
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-node@v5
@@ -208,3 +209,34 @@ jobs:
             playwright-report/
           retention-days: 7
           if-no-files-found: ignore
+
+  deploy:
+    name: Trigger Vercel production deploy
+    runs-on: ubuntu-latest
+    # Gate on every meaningful signal. `e2e` is allowed to be "skipped"
+    # (when `vars.E2E_ENABLED != 'true'`) but never "failed".
+    needs: [lint-typecheck, test, build, e2e]
+    # `always()` is required so this job still runs to evaluate the
+    # explicit result checks when `e2e` is skipped (E2E_ENABLED=false) —
+    # otherwise GitHub's default "skipped dep ⇒ skip dependent" kicks in.
+    # Only master-branch pushes deploy; PRs and forks never do.
+    if: |
+      always() &&
+      github.event_name == 'push' &&
+      github.ref == 'refs/heads/master' &&
+      needs['lint-typecheck'].result == 'success' &&
+      needs.test.result == 'success' &&
+      needs.build.result == 'success' &&
+      (needs.e2e.result == 'success' || needs.e2e.result == 'skipped')
+    steps:
+      - name: POST Vercel deploy hook
+        env:
+          VERCEL_DEPLOY_HOOK_URL: ${{ secrets.VERCEL_DEPLOY_HOOK_URL }}
+        run: |
+          if [ -z "$VERCEL_DEPLOY_HOOK_URL" ]; then
+            echo "::error::VERCEL_DEPLOY_HOOK_URL secret is not set."
+            exit 1
+          fi
+          # -f makes curl exit non-zero on HTTP >=400 so a bad hook URL
+          # fails the job instead of silently succeeding.
+          curl -fsSL -X POST "$VERCEL_DEPLOY_HOOK_URL"
