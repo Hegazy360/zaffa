@@ -1,7 +1,6 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { Apple, Facebook } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -36,70 +35,34 @@ function GoogleIcon({ className }: { className?: string }) {
   );
 }
 
-const providers = [
-  {
-    provider: "google" as const,
-    labelKey: "continueWithGoogle" as const,
-    Icon: GoogleIcon,
-    className:
-      "bg-white text-gray-800 hover:bg-gray-50 border border-gray-200 dark:bg-gray-900 dark:text-gray-100 dark:border-gray-700 dark:hover:bg-gray-800",
-  },
-  {
-    provider: "facebook" as const,
-    labelKey: "continueWithFacebook" as const,
-    Icon: Facebook,
-    className:
-      "bg-[#1877F2] text-white hover:bg-[#166FE5] border-transparent",
-  },
-  {
-    provider: "apple" as const,
-    labelKey: "continueWithApple" as const,
-    Icon: Apple,
-    className:
-      "bg-black text-white hover:bg-gray-900 border-transparent dark:bg-white dark:text-black dark:hover:bg-gray-100",
-  },
-] as const;
-
-// Stacked full-width on small screens (most breathable, matches established
-// auth patterns) and a tighter icon-only 3-up grid on lg+ where the form
-// panel sits next to the atelier image and vertical real estate is more
-// precious.
 export function OAuthButtons() {
   const supabase = createClient();
   const t = useTranslations("auth");
 
-  const handleOAuthSignIn = async (
-    provider: "google" | "facebook" | "apple",
-  ) => {
+  const handleOAuthSignIn = async () => {
     await supabase.auth.signInWithOAuth({
-      provider,
+      provider: "google",
       options: {
         redirectTo: `${window.location.origin}/auth/callback`,
       },
     });
   };
 
+  const label = t("continueWithGoogle");
+
   return (
-    <div className="grid grid-cols-1 gap-2.5 lg:grid-cols-3">
-      {providers.map(({ provider, labelKey, Icon, className }) => {
-        const label = t(labelKey);
-        return (
-          <Button
-            key={provider}
-            type="button"
-            variant="outline"
-            className={cn(
-              "h-11 w-full justify-center gap-2 font-medium",
-              className,
-            )}
-            onClick={() => handleOAuthSignIn(provider)}
-            aria-label={label}
-          >
-            <Icon className="size-5" />
-            <span className="lg:sr-only">{label}</span>
-          </Button>
-        );
-      })}
-    </div>
+    <Button
+      type="button"
+      variant="outline"
+      className={cn(
+        "h-11 w-full justify-center gap-2 font-medium",
+        "bg-white text-gray-800 hover:bg-gray-50 border border-gray-200 dark:bg-gray-900 dark:text-gray-100 dark:border-gray-700 dark:hover:bg-gray-800",
+      )}
+      onClick={handleOAuthSignIn}
+      aria-label={label}
+    >
+      <GoogleIcon className="size-5" />
+      <span>{label}</span>
+    </Button>
   );
 }
