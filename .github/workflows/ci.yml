@@ -90,6 +90,9 @@ jobs:
     # E2E is the slowest job — gate it on the cheaper jobs going green so we
     # don't burn 5 minutes of CI when we already know the change won't ship.
     needs: [lint-typecheck, test]
+    # Opt-in: set the `E2E_ENABLED` repo variable to `true` once the E2E_*
+    # secrets are populated. Skipped by default so missing secrets don't fail CI.
+    if: ${{ vars.E2E_ENABLED == 'true' }}
     services:
       postgres:
         image: pgvector/pgvector:pg16
