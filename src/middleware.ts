@@ -12,10 +12,39 @@ import { isFlagEnabled } from "@/lib/flags";
 
 // Routes the `publicBrowse` flag controls. When the flag is off, anything
 // matching this regex is rejected at the edge with a real 404 — calling
-// `notFound()` from the page itself ends up rendering the not-found UI with
+// `notFound()` from the page itself ends up rendering the not-going-live UI with
 // the response status the middleware set (200), so we short-circuit at the
 // edge to get the correct status code on the wire.
 const PUBLIC_BROWSE_ROUTE = /^\/(planners|vendors)(\/.*)?$/;
+
+// Pre-launch gate. When `SITE_PASSWORD` is set we require HTTP Basic Auth on
+// every HTML route so the app can be attached to a custom domain without
+// exposing it to the public yet. Unset → no gate (so local dev just works).
+// Username defaults to "preview" if `SITE_USERNAME` isn't set.
+function checkSitePassword(request: NextRequest): NextResponse | null {
+  const password = process.env.SITE_PASSWORD;
+  if (!password) return null;
+  const expectedUser = process.env.SITE_USERNAME || "preview";
+
+  const header = request.headers.get("authorization") ?? "";
+  if (header.startsWith("Basic ")) {
+    try {
+      const [user, ...rest] = atob(header.slice(6)).split(":");
+      if (user === expectedUser && rest.join(":") === password) return null;
+    } catch {
+      // fall through to 401
+    }
+  }
+
+  return new NextResponse("Authentication required", {
+    status: 401,
+    headers: {
+      "WWW-Authenticate": 'Basic realm="Zaffa preview", charset="UTF-8"',
+      "cache-control": "no-store",
+      "x-robots-tag": "noindex, nofollow",
+    },
+  });
+}
 
 // Tiny inline 404 body so a human visiting still sees something sensible
 // rather than a blank page. We can't render a React server component from
@@ -57,6 +86,11 @@ function parseAcceptLanguage(header: string): string[] {
 }
 
 export async function middleware(request: NextRequest) {
+  // Pre-launch site password — runs before everything else so unauthenticated
+  // visitors never touch supabase or downstream services.
+  const gated = checkSitePassword(request);
+  if (gated) return gated;
+
   // Edge gate for the public browse routes. We do this *before* the supabase
   // session round-trip so an unauthenticated bot scraping `/vendors` is cheap
   // to reject. Returns a real 404 status code (the page-level `notFound()`
