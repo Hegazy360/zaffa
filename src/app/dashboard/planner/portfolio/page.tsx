@@ -189,14 +189,14 @@ export default function PortfolioPage() {
                       alt={item.caption ?? ""}
                       className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
                     />
-                    <div className="absolute end-2 top-2 flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100">
+                    <div className="absolute end-2 top-2 flex items-center gap-1 opacity-100 transition-opacity md:opacity-0 md:group-hover:opacity-100">
                       <Button
                         size="icon-sm"
                         variant="outline"
                         onClick={() => setOpen({ mode: "edit", item })}
-                        className="size-7 bg-white/90"
+                        className="size-9 bg-white/90 md:size-7"
                       >
-                        <Pencil className="size-3.5" />
+                        <Pencil className="size-4 md:size-3.5" />
                       </Button>
                       <Button
                         size="icon-sm"
@@ -206,9 +206,9 @@ export default function PortfolioPage() {
                             remove.mutate({ id: item.id });
                           }
                         }}
-                        className="size-7 bg-white/90 text-destructive"
+                        className="size-9 bg-white/90 text-destructive md:size-7"
                       >
-                        <Trash2 className="size-3.5" />
+                        <Trash2 className="size-4 md:size-3.5" />
                       </Button>
                     </div>
                   </div>

@@ -298,7 +298,7 @@ export function MobileSidebar({ role }: SidebarProps) {
   const links = roleLinks[role];
 
   return (
-    <div className="sticky top-16 z-30 flex gap-2 overflow-x-auto border-b border-rose-100/60 bg-background/85 px-3 py-2 backdrop-blur-md lg:hidden">
+    <div className="sticky top-16 z-30 mask-fade-x flex snap-x scroll-px-3 gap-2 overflow-x-auto border-b border-rose-100/60 bg-background/85 px-3 py-2.5 backdrop-blur-md lg:hidden">
       {links.map((link) => {
         const Icon = link.icon;
         const active = isLinkActive(pathname, link);
@@ -307,13 +307,13 @@ export function MobileSidebar({ role }: SidebarProps) {
             key={link.href}
             href={link.href}
             className={cn(
-              "flex items-center gap-2 whitespace-nowrap rounded-full px-3 py-1.5 text-xs transition-all",
+              "flex shrink-0 snap-start items-center gap-2 whitespace-nowrap rounded-full px-3.5 py-2 text-xs transition-all",
               active
                 ? "bg-gradient-to-r from-rose-500 to-amber-500 font-medium text-white shadow-sm"
                 : "border border-rose-100/60 bg-white/70 text-muted-foreground"
             )}
           >
-            <Icon className="h-3 w-3" />
+            <Icon className="h-4 w-4" />
             {t(link.labelKey)}
           </Link>
         );

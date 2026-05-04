@@ -14,6 +14,7 @@ import {
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { Navbar } from "@/components/layout/navbar";
+import { Footer } from "@/components/layout/footer";
 import { cn } from "@/lib/utils";
 
 import { useFormatters } from "@/lib/use-formatters";
@@ -105,13 +106,14 @@ export default function PublicPlannerProfilePage() {
           <p className="mt-2 text-sm text-muted-foreground">{error.message}</p>
           <Button
             variant="outline"
-            render={<Link href="/" />}
+            render={<Link href="/planners" />}
             className="mt-6"
           >
             <ArrowLeft className="me-1.5 size-3.5" />
-            Back home
+            Back to planners
           </Button>
         </div>
+        <Footer />
       </div>
     );
   }
@@ -123,6 +125,7 @@ export default function PublicPlannerProfilePage() {
         <div className="flex flex-1 items-center justify-center">
           <Loader2 className="size-6 animate-spin text-rose-500" />
         </div>
+        <Footer />
       </div>
     );
   }
@@ -148,7 +151,7 @@ export default function PublicPlannerProfilePage() {
             <Button
               variant="ghost"
               size="sm"
-              render={<Link href="/" />}
+              render={<Link href="/planners" />}
               className="-ms-2 gap-1 text-sm text-muted-foreground hover:text-foreground"
             >
               <ArrowLeft className="size-3.5" />
@@ -238,7 +241,7 @@ export default function PublicPlannerProfilePage() {
 
           {/* Portfolio */}
           <section className="mb-14">
-            <div className="mb-6 flex items-end justify-between">
+            <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
               <div>
                 <p className="mb-1 text-[0.65rem] font-medium uppercase tracking-[0.3em] text-rose-700/80">
                   Portfolio
@@ -399,6 +402,7 @@ export default function PublicPlannerProfilePage() {
           </section>
         </div>
       </div>
+      <Footer />
     </div>
   );
 }

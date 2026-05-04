@@ -174,7 +174,7 @@ export default function SchedulePage() {
               {t("scheduleSubtitle")}
             </p>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <Button
               variant="outline"
               size="icon-sm"
@@ -215,7 +215,7 @@ export default function SchedulePage() {
             </Button>
             <Button
               onClick={() => setBlockDialog({ mode: "create" })}
-              className="gap-1.5 bg-gradient-to-r from-rose-600 to-amber-500 text-white"
+              className="ms-auto gap-1.5 bg-gradient-to-r from-rose-600 to-amber-500 text-white sm:ms-0"
             >
               <Plus className="size-4" />
               {t("blockDates")}
@@ -223,7 +223,33 @@ export default function SchedulePage() {
           </div>
         </header>
 
-        <div className="overflow-hidden rounded-2xl border border-rose-100/70 bg-white/70 backdrop-blur-sm">
+        {/* Mobile: agenda list view (the month grid is too dense for narrow viewports). */}
+        <div className="md:hidden">
+          {isLoading ? (
+            <div className="flex h-64 items-center justify-center rounded-2xl border border-rose-100/70 bg-white/70">
+              <Loader2 className="size-5 animate-spin text-rose-500" />
+            </div>
+          ) : (
+            <AgendaList
+              bookings={bookings}
+              blocks={blocks}
+              year={cursor.year}
+              month={cursor.month}
+              locale={locale}
+              labels={{
+                title: t("agendaTitle"),
+                empty: t("agendaEmpty"),
+                event: t("agendaEvent"),
+                block: t("agendaBlock"),
+                blockedFallback: t("blockedFallback"),
+              }}
+              onEditBlock={(b) => setBlockDialog({ mode: "edit", block: b })}
+            />
+          )}
+        </div>
+
+        {/* Desktop: full month grid. */}
+        <div className="hidden overflow-hidden rounded-2xl border border-rose-100/70 bg-white/70 backdrop-blur-sm md:block">
           {/* Weekday header */}
           <div className="grid grid-cols-7 border-b border-rose-100/70 bg-rose-50/40 text-[10px] font-medium uppercase tracking-[0.2em] text-muted-foreground">
             {WEEKDAY_KEYS.map((key) => (
@@ -258,7 +284,7 @@ export default function SchedulePage() {
                   <div
                     key={d.toISOString()}
                     className={cn(
-                      "relative min-h-[110px] border-b border-e border-rose-100/70 p-2 text-xs",
+                      "group relative min-h-[110px] border-b border-e border-rose-100/70 p-2 text-xs",
                       !inMonth && "bg-stone-50/40 text-muted-foreground/70"
                     )}
                   >
@@ -501,5 +527,140 @@ function BlockForm({
         </Button>
       </DialogFooter>
     </form>
+  );
+}
+
+interface AgendaListProps {
+  bookings: BookedEvent[];
+  blocks: PlannerBlock[];
+  year: number;
+  month: number;
+  locale: string;
+  labels: {
+    title: string;
+    empty: string;
+    event: string;
+    block: string;
+    blockedFallback: string;
+  };
+  onEditBlock: (b: PlannerBlock) => void;
+}
+
+type AgendaItem =
+  | { kind: "event"; date: Date; event: BookedEvent }
+  | { kind: "block"; date: Date; block: PlannerBlock };
+
+function AgendaList({
+  bookings,
+  blocks,
+  year,
+  month,
+  locale,
+  labels,
+  onEditBlock,
+}: AgendaListProps) {
+  const monthStart = new Date(Date.UTC(year, month, 1));
+  const monthEnd = new Date(Date.UTC(year, month + 1, 0));
+
+  const items: AgendaItem[] = [
+    ...bookings
+      .filter((b) => b.event_date)
+      .map((b) => ({
+        kind: "event" as const,
+        date: new Date(b.event_date as Date | string),
+        event: b,
+      })),
+    ...blocks.map((b) => ({
+      kind: "block" as const,
+      // Use start_date as the agenda anchor; multi-day blocks still appear once.
+      date: new Date(b.start_date),
+      block: b,
+    })),
+  ]
+    .filter(
+      (i) =>
+        i.date.getTime() >= monthStart.getTime() &&
+        i.date.getTime() <= monthEnd.getTime() + 86_400_000
+    )
+    .sort((a, b) => a.date.getTime() - b.date.getTime());
+
+  const dayFmt = new Intl.DateTimeFormat(locale === "ar" ? "ar-EG" : "en-EG", {
+    weekday: "short",
+    day: "numeric",
+    month: "short",
+  });
+
+  if (items.length === 0) {
+    return (
+      <div className="rounded-2xl border border-dashed border-rose-200/70 bg-white/40 px-6 py-12 text-center">
+        <CalendarDays className="mx-auto mb-3 size-6 text-rose-500" />
+        <p className="text-sm text-muted-foreground">{labels.empty}</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="overflow-hidden rounded-2xl border border-rose-100/70 bg-white/70 backdrop-blur-sm">
+      <div className="border-b border-rose-100/70 bg-rose-50/40 px-4 py-2 text-[10px] font-medium uppercase tracking-[0.2em] text-muted-foreground">
+        {labels.title}
+      </div>
+      <ul className="divide-y divide-rose-100/70">
+        {items.map((item) => {
+          if (item.kind === "event") {
+            const accent = paletteAccent(item.event.palette);
+            return (
+              <li key={`event-${item.event.id}`}>
+                <Link
+                  href={`/dashboard/planner/event/${item.event.id}`}
+                  className="flex items-center gap-3 px-4 py-3 transition-colors hover:bg-rose-50/60"
+                >
+                  <div
+                    className="grid size-12 shrink-0 place-items-center rounded-lg text-[11px] font-medium leading-tight"
+                    style={{
+                      backgroundColor: `${accent}1a`,
+                      color: accent,
+                    }}
+                  >
+                    <span>{dayFmt.format(item.date)}</span>
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-medium">
+                      {item.event.title}
+                    </p>
+                    <p className="truncate text-xs text-muted-foreground">
+                      {labels.event}
+                      {item.event.venue ? ` · ${item.event.venue}` : ""}
+                    </p>
+                  </div>
+                  <ChevronRight className="size-4 shrink-0 text-muted-foreground rtl:-scale-x-100" />
+                </Link>
+              </li>
+            );
+          }
+          return (
+            <li key={`block-${item.block.id}`}>
+              <button
+                type="button"
+                onClick={() => onEditBlock(item.block)}
+                className="flex w-full items-center gap-3 px-4 py-3 text-start transition-colors hover:bg-stone-100/60"
+              >
+                <div className="grid size-12 shrink-0 place-items-center rounded-lg bg-stone-200/80 text-[11px] font-medium leading-tight text-stone-700">
+                  <span>{dayFmt.format(item.date)}</span>
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-medium">
+                    {item.block.reason ?? labels.blockedFallback}
+                  </p>
+                  <p className="truncate text-xs text-muted-foreground">
+                    {labels.block}
+                  </p>
+                </div>
+                <ChevronRight className="size-4 shrink-0 text-muted-foreground rtl:-scale-x-100" />
+              </button>
+            </li>
+          );
+        })}
+      </ul>
+    </div>
   );
 }

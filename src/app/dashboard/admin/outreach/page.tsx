@@ -45,7 +45,7 @@ export default function OutreachKanbanPage() {
 
   return (
     <div className="mx-auto max-w-7xl space-y-6 px-4 py-8 sm:px-6">
-      <header className="flex items-end justify-between">
+      <header className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <p className="mb-1 text-[0.65rem] font-medium uppercase tracking-[0.3em] text-rose-700/80">
             {t("eyebrow")}
@@ -70,11 +70,11 @@ export default function OutreachKanbanPage() {
           <Loader2 className="size-5 animate-spin text-rose-500" />
         </div>
       ) : (
-        <div className="grid gap-3 lg:grid-cols-6">
+        <div className="-mx-4 flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pb-2 sm:-mx-6 sm:px-6 lg:mx-0 lg:grid lg:grid-cols-6 lg:overflow-visible lg:px-0 lg:pb-0">
           {COLUMNS.map((status) => (
             <div
               key={status}
-              className="rounded-2xl border border-rose-100/70 bg-white/80"
+              className="w-[80vw] max-w-[320px] shrink-0 snap-start rounded-2xl border border-rose-100/70 bg-white/80 lg:w-auto lg:max-w-none lg:shrink"
             >
               <div className="flex items-center justify-between border-b border-rose-100/70 px-3 py-2">
                 <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-rose-700/80">

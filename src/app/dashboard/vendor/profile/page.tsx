@@ -351,7 +351,7 @@ export default function VendorProfilePage() {
         </section>
 
         <section className="overflow-hidden rounded-2xl border border-rose-100/70 bg-white/85 backdrop-blur-sm">
-          <div className="flex items-end justify-between border-b border-rose-100/70 px-6 py-4">
+          <div className="flex flex-col gap-3 border-b border-rose-100/70 px-6 py-4 sm:flex-row sm:items-end sm:justify-between">
             <div>
               <h2 className="font-display text-lg font-medium tracking-tight">
                 {t("portfolioTitle")}
@@ -363,7 +363,7 @@ export default function VendorProfilePage() {
             <Button
               size="sm"
               onClick={() => setOpenItem({ mode: "create" })}
-              className="gap-1 bg-gradient-to-r from-rose-600 to-amber-500 text-white"
+              className="w-full gap-1 bg-gradient-to-r from-rose-600 to-amber-500 text-white sm:w-auto"
               disabled={!me.data}
             >
               <Plus className="size-3.5" />

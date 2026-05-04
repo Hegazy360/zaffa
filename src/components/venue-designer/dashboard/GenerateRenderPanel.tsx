@@ -560,9 +560,9 @@ export function GenerateRenderPanel({ designId }: GenerateRenderPanelProps) {
                     }}
                     disabled={deleteMediaMutation.isPending}
                     aria-label={t("deleteRenderAria")}
-                    className="absolute end-1.5 top-1.5 grid size-6 place-items-center rounded-full bg-black/60 text-white opacity-0 backdrop-blur-sm transition-opacity hover:bg-black/85 group-hover:opacity-100 disabled:opacity-40"
+                    className="absolute end-1.5 top-1.5 grid size-7 place-items-center rounded-full bg-black/60 text-white opacity-100 backdrop-blur-sm transition-opacity hover:bg-black/85 disabled:opacity-40 md:size-6 md:opacity-0 md:group-hover:opacity-100"
                   >
-                    <X className="size-3" />
+                    <X className="size-3.5 md:size-3" />
                   </button>
                 </div>
               ))}

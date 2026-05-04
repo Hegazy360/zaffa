@@ -321,7 +321,7 @@ export default function BriefDetailPage() {
                       <p className="mb-2 text-[10px] font-medium uppercase tracking-[0.2em] text-muted-foreground">
                         {t("references", { count: refs.length })}
                       </p>
-                      <div className="grid grid-cols-3 gap-2">
+                      <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4">
                         {refs.slice(0, 12).map((r) => {
                           const altKey = REFERENCE_CATEGORY_KEYS[r.category];
                           return (
@@ -393,20 +393,20 @@ export default function BriefDetailPage() {
                 </p>
                 <dl className="space-y-3 text-sm">
                   <div className="flex justify-between gap-3">
-                    <dt className="text-muted-foreground">{t("eventType")}</dt>
-                    <dd className="capitalize">{brief.event_type}</dd>
+                    <dt className="shrink-0 text-muted-foreground">{t("eventType")}</dt>
+                    <dd className="min-w-0 break-words text-end capitalize">{brief.event_type}</dd>
                   </div>
                   <div className="flex justify-between gap-3">
-                    <dt className="text-muted-foreground">{t("date")}</dt>
-                    <dd>{formatBriefDate(brief.event_date)}</dd>
+                    <dt className="shrink-0 text-muted-foreground">{t("date")}</dt>
+                    <dd className="min-w-0 break-words text-end">{formatBriefDate(brief.event_date)}</dd>
                   </div>
                   <div className="flex justify-between gap-3">
-                    <dt className="text-muted-foreground">{t("venue")}</dt>
-                    <dd className="text-end">{brief.venue || t("open")}</dd>
+                    <dt className="shrink-0 text-muted-foreground">{t("venue")}</dt>
+                    <dd className="min-w-0 break-words text-end">{brief.venue || t("open")}</dd>
                   </div>
                   <div className="flex justify-between gap-3">
-                    <dt className="text-muted-foreground">{t("budget")}</dt>
-                    <dd>{budget > 0 ? f.currency(budget) : t("notShared")}</dd>
+                    <dt className="shrink-0 text-muted-foreground">{t("budget")}</dt>
+                    <dd className="min-w-0 break-words text-end">{budget > 0 ? f.currency(budget) : t("notShared")}</dd>
                   </div>
                 </dl>
               </div>

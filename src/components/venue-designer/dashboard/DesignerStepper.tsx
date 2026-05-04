@@ -152,9 +152,25 @@ export function DesignerStepper({
   return (
     <nav
       aria-label={t("designerStepsAria")}
-      className="mx-auto w-full max-w-4xl px-6 pt-12 pb-10 sm:pt-16 sm:pb-12"
+      className="mx-auto w-full max-w-4xl px-4 pt-6 pb-6 sm:px-6 sm:pt-16 sm:pb-12"
     >
-      <div className="relative">
+      {/* Mobile: compact progress bar instead of the dense dot rail. */}
+      <div className="sm:hidden">
+        <div className="relative h-1.5 overflow-hidden rounded-full bg-rose-100/70 dark:bg-rose-950/40">
+          <motion.div
+            initial={false}
+            animate={{ width: `${progressPct}%` }}
+            transition={{
+              duration: reduceMotion ? 0 : 0.5,
+              ease: [0.22, 1, 0.36, 1],
+            }}
+            className="absolute inset-y-0 start-0 rounded-full bg-gradient-to-r from-rose-400 via-rose-500 to-amber-500"
+          />
+        </div>
+      </div>
+
+      {/* Desktop: original dot rail with progress line under it. */}
+      <div className="relative hidden sm:block">
         {/* Track + progress fill: anchored 20px from each side so the line
             visually starts/ends at the centers of the first and last circles. */}
         <div
@@ -224,7 +240,7 @@ export function DesignerStepper({
       </div>
 
       {/* Mobile-only active step caption */}
-      <p className="mt-6 text-center sm:hidden">
+      <p className="mt-4 text-center sm:hidden">
         <span className="text-[11px] font-medium tracking-[0.18em] text-muted-foreground uppercase">
           {t("stepIndicator", { n: activeIdx + 1, total: STEPS.length })}
         </span>

@@ -11,7 +11,9 @@ import {
   LogOut,
   ArrowRight,
   LayoutDashboard,
+  Bell,
 } from "lucide-react";
+import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { LocaleSwitcher } from "@/components/locale-switcher";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -238,19 +240,26 @@ export function Navbar() {
               </Button>
 
               {user && (
-                <Link
-                  href="/dashboard"
-                  onClick={() => setOpen(false)}
-                  className={cn(
-                    "mt-3 flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
-                    isActiveRoute(pathname, "/dashboard")
-                      ? "bg-rose-50 text-rose-700 dark:bg-rose-950/40 dark:text-rose-200"
-                      : "bg-accent/40 text-foreground hover:bg-accent"
-                  )}
-                >
-                  <LayoutDashboard className="h-4 w-4" />
-                  {t("dashboard")}
-                </Link>
+                <>
+                  <MobileNotificationsLink
+                    pathname={pathname}
+                    onNavigate={() => setOpen(false)}
+                    label={t("notifications")}
+                  />
+                  <Link
+                    href="/dashboard"
+                    onClick={() => setOpen(false)}
+                    className={cn(
+                      "mt-3 flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
+                      isActiveRoute(pathname, "/dashboard")
+                        ? "bg-rose-50 text-rose-700 dark:bg-rose-950/40 dark:text-rose-200"
+                        : "bg-accent/40 text-foreground hover:bg-accent"
+                    )}
+                  >
+                    <LayoutDashboard className="h-4 w-4" />
+                    {t("dashboard")}
+                  </Link>
+                </>
               )}
             </nav>
 
@@ -290,5 +299,47 @@ export function Navbar() {
         </Sheet>
       </div>
     </header>
+  );
+}
+
+/**
+ * Notifications entry inside the mobile sheet — links to the full inbox
+ * and shows a small unread count badge. Kept as a Link (not a dropdown)
+ * so it works reliably inside the Sheet on touch devices.
+ */
+function MobileNotificationsLink({
+  pathname,
+  onNavigate,
+  label,
+}: {
+  pathname: string | null;
+  onNavigate: () => void;
+  label: string;
+}) {
+  const { data: count } = trpc.notifications.unreadCount.useQuery(undefined, {
+    refetchInterval: 60_000,
+    retry: false,
+  });
+  const unread = count?.count ?? 0;
+  const active = isActiveRoute(pathname, "/dashboard/notifications");
+  return (
+    <Link
+      href="/dashboard/notifications"
+      onClick={onNavigate}
+      className={cn(
+        "mt-3 flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
+        active
+          ? "bg-rose-50 text-rose-700 dark:bg-rose-950/40 dark:text-rose-200"
+          : "bg-accent/40 text-foreground hover:bg-accent"
+      )}
+    >
+      <Bell className="h-4 w-4" />
+      <span className="flex-1">{label}</span>
+      {unread > 0 && (
+        <span className="grid h-5 min-w-5 place-items-center rounded-full bg-gradient-to-br from-rose-600 to-amber-500 px-1.5 text-[10px] font-semibold leading-none text-white">
+          {unread > 99 ? "99+" : unread}
+        </span>
+      )}
+    </Link>
   );
 }

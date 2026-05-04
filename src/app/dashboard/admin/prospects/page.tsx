@@ -111,7 +111,7 @@ export default function AdminProspectsPage() {
       </header>
 
       {funnel.data && (
-        <section className="grid grid-cols-2 gap-2 sm:grid-cols-7">
+        <section className="grid grid-cols-2 gap-2 md:grid-cols-4 lg:grid-cols-7">
           {(
             [
               "new",

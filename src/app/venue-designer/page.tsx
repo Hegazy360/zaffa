@@ -280,14 +280,14 @@ export default function VenueDesignerGalleryPage() {
                       type="button"
                       onClick={(e) => handleDelete(e, design.id, design.name)}
                       aria-label={t("deleteDesignAria", { name: design.name })}
-                      className="absolute end-2.5 top-2.5 grid size-7 place-items-center rounded-full bg-black/55 text-white opacity-0 backdrop-blur-sm transition-opacity hover:bg-black/80 group-hover:opacity-100"
+                      className="absolute end-2.5 top-2.5 grid size-9 place-items-center rounded-full bg-black/55 text-white opacity-100 backdrop-blur-sm transition-opacity hover:bg-black/80 md:size-7 md:opacity-0 md:group-hover:opacity-100"
                     >
-                      <Trash2 className="size-3.5" />
+                      <Trash2 className="size-4 md:size-3.5" />
                     </button>
 
                     <div
                       aria-hidden
-                      className="pointer-events-none absolute bottom-3 end-3 grid size-9 translate-y-2 place-items-center rounded-full bg-white/95 text-rose-600 opacity-0 shadow-lg transition-all group-hover:translate-y-0 group-hover:opacity-100 dark:bg-rose-50/90"
+                      className="pointer-events-none absolute bottom-3 end-3 grid size-9 translate-y-0 place-items-center rounded-full bg-white/95 text-rose-600 opacity-100 shadow-lg transition-all md:translate-y-2 md:opacity-0 md:group-hover:translate-y-0 md:group-hover:opacity-100 dark:bg-rose-50/90"
                     >
                       <ArrowRight className="size-4 rtl:-scale-x-100" />
                     </div>

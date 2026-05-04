@@ -448,15 +448,15 @@ export default function PlannerVendorProfilePage({
                           onChange={(e) =>
                             updateItem(c.key, { name: e.target.value })
                           }
-                          className="h-8 text-sm"
+                          className="h-10 text-sm sm:h-8"
                         />
                         <Button
                           size="icon-sm"
                           variant="ghost"
                           onClick={() => removeItem(c.key)}
-                          className="text-destructive"
+                          className="size-10 text-destructive sm:size-7"
                         >
-                          <X className="size-3.5" />
+                          <X className="size-4 sm:size-3.5" />
                         </Button>
                       </div>
                       <div className="flex items-center gap-2">
@@ -468,8 +468,9 @@ export default function PlannerVendorProfilePage({
                               quantity: Math.max(1, c.quantity - 1),
                             })
                           }
+                          className="size-10 sm:size-7"
                         >
-                          <Minus className="size-3.5" />
+                          <Minus className="size-4 sm:size-3.5" />
                         </Button>
                         <Input
                           type="number"
@@ -480,7 +481,7 @@ export default function PlannerVendorProfilePage({
                               quantity: Math.max(1, Number(e.target.value) || 1),
                             })
                           }
-                          className="h-8 w-16 text-center text-sm"
+                          className="h-10 w-16 text-center text-sm sm:h-8"
                         />
                         <Button
                           size="icon-sm"
@@ -488,8 +489,9 @@ export default function PlannerVendorProfilePage({
                           onClick={() =>
                             updateItem(c.key, { quantity: c.quantity + 1 })
                           }
+                          className="size-10 sm:size-7"
                         >
-                          <Plus className="size-3.5" />
+                          <Plus className="size-4 sm:size-3.5" />
                         </Button>
                         <Input
                           type="number"
@@ -503,7 +505,7 @@ export default function PlannerVendorProfilePage({
                               ),
                             })
                           }
-                          className="h-8 flex-1 text-end text-sm"
+                          className="h-10 flex-1 text-end text-sm sm:h-8"
                         />
                       </div>
                       <p className="text-end text-xs text-muted-foreground">

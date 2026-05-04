@@ -59,53 +59,57 @@ export function DesignerHeader({
   });
 
   return (
-    <div className="flex items-center gap-3 rounded-xl border bg-background/90 px-3 py-1.5 shadow-sm backdrop-blur-sm">
-      <Button
-        variant="ghost"
-        size="sm"
-        className="h-7 gap-1.5 text-xs"
-        onClick={() => router.push("/venue-designer")}
-      >
-        <LayoutGrid className="h-3 w-3" />
-        {t("myDesigns")}
-      </Button>
+    <div className="flex flex-col gap-2 rounded-xl border bg-background/90 px-3 py-2 shadow-sm backdrop-blur-sm md:flex-row md:items-center md:gap-3 md:py-1.5">
+      {/* Row A on mobile: back + title input + save status; same row on desktop */}
+      <div className="flex min-w-0 flex-1 items-center gap-3">
+        <Button
+          variant="ghost"
+          size="sm"
+          className="h-8 shrink-0 gap-1.5 text-xs md:h-7"
+          onClick={() => router.push("/venue-designer")}
+        >
+          <LayoutGrid className="h-3 w-3" />
+          <span className="hidden sm:inline">{t("myDesigns")}</span>
+        </Button>
 
-      <div className="h-4 w-px bg-border" />
+        <div className="hidden h-4 w-px bg-border md:block" />
 
-      <input
-        type="text"
-        value={name}
-        onChange={(e) => onNameChange(e.target.value)}
-        className="w-48 border-none bg-transparent text-sm font-medium outline-none placeholder:text-muted-foreground"
-        placeholder={t("designNamePlaceholder")}
-      />
+        <input
+          type="text"
+          value={name}
+          onChange={(e) => onNameChange(e.target.value)}
+          className="min-w-0 flex-1 border-none bg-transparent text-sm font-medium outline-none placeholder:text-muted-foreground md:w-48 md:flex-none"
+          placeholder={t("designNamePlaceholder")}
+        />
 
-      <div className="flex items-center gap-1 text-xs text-muted-foreground">
-        {saveStatus === "saving" ? (
-          <>
-            <Loader2 className="h-3 w-3 animate-spin" />
-            <span>{t("saving")}</span>
-          </>
-        ) : saveStatus === "saved" ? (
-          <>
-            <Check className="h-3 w-3 text-green-500" />
-            <span>{t("saved")}</span>
-          </>
-        ) : (
-          <>
-            <Circle className="h-2.5 w-2.5 fill-amber-400 text-amber-400" />
-            <span>{t("unsaved")}</span>
-          </>
-        )}
+        <div className="hidden items-center gap-1 text-xs text-muted-foreground md:flex">
+          {saveStatus === "saving" ? (
+            <>
+              <Loader2 className="h-3 w-3 animate-spin" />
+              <span>{t("saving")}</span>
+            </>
+          ) : saveStatus === "saved" ? (
+            <>
+              <Check className="h-3 w-3 text-green-500" />
+              <span>{t("saved")}</span>
+            </>
+          ) : (
+            <>
+              <Circle className="h-2.5 w-2.5 fill-amber-400 text-amber-400" />
+              <span>{t("unsaved")}</span>
+            </>
+          )}
+        </div>
       </div>
 
-      <div className="ms-auto flex items-center gap-1">
+      {/* Row B on mobile: actions wrap; right-aligned cluster on desktop */}
+      <div className="flex flex-wrap items-center justify-end gap-2 md:ms-auto md:gap-1">
         {designId && (
           <>
             <Button
               variant="ghost"
               size="sm"
-              className="h-7 gap-1.5 text-xs"
+              className="h-8 gap-1.5 text-xs md:h-7"
               onClick={() => setMediaGalleryOpen(true)}
             >
               <ImageIcon className="h-3 w-3" />
@@ -122,7 +126,7 @@ export function DesignerHeader({
         <Button
           variant="ghost"
           size="sm"
-          className="h-7 gap-1.5 text-xs"
+          className="h-8 gap-1.5 text-xs md:h-7"
           onClick={onSave}
           disabled={saving || saveStatus === "saved"}
         >
@@ -135,7 +139,7 @@ export function DesignerHeader({
             <Button
               size="sm"
               variant="outline"
-              className="h-7 gap-1.5 border-rose-200 bg-rose-50/60 text-xs text-rose-700 hover:bg-rose-100/70"
+              className="h-8 gap-1.5 border-rose-200 bg-rose-50/60 text-xs text-rose-700 hover:bg-rose-100/70 md:h-7"
               onClick={() =>
                 router.push(`/dashboard/client/event/${linkedEventId}`)
               }
@@ -146,7 +150,7 @@ export function DesignerHeader({
           ) : (
             <Button
               size="sm"
-              className="h-7 gap-1.5 bg-gradient-to-r from-rose-600 to-amber-500 text-xs text-white hover:opacity-90"
+              className="h-8 gap-1.5 bg-gradient-to-r from-rose-600 to-amber-500 text-xs text-white hover:opacity-90 md:h-7"
               disabled={createFromDesign.isPending}
               onClick={() => createFromDesign.mutate({ designId })}
             >

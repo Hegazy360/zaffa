@@ -304,7 +304,7 @@ export function SchedulePanel({
               return (
                 <li
                   key={p.id}
-                  className="flex items-center justify-between gap-4 px-5 py-4"
+                  className="flex flex-col gap-3 px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:gap-4"
                 >
                   <div className="min-w-0 flex-1">
                     <p className="truncate font-medium">{p.label}</p>
@@ -345,7 +345,7 @@ export function SchedulePanel({
                       )}
                     </p>
                   </div>
-                  <div className="flex shrink-0 items-center gap-3">
+                  <div className="flex shrink-0 flex-wrap items-center gap-3">
                     <span className="text-sm font-medium tabular-nums">
                       {f.currency(amount, p.currency)}
                     </span>
@@ -364,7 +364,7 @@ export function SchedulePanel({
                         onClick={() =>
                           checkoutMutation.mutate({ installmentId: p.id })
                         }
-                        className="h-7 gap-1.5 bg-gradient-to-r from-rose-600 to-amber-500 text-xs text-white"
+                        className="h-9 gap-1.5 bg-gradient-to-r from-rose-600 to-amber-500 text-xs text-white sm:h-7"
                       >
                         {checkoutMutation.isPending &&
                         checkoutMutation.variables?.installmentId === p.id ? (

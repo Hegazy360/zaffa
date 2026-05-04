@@ -89,7 +89,7 @@ export default function PlannerEarningsPage() {
       </div>
 
       <div className="rounded-2xl border border-rose-100/70 bg-white/80 backdrop-blur-sm">
-        <div className="flex items-center justify-between border-b border-rose-100/70 px-5 py-3">
+        <div className="flex flex-col gap-3 border-b border-rose-100/70 px-5 py-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-rose-700/80">
               {t("awaitingPayout")}
@@ -103,7 +103,7 @@ export default function PlannerEarningsPage() {
               requestPayout.isPending || balance.data.pendingNet <= 0
             }
             onClick={() => requestPayout.mutate({})}
-            className="gap-1.5 bg-gradient-to-r from-rose-600 to-amber-500 text-white"
+            className="w-full gap-1.5 bg-gradient-to-r from-rose-600 to-amber-500 text-white sm:w-auto"
           >
             {requestPayout.isPending ? (
               <Loader2 className="size-4 animate-spin" />

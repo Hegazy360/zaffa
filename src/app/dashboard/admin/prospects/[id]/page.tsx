@@ -105,7 +105,7 @@ export default function ProspectDetailPage({
 
   return (
     <div className="mx-auto max-w-5xl space-y-6 px-4 py-8 sm:px-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-2">
         <Link
           href="/dashboard/admin/prospects"
           className="inline-flex items-center gap-1.5 text-xs font-medium text-rose-700 hover:underline"

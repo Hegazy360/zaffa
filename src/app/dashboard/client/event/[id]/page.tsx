@@ -262,14 +262,14 @@ export default function EventDetailPage() {
                   : tc("dateNotSet")}
               </span>
               {event.venue && (
-                <span className="inline-flex items-center gap-1.5">
-                  <MapPin className="size-4" />
-                  {event.venue}
+                <span className="inline-flex min-w-0 items-center gap-1.5">
+                  <MapPin className="size-4 shrink-0" />
+                  <span className="truncate">{event.venue}</span>
                 </span>
               )}
             </div>
 
-            <div className="mt-6 grid grid-cols-3 gap-3">
+            <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-3">
               <Stat
                 label={tc("daysToGo")}
                 value={
@@ -1139,7 +1139,7 @@ function MessagesTab({ eventId }: { eventId: string }) {
   };
 
   return (
-    <div className="flex h-[60vh] flex-col overflow-hidden rounded-2xl border border-rose-100/70 bg-white/80 backdrop-blur-sm dark:border-rose-900/30 dark:bg-card/80">
+    <div className="flex min-h-[60dvh] flex-col overflow-hidden rounded-2xl border border-rose-100/70 bg-white/80 backdrop-blur-sm dark:border-rose-900/30 dark:bg-card/80">
       <div className="border-b border-rose-100/70 px-5 py-3 dark:border-rose-900/30">
         <h3 className="font-display text-base font-medium tracking-tight">
           {tc("messagesTab")}

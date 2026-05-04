@@ -12,6 +12,11 @@ if (typeof window !== "undefined") {
   gsap.registerPlugin(ScrollTrigger);
 }
 
+// Tailwind's `lg` breakpoint. We render the GSAP scrolly experience only at
+// or above this width and fall back to a static stacked variant on phones
+// and tablets — the pinned aspect-[5/2] stage is unusable below it.
+const DESKTOP_MQ = "(min-width: 1024px)";
+
 /* -------------------------------------------------------------------------- */
 /* Storyboard data                                                             */
 /* -------------------------------------------------------------------------- */
@@ -77,6 +82,8 @@ export function ScrollyDemo() {
       const section = sectionRef.current;
       if (!section) return;
       if (typeof window === "undefined") return;
+      // Mobile/tablet renders a static stacked variant — no pin, no scrub.
+      if (!window.matchMedia(DESKTOP_MQ).matches) return;
 
       gsap.set(stepRefs.current, { opacity: 0 });
       gsap.set(stepRefs.current[0], { opacity: 1 });
@@ -198,6 +205,18 @@ export function ScrollyDemo() {
         aria-hidden
         className="pointer-events-none absolute inset-x-0 top-0 mx-auto h-px max-w-7xl champagne-hairline"
       />
+
+      {/* ============================================================ */}
+      {/* MOBILE/TABLET: static stacked variant. No pin, no scroll-link. */}
+      {/* ============================================================ */}
+      <div className="relative z-10 lg:hidden">
+        <MobileStorySection t={t} />
+      </div>
+
+      {/* ============================================================ */}
+      {/* DESKTOP: pinned scrolly experience.                           */}
+      {/* ============================================================ */}
+      <div className="hidden lg:block">
 
       {/* HUD: eyebrow + step numerals + progress hairline */}
       <div className="pointer-events-none absolute inset-x-0 top-0 z-30 px-6 pt-6 sm:pt-10">
@@ -431,6 +450,178 @@ export function ScrollyDemo() {
           ))}
         </div>
       </div>
+      </div>
     </section>
+  );
+}
+
+/* -------------------------------------------------------------------------- */
+/* Mobile / tablet stacked variant                                            */
+/* -------------------------------------------------------------------------- */
+
+function MobileStorySection({
+  t,
+}: {
+  t: ReturnType<typeof useTranslations<"marketing">>;
+}) {
+  return (
+    <div className="mx-auto max-w-3xl px-6 py-16 sm:py-20">
+      <p className="text-[0.7rem] uppercase tracking-[0.3em] text-rose-700">
+        {t("scrollyEyebrow")}
+      </p>
+      <div aria-hidden className="champagne-hairline mt-3 h-px w-full" />
+
+      <div className="mt-10 space-y-16">
+        {STEPS.map((s, idx) => (
+          <article key={s.eyebrow} className="space-y-5">
+            <header>
+              <p className="text-[0.7rem] uppercase tracking-[0.3em] text-rose-700">
+                {t("scrollyStepLabel", { n: s.eyebrow })}
+              </p>
+              <h3 className="mt-3 font-display text-balance text-3xl font-light leading-[1.1] tracking-tight text-foreground sm:text-4xl">
+                {t(s.titleKey)}
+              </h3>
+              <p className="mt-3 max-w-xl text-pretty text-sm text-muted-foreground sm:text-base">
+                {t(s.subKey)}
+              </p>
+            </header>
+
+            {idx === 0 && <MobilePaletteVisual t={t} />}
+            {idx === 1 && <MobileMoodboardVisual t={t} />}
+            {idx === 2 && <MobileRenderVisual t={t} />}
+            {idx === 3 && <MobileVideoVisual t={t} />}
+          </article>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function MobilePaletteVisual({
+  t,
+}: {
+  t: ReturnType<typeof useTranslations<"marketing">>;
+}) {
+  return (
+    <div className="-mx-6 px-6">
+      <div className="flex snap-x snap-mandatory gap-3 overflow-x-auto pb-2">
+        {PALETTE.map((p) => (
+          <div
+            key={p.hex}
+            className="flex shrink-0 snap-start flex-col items-center gap-2"
+          >
+            <span
+              className="h-28 w-20 rounded-[1.25rem] shadow-xl shadow-rose-900/20 ring-1 ring-rose-900/15"
+              style={{ backgroundColor: p.hex }}
+            />
+            <span className="font-mono text-[0.6rem] tracking-wide text-foreground/80">
+              {p.hex}
+            </span>
+            <span className="text-[0.55rem] uppercase tracking-[0.25em] text-muted-foreground">
+              {t(p.nameKey)}
+            </span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function MobileMoodboardVisual({
+  t,
+}: {
+  t: ReturnType<typeof useTranslations<"marketing">>;
+}) {
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center gap-2 rounded-2xl border border-rose-900/10 bg-white/70 p-2.5 shadow-sm shadow-rose-900/5 backdrop-blur-md">
+        {PALETTE.map((p) => (
+          <span
+            key={p.hex}
+            className="h-7 flex-1 rounded-lg ring-1 ring-rose-900/10"
+            style={{ backgroundColor: p.hex }}
+          />
+        ))}
+      </div>
+      <div className="grid grid-cols-3 gap-2">
+        {REFERENCES.map((src, i) => (
+          <div
+            key={src}
+            className="relative aspect-[3/4] overflow-hidden rounded-xl shadow-md shadow-rose-900/15 ring-1 ring-rose-900/10"
+          >
+            <Image
+              src={src}
+              alt={t("scrollyRefAlt", {
+                palette: t(PALETTE[i % PALETTE.length].nameKey).toLowerCase(),
+              })}
+              fill
+              sizes="33vw"
+              className="object-cover"
+            />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function MobileRenderVisual({
+  t,
+}: {
+  t: ReturnType<typeof useTranslations<"marketing">>;
+}) {
+  return (
+    <div className="relative aspect-[4/3] overflow-hidden rounded-2xl shadow-2xl shadow-rose-900/20 ring-1 ring-rose-900/10">
+      <Image
+        src={RENDER_IMAGE}
+        alt={t("scrollyRenderAlt")}
+        fill
+        sizes="100vw"
+        className="object-cover"
+      />
+    </div>
+  );
+}
+
+function MobileVideoVisual({
+  t,
+}: {
+  t: ReturnType<typeof useTranslations<"marketing">>;
+}) {
+  return (
+    <div className="relative aspect-[4/3] overflow-hidden rounded-2xl shadow-2xl shadow-rose-900/20 ring-1 ring-rose-900/10">
+      <Image
+        src={RENDER_IMAGE}
+        alt={t("scrollyRenderAlt")}
+        fill
+        sizes="100vw"
+        className="scale-105 object-cover"
+      />
+      <div aria-hidden className="pointer-events-none absolute inset-0">
+        <div className="absolute inset-x-0 top-0 h-12 bg-gradient-to-b from-black/55 to-transparent" />
+        <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-black/70 to-transparent" />
+        <div className="absolute start-3 top-3 inline-flex items-center gap-2 rounded-full border border-white/30 bg-black/35 px-3 py-1.5 text-[0.6rem] uppercase tracking-[0.25em] text-white backdrop-blur-md">
+          <span className="relative inline-flex h-1.5 w-1.5">
+            <span className="absolute inset-0 animate-ping rounded-full bg-rose-300 opacity-75" />
+            <span className="relative h-1.5 w-1.5 rounded-full bg-rose-300" />
+          </span>
+          {t("scrollyLivePreview")}
+        </div>
+        <div className="absolute end-3 top-3 rounded-md border border-white/25 bg-black/35 px-2.5 py-1 font-mono text-[0.65rem] tracking-wide text-white/85 backdrop-blur-md">
+          01:24 / 08:00
+        </div>
+        <div className="absolute inset-x-3 bottom-3 flex items-center gap-2">
+          <span className="font-mono text-[0.55rem] tracking-wide text-white/70">
+            00:01:24
+          </span>
+          <div className="relative h-1 flex-1 rounded-full bg-white/20">
+            <div className="h-1 w-[18%] rounded-full bg-gradient-to-r from-rose-300 to-amber-200" />
+          </div>
+          <span className="font-mono text-[0.55rem] tracking-wide text-white/70">
+            00:08:00
+          </span>
+        </div>
+      </div>
+    </div>
   );
 }
