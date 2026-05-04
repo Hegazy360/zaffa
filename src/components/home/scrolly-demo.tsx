@@ -509,18 +509,31 @@ function MobilePaletteVisual({
   t: ReturnType<typeof useTranslations<"marketing">>;
 }) {
   return (
-    <div className="grid grid-cols-5 gap-2">
-      {PALETTE.map((p) => (
-        <div key={p.hex} className="flex min-w-0 flex-col items-center gap-2">
+    <div className="space-y-4">
+      <div className="grid grid-cols-5 gap-2">
+        {PALETTE.map((p) => (
           <span
+            key={p.hex}
             className="aspect-[2/3] w-full rounded-2xl shadow-xl shadow-rose-900/20 ring-1 ring-rose-900/15"
             style={{ backgroundColor: p.hex }}
           />
-          <span className="truncate text-[0.55rem] uppercase tracking-[0.2em] text-muted-foreground">
-            {t(p.nameKey)}
-          </span>
-        </div>
-      ))}
+        ))}
+      </div>
+      {/* Names live in their own legend row so they aren't squeezed under
+          narrow swatch columns on phones. A small color dot keeps each name
+          visually tied to its swatch above. */}
+      <ul className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1.5 text-[0.7rem] text-muted-foreground">
+        {PALETTE.map((p) => (
+          <li key={p.hex} className="inline-flex items-center gap-1.5">
+            <span
+              aria-hidden
+              className="size-2 rounded-full ring-1 ring-rose-900/15"
+              style={{ backgroundColor: p.hex }}
+            />
+            <span>{t(p.nameKey)}</span>
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }
