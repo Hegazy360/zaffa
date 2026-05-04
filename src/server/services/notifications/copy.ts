@@ -55,8 +55,8 @@ const CATALOG: Record<
     },
     ar: {
       title: "عرض جديد من {plannerName}",
-      body: "أرسل لك {plannerName} عرضًا لمناسبة {eventTitle}. ألقِ نظرة ورد عندما تكون جاهزًا.",
-      ctaLabel: "عرض الاقتراح",
+      body: "أرسل لك {plannerName} عرضًا لمناسبة {eventTitle}. ألقِ نظرة عليه وردّ متى ما كنت جاهزًا.",
+      ctaLabel: "افتح العرض",
       eyebrow: "عرض جديد",
     },
   },
@@ -69,9 +69,9 @@ const CATALOG: Record<
     },
     ar: {
       title: "انسحب {plannerName} من مناسبتك",
-      body: "انسحب منظم الحفلات {plannerName} من {eventTitle}. يمكنك اختيار منظم آخر من العروض المتبقية.",
-      ctaLabel: "اختيار منظم آخر",
-      eyebrow: "انسحاب المنظم",
+      body: "انسحب المنظّم {plannerName} من {eventTitle}. يمكنك اختيار منظّم آخر من بين العروض المتبقية.",
+      ctaLabel: "اختيار منظّم آخر",
+      eyebrow: "انسحاب المنظّم",
     },
   },
   planner_assigned: {
@@ -82,10 +82,10 @@ const CATALOG: Record<
       eyebrow: "Planner confirmed",
     },
     ar: {
-      title: "{plannerName} ينظم مناسبتك {eventTitle} الآن",
-      body: "تمت الموافقة على {plannerName} كمنظم لحفل {eventTitle}. رحب به وابدأ بمشاركة تفاصيلك.",
+      title: "بدأ {plannerName} تنظيم مناسبتك {eventTitle}",
+      body: "تأكّد {plannerName} منظّمًا لمناسبتك {eventTitle}. رحّب به وابدأ بمشاركة رؤيتك معه.",
       ctaLabel: "فتح المناسبة",
-      eyebrow: "تأكيد المنظم",
+      eyebrow: "تأكيد المنظّم",
     },
   },
   payment_schedule_proposed: {
@@ -97,7 +97,7 @@ const CATALOG: Record<
     },
     ar: {
       title: "خطة دفع جديدة لمناسبة {eventTitle}",
-      body: "اقترح {plannerName} خطة دفع إجماليها {amount}. راجع الأقساط ووافق عندما تكون جاهزًا.",
+      body: "اقترح {plannerName} خطة دفع إجماليها {amount}. راجع الأقساط ووافق عليها متى ما كنت جاهزًا.",
       ctaLabel: "مراجعة الخطة",
       eyebrow: "خطة الدفع",
     },
@@ -111,7 +111,7 @@ const CATALOG: Record<
     },
     ar: {
       title: "طلب تعديل خطة الدفع",
-      body: "اقترح {otherPartyName} تعديلًا على خطة دفع {eventTitle}. راجع التعديل وقبول أو رفض.",
+      body: "اقترح {otherPartyName} تعديلًا على خطة الدفع لمناسبة {eventTitle}. راجِع التعديل واقبله أو ارفضه.",
       ctaLabel: "مراجعة التعديل",
       eyebrow: "تعديل الخطة",
     },
@@ -124,8 +124,8 @@ const CATALOG: Record<
       eyebrow: "Payment received",
     },
     ar: {
-      title: "تم استلام الدفعة: {amount}",
-      body: "تمت عملية الدفع بقيمة {amount} لمناسبة {eventTitle} بنجاح. شكرًا لك!",
+      title: "تمّ استلام الدفعة: {amount}",
+      body: "تمّت عملية الدفع بقيمة {amount} لمناسبة {eventTitle} بنجاح. شكرًا لك!",
       ctaLabel: "عرض الإيصال",
       eyebrow: "استلام الدفعة",
     },
@@ -139,8 +139,8 @@ const CATALOG: Record<
     },
     ar: {
       title: "فشلت عملية الدفع",
-      body: "لم تتم عملية الدفع بقيمة {amount} لمناسبة {eventTitle}. يرجى تجربة وسيلة دفع أخرى.",
-      ctaLabel: "المحاولة مرة أخرى",
+      body: "لم تنجح عملية الدفع بقيمة {amount} لمناسبة {eventTitle}. يُرجى استخدام وسيلة دفع أخرى.",
+      ctaLabel: "إعادة المحاولة",
       eyebrow: "فشل الدفع",
     },
   },
@@ -152,8 +152,8 @@ const CATALOG: Record<
       eyebrow: "Refund issued",
     },
     ar: {
-      title: "تم رد الدفعة: {amount}",
-      body: "تمت إعادة دفعة بقيمة {amount} من {eventTitle}.",
+      title: "تمّ ردّ الدفعة: {amount}",
+      body: "تمّ ردّ دفعة بقيمة {amount} من مناسبة {eventTitle}.",
       ctaLabel: "عرض الدفعة",
       eyebrow: "استرداد الدفعة",
     },
@@ -166,8 +166,8 @@ const CATALOG: Record<
       eyebrow: "Payment reminder",
     },
     ar: {
-      title: "دفعة بقيمة {amount} مستحقة في {dueDate}",
-      body: "تذكير — قسط بقيمة {amount} لمناسبة {eventTitle} مستحق في {dueDate}.",
+      title: "قسط بقيمة {amount} مستحقّ في {dueDate}",
+      body: "تذكير — قسط بقيمة {amount} لمناسبة {eventTitle} مستحقّ في {dueDate}.",
       ctaLabel: "ادفع الآن",
       eyebrow: "تذكير بالدفع",
     },
@@ -180,10 +180,10 @@ const CATALOG: Record<
       eyebrow: "Payment overdue",
     },
     ar: {
-      title: "دفعة متأخرة: {amount}",
-      body: "قسط بقيمة {amount} لمناسبة {eventTitle} كان مستحقًا في {dueDate} ولم يُدفع بعد.",
+      title: "قسط متأخّر: {amount}",
+      body: "قسط بقيمة {amount} لمناسبة {eventTitle} كان مستحقًّا في {dueDate} ولم يُدفع بعد.",
       ctaLabel: "ادفع الآن",
-      eyebrow: "دفعة متأخرة",
+      eyebrow: "قسط متأخّر",
     },
   },
 
@@ -197,7 +197,7 @@ const CATALOG: Record<
     },
     ar: {
       title: "مناسبة {eventType} جديدة في {city}",
-      body: "نشر عميل {eventTitle} في {city} للتو. بادر بإرسال عرض.",
+      body: "نشر عميل مناسبة {eventTitle} في {city} للتو. بادر بإرسال عرضك.",
       ctaLabel: "عرض المناسبة",
       eyebrow: "طلب جديد",
     },
@@ -210,8 +210,8 @@ const CATALOG: Record<
       eyebrow: "Proposal accepted",
     },
     ar: {
-      title: "قبل {clientName} عرضك",
-      body: "تهانينا — تمت الموافقة على عرضك لمناسبة {eventTitle}. رحب بالعميل وابدأ التنظيم.",
+      title: "قَبِل {clientName} عرضك",
+      body: "تهانينا — قُبل عرضك لمناسبة {eventTitle}. رحّب بالعميل وابدأ التنظيم.",
       ctaLabel: "فتح المناسبة",
       eyebrow: "قبول العرض",
     },
@@ -224,8 +224,8 @@ const CATALOG: Record<
       eyebrow: "Engagement ended",
     },
     ar: {
-      title: "غيّر {clientName} المنظم",
-      body: "انتهى تعاونك على مناسبة {eventTitle}. ترك تقييم {rating}/5.",
+      title: "غيّر {clientName} المنظّم",
+      body: "انتهى تعاونك على مناسبة {eventTitle}، وترك لك تقييمًا {rating}/5.",
       ctaLabel: "عرض التفاصيل",
       eyebrow: "انتهاء التعاون",
     },
@@ -238,8 +238,8 @@ const CATALOG: Record<
       eyebrow: "Plan update",
     },
     ar: {
-      title: "تم {decision} تعديل خطة الدفع",
-      body: "{decision} {clientName} تعديل خطة الدفع لمناسبة {eventTitle}.",
+      title: "تمّ {decision} تعديل خطة الدفع",
+      body: "اتّخذ {clientName} قرارًا بـ{decision} تعديل خطة الدفع لمناسبة {eventTitle}.",
       ctaLabel: "عرض الخطة",
       eyebrow: "تحديث الخطة",
     },
@@ -252,10 +252,10 @@ const CATALOG: Record<
       eyebrow: "Earnings",
     },
     ar: {
-      title: "ربحت {netAmount}",
-      body: "تم استلام دفعة بقيمة {amount} من {eventTitle}. صافي أرباحك بعد الرسوم: {netAmount}.",
+      title: "صافي ربحك: {netAmount}",
+      body: "تمّ تحصيل دفعة بقيمة {amount} على مناسبة {eventTitle}. صافي ربحك بعد رسوم المنصة: {netAmount}.",
       ctaLabel: "عرض الأرباح",
-      eyebrow: "أرباح",
+      eyebrow: "أرباح جديدة",
     },
   },
   payout_received: {
@@ -266,10 +266,10 @@ const CATALOG: Record<
       eyebrow: "Payout sent",
     },
     ar: {
-      title: "تم إرسال دفعتك: {amount}",
-      body: "تم إرسال دفعة بقيمة {amount} إليك عبر {method}.{reference}",
+      title: "تمّ صرف مستحقّاتك: {amount}",
+      body: "تمّ صرف دفعة بقيمة {amount} إليك عبر {method}.{reference}",
       ctaLabel: "عرض الدفعة",
-      eyebrow: "تم التحويل",
+      eyebrow: "تمّ الصرف",
     },
   },
   vendor_accepted_engagement: {
@@ -280,10 +280,10 @@ const CATALOG: Record<
       eyebrow: "Vendor confirmed",
     },
     ar: {
-      title: "قبل {vendorName} طلبك",
-      body: "قبل {vendorName} طلبك لـ {engagementTitle}.",
-      ctaLabel: "فتح الارتباط",
-      eyebrow: "تأكيد المزود",
+      title: "قَبِل {vendorName} طلبك",
+      body: "قَبِل {vendorName} طلبك على {engagementTitle}.",
+      ctaLabel: "فتح التعاقد",
+      eyebrow: "تأكيد المورّد",
     },
   },
   vendor_declined_engagement: {
@@ -294,10 +294,10 @@ const CATALOG: Record<
       eyebrow: "Vendor declined",
     },
     ar: {
-      title: "رفض {vendorName} طلبك",
-      body: "رفض {vendorName} طلبك لـ {engagementTitle}. يمكنك طلب مزود خدمة آخر.",
-      ctaLabel: "البحث عن مزود آخر",
-      eyebrow: "رفض المزود",
+      title: "اعتذر {vendorName} عن طلبك",
+      body: "اعتذر {vendorName} عن قبول طلبك على {engagementTitle}. يمكنك التواصل مع مورّد آخر.",
+      ctaLabel: "البحث عن مورّد آخر",
+      eyebrow: "اعتذار المورّد",
     },
   },
   vendor_cancelled_engagement: {
@@ -309,9 +309,9 @@ const CATALOG: Record<
     },
     ar: {
       title: "ألغى {vendorName} {engagementTitle}",
-      body: "ألغى {vendorName} الارتباط الخاص بـ {engagementTitle}.",
-      ctaLabel: "عرض الارتباط",
-      eyebrow: "إلغاء المزود",
+      body: "ألغى {vendorName} التعاقد الخاصّ بـ{engagementTitle}.",
+      ctaLabel: "عرض التعاقد",
+      eyebrow: "إلغاء المورّد",
     },
   },
   review_received: {
@@ -322,10 +322,10 @@ const CATALOG: Record<
       eyebrow: "New review",
     },
     ar: {
-      title: "تقييم جديد {rating} نجوم من {authorName}",
-      body: "ترك {authorName} تقييمًا بـ {rating} نجوم. ألقِ نظرة.",
+      title: "تقييم جديد بـ{rating}/5 من {authorName}",
+      body: "ترك {authorName} تقييمًا بـ{rating}/5. ألقِ نظرة عليه.",
       ctaLabel: "قراءة التقييم",
-      eyebrow: "مراجعة جديدة",
+      eyebrow: "تقييم جديد",
     },
   },
   payment_disputed: {
@@ -336,8 +336,8 @@ const CATALOG: Record<
       eyebrow: "Dispute opened",
     },
     ar: {
-      title: "تم فتح نزاع على دفعة بقيمة {amount}",
-      body: "فتح العميل نزاعًا على دفعة بقيمة {amount} من {eventTitle}. الأموال موقوفة مؤقتًا حتى المراجعة.",
+      title: "تمّ فتح نزاع على دفعة بقيمة {amount}",
+      body: "فتح العميل نزاعًا على دفعة بقيمة {amount} من مناسبة {eventTitle}. المبلغ محجوز مؤقتًا حتى انتهاء المراجعة.",
       ctaLabel: "عرض الأرباح",
       eyebrow: "نزاع مفتوح",
     },
@@ -353,7 +353,7 @@ const CATALOG: Record<
     },
     ar: {
       title: "طلب جديد من {plannerName}",
-      body: "يريد {plannerName} {engagementTitle} ({totalAmount}) لمناسبة {eventTitle}. قبول أو رفض.",
+      body: "يطلب {plannerName} {engagementTitle} ({totalAmount}) لمناسبة {eventTitle}. اقبل الطلب أو ارفضه.",
       ctaLabel: "مراجعة الطلب",
       eyebrow: "طلب جديد",
     },
@@ -366,7 +366,7 @@ const CATALOG: Record<
       eyebrow: "Request cancelled",
     },
     ar: {
-      title: "تم إلغاء الطلب: {engagementTitle}",
+      title: "تمّ إلغاء الطلب: {engagementTitle}",
       body: "ألغى {plannerName} طلب {engagementTitle}.",
       ctaLabel: "عرض الطلب",
       eyebrow: "إلغاء الطلب",
@@ -380,7 +380,7 @@ const CATALOG: Record<
       eyebrow: "Request updated",
     },
     ar: {
-      title: "تم تعديل الطلب: {engagementTitle}",
+      title: "تمّ تعديل الطلب: {engagementTitle}",
       body: "عدّل {plannerName} بنود {engagementTitle}. الإجمالي الجديد: {totalAmount}.",
       ctaLabel: "مراجعة الطلب",
       eyebrow: "تحديث الطلب",
@@ -434,13 +434,13 @@ const CHROME = {
     accountFootnote: "You're receiving this because you have a Zaffa account.",
   },
   ar: {
-    tagline: "حفلات مصمّمة بعناية.",
+    tagline: "حفلات تُصمَّم بعناية.",
     location: "القاهرة، مصر",
     seeUpdates: "أو اطّلع على جميع التحديثات.",
     openInbox: "افتح الإشعارات",
     preferences: "إعدادات الإشعارات",
     unsubscribe: "إلغاء الاشتراك",
-    accountFootnote: "أُرسلت هذه الرسالة لأنك مشترك في زفّة.",
+    accountFootnote: "وصلتك هذه الرسالة لأنّ لديك حسابًا في زفّة.",
   },
 } as const;
 
@@ -457,15 +457,15 @@ export function getChrome(locale: Locale): EmailChrome {
  */
 const FACT_LABELS = {
   event: { en: "Event", ar: "المناسبة" },
-  planner: { en: "Planner", ar: "المنظم" },
+  planner: { en: "Planner", ar: "المنظّم" },
   client: { en: "Client", ar: "العميل" },
-  vendor: { en: "Vendor", ar: "المزود" },
+  vendor: { en: "Vendor", ar: "المورّد" },
   item: { en: "Item", ar: "البند" },
   amount: { en: "Amount", ar: "المبلغ" },
   total: { en: "Total", ar: "الإجمالي" },
   newTotal: { en: "New total", ar: "الإجمالي الجديد" },
   due: { en: "Due", ar: "الاستحقاق" },
-  wasDue: { en: "Was due", ar: "كان مستحقًا في" },
+  wasDue: { en: "Was due", ar: "كان مستحقًّا في" },
   gross: { en: "Gross", ar: "الإجمالي" },
   net: { en: "Net", ar: "الصافي" },
   city: { en: "City", ar: "المدينة" },
