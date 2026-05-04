@@ -121,11 +121,15 @@ export default function ProposalsPage() {
           value={tab}
           onValueChange={(v) => setTab(v as StatusKey)}
         >
-          <TabsList className="mb-2 flex w-full flex-wrap gap-1 bg-rose-50/60 p-1 ring-1 ring-rose-100/70">
+          <TabsList className="mb-2 flex w-full snap-x scroll-px-1 gap-1 overflow-x-auto bg-rose-50/60 p-1 ring-1 ring-rose-100/70 sm:overflow-visible">
             {TAB_KEYS.map((key) => {
               const count = grouped[key]?.length ?? 0;
               return (
-                <TabsTrigger key={key} value={key} className="gap-1.5">
+                <TabsTrigger
+                  key={key}
+                  value={key}
+                  className="shrink-0 snap-start gap-1.5 px-3 sm:flex-1 sm:px-1.5"
+                >
                   {t(TAB_LABEL_KEYS[key])}
                   <span
                     className={cn(

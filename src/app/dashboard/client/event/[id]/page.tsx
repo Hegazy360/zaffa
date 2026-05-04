@@ -315,24 +315,24 @@ export default function EventDetailPage() {
 
         {/* Tabs */}
         <Tabs value={tab} onValueChange={onTabChange}>
-          <TabsList className="mb-6 flex w-full flex-wrap gap-1 bg-rose-50/60 p-1 ring-1 ring-rose-100/70">
-            <TabsTrigger value="overview" className="gap-1.5">
+          <TabsList className="mb-6 flex w-full snap-x scroll-px-1 gap-1 overflow-x-auto bg-rose-50/60 p-1 ring-1 ring-rose-100/70 sm:overflow-visible">
+            <TabsTrigger value="overview" className="shrink-0 snap-start gap-1.5 px-3 sm:flex-1 sm:px-1.5">
               <Sparkles className="size-3.5" />
               {tc("tabOverview")}
             </TabsTrigger>
-            <TabsTrigger value="design" className="gap-1.5">
+            <TabsTrigger value="design" className="shrink-0 snap-start gap-1.5 px-3 sm:flex-1 sm:px-1.5">
               <Wand2 className="size-3.5" />
               {tc("tabDesign")}
             </TabsTrigger>
-            <TabsTrigger value="proposals" className="gap-1.5">
+            <TabsTrigger value="proposals" className="shrink-0 snap-start gap-1.5 px-3 sm:flex-1 sm:px-1.5">
               <FileText className="size-3.5" />
               {tc("tabProposals")}
             </TabsTrigger>
-            <TabsTrigger value="payments" className="gap-1.5">
+            <TabsTrigger value="payments" className="shrink-0 snap-start gap-1.5 px-3 sm:flex-1 sm:px-1.5">
               <CreditCard className="size-3.5" />
               {tc("tabPayments")}
             </TabsTrigger>
-            <TabsTrigger value="messages" className="gap-1.5">
+            <TabsTrigger value="messages" className="shrink-0 snap-start gap-1.5 px-3 sm:flex-1 sm:px-1.5">
               <MessageSquare className="size-3.5" />
               {tc("tabMessages")}
             </TabsTrigger>
