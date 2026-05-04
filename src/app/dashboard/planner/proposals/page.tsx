@@ -121,7 +121,7 @@ export default function ProposalsPage() {
           value={tab}
           onValueChange={(v) => setTab(v as StatusKey)}
         >
-          <TabsList className="mb-2 flex w-full snap-x scroll-px-1 gap-1 overflow-x-auto bg-rose-50/60 p-1 ring-1 ring-rose-100/70 sm:overflow-visible">
+          <TabsList className="mb-2 flex w-full justify-start snap-x scroll-px-1 gap-1 overflow-x-auto bg-rose-50/60 p-1 ring-1 ring-rose-100/70 sm:justify-center sm:overflow-visible">
             {TAB_KEYS.map((key) => {
               const count = grouped[key]?.length ?? 0;
               return (
