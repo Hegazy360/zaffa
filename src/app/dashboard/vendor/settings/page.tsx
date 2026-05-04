@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Loader2, LogOut, Save, Trash2 } from "lucide-react";
+import { Loader2, LogOut, Save } from "lucide-react";
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
 import { trpc } from "@/lib/trpc";
@@ -10,6 +10,9 @@ import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { AvatarUploader } from "@/components/account/avatar-uploader";
+import { PasswordChangeCard } from "@/components/account/password-change-card";
+import { DeleteAccountCard } from "@/components/account/delete-account-card";
 
 export default function VendorSettingsPage() {
   const router = useRouter();
@@ -22,13 +25,11 @@ export default function VendorSettingsPage() {
   const [seededFor, setSeededFor] = useState<string | null>(null);
   const [fullName, setFullName] = useState("");
   const [phone, setPhone] = useState("");
-  const [avatarUrl, setAvatarUrl] = useState("");
 
   if (profile && seededFor !== profile.id) {
     setSeededFor(profile.id);
     setFullName(profile.full_name ?? "");
     setPhone(profile.phone ?? "");
-    setAvatarUrl(profile.avatar_url ?? "");
   }
 
   const update = trpc.profile.update.useMutation({
@@ -43,7 +44,6 @@ export default function VendorSettingsPage() {
     update.mutate({
       full_name: fullName.trim(),
       phone: phone.trim() || null,
-      avatar_url: avatarUrl.trim() || null,
     });
   };
 
@@ -94,28 +94,10 @@ export default function VendorSettingsPage() {
             </p>
           </div>
           <div className="space-y-5 p-6">
-            <div className="flex items-center gap-4">
-              {avatarUrl ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={avatarUrl}
-                  alt={fullName || t("avatarFallback")}
-                  className="size-16 rounded-full object-cover ring-1 ring-rose-200/60"
-                />
-              ) : (
-                <div className="grid size-16 place-items-center rounded-full bg-gradient-to-br from-rose-200 to-amber-200 text-xl font-semibold text-rose-800">
-                  {fullName.charAt(0) || "?"}
-                </div>
-              )}
-              <div>
-                <p className="font-display text-lg font-medium leading-tight tracking-tight">
-                  {fullName || t("yourName")}
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  {profile?.email}
-                </p>
-              </div>
-            </div>
+            <AvatarUploader
+              currentUrl={profile?.avatar_url ?? null}
+              displayName={fullName}
+            />
             <div className="grid gap-4">
               <div className="space-y-1.5">
                 <Label htmlFor="full-name">{t("fullNameLabel")}</Label>
@@ -142,14 +124,6 @@ export default function VendorSettingsPage() {
                   onChange={(e) => setPhone(e.target.value)}
                 />
               </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="avatar">{t("avatarUrlLabel")}</Label>
-                <Input
-                  id="avatar"
-                  value={avatarUrl}
-                  onChange={(e) => setAvatarUrl(e.target.value)}
-                />
-              </div>
             </div>
             <div className="flex justify-end">
               <Button
@@ -172,6 +146,7 @@ export default function VendorSettingsPage() {
           <h2 className="font-display text-lg font-medium tracking-tight">
             {t("accountSection")}
           </h2>
+          <PasswordChangeCard email={profile?.email ?? null} />
           <div className="rounded-2xl border border-rose-100/70 bg-white/70 p-4 backdrop-blur-sm">
             <div className="flex items-center justify-between gap-3">
               <div>
@@ -191,25 +166,7 @@ export default function VendorSettingsPage() {
               </Button>
             </div>
           </div>
-          <div className="rounded-2xl border border-stone-200/70 bg-stone-50/50 p-4">
-            <div className="flex items-center justify-between gap-3">
-              <div>
-                <p className="text-sm font-medium">{t("deleteAccount")}</p>
-                <p className="text-xs text-muted-foreground">
-                  {t("deleteAccountHint")}
-                </p>
-              </div>
-              <Button
-                variant="outline"
-                size="sm"
-                disabled
-                className="gap-1 text-destructive"
-              >
-                <Trash2 className="size-3.5" />
-                {t("contactSupport")}
-              </Button>
-            </div>
-          </div>
+          <DeleteAccountCard />
         </div>
       </div>
     </div>

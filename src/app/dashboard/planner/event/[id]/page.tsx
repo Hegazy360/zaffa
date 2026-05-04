@@ -42,6 +42,7 @@ import {
 } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 import { SchedulePanel } from "@/components/payments/SchedulePanel";
+import { useRealtimeMessageSync } from "@/hooks/use-realtime-messages";
 
 import { useFormatters } from "@/lib/use-formatters";
 const TABS = ["overview", "design", "vendors", "payments", "messages"] as const;
@@ -1342,9 +1343,13 @@ function MessagesTab({ eventId }: { eventId: string }) {
   const t = useTranslations("planner");
   const f = useFormatters();
   const { data: profile } = trpc.profile.me.useQuery();
+  // Realtime sync invalidates the query on INSERT; the long refetchInterval
+  // is just a safety net in case the websocket drops without firing the
+  // subscription callback (e.g. tab backgrounded for hours).
+  useRealtimeMessageSync(eventId);
   const { data: messages, isLoading } = trpc.messages.byEvent.useQuery(
     { eventId },
-    { refetchInterval: 15_000 }
+    { refetchInterval: 60_000 }
   );
 
   const [content, setContent] = useState("");

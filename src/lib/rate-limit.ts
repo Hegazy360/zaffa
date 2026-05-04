@@ -1,0 +1,128 @@
+import { Ratelimit } from "@upstash/ratelimit";
+import { TRPCError } from "@trpc/server";
+import { redis } from "./redis";
+
+// Per-surface limiters. Each one gets its own prefix so analytics &
+// throttling don't bleed across endpoints. When Upstash isn't configured
+// (local dev) the helpers below short-circuit to "allowed" instead of
+// throwing.
+function makeLimiter(
+  prefix: string,
+  limit: number,
+  window: Parameters<typeof Ratelimit.slidingWindow>[1],
+): Ratelimit | null {
+  if (!redis) return null;
+  return new Ratelimit({
+    redis,
+    prefix,
+    limiter: Ratelimit.slidingWindow(limit, window),
+    analytics: true,
+  });
+}
+
+export const limiters = {
+  // Auth surfaces — keep tight to slow down credential stuffing.
+  authSignIn: makeLimiter("rl:auth:signin", 10, "1 m"),
+  authSignUp: makeLimiter("rl:auth:signup", 5, "1 h"),
+  authPasswordReset: makeLimiter("rl:auth:reset", 5, "1 h"),
+  // Public unsubscribe HMAC route — abused only to enumerate user ids.
+  unsubscribe: makeLimiter("rl:unsub", 30, "1 m"),
+  // Per-user AI surfaces. These are the most expensive operations.
+  // Two layers: the per-hour limiter caps burst usage; the per-day
+  // limiter is the cost ceiling. Render image calls cost ~$0.04 each at
+  // current OpenAI pricing, so 60/day ≈ $2.50/user/day worst case.
+  aiRender: makeLimiter("rl:ai:render", 30, "1 h"),
+  aiRenderDaily: makeLimiter("rl:ai:render:d", 60, "1 d"),
+  aiVideo: makeLimiter("rl:ai:video", 5, "1 h"),
+  aiVideoDaily: makeLimiter("rl:ai:video:d", 10, "1 d"),
+  // Admin-triggered discovery / outreach. Per-user (admin) limits keep a
+  // single rogue admin from blowing budgets.
+  discoveryRun: makeLimiter("rl:discovery:run", 30, "1 h"),
+  discoveryRunDaily: makeLimiter("rl:discovery:run:d", 200, "1 d"),
+  outreachDraft: makeLimiter("rl:outreach:draft", 60, "1 h"),
+  outreachDraftDaily: makeLimiter("rl:outreach:draft:d", 200, "1 d"),
+  // Generic per-user write fallback used by mutations that want a sane
+  // default but don't justify their own bucket.
+  mutationDefault: makeLimiter("rl:mut:default", 120, "1 m"),
+};
+
+export type LimiterKey = keyof typeof limiters;
+
+/**
+ * Consume one token from a limiter. Returns the underlying Upstash result.
+ * If Upstash isn't configured OR is unreachable (stale credentials,
+ * transient network failure, provider outage), returns `{ success: true }`
+ * so the app fails open rather than 500-ing on a non-critical dependency.
+ * A rate-limiter should slow abuse; it should never take the app down.
+ * Failures are logged once at warn-level so we don't drown the console
+ * when a misconfigured Upstash URL keeps missing DNS.
+ *
+ * Always pass a stable identifier (user id, IP, session id) so the bucket
+ * is keyed correctly.
+ */
+export async function consume(
+  key: LimiterKey,
+  identifier: string,
+): Promise<{ success: boolean; remaining?: number; reset?: number }> {
+  const limiter = limiters[key];
+  if (!limiter) return { success: true };
+  try {
+    const res = await limiter.limit(identifier);
+    return {
+      success: res.success,
+      remaining: res.remaining,
+      reset: res.reset,
+    };
+  } catch (err) {
+    // Network / configuration error reaching Upstash. Fail open with a
+    // single warn log so the caller still succeeds.
+    console.warn("[rate-limit] limiter unreachable, failing open", {
+      key,
+      error: err instanceof Error ? err.message : String(err),
+    });
+    return { success: true };
+  }
+}
+
+/**
+ * Throw a tRPC `TOO_MANY_REQUESTS` error when a limiter rejects. Use from
+ * inside a tRPC procedure when an explicit middleware would be overkill.
+ */
+export async function enforceTrpc(
+  key: LimiterKey,
+  identifier: string,
+  message = "Too many requests, please slow down.",
+): Promise<void> {
+  const res = await consume(key, identifier);
+  if (!res.success) {
+    throw new TRPCError({ code: "TOO_MANY_REQUESTS", message });
+  }
+}
+
+/**
+ * Convenience that consumes from multiple limiters in sequence. The first
+ * one that rejects raises `TOO_MANY_REQUESTS` with its message. Used to
+ * stack a per-hour burst limit with a per-day cost ceiling on the same
+ * surface (e.g. AI renders).
+ */
+export async function enforceTrpcMany(
+  pairs: Array<{ key: LimiterKey; message?: string }>,
+  identifier: string,
+): Promise<void> {
+  for (const { key, message } of pairs) {
+    await enforceTrpc(key, identifier, message ?? undefined);
+  }
+}
+
+/**
+ * Best-effort client identifier from an incoming `Request`. Falls back to
+ * `unknown` when no proxy headers are present (e.g. local dev). Vercel
+ * sets `x-forwarded-for` and `x-real-ip` on the edge.
+ */
+export function ipFromRequest(req: Request): string {
+  const xff = req.headers.get("x-forwarded-for");
+  if (xff) return xff.split(",")[0]!.trim();
+  const real = req.headers.get("x-real-ip");
+  if (real) return real;
+  return "unknown";
+}

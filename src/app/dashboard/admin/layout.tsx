@@ -1,24 +1,13 @@
-import { redirect } from "next/navigation";
 import { Navbar } from "@/components/layout/navbar";
 import { MobileSidebar, Sidebar } from "@/components/layout/sidebar";
-import { createClient } from "@/lib/supabase/server";
-import { prisma } from "@/lib/prisma";
+import { requireRole } from "@/lib/dashboard-auth";
 
 export default async function AdminDashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) redirect("/login");
-  const profile = await prisma.profile.findUnique({
-    where: { id: user.id },
-    select: { role: true },
-  });
-  if (profile?.role !== "admin") redirect("/dashboard");
+  await requireRole("admin");
 
   return (
     <div className="flex min-h-screen flex-col">

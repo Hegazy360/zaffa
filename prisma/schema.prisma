@@ -62,6 +62,7 @@ enum PaymentStatus {
   paid
   failed
   refunded
+  partially_refunded
   overdue
   cancelled
 }
@@ -117,6 +118,41 @@ enum ProposalStatus {
   declined
 }
 
+// Every user-facing notification is one of these. Grouped by the role most
+// likely to receive it — but delivery is determined by the notify() call
+// site, not the enum value.
+enum NotificationType {
+  // Client-facing
+  proposal_received
+  proposal_withdrawn
+  planner_assigned
+  payment_schedule_proposed
+  payment_schedule_amendment_proposed
+  payment_paid
+  payment_failed
+  payment_refunded
+  payment_due_reminder
+  payment_overdue
+  // Planner-facing
+  event_in_service_area
+  proposal_accepted
+  proposal_released
+  schedule_amendment_decided
+  payment_received
+  payout_received
+  vendor_accepted_engagement
+  vendor_declined_engagement
+  vendor_cancelled_engagement
+  review_received
+  payment_disputed
+  // Vendor-facing
+  engagement_requested
+  engagement_cancelled
+  engagement_items_updated
+  // Shared (both parties of an event thread)
+  message_received
+}
+
 model Profile {
   id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   role       UserRole @default(client)
@@ -127,6 +163,17 @@ model Profile {
   // follows the user across devices. Middleware seeds the cookie from
   // Accept-Language for anonymous visitors.
   locale     String   @default("en")
+  // Set to a timestamp when the user clicks the unsubscribe link in any
+  // transactional email. In-app notifications are unaffected; we just stop
+  // emailing them for everything.
+  email_unsubscribed_at DateTime?
+  // Soft-delete request timestamps. `deletion_requested_at` is set when
+  // the user clicks "Delete account" in settings; `deletion_scheduled_for`
+  // is the date a background job will hard-delete the row. Sign-in is
+  // refused while either is set so the grace period still gives them an
+  // unmistakable signal that their account is being wound down.
+  deletion_requested_at DateTime?
+  deletion_scheduled_for DateTime?
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
 
@@ -138,6 +185,7 @@ model Profile {
   vendor_reviews      VendorReview[]     @relation("AuthorVendorReviews")
   style_quiz_sessions StyleQuizSession[]
   venue_designs       VenueDesign[]
+  notifications       Notification[]
 
   @@map("profiles")
 }
@@ -149,6 +197,12 @@ model PlannerProfile {
   bio           String?
   location      String?
   specialties   Json                         @default("[]")
+  // Structured service-area used by the "new event in your area" notification
+  // fan-out. `service_cities` is a JSON array of lowercased city names; an
+  // empty array disables area-based matching for this planner. Existing rows
+  // default to empty + EG so we can roll the column out without a backfill.
+  service_country String                     @default("EG")
+  service_cities  Json                       @default("[]")
   avg_rating    Decimal                      @default(0) @db.Decimal(3, 2)
   review_count  Int                          @default(0)
   verified      Boolean                      @default(false)
@@ -534,11 +588,22 @@ model Payment {
   platform_fee_amount   Decimal? @db.Decimal(10, 2)
   net_to_planner_amount Decimal? @db.Decimal(10, 2)
 
+  // Cumulative amount refunded across all `PaymentRefund` rows for this
+  // installment. Maintained by the refund flow; lets us tell partial vs
+  // full refunds without scanning the ledger on every read.
+  refunded_amount Decimal @default(0) @db.Decimal(10, 2)
+
   // Set when an admin records a Payout that includes this installment.
   payout_id String? @db.Uuid
 
-  // Dispute flag set by the charge.dispute.created webhook.
-  disputed_at DateTime?
+  // Dispute lifecycle.
+  // - `disputed_at`: set on charge.dispute.created
+  // - `dispute_status`: latest known status from Stripe
+  //   (warning_needs_response / under_review / won / lost / charge_refunded)
+  // - `dispute_resolved_at`: set when dispute closes (won/lost)
+  disputed_at         DateTime?
+  dispute_status      String?
+  dispute_resolved_at DateTime?
 
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
@@ -546,6 +611,7 @@ model Payment {
   event    Event            @relation(fields: [event_id], references: [id], onDelete: Cascade)
   schedule PaymentSchedule? @relation(fields: [schedule_id], references: [id], onDelete: SetNull)
   payout   Payout?          @relation(fields: [payout_id], references: [id], onDelete: SetNull)
+  refunds  PaymentRefund[]
 
   @@index([event_id])
   @@index([schedule_id])
@@ -804,4 +870,69 @@ model OutreachTemplate {
 
   @@index([channel, type, active])
   @@map("outreach_templates")
+}
+
+// ----- Stripe webhook idempotency -----
+//
+// One row per processed Stripe `event.id`. We INSERT before running the
+// handler; on duplicate the webhook returns 2xx without re-running side
+// effects. Auto-cleaned by a periodic prune job rather than at write time
+// to keep the hot path fast.
+model StripeWebhookEvent {
+  id           String   @id
+  type         String
+  received_at  DateTime @default(now())
+  processed_at DateTime?
+
+  @@index([received_at])
+  @@map("stripe_webhook_events")
+}
+
+// ----- Refund ledger -----
+//
+// One row per Stripe refund (full or partial). A `Payment` flips to
+// `refunded` only when the cumulative refunded amount equals the original
+// gross — until then we mark `partially_refunded` so the UI can show
+// remaining balance. `created_by_user_id` is null for refunds that
+// originated in the Stripe dashboard.
+model PaymentRefund {
+  id                  String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  payment_id          String   @db.Uuid
+  stripe_refund_id    String   @unique
+  amount              Decimal  @db.Decimal(10, 2)
+  currency            String   @default("EGP")
+  reason              String?
+  created_by_user_id  String?  @db.Uuid
+  created_at          DateTime @default(now())
+
+  payment Payment @relation(fields: [payment_id], references: [id], onDelete: Cascade)
+
+  @@index([payment_id])
+  @@map("payment_refunds")
+}
+
+// ----- Notifications -----
+//
+// One row per delivered notification. In-app is the source of truth; email
+// is a best-effort side effect driven by the notify() service. `data` holds
+// structured metadata (e.g. { installmentId, eventId, amount }) used by
+// dedupe logic on the cron + future filters without schema churn.
+model Notification {
+  id         String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id    String           @db.Uuid
+  type       NotificationType
+  title      String
+  body       String?
+  link       String?
+  data       Json             @default("{}")
+  read_at    DateTime?
+  emailed_at DateTime?
+  created_at DateTime         @default(now())
+
+  user Profile @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@index([user_id, read_at, created_at(sort: Desc)])
+  @@index([user_id, created_at(sort: Desc)])
+  @@index([type, created_at(sort: Desc)])
+  @@map("notifications")
 }

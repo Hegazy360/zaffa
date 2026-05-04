@@ -1,11 +1,14 @@
 import { Navbar } from "@/components/layout/navbar";
 import { Sidebar, MobileSidebar } from "@/components/layout/sidebar";
+import { requireRole } from "@/lib/dashboard-auth";
 
-export default function ClientDashboardLayout({
+export default async function ClientDashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  await requireRole("client");
+
   return (
     <div className="flex min-h-screen flex-col">
       <Navbar />

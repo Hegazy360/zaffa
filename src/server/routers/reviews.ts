@@ -2,6 +2,8 @@ import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import { router, protectedProcedure, publicProcedure } from "../trpc";
 import { prisma } from "@/lib/prisma";
+import { trackServer } from "@/lib/posthog";
+import { ANALYTICS_EVENTS } from "@/lib/analytics-events";
 
 // Recomputes the rolling avg_rating + review_count cached on PlannerProfile.
 // Called from inside transactions so the planner card stays in sync without a
@@ -113,7 +115,7 @@ export const reviewsRouter = router({
     )
     .mutation(async ({ ctx, input }) => {
       await requireEngagement(input.eventId, input.plannerId, ctx.user.id);
-      return prisma.$transaction(async (tx) => {
+      const result = await prisma.$transaction(async (tx) => {
         const review = await tx.review.upsert({
           where: {
             author_id_planner_id_event_id: {
@@ -137,6 +139,16 @@ export const reviewsRouter = router({
         await recomputePlannerAggregates(tx, input.plannerId);
         return review;
       });
+      // Couple-journey funnel — fired on every upsert (create or rating
+      // edit) since both are meaningful engagement signals.
+      await trackServer(ctx.user.id, ANALYTICS_EVENTS.REVIEW_POSTED, {
+        target: "planner",
+        review_id: result.id,
+        planner_id: input.plannerId,
+        event_id: input.eventId,
+        rating: input.rating,
+      });
+      return result;
     }),
 
   // Authors can delete their own reviews. Recomputes aggregates so the

@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState, type KeyboardEvent } from "react";
-import { Loader2, LogOut, Plus, Save, Trash2, X } from "lucide-react";
+import { Loader2, LogOut, Plus, Save, X } from "lucide-react";
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
 import { trpc } from "@/lib/trpc";
@@ -11,6 +11,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { AvatarUploader } from "@/components/account/avatar-uploader";
+import { PasswordChangeCard } from "@/components/account/password-change-card";
+import { DeleteAccountCard } from "@/components/account/delete-account-card";
 
 function specialtiesArray(value: unknown): string[] {
   if (Array.isArray(value)) {
@@ -34,13 +37,11 @@ export default function PlannerSettingsPage() {
   const [profileSeed, setProfileSeed] = useState<string | null>(null);
   const [fullName, setFullName] = useState("");
   const [phone, setPhone] = useState("");
-  const [avatarUrl, setAvatarUrl] = useState("");
 
   if (profile && profileSeed !== profile.id) {
     setProfileSeed(profile.id);
     setFullName(profile.full_name ?? "");
     setPhone(profile.phone ?? "");
-    setAvatarUrl(profile.avatar_url ?? "");
   }
 
   // Planner form (business)
@@ -79,7 +80,6 @@ export default function PlannerSettingsPage() {
     profileUpdate.mutate({
       full_name: fullName.trim(),
       phone: phone.trim() || null,
-      avatar_url: avatarUrl.trim() || null,
     });
   };
 
@@ -271,28 +271,10 @@ export default function PlannerSettingsPage() {
             </p>
           </div>
           <div className="space-y-5 p-6">
-            <div className="flex items-center gap-4">
-              {avatarUrl ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={avatarUrl}
-                  alt={fullName || t("avatarFallbackAlt")}
-                  className="size-16 rounded-full object-cover ring-1 ring-rose-200/60"
-                />
-              ) : (
-                <div className="grid size-16 place-items-center rounded-full bg-gradient-to-br from-rose-200 to-amber-200 text-xl font-semibold text-rose-800">
-                  {fullName.charAt(0) || "?"}
-                </div>
-              )}
-              <div>
-                <p className="font-display text-lg font-medium leading-tight tracking-tight">
-                  {fullName || t("yourNameFallback")}
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  {profile?.email}
-                </p>
-              </div>
-            </div>
+            <AvatarUploader
+              currentUrl={profile?.avatar_url ?? null}
+              displayName={fullName}
+            />
             <div className="grid gap-4">
               <div className="space-y-1.5">
                 <Label htmlFor="full-name">{t("fullNameLabel")}</Label>
@@ -321,15 +303,6 @@ export default function PlannerSettingsPage() {
                   placeholder={t("phonePlaceholder")}
                 />
               </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="avatar">{t("avatarUrlLabel")}</Label>
-                <Input
-                  id="avatar"
-                  value={avatarUrl}
-                  onChange={(e) => setAvatarUrl(e.target.value)}
-                  placeholder="https://…"
-                />
-              </div>
             </div>
             <div className="flex justify-end">
               <Button
@@ -352,6 +325,7 @@ export default function PlannerSettingsPage() {
           <h2 className="font-display text-lg font-medium tracking-tight">
             {t("accountHeading")}
           </h2>
+          <PasswordChangeCard email={profile?.email ?? null} />
           <div className="rounded-2xl border border-rose-100/70 bg-white/70 p-4 backdrop-blur-sm">
             <div className="flex items-center justify-between gap-3">
               <div>
@@ -371,25 +345,7 @@ export default function PlannerSettingsPage() {
               </Button>
             </div>
           </div>
-          <div className="rounded-2xl border border-stone-200/70 bg-stone-50/50 p-4">
-            <div className="flex items-center justify-between gap-3">
-              <div>
-                <p className="text-sm font-medium">{t("deleteAccount")}</p>
-                <p className="text-xs text-muted-foreground">
-                  {t("deleteAccountBody")}
-                </p>
-              </div>
-              <Button
-                variant="outline"
-                size="sm"
-                disabled
-                className="gap-1 text-destructive hover:bg-destructive/10 hover:text-destructive"
-              >
-                <Trash2 className="size-3.5" />
-                {t("contactSupport")}
-              </Button>
-            </div>
-          </div>
+          <DeleteAccountCard />
         </div>
       </div>
     </div>

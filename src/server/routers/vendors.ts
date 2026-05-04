@@ -1,8 +1,10 @@
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
-import { router, protectedProcedure, publicProcedure } from "../trpc";
+import { router, protectedProcedure } from "../trpc";
 import { prisma } from "@/lib/prisma";
 import { cloudinary } from "@/lib/cloudinary";
+import { trackServer } from "@/lib/posthog";
+import { ANALYTICS_EVENTS } from "@/lib/analytics-events";
 
 const vendorCategorySchema = z.enum([
   "catering",
@@ -54,10 +56,12 @@ export const vendorsRouter = router({
     });
   }),
 
-  // Public profile by id — used by the planner-side browse + detail pages
+  // Vendor profile by id — used by the planner-side browse + detail pages
   // and also the planner-event vendor card. Includes catalog + reviews so
-  // those pages can render in a single round-trip.
-  byId: publicProcedure
+  // those pages can render in a single round-trip. Gated to authenticated
+  // users only — public access to the vendor catalog is currently disabled
+  // (see the `publicBrowse` flag in `src/lib/flags.ts`).
+  byId: protectedProcedure
     .input(z.object({ id: z.string().uuid() }))
     .query(async ({ input }) => {
       const vendor = await prisma.vendorProfile.findUnique({
@@ -84,10 +88,11 @@ export const vendorsRouter = router({
       return vendor;
     }),
 
-  // Planner-side browse. Supports a category filter, location prefix match,
-  // and a free-text query that runs against business_name + bio +
-  // specialties (the latter via JSON contains so we don't need full-text
-  // search for v1).
+  // Planner-side / public browse. Supports a category filter, location prefix
+  // match, and a free-text query that runs against business_name + bio.
+  // Authenticated only — the public `/vendors` page is currently dark-shipped
+  // behind the `publicBrowse` flag, so we don't want this exposed unauthed
+  // either.
   search: protectedProcedure
     .input(
       z.object({
@@ -98,7 +103,7 @@ export const vendorsRouter = router({
         cursor: z.string().uuid().optional(),
       }),
     )
-    .query(async ({ input }) => {
+    .query(async ({ ctx, input }) => {
       const where: Record<string, unknown> = {};
       if (input.category) where.category = input.category;
       if (input.location && input.location.length > 0) {
@@ -129,6 +134,20 @@ export const vendorsRouter = router({
       });
       const hasMore = items.length > input.take;
       const trimmed = hasMore ? items.slice(0, -1) : items;
+
+      // Planner-journey funnel — only fire on the first page of results
+      // (no cursor) to avoid double-counting infinite-scroll pagination.
+      // Captures the search shape so we can later see which filters are
+      // actually used.
+      if (!input.cursor) {
+        await trackServer(ctx.user.id, ANALYTICS_EVENTS.VENDOR_SEARCHED, {
+          category: input.category ?? null,
+          location: input.location ?? null,
+          has_query: Boolean(input.query && input.query.length > 0),
+          result_count: trimmed.length,
+        });
+      }
+
       return {
         items: trimmed,
         nextCursor: hasMore ? trimmed[trimmed.length - 1]?.id ?? null : null,
@@ -167,6 +186,14 @@ export const vendorsRouter = router({
         await prisma.profile.update({
           where: { id: ctx.user.id },
           data: { role: "vendor" },
+        });
+        await trackServer(ctx.user.id, ANALYTICS_EVENTS.ONBOARDING_COMPLETED, {
+          role: "vendor",
+        });
+        await trackServer(ctx.user.id, ANALYTICS_EVENTS.PROFILE_PUBLISHED, {
+          role: "vendor",
+          vendor_id: created.id,
+          category: input.category,
         });
         return created;
       }
@@ -294,7 +321,7 @@ export const vendorsRouter = router({
       )
       .mutation(async ({ ctx, input }) => {
         const vendor = await requireVendor(ctx.user.id);
-        return prisma.vendorService.create({
+        const created = await prisma.vendorService.create({
           data: {
             vendor_id: vendor.id,
             name: input.name,
@@ -307,6 +334,15 @@ export const vendorsRouter = router({
             available: input.available,
           },
         });
+        // Vendor activation funnel — every new service is a step toward
+        // a complete catalog. Captured against the vendor's distinctId.
+        await trackServer(ctx.user.id, ANALYTICS_EVENTS.SERVICE_ADDED, {
+          service_id: created.id,
+          vendor_id: vendor.id,
+          price_from: input.price_from,
+          subcategory: input.subcategory ?? null,
+        });
+        return created;
       }),
 
     update: protectedProcedure
@@ -407,7 +443,7 @@ export const vendorsRouter = router({
       )
       .mutation(async ({ ctx, input }) => {
         const vendor = await requireVendor(ctx.user.id);
-        return prisma.vendorPortfolioItem.create({
+        const created = await prisma.vendorPortfolioItem.create({
           data: {
             vendor_id: vendor.id,
             image_url: input.image_url,
@@ -416,6 +452,13 @@ export const vendorsRouter = router({
             style_tags: input.style_tags ?? [],
           },
         });
+        await trackServer(ctx.user.id, ANALYTICS_EVENTS.PORTFOLIO_ADDED, {
+          owner: "vendor",
+          item_id: created.id,
+          vendor_id: vendor.id,
+          event_type: input.event_type ?? null,
+        });
+        return created;
       }),
 
     update: protectedProcedure

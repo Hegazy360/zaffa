@@ -1,43 +1,27 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { trpc } from "@/lib/trpc";
 
-export interface RealtimeMessage {
-  id: string;
-  event_id: string;
-  sender_id: string;
-  content: string;
-  created_at: string;
-}
-
-export function useRealtimeMessages(eventId: string) {
-  const [messages, setMessages] = useState<RealtimeMessage[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const supabase = createClient();
+/**
+ * Subscribes to Supabase Realtime for new INSERTs on the `messages` table
+ * scoped to a given event, and invalidates the tRPC `messages.byEvent`
+ * query so the panel re-fetches with full server-side joins (sender, etc.)
+ * instead of trying to reconstruct the row from the realtime payload.
+ *
+ * The trpc query keeps a slow refetchInterval as a fallback, but the
+ * realtime subscription is what makes the panel feel instantaneous.
+ *
+ * Pass an empty string to disable.
+ */
+export function useRealtimeMessageSync(eventId: string): void {
+  const utils = trpc.useUtils();
 
   useEffect(() => {
-    if (!eventId) {
-      setIsLoading(false);
-      return;
-    }
+    if (!eventId) return;
 
-    const fetchMessages = async () => {
-      setIsLoading(true);
-      const { data, error } = await supabase
-        .from("messages")
-        .select("*")
-        .eq("event_id", eventId)
-        .order("created_at", { ascending: true });
-
-      if (!error && data) {
-        setMessages(data as RealtimeMessage[]);
-      }
-      setIsLoading(false);
-    };
-
-    fetchMessages();
-
+    const supabase = createClient();
     const channel = supabase
       .channel(`messages:${eventId}`)
       .on(
@@ -48,17 +32,14 @@ export function useRealtimeMessages(eventId: string) {
           table: "messages",
           filter: `event_id=eq.${eventId}`,
         },
-        (payload) => {
-          const newMessage = payload.new as RealtimeMessage;
-          setMessages((prev) => [...prev, newMessage]);
-        }
+        () => {
+          utils.messages.byEvent.invalidate({ eventId });
+        },
       )
       .subscribe();
 
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [eventId]);
-
-  return { messages, isLoading };
+  }, [eventId, utils]);
 }

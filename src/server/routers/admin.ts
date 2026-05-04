@@ -2,6 +2,13 @@ import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import { router, protectedProcedure } from "../trpc";
 import { prisma } from "@/lib/prisma";
+import { getStripe } from "@/lib/stripe";
+import { fromStripeAmount, toStripeAmount } from "@/lib/payments";
+import { formatMoney } from "./payment-schedules";
+import {
+  notifyPaymentRefunded,
+  notifyPayoutReceived,
+} from "@/server/services/notifications/dispatchers";
 
 async function assertAdmin(userId: string) {
   const profile = await prisma.profile.findUnique({
@@ -14,14 +21,62 @@ async function assertAdmin(userId: string) {
 }
 
 export const adminRouter = router({
+  // Toggle the `verified` badge on a planner or vendor profile. Used by
+  // the admin > users detail page. The badge powers the "Verified" UI on
+  // proposal cards, planner directory, and vendor profiles.
+  setVerified: protectedProcedure
+    .input(
+      z.object({
+        userId: z.string().uuid(),
+        kind: z.enum(["planner", "vendor"]),
+        verified: z.boolean(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      await assertAdmin(ctx.user.id);
+      if (input.kind === "planner") {
+        const updated = await prisma.plannerProfile.updateMany({
+          where: { user_id: input.userId },
+          data: { verified: input.verified },
+        });
+        if (updated.count === 0) {
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "No planner profile for this user",
+          });
+        }
+      } else {
+        const updated = await prisma.vendorProfile.updateMany({
+          where: { user_id: input.userId },
+          data: { verified: input.verified },
+        });
+        if (updated.count === 0) {
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "No vendor profile for this user",
+          });
+        }
+      }
+      return { ok: true };
+    }),
+
+
   // Lists every planner that has a positive pending balance (paid
-  // installments not yet linked to a Payout). The admin payouts page uses
+  // installments not yet linked to a Payout). Disputed/refunded rows are
+  // held back from the queue until they resolve so we don't pay a planner
+  // out of money we may have to claw back. The admin payouts page uses
   // this as its main feed.
   pendingPayouts: protectedProcedure.query(async ({ ctx }) => {
     await assertAdmin(ctx.user.id);
+    const baseWhere = {
+      status: "paid" as const,
+      payout_id: null,
+      disputed_at: null,
+      refunded_amount: 0,
+    };
     const grouped = await prisma.payment.groupBy({
       by: ["currency"],
-      where: { status: "paid", payout_id: null },
+      where: baseWhere,
       _sum: {
         amount: true,
         net_to_planner_amount: true,
@@ -31,7 +86,7 @@ export const adminRouter = router({
     // Per-planner. groupBy doesn't support relational keys directly, so we
     // pull the underlying rows and bucket in JS — fine at our scale.
     const rows = await prisma.payment.findMany({
-      where: { status: "paid", payout_id: null },
+      where: baseWhere,
       select: {
         amount: true,
         net_to_planner_amount: true,
@@ -107,6 +162,8 @@ export const adminRouter = router({
         where: {
           status: "paid",
           payout_id: null,
+          disputed_at: null,
+          refunded_amount: 0,
           schedule: { planner_id: input.plannerId },
         },
         orderBy: { paid_at: "desc" },
@@ -162,8 +219,8 @@ export const adminRouter = router({
         0
       );
 
-      return prisma.$transaction(async (tx) => {
-        const payout = await tx.payout.create({
+      const payout = await prisma.$transaction(async (tx) => {
+        const p = await tx.payout.create({
           data: {
             planner_id: input.plannerId,
             currency: input.currency,
@@ -177,10 +234,179 @@ export const adminRouter = router({
         });
         await tx.payment.updateMany({
           where: { id: { in: input.installmentIds } },
-          data: { payout_id: payout.id },
+          data: { payout_id: p.id },
         });
-        return payout;
+        return p;
       });
+
+      // Loop the planner in so they see the money landing in their wallet
+      // without having to refresh. The payout record is the source of truth,
+      // so we derive the recipient from it rather than trusting input.
+      const planner = await prisma.plannerProfile.findUnique({
+        where: { id: input.plannerId },
+        select: { user_id: true },
+      });
+      if (planner) {
+        await notifyPayoutReceived({
+          recipientUserId: planner.user_id,
+          role: "planner",
+          amount: formatMoney(Number(payout.amount), payout.currency),
+          method: payout.method,
+          reference: payout.reference,
+          payoutId: payout.id,
+        });
+      }
+      return payout;
+    }),
+
+  // List active disputes (open or unresolved) so admin can act before the
+  // Stripe deadline. Closed disputes also returned for context, ordered by
+  // most recently disputed first.
+  disputes: protectedProcedure
+    .input(
+      z
+        .object({ includeResolved: z.boolean().default(false) })
+        .optional(),
+    )
+    .query(async ({ ctx, input }) => {
+      await assertAdmin(ctx.user.id);
+      return prisma.payment.findMany({
+        where: {
+          disputed_at: { not: null },
+          ...(input?.includeResolved
+            ? {}
+            : { dispute_resolved_at: null }),
+        },
+        orderBy: { disputed_at: "desc" },
+        take: 100,
+        select: {
+          id: true,
+          amount: true,
+          currency: true,
+          status: true,
+          disputed_at: true,
+          dispute_status: true,
+          dispute_resolved_at: true,
+          stripe_charge_id: true,
+          event: { select: { id: true, title: true, client_id: true } },
+          schedule: {
+            select: {
+              planner: {
+                select: { id: true, business_name: true },
+              },
+            },
+          },
+        },
+      });
+    }),
+
+  // Issue a Stripe refund for a paid installment. Supports partial refunds
+  // by passing `amount`. Creates the matching `PaymentRefund` row eagerly
+  // so the UI updates immediately; the `charge.refunded` webhook is a
+  // back-stop that reconciles the ledger if Stripe sees the refund first.
+  refundPayment: protectedProcedure
+    .input(
+      z.object({
+        paymentId: z.string().uuid(),
+        // Omit for a full refund of the remaining balance.
+        amount: z.number().positive().max(1_000_000).optional(),
+        reason: z
+          .enum(["duplicate", "fraudulent", "requested_by_customer"])
+          .optional(),
+        notes: z.string().max(2000).optional(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      await assertAdmin(ctx.user.id);
+      const payment = await prisma.payment.findUnique({
+        where: { id: input.paymentId },
+        select: {
+          id: true,
+          amount: true,
+          currency: true,
+          status: true,
+          refunded_amount: true,
+          stripe_charge_id: true,
+          stripe_payment_intent_id: true,
+          payout_id: true,
+          event: { select: { id: true, title: true, client_id: true } },
+        },
+      });
+      if (!payment) throw new TRPCError({ code: "NOT_FOUND" });
+      if (!payment.stripe_charge_id && !payment.stripe_payment_intent_id) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "No Stripe charge attached to this payment",
+        });
+      }
+      if (payment.status === "refunded") {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Already fully refunded",
+        });
+      }
+      const gross = Number(payment.amount);
+      const alreadyRefunded = Number(payment.refunded_amount);
+      const remaining = Math.max(0, gross - alreadyRefunded);
+      const requested = input.amount ?? remaining;
+      if (requested <= 0 || requested - 0.005 > remaining) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: `Requested ${requested} exceeds refundable ${remaining}`,
+        });
+      }
+
+      const stripe = getStripe();
+      const refund = await stripe.refunds.create({
+        charge: payment.stripe_charge_id ?? undefined,
+        payment_intent: payment.stripe_charge_id
+          ? undefined
+          : payment.stripe_payment_intent_id ?? undefined,
+        amount: toStripeAmount(requested, payment.currency),
+        reason: input.reason,
+        metadata: {
+          paymentId: payment.id,
+          eventId: payment.event.id,
+          initiatedBy: ctx.user.id,
+        },
+      });
+
+      const refundedAmount = fromStripeAmount(refund.amount, payment.currency);
+
+      await prisma.$transaction(async (tx) => {
+        await tx.paymentRefund.upsert({
+          where: { stripe_refund_id: refund.id },
+          create: {
+            payment_id: payment.id,
+            stripe_refund_id: refund.id,
+            amount: refundedAmount,
+            currency: payment.currency,
+            reason: input.notes ?? input.reason ?? null,
+            created_by_user_id: ctx.user.id,
+          },
+          update: {},
+        });
+        const cumulative = alreadyRefunded + refundedAmount;
+        const fullyRefunded = cumulative >= gross - 0.005;
+        await tx.payment.update({
+          where: { id: payment.id },
+          data: {
+            refunded_amount: cumulative,
+            status: fullyRefunded ? "refunded" : "partially_refunded",
+            stripe_refund_id: refund.id,
+          },
+        });
+      });
+
+      await notifyPaymentRefunded({
+        clientUserId: payment.event.client_id,
+        eventId: payment.event.id,
+        eventTitle: payment.event.title,
+        amount: formatMoney(refundedAmount, payment.currency),
+        paymentId: payment.id,
+      });
+
+      return { refundId: refund.id, refundedAmount };
     }),
 
   // Recent collected installments + disputes/refunds for an admin overview.
@@ -190,7 +416,7 @@ export const adminRouter = router({
       await assertAdmin(ctx.user.id);
       return prisma.payment.findMany({
         where: {
-          status: { in: ["paid", "refunded"] },
+          status: { in: ["paid", "refunded", "partially_refunded"] },
           schedule_id: { not: null },
         },
         orderBy: { paid_at: "desc" },
@@ -203,6 +429,8 @@ export const adminRouter = router({
           status: true,
           paid_at: true,
           disputed_at: true,
+          dispute_status: true,
+          refunded_amount: true,
           net_to_planner_amount: true,
           platform_fee_amount: true,
           event: { select: { id: true, title: true } },
@@ -337,8 +565,8 @@ export const adminRouter = router({
         });
       }
       const total = eligible.reduce((s, r) => s + Number(r.amount), 0);
-      return prisma.$transaction(async (tx) => {
-        const payout = await tx.payout.create({
+      const payout = await prisma.$transaction(async (tx) => {
+        const p = await tx.payout.create({
           data: {
             vendor_id: input.vendorId,
             recipient_type: "vendor",
@@ -353,9 +581,25 @@ export const adminRouter = router({
         });
         await tx.vendorRelease.updateMany({
           where: { id: { in: input.releaseIds } },
-          data: { status: "paid", paid_at: input.paid_at, payout_id: payout.id },
+          data: { status: "paid", paid_at: input.paid_at, payout_id: p.id },
         });
-        return payout;
+        return p;
       });
+
+      const vendor = await prisma.vendorProfile.findUnique({
+        where: { id: input.vendorId },
+        select: { user_id: true },
+      });
+      if (vendor) {
+        await notifyPayoutReceived({
+          recipientUserId: vendor.user_id,
+          role: "vendor",
+          amount: formatMoney(Number(payout.amount), payout.currency),
+          method: payout.method,
+          reference: payout.reference,
+          payoutId: payout.id,
+        });
+      }
+      return payout;
     }),
 });

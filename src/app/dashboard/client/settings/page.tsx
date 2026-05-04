@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Loader2, LogOut, Save, Trash2 } from "lucide-react";
+import { Loader2, LogOut, Save } from "lucide-react";
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
 import { trpc } from "@/lib/trpc";
@@ -10,6 +10,9 @@ import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { AvatarUploader } from "@/components/account/avatar-uploader";
+import { PasswordChangeCard } from "@/components/account/password-change-card";
+import { DeleteAccountCard } from "@/components/account/delete-account-card";
 
 export default function SettingsPage() {
   const router = useRouter();
@@ -25,13 +28,11 @@ export default function SettingsPage() {
   const [seededFor, setSeededFor] = useState<string | null>(null);
   const [fullName, setFullName] = useState("");
   const [phone, setPhone] = useState("");
-  const [avatarUrl, setAvatarUrl] = useState("");
 
   if (profile && seededFor !== profile.id) {
     setSeededFor(profile.id);
     setFullName(profile.full_name ?? "");
     setPhone(profile.phone ?? "");
-    setAvatarUrl(profile.avatar_url ?? "");
   }
 
   const update = trpc.profile.update.useMutation({
@@ -46,7 +47,6 @@ export default function SettingsPage() {
     update.mutate({
       full_name: fullName.trim(),
       phone: phone.trim() || null,
-      avatar_url: avatarUrl.trim() || null,
     });
   };
 
@@ -86,28 +86,10 @@ export default function SettingsPage() {
 
         <div className="overflow-hidden rounded-2xl border border-rose-100/70 bg-white/80 backdrop-blur-sm dark:border-rose-900/30 dark:bg-card/80">
           <div className="space-y-5 p-6">
-            <div className="flex items-center gap-4">
-              {avatarUrl ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={avatarUrl}
-                  alt={fullName || "avatar"}
-                  className="size-16 rounded-full object-cover ring-1 ring-rose-200/60"
-                />
-              ) : (
-                <div className="grid size-16 place-items-center rounded-full bg-gradient-to-br from-rose-200 to-amber-200 text-xl font-semibold text-rose-800">
-                  {fullName.charAt(0) || "?"}
-                </div>
-              )}
-              <div>
-                <p className="font-display text-lg font-medium leading-tight tracking-tight">
-                  {fullName || tc("yourName")}
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  {profile?.email}
-                </p>
-              </div>
-            </div>
+            <AvatarUploader
+              currentUrl={profile?.avatar_url ?? null}
+              displayName={fullName}
+            />
 
             <div className="grid gap-4">
               <div className="space-y-1.5">
@@ -140,15 +122,6 @@ export default function SettingsPage() {
                   placeholder={tc("phonePlaceholder")}
                 />
               </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="avatar">{tc("avatarUrl")}</Label>
-                <Input
-                  id="avatar"
-                  value={avatarUrl}
-                  onChange={(e) => setAvatarUrl(e.target.value)}
-                  placeholder={tc("avatarUrlPlaceholder")}
-                />
-              </div>
             </div>
 
             <div className="flex justify-end">
@@ -172,6 +145,9 @@ export default function SettingsPage() {
           <h2 className="font-display text-lg font-medium tracking-tight">
             {tc("account")}
           </h2>
+
+          <PasswordChangeCard email={profile?.email ?? null} />
+
           <div className="rounded-2xl border border-rose-100/70 bg-white/70 p-4 backdrop-blur-sm dark:border-rose-900/30 dark:bg-card/70">
             <div className="flex items-center justify-between gap-3">
               <div>
@@ -192,25 +168,7 @@ export default function SettingsPage() {
             </div>
           </div>
 
-          <div className="rounded-2xl border border-stone-200/70 bg-stone-50/50 p-4 dark:border-stone-800 dark:bg-card/40">
-            <div className="flex items-center justify-between gap-3">
-              <div>
-                <p className="text-sm font-medium">{tc("deleteAccount")}</p>
-                <p className="text-xs text-muted-foreground">
-                  {tc("deleteAccountHint")}
-                </p>
-              </div>
-              <Button
-                variant="outline"
-                size="sm"
-                disabled
-                className="gap-1 text-destructive hover:bg-destructive/10 hover:text-destructive"
-              >
-                <Trash2 className="size-3.5" />
-                {tc("contactSupport")}
-              </Button>
-            </div>
-          </div>
+          <DeleteAccountCard />
         </div>
       </div>
     </div>

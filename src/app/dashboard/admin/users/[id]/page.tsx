@@ -3,10 +3,18 @@
 import Link from "next/link";
 import { use } from "react";
 import { useTranslations } from "next-intl";
-import { ArrowLeft, Loader2, ShieldCheck, Star } from "lucide-react";
+import { toast } from "sonner";
+import {
+  ArrowLeft,
+  Loader2,
+  ShieldCheck,
+  ShieldOff,
+  Star,
+} from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { useFormatters } from "@/lib/use-formatters";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
 
 export default function AdminUserDetailPage({
   params,
@@ -16,7 +24,20 @@ export default function AdminUserDetailPage({
   const { id } = use(params);
   const t = useTranslations("admin");
   const f = useFormatters();
+  const utils = trpc.useUtils();
   const detail = trpc.adminOverview.userById.useQuery({ id });
+  const setVerified = trpc.admin.setVerified.useMutation({
+    onSuccess: (_data, variables) => {
+      toast.success(
+        variables.verified
+          ? t("verifiedToast")
+          : t("unverifiedToast"),
+      );
+      utils.adminOverview.userById.invalidate({ id });
+      utils.adminOverview.usersList.invalidate();
+    },
+    onError: (e) => toast.error(e.message),
+  });
 
   if (detail.isLoading) {
     return (
@@ -114,6 +135,43 @@ export default function AdminUserDetailPage({
         <p className="rounded-2xl border border-rose-100/70 bg-white/80 px-5 py-4 text-sm text-muted-foreground">
           {profile.planner_profile?.bio ?? profile.vendor_profile?.bio}
         </p>
+      )}
+
+      {(profile.planner_profile || profile.vendor_profile) && (
+        <div className="flex items-center justify-between gap-3 rounded-2xl border border-rose-100/70 bg-white/80 px-5 py-4">
+          <div>
+            <p className="text-sm font-medium">
+              {verified
+                ? t("verificationStateOn")
+                : t("verificationStateOff")}
+            </p>
+            <p className="text-xs text-muted-foreground">
+              {t("verificationHint")}
+            </p>
+          </div>
+          <Button
+            size="sm"
+            variant={verified ? "outline" : "default"}
+            disabled={setVerified.isPending}
+            onClick={() =>
+              setVerified.mutate({
+                userId: profile.id,
+                kind: profile.planner_profile ? "planner" : "vendor",
+                verified: !verified,
+              })
+            }
+            className="gap-1.5"
+          >
+            {setVerified.isPending ? (
+              <Loader2 className="size-3.5 animate-spin" />
+            ) : verified ? (
+              <ShieldOff className="size-3.5" />
+            ) : (
+              <ShieldCheck className="size-3.5" />
+            )}
+            {verified ? t("unverifyAction") : t("verifyAction")}
+          </Button>
+        </div>
       )}
 
       {profile.role === "client" && (

@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { isAuthorizedCronRequest } from "@/lib/env-checks";
+import { reportError } from "@/lib/logger";
 import { runDiscovery } from "@/server/services/prospects/run-discovery";
 import { DiscoveryRunStatus } from "@/generated/prisma/client";
 
@@ -17,12 +19,8 @@ export const runtime = "nodejs";
 const MAX_PER_TICK = 3;
 
 export async function GET(req: Request) {
-  const expected = process.env.CRON_SECRET;
-  if (expected) {
-    const got = req.headers.get("authorization") ?? "";
-    if (got !== `Bearer ${expected}`) {
-      return NextResponse.json({ error: "unauthorized" }, { status: 401 });
-    }
+  if (!isAuthorizedCronRequest(req)) {
+    return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
 
   const queued = await prisma.discoveryRun.findMany({
@@ -38,6 +36,7 @@ export async function GET(req: Request) {
       await runDiscovery(r.id);
       results.push({ id: r.id, ok: true });
     } catch (e) {
+      reportError("cron.discovery_tick.run_failed", e, { runId: r.id });
       results.push({
         id: r.id,
         ok: false,

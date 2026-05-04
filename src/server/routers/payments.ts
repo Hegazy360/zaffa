@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
+import { Prisma } from "@prisma/client";
 import { router, protectedProcedure } from "../trpc";
 import { prisma } from "@/lib/prisma";
 import { getStripe } from "@/lib/stripe";
@@ -8,6 +9,7 @@ import {
   platformName,
   toStripeAmount,
 } from "@/lib/payments";
+import { reportError } from "@/lib/logger";
 
 // All payment lifecycle now flows through PaymentSchedule -> Stripe Checkout.
 // The legacy manual-ledger surface (off-platform cash entries) was removed
@@ -72,6 +74,23 @@ export const paymentsRouter = router({
       const successUrl = `${baseUrl}/dashboard/client/event/${installment.event.id}?tab=payments&paid=${installment.id}`;
       const cancelUrl = `${baseUrl}/dashboard/client/event/${installment.event.id}?tab=payments&cancelled=${installment.id}`;
 
+      // Look up the client's email so Stripe can email them a receipt
+      // automatically once the payment lands. This is a v1 receipt — VAT /
+      // tax-compliant invoices ship in a follow-up. See README "Receipts".
+      // Email lives on auth.users (not the public Profile row), so we read
+      // it via $queryRaw rather than modelling the auth schema in Prisma.
+      let clientEmail: string | null = null;
+      try {
+        const rows = await prisma.$queryRaw<Array<{ email: string | null }>>(
+          Prisma.sql`select email from auth.users where id = ${installment.event.client_id}::uuid limit 1`,
+        );
+        clientEmail = rows[0]?.email ?? null;
+      } catch (err) {
+        reportError("payments.checkout.lookupEmail", err, {
+          installmentId: installment.id,
+        });
+      }
+
       const session = await stripe.checkout.sessions.create({
         mode: "payment",
         line_items: [
@@ -87,6 +106,7 @@ export const paymentsRouter = router({
             quantity: 1,
           },
         ],
+        ...(clientEmail ? { customer_email: clientEmail } : {}),
         metadata: {
           installmentId: installment.id,
           scheduleId: installment.schedule.id,
@@ -100,6 +120,10 @@ export const paymentsRouter = router({
             scheduleId: installment.schedule.id,
             eventId: installment.event.id,
           },
+          // Stripe-hosted receipts emailed automatically when receipt_email is
+          // set on the PaymentIntent. customer_email above also works for
+          // Checkout, but we belt-and-braces the PaymentIntent path too.
+          ...(clientEmail ? { receipt_email: clientEmail } : {}),
         },
         success_url: successUrl,
         cancel_url: cancelUrl,

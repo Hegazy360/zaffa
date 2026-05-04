@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils";
 import type { UserRole } from "@/types";
 import {
   Activity,
+  Bell,
   CalendarDays,
   Compass,
   FileText,
@@ -16,7 +17,6 @@ import {
   Radar,
   Send,
   Settings,
-  ShieldCheck,
   Store,
   Target,
   UserRound,
@@ -67,6 +67,11 @@ const roleLinks: Record<UserRole, NavLink[]> = {
       icon: MessageSquare,
     },
     {
+      href: "/dashboard/notifications",
+      labelKey: "notifications",
+      icon: Bell,
+    },
+    {
       href: "/dashboard/client/settings",
       labelKey: "settings",
       icon: Settings,
@@ -111,6 +116,11 @@ const roleLinks: Record<UserRole, NavLink[]> = {
       icon: ImageIcon,
     },
     {
+      href: "/dashboard/notifications",
+      labelKey: "notifications",
+      icon: Bell,
+    },
+    {
       href: "/dashboard/planner/settings",
       labelKey: "settings",
       icon: Settings,
@@ -143,6 +153,11 @@ const roleLinks: Record<UserRole, NavLink[]> = {
       href: "/dashboard/vendor/profile",
       labelKey: "profile",
       icon: UserRound,
+    },
+    {
+      href: "/dashboard/notifications",
+      labelKey: "notifications",
+      icon: Bell,
     },
     {
       href: "/dashboard/vendor/settings",
@@ -195,11 +210,6 @@ const roleLinks: Record<UserRole, NavLink[]> = {
       href: "/dashboard/admin/vendor-payouts",
       labelKey: "vendorPayouts",
       icon: Store,
-    },
-    {
-      href: "/dashboard/admin/audit",
-      labelKey: "audit",
-      icon: ShieldCheck,
     },
   ],
 };

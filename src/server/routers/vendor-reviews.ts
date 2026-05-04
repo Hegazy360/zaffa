@@ -2,6 +2,9 @@ import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import { router, protectedProcedure, publicProcedure } from "../trpc";
 import { prisma } from "@/lib/prisma";
+import { notifyReviewReceivedVendor } from "@/server/services/notifications/dispatchers";
+import { trackServer } from "@/lib/posthog";
+import { ANALYTICS_EVENTS } from "@/lib/analytics-events";
 
 // Recomputes the rolling avg_rating + review_count cached on VendorProfile.
 // Mirrors recomputePlannerAggregates in reviews.ts so vendor cards stay in
@@ -136,8 +139,18 @@ export const vendorReviewsRouter = router({
         input.vendorId,
         ctx.user.id,
       );
-      return prisma.$transaction(async (tx) => {
-        const review = await tx.vendorReview.upsert({
+      const { review, wasCreated } = await prisma.$transaction(async (tx) => {
+        const existing = await tx.vendorReview.findUnique({
+          where: {
+            author_id_vendor_id_engagement_id: {
+              author_id: ctx.user.id,
+              vendor_id: input.vendorId,
+              engagement_id: input.engagementId,
+            },
+          },
+          select: { id: true },
+        });
+        const r = await tx.vendorReview.upsert({
           where: {
             author_id_vendor_id_engagement_id: {
               author_id: ctx.user.id,
@@ -158,8 +171,44 @@ export const vendorReviewsRouter = router({
           },
         });
         await recomputeVendorAggregates(tx, input.vendorId);
-        return review;
+        return { review: r, wasCreated: !existing };
       });
+
+      // Only fire the notification on first-time creation — edits to
+      // existing reviews shouldn't spam the vendor every time a planner
+      // fiddles with the rating.
+      if (wasCreated) {
+        const ctx2 = await prisma.vendorProfile.findUnique({
+          where: { id: input.vendorId },
+          select: {
+            user_id: true,
+            profile: { select: { full_name: true } },
+          },
+        });
+        const author = await prisma.profile.findUnique({
+          where: { id: ctx.user.id },
+          select: { full_name: true },
+        });
+        if (ctx2 && author) {
+          await notifyReviewReceivedVendor({
+            vendorUserId: ctx2.user_id,
+            authorName: author.full_name,
+            rating: input.rating,
+            engagementId: input.engagementId,
+          });
+        }
+      }
+      // Couple/planner journey funnel — vendor reviews are authored by
+      // planners (not couples), so the distinctId is the planner's
+      // user id. Tracked on every upsert (create or edit).
+      await trackServer(ctx.user.id, ANALYTICS_EVENTS.REVIEW_POSTED, {
+        target: "vendor",
+        review_id: review.id,
+        vendor_id: input.vendorId,
+        engagement_id: input.engagementId,
+        rating: input.rating,
+      });
+      return review;
     }),
 
   delete: protectedProcedure

@@ -1,15 +1,21 @@
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
+import { isFlagEnabled } from "@/lib/flags";
 
 export async function Footer() {
   const t = await getTranslations("marketing");
   const tBrand = await getTranslations("brand");
   const year = new Date().getFullYear();
+  const showBrowse = isFlagEnabled("publicBrowse");
 
   return (
     <footer className="border-t bg-muted/30">
       <div className="container mx-auto max-w-7xl px-4 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div
+          className={`grid grid-cols-1 gap-8 ${
+            showBrowse ? "md:grid-cols-4" : "md:grid-cols-3"
+          }`}
+        >
           <div>
             <h3 className="text-lg font-bold bg-gradient-to-r from-rose-600 to-amber-500 bg-clip-text text-transparent">
               {tBrand("name")}
@@ -41,6 +47,24 @@ export async function Footer() {
             </ul>
           </div>
 
+          {showBrowse ? (
+            <div>
+              <h4 className="font-semibold mb-3">{t("footerBrowse")}</h4>
+              <ul className="space-y-2 text-sm text-muted-foreground">
+                <li>
+                  <Link href="/planners" className="hover:text-foreground">
+                    {t("footerBrowsePlanners")}
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/vendors" className="hover:text-foreground">
+                    {t("footerBrowseVendors")}
+                  </Link>
+                </li>
+              </ul>
+            </div>
+          ) : null}
+
           <div>
             <h4 className="font-semibold mb-3">{t("footerCompany")}</h4>
             <ul className="space-y-2 text-sm text-muted-foreground">
@@ -57,6 +81,11 @@ export async function Footer() {
               <li>
                 <Link href="/privacy" className="hover:text-foreground">
                   {t("footerPrivacy")}
+                </Link>
+              </li>
+              <li>
+                <Link href="/terms" className="hover:text-foreground">
+                  {t("footerTerms")}
                 </Link>
               </li>
             </ul>

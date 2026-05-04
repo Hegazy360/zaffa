@@ -10,6 +10,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { trpc } from "@/lib/trpc";
+import { track } from "@/lib/analytics";
+import { ANALYTICS_EVENTS } from "@/lib/analytics-events";
 import { OAuthButtons } from "./oauth-buttons";
 import { PasswordField } from "./password-field";
 import { AuthCheckEmail } from "./auth-check-email";
@@ -58,6 +60,14 @@ export function ClientSignUpForm() {
       setLoading(false);
       return;
     }
+
+    // Activation funnel — fired client-side because this is the moment
+    // the user perceives "I just signed up". The server-side onboarding
+    // events fire later when the role-specific profile is filled in.
+    track(ANALYTICS_EVENTS.AUTH_SIGNED_UP, {
+      role: "client",
+      via: "email_password",
+    });
 
     if (authData.user) {
       const { error: profileError } = await supabase

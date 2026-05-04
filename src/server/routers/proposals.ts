@@ -3,6 +3,16 @@ import { TRPCError } from "@trpc/server";
 import { router, protectedProcedure } from "../trpc";
 import { prisma } from "@/lib/prisma";
 import { cancelOpenInstallmentsForEvent } from "./payment-schedules";
+import {
+  notifyPlannerAssigned,
+  notifyProposalAccepted,
+  notifyProposalReceived,
+  notifyProposalReleased,
+  notifyProposalWithdrawn,
+  notifyReviewReceivedPlanner,
+} from "@/server/services/notifications/dispatchers";
+import { trackServer } from "@/lib/posthog";
+import { ANALYTICS_EVENTS } from "@/lib/analytics-events";
 
 const breakdownRowSchema = z.object({
   label: z.string().min(1).max(120),
@@ -170,7 +180,7 @@ export const proposalsRouter = router({
         });
       }
 
-      return prisma.proposal.create({
+      const created = await prisma.proposal.create({
         data: {
           event_id: input.eventId,
           planner_id: planner.id,
@@ -180,6 +190,46 @@ export const proposalsRouter = router({
           quote_breakdown: input.quote_breakdown ?? undefined,
         },
       });
+
+      // Fan a "new proposal" notification to the client so they see it in
+      // their bell + inbox without having to refresh the event page.
+      const notifyCtx = await prisma.event.findUnique({
+        where: { id: input.eventId },
+        select: {
+          id: true,
+          title: true,
+          client_id: true,
+          client: { select: { full_name: true } },
+        },
+      });
+      const plannerProfile = await prisma.plannerProfile.findUnique({
+        where: { id: planner.id },
+        select: { business_name: true, profile: { select: { full_name: true } } },
+      });
+      if (notifyCtx && plannerProfile) {
+        await notifyProposalReceived({
+          clientUserId: notifyCtx.client_id,
+          plannerName:
+            plannerProfile.business_name ||
+            plannerProfile.profile.full_name ||
+            "A planner",
+          eventId: notifyCtx.id,
+          eventTitle: notifyCtx.title,
+          proposalId: created.id,
+        });
+      }
+
+      // Planner-journey funnel — fired when the planner ships a proposal
+      // out the door. The mirror `proposal.received` is captured client-
+      // side when the couple opens the proposals tab.
+      await trackServer(ctx.user.id, ANALYTICS_EVENTS.PROPOSAL_SENT, {
+        proposal_id: created.id,
+        event_id: input.eventId,
+        planner_id: planner.id,
+        has_quote: input.quote_amount != null,
+      });
+
+      return created;
     }),
 
   update: protectedProcedure
@@ -231,7 +281,17 @@ export const proposalsRouter = router({
       const planner = await requirePlanner(ctx.user.id);
       const proposal = await prisma.proposal.findFirst({
         where: { id: input.id, planner_id: planner.id },
-        select: { id: true, status: true, event_id: true },
+        select: {
+          id: true,
+          status: true,
+          event_id: true,
+          event: {
+            select: { id: true, title: true, client_id: true },
+          },
+          planner: {
+            select: { business_name: true, profile: { select: { full_name: true } } },
+          },
+        },
       });
       if (!proposal) {
         throw new TRPCError({ code: "NOT_FOUND", message: "Proposal not found" });
@@ -244,8 +304,9 @@ export const proposalsRouter = router({
       // detaches them from the event so the brief reopens, and cancels any
       // open (pending/awaiting/failed) installments on the active payment
       // schedule. Already-paid installments stay attributed to this planner.
-      return prisma.$transaction(async (tx) => {
-        if (proposal.status === "accepted") {
+      const wasActive = proposal.status === "accepted";
+      const result = await prisma.$transaction(async (tx) => {
+        if (wasActive) {
           await tx.event.update({
             where: { id: proposal.event_id },
             data: { planner_id: null },
@@ -257,6 +318,22 @@ export const proposalsRouter = router({
           data: { status: "declined" },
         });
       });
+
+      // Only alert the client when the withdrawal actually detaches the
+      // active planner — a pending withdrawal is just a lost bid, not an
+      // event to broadcast.
+      if (wasActive) {
+        await notifyProposalWithdrawn({
+          clientUserId: proposal.event.client_id,
+          plannerName:
+            proposal.planner.business_name ||
+            proposal.planner.profile.full_name ||
+            "Your planner",
+          eventId: proposal.event.id,
+          eventTitle: proposal.event.title,
+        });
+      }
+      return result;
     }),
 
   // Client-side: every proposal on an event with the planner's public-facing
@@ -330,6 +407,19 @@ export const proposalsRouter = router({
           event_id: true,
           planner_id: true,
           status: true,
+          planner: {
+            select: {
+              business_name: true,
+              user_id: true,
+              profile: { select: { full_name: true } },
+            },
+          },
+          event: {
+            select: {
+              title: true,
+              client: { select: { full_name: true } },
+            },
+          },
         },
       });
       if (!proposal) {
@@ -350,8 +440,8 @@ export const proposalsRouter = router({
         });
       }
 
-      return prisma.$transaction(async (tx) => {
-        const updated = await tx.proposal.update({
+      const updated = await prisma.$transaction(async (tx) => {
+        const u = await tx.proposal.update({
           where: { id: input.proposalId },
           data: {
             status: "accepted",
@@ -362,8 +452,41 @@ export const proposalsRouter = router({
           where: { id: proposal.event_id },
           data: { planner_id: proposal.planner_id },
         });
-        return updated;
+        return u;
       });
+
+      const plannerName =
+        proposal.planner.business_name ||
+        proposal.planner.profile.full_name ||
+        "Your planner";
+      // Let the planner celebrate, and confirm to the client who's now
+      // running the show. Both notifications fire in parallel.
+      await Promise.all([
+        notifyProposalAccepted({
+          plannerUserId: proposal.planner.user_id,
+          clientName: proposal.event.client.full_name,
+          eventId: proposal.event_id,
+          eventTitle: proposal.event.title,
+          proposalId: proposal.id,
+        }),
+        notifyPlannerAssigned({
+          clientUserId: ctx.user.id,
+          plannerName,
+          eventId: proposal.event_id,
+          eventTitle: proposal.event.title,
+        }),
+      ]);
+
+      // Couple-journey funnel — one of the most important conversion
+      // moments. Tracked against the client's distinctId so it stitches
+      // with their browser-side `proposal.received` view.
+      await trackServer(ctx.user.id, ANALYTICS_EVENTS.PROPOSAL_ACCEPTED, {
+        proposal_id: proposal.id,
+        event_id: proposal.event_id,
+        planner_id: proposal.planner_id,
+      });
+
+      return updated;
     }),
 
   // Switch the active planner. Atomically:
@@ -392,6 +515,19 @@ export const proposalsRouter = router({
             event_id: true,
             planner_id: true,
             status: true,
+            planner: {
+              select: {
+                business_name: true,
+                user_id: true,
+                profile: { select: { full_name: true } },
+              },
+            },
+            event: {
+              select: {
+                title: true,
+                client: { select: { full_name: true } },
+              },
+            },
           },
         }),
         prisma.proposal.findUnique({
@@ -401,6 +537,13 @@ export const proposalsRouter = router({
             event_id: true,
             planner_id: true,
             status: true,
+            planner: {
+              select: {
+                business_name: true,
+                user_id: true,
+                profile: { select: { full_name: true } },
+              },
+            },
           },
         }),
       ]);
@@ -433,7 +576,7 @@ export const proposalsRouter = router({
         });
       }
 
-      return prisma.$transaction(async (tx) => {
+      const result = await prisma.$transaction(async (tx) => {
         const now = new Date();
 
         await tx.proposal.update({
@@ -504,5 +647,34 @@ export const proposalsRouter = router({
 
         return { ok: true };
       });
+
+      // Notify both planners of the swap. The outgoing planner gets two
+      // items — one for the release itself, one for the review — since
+      // they're useful signals independently (earnings page vs. portfolio).
+      await Promise.all([
+        notifyProposalReleased({
+          plannerUserId: from.planner.user_id,
+          clientName: from.event.client.full_name,
+          eventId: from.event_id,
+          eventTitle: from.event.title,
+          rating: input.rating,
+          reason: input.reason,
+        }),
+        notifyReviewReceivedPlanner({
+          plannerUserId: from.planner.user_id,
+          authorName: from.event.client.full_name,
+          rating: input.rating,
+          eventId: from.event_id,
+        }),
+        notifyProposalAccepted({
+          plannerUserId: to.planner.user_id,
+          clientName: from.event.client.full_name,
+          eventId: from.event_id,
+          eventTitle: from.event.title,
+          proposalId: to.id,
+        }),
+      ]);
+
+      return result;
     }),
 });

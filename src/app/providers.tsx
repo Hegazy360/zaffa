@@ -2,9 +2,10 @@
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { httpBatchLink, TRPCClientError } from "@trpc/client";
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import { trpc } from "@/lib/trpc";
 import superjson from "superjson";
+import { PostHogProvider } from "@/components/analytics/posthog-provider";
 
 function getBaseUrl() {
   if (typeof window !== "undefined") return "";
@@ -60,7 +61,13 @@ export function Providers({ children }: { children: React.ReactNode }) {
 
   return (
     <trpc.Provider client={trpcClient} queryClient={queryClient}>
-      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+      <QueryClientProvider client={queryClient}>
+        {/* Suspense wraps PostHog because PageviewTracker uses useSearchParams,
+            which Next requires to be inside a Suspense boundary. */}
+        <Suspense fallback={null}>
+          <PostHogProvider>{children}</PostHogProvider>
+        </Suspense>
+      </QueryClientProvider>
     </trpc.Provider>
   );
 }

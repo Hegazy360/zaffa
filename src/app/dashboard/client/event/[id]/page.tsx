@@ -35,6 +35,8 @@ import { format } from "date-fns";
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
 import { trpc } from "@/lib/trpc";
+import { track } from "@/lib/analytics";
+import { ANALYTICS_EVENTS } from "@/lib/analytics-events";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
@@ -58,6 +60,7 @@ import {
 import { cn } from "@/lib/utils";
 import type { EventStatus } from "@/types";
 import { SchedulePanel } from "@/components/payments/SchedulePanel";
+import { useRealtimeMessageSync } from "@/hooks/use-realtime-messages";
 
 import { useFormatters } from "@/lib/use-formatters";
 const TABS = [
@@ -1103,9 +1106,13 @@ function MessagesTab({ eventId }: { eventId: string }) {
   const f = useFormatters();
   const utils = trpc.useUtils();
   const { data: profile } = trpc.profile.me.useQuery();
+  // Realtime sync invalidates the query on INSERT; the long refetchInterval
+  // is just a safety net in case the websocket drops without firing the
+  // subscription callback (e.g. tab backgrounded for hours).
+  useRealtimeMessageSync(eventId);
   const { data: messages, isLoading } = trpc.messages.byEvent.useQuery(
     { eventId },
-    { refetchInterval: 15_000 }
+    { refetchInterval: 60_000 }
   );
 
   const [content, setContent] = useState("");
@@ -1280,6 +1287,21 @@ function ProposalsTab({
   const { data: proposals, isLoading } = trpc.proposals.byEvent.useQuery({
     eventId,
   });
+
+  // Couple-journey funnel — fired the first time a proposal becomes
+  // visible to the client for this event in this session. The mirror
+  // server-side `proposal.sent` is captured in proposals.create, so the
+  // funnel "sent → received" measures the gap.
+  const announcedRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (!proposals || proposals.length === 0) return;
+    if (announcedRef.current === eventId) return;
+    announcedRef.current = eventId;
+    track(ANALYTICS_EVENTS.PROPOSAL_RECEIVED, {
+      event_id: eventId,
+      proposal_count: proposals.length,
+    });
+  }, [eventId, proposals]);
 
   const accept = trpc.proposals.accept.useMutation({
     onSuccess: () => {

@@ -2,6 +2,8 @@ import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import { router, protectedProcedure } from "../trpc";
 import { prisma } from "@/lib/prisma";
+import { trackServer } from "@/lib/posthog";
+import { ANALYTICS_EVENTS } from "@/lib/analytics-events";
 
 async function requirePlanner(userId: string) {
   const planner = await prisma.plannerProfile.findUnique({
@@ -111,7 +113,7 @@ export const vendorReleasesRouter = router({
           message: `Available balance ${available.toFixed(2)} ${engagement.currency} is less than ${input.amount.toFixed(2)}`,
         });
       }
-      return prisma.vendorRelease.create({
+      const release = await prisma.vendorRelease.create({
         data: {
           engagement_id: engagement.id,
           planner_id: planner.id,
@@ -123,6 +125,17 @@ export const vendorReleasesRouter = router({
           notes: input.notes ?? null,
         },
       });
+      // Planner-journey funnel — every release queued is a step toward
+      // the vendor getting paid. Useful for spotting planners who book
+      // vendors but never release funds.
+      await trackServer(ctx.user.id, ANALYTICS_EVENTS.RELEASE_QUEUED, {
+        release_id: release.id,
+        engagement_id: engagement.id,
+        vendor_id: engagement.vendor_id,
+        amount: input.amount,
+        currency: engagement.currency,
+      });
+      return release;
     }),
 
   // Planner cancels a pending release before admin pays it out. Already-paid

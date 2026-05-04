@@ -2,6 +2,9 @@ import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import { router, protectedProcedure } from "../trpc";
 import { prisma } from "@/lib/prisma";
+import { notifyEventInServiceArea } from "@/server/services/notifications/dispatchers";
+import { trackServer } from "@/lib/posthog";
+import { ANALYTICS_EVENTS } from "@/lib/analytics-events";
 
 const eventTypeSchema = z.enum([
   "wedding",
@@ -157,10 +160,37 @@ export const eventsRouter = router({
     .mutation(async ({ ctx, input }) => {
       await assertOwnsEvent(input.id, ctx.user.id);
       const { id, ...rest } = input;
-      return prisma.event.update({
+      const before = await prisma.event.findUnique({
+        where: { id },
+        select: { venue: true, client_id: true },
+      });
+      const updated = await prisma.event.update({
         where: { id },
         data: rest,
       });
+      // Fan a "new event in your area" notification the moment the venue
+      // is first set on an event with an approved design. Swapping venues
+      // also re-fans because the dedupe key is (planner, event) — any
+      // previously-notified planners are skipped.
+      const venueChanged =
+        rest.venue !== undefined &&
+        (before?.venue ?? null) !== (rest.venue ?? null);
+      if (venueChanged && updated.venue) {
+        const hasApprovedDesign = await prisma.venueDesign.findFirst({
+          where: { event_id: id, approved_at: { not: null } },
+          select: { id: true },
+        });
+        if (hasApprovedDesign) {
+          await notifyEventInServiceArea({
+            eventId: id,
+            clientUserId: updated.client_id,
+            venue: updated.venue,
+            eventType: String(updated.event_type),
+            eventTitle: updated.title,
+          });
+        }
+      }
+      return updated;
     }),
 
   delete: protectedProcedure
@@ -212,13 +242,39 @@ export const eventsRouter = router({
           event_type: normalized,
           status: "planning",
         },
-        select: { id: true },
+        select: { id: true, title: true, event_type: true, venue: true, client_id: true },
       });
 
       await prisma.venueDesign.update({
         where: { id: design.id },
         data: { event_id: event.id, approved_at: new Date() },
       });
+
+      // Two funnel signals fire here: the event itself coming into being,
+      // and the design being approved (this is the path that converts a
+      // design draft into a real planning artefact).
+      await trackServer(ctx.user.id, ANALYTICS_EVENTS.EVENT_CREATED, {
+        event_id: event.id,
+        event_type: String(event.event_type),
+        from: "design_approval",
+      });
+      await trackServer(ctx.user.id, ANALYTICS_EVENTS.DESIGN_APPROVED, {
+        event_id: event.id,
+        design_id: design.id,
+      });
+
+      // Kick off a fan-out now in case the client already set a venue on
+      // the design (rare — venue usually arrives via events.update). This
+      // is a no-op when `venue` is empty.
+      if (event.venue) {
+        await notifyEventInServiceArea({
+          eventId: event.id,
+          clientUserId: event.client_id,
+          venue: event.venue,
+          eventType: String(event.event_type),
+          eventTitle: event.title,
+        });
+      }
 
       return event;
     }),
@@ -255,6 +311,37 @@ export const eventsRouter = router({
           data: { event_id: input.eventId, approved_at: new Date() },
         }),
       ]);
+
+      // Couple-journey funnel — swapping the approved design counts as a
+      // re-approval moment. Couples often iterate on this before locking.
+      await trackServer(ctx.user.id, ANALYTICS_EVENTS.DESIGN_APPROVED, {
+        event_id: input.eventId,
+        design_id: input.designId,
+        swapped: true,
+      });
+
+      // Attaching a design can publish an event into the marketplace for
+      // the first time. Fan out if there's a venue to match on; planners
+      // who were already notified are deduped inside the helper.
+      const event = await prisma.event.findUnique({
+        where: { id: input.eventId },
+        select: {
+          id: true,
+          title: true,
+          event_type: true,
+          venue: true,
+          client_id: true,
+        },
+      });
+      if (event?.venue) {
+        await notifyEventInServiceArea({
+          eventId: event.id,
+          clientUserId: event.client_id,
+          venue: event.venue,
+          eventType: String(event.event_type),
+          eventTitle: event.title,
+        });
+      }
 
       return { ok: true };
     }),

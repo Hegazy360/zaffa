@@ -13,9 +13,12 @@
     "db:seed": "npx tsx prisma/seed.ts",
     "db:seed-images": "npx dotenvx run --env-file=.env.local -- npx tsx prisma/seed-images.ts",
     "db:seed-outreach-templates": "npx dotenvx run --env-file=.env.local -- npx tsx prisma/seed-outreach-templates.ts",
+    "dev:seed-notification": "npx dotenvx run --env-file=.env.local -- npx tsx scripts/seed-notification.ts",
+    "dev:preview-emails": "npx dotenvx run --env-file=.env.local -- npx tsx scripts/preview-notification-emails.ts",
     "db:push": "prisma db push",
     "deploy:worker": "wrangler deploy --cwd workers/pinterest-search",
-    "i18n:translate": "node scripts/translate-messages.mjs"
+    "i18n:translate": "node scripts/translate-messages.mjs",
+    "test": "vitest"
   },
   "prisma": {
     "seed": "npx tsx prisma/seed.ts"
@@ -46,12 +49,13 @@
     "framer-motion": "^12.35.0",
     "gsap": "^3.15.0",
     "lucide-react": "^0.577.0",
-    "meilisearch": "^0.55.0",
     "next": "16.1.6",
     "next-intl": "^4.11.0",
     "next-themes": "^0.4.6",
     "openai": "^6.27.0",
     "pg": "^8.20.0",
+    "posthog-js": "^1.372.6",
+    "posthog-node": "^5.33.0",
     "prisma": "^7.4.2",
     "react": "19.2.3",
     "react-dom": "19.2.3",
@@ -72,11 +76,13 @@
     "@types/pg": "^8.18.0",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@vitest/coverage-v8": "^4.1.5",
     "dotenv": "^17.3.1",
     "eslint": "^9",
     "eslint-config-next": "16.1.6",
     "tailwindcss": "^4",
     "typescript": "^5",
+    "vitest": "^4.1.5",
     "wrangler": "^4.86.0"
   }
 }

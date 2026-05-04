@@ -3,6 +3,11 @@ import { TRPCError } from "@trpc/server";
 import { router, protectedProcedure } from "../trpc";
 import { prisma } from "@/lib/prisma";
 import { getDefaultPlatformFeePct } from "@/lib/payments";
+import {
+  notifyPaymentSchedeProposed,
+  notifyScheduleAmendmentDecided,
+  notifyScheduleAmendmentProposed,
+} from "@/server/services/notifications/dispatchers";
 
 // One row of the planner's proposed plan. due_date is optional so the
 // planner can leave dates open ("on signing", "before event", etc.).
@@ -125,7 +130,7 @@ export const paymentSchedulesRouter = router({
         });
       }
 
-      return prisma.$transaction(async (tx) => {
+      const result = await prisma.$transaction(async (tx) => {
         const replaceable = await tx.paymentSchedule.findFirst({
           where: {
             event_id: proposal.event_id,
@@ -172,6 +177,33 @@ export const paymentSchedulesRouter = router({
           },
         });
       });
+
+      // Alert the client that there's a plan to review. We look up the
+      // planner's display name + the event title outside the transaction
+      // since they don't block persistence.
+      const ctx2 = await prisma.proposal.findUnique({
+        where: { id: proposal.id },
+        select: {
+          planner: {
+            select: { business_name: true, profile: { select: { full_name: true } } },
+          },
+          event: { select: { title: true } },
+        },
+      });
+      if (result && ctx2) {
+        await notifyPaymentSchedeProposed({
+          clientUserId: proposal.event.client_id,
+          plannerName:
+            ctx2.planner.business_name ||
+            ctx2.planner.profile.full_name ||
+            "Your planner",
+          eventId: proposal.event_id,
+          eventTitle: ctx2.event.title,
+          amount: formatMoney(total, result.currency),
+          scheduleId: result.id,
+        });
+      }
+      return result;
     }),
 
   // Client confirms the proposed schedule — flips status to "active" and
@@ -287,7 +319,7 @@ export const paymentSchedulesRouter = router({
       }
 
       const total = input.installments.reduce((s, i) => s + i.amount, 0);
-      return prisma.scheduleAmendment.create({
+      const created = await prisma.scheduleAmendment.create({
         data: {
           schedule_id: schedule.id,
           requested_by_user_id: ctx.user.id,
@@ -301,6 +333,48 @@ export const paymentSchedulesRouter = router({
           reason: input.reason,
         },
       });
+
+      // Alert the other side. Look up display names / titles once the txn
+      // is committed so a notification failure can't poison persistence.
+      const ctx2 = await prisma.paymentSchedule.findUnique({
+        where: { id: schedule.id },
+        select: {
+          event: {
+            select: {
+              id: true,
+              title: true,
+              client: { select: { id: true, full_name: true } },
+            },
+          },
+          planner: {
+            select: {
+              user_id: true,
+              business_name: true,
+              profile: { select: { full_name: true } },
+            },
+          },
+        },
+      });
+      if (ctx2) {
+        const plannerUserId = ctx2.planner.user_id;
+        const plannerName =
+          ctx2.planner.business_name ||
+          ctx2.planner.profile.full_name ||
+          "Your planner";
+        const clientName = ctx2.event.client.full_name;
+        const recipientIsClient = isPlanner;
+        await notifyScheduleAmendmentProposed({
+          recipientUserId: recipientIsClient
+            ? ctx2.event.client.id
+            : plannerUserId,
+          otherPartyName: recipientIsClient ? plannerName : clientName,
+          eventId: ctx2.event.id,
+          eventTitle: ctx2.event.title,
+          amendmentId: created.id,
+          recipientRole: recipientIsClient ? "client" : "planner",
+        });
+      }
+      return created;
     }),
 
   // The opposite side (the one who didn't request) accepts or rejects.
@@ -345,8 +419,27 @@ export const paymentSchedulesRouter = router({
         });
       }
 
+      // Notify the *planner* when the client decides — otherwise we'd be
+      // notifying the same person who clicked the button. Skipped if it's
+      // the planner who accepted their own (rare but possible if the shape
+      // of "who can decide" ever relaxes).
+      const decidedByClient = isClient;
+      const decisionCtx = await prisma.paymentSchedule.findUnique({
+        where: { id: amendment.schedule_id },
+        select: {
+          event: {
+            select: {
+              id: true,
+              title: true,
+              client: { select: { full_name: true } },
+            },
+          },
+          planner: { select: { user_id: true } },
+        },
+      });
+
       if (!input.accept) {
-        return prisma.scheduleAmendment.update({
+        const updated = await prisma.scheduleAmendment.update({
           where: { id: amendment.id },
           data: {
             status: "rejected",
@@ -354,6 +447,17 @@ export const paymentSchedulesRouter = router({
             decided_by_user_id: ctx.user.id,
           },
         });
+        if (decidedByClient && decisionCtx) {
+          await notifyScheduleAmendmentDecided({
+            plannerUserId: decisionCtx.planner.user_id,
+            clientName: decisionCtx.event.client.full_name,
+            eventId: decisionCtx.event.id,
+            eventTitle: decisionCtx.event.title,
+            amendmentId: amendment.id,
+            accepted: false,
+          });
+        }
+        return updated;
       }
 
       // Accept: replace open installments with the proposed snapshot.
@@ -362,7 +466,7 @@ export const paymentSchedulesRouter = router({
         amount: number;
         due_date: string | null;
       }>;
-      return prisma.$transaction(async (tx) => {
+      const result = await prisma.$transaction(async (tx) => {
         await tx.payment.deleteMany({
           where: {
             schedule_id: amendment.schedule_id,
@@ -399,6 +503,17 @@ export const paymentSchedulesRouter = router({
           },
         });
       });
+      if (decidedByClient && decisionCtx) {
+        await notifyScheduleAmendmentDecided({
+          plannerUserId: decisionCtx.planner.user_id,
+          clientName: decisionCtx.event.client.full_name,
+          eventId: decisionCtx.event.id,
+          eventTitle: decisionCtx.event.title,
+          amendmentId: amendment.id,
+          accepted: true,
+        });
+      }
+      return result;
     }),
 
   // Withdraw your own pending amendment.
@@ -463,4 +578,15 @@ export async function cancelOpenInstallmentsForEvent(
     where: { schedule_id: schedule.id, status: "pending" },
     data: { status: "withdrawn", decided_at: new Date() },
   });
+}
+
+// Compact money formatter for notification bodies. Deliberately locale-free
+// so the same string works in English + Arabic UIs without running a
+// pricing lookup per locale.
+export function formatMoney(amount: number, currency: string): string {
+  const rounded = Math.round(Number(amount) * 100) / 100;
+  const str = Number.isInteger(rounded)
+    ? rounded.toFixed(0)
+    : rounded.toFixed(2);
+  return `${str} ${currency}`;
 }

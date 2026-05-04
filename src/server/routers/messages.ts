@@ -2,6 +2,7 @@ import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import { router, protectedProcedure } from "../trpc";
 import { prisma } from "@/lib/prisma";
+import { notifyMessageReceived } from "@/server/services/notifications/dispatchers";
 
 // Both the client and the planner attached to the event are allowed to read
 // and post messages. Anyone else is rejected as not-found so we don't leak
@@ -106,7 +107,7 @@ export const messagesRouter = router({
     )
     .mutation(async ({ ctx, input }) => {
       await assertEventParticipant(input.eventId, ctx.user.id);
-      return prisma.message.create({
+      const created = await prisma.message.create({
         data: {
           event_id: input.eventId,
           sender_id: ctx.user.id,
@@ -123,5 +124,42 @@ export const messagesRouter = router({
           },
         },
       });
+
+      // Figure out who the *other* participant is and notify them. We
+      // don't notify the sender, and we don't care if the event has no
+      // planner yet (then there's no one else to ping).
+      const event = await prisma.event.findUnique({
+        where: { id: input.eventId },
+        select: {
+          id: true,
+          client_id: true,
+          planner: { select: { user_id: true } },
+        },
+      });
+      if (event) {
+        const plannerUserId = event.planner?.user_id ?? null;
+        const recipientUserId =
+          ctx.user.id === event.client_id ? plannerUserId : event.client_id;
+        if (recipientUserId && recipientUserId !== ctx.user.id) {
+          // Build a short preview. Multi-line / long messages collapse to
+          // a single ellipsised line so the notification card stays compact.
+          const preview =
+            input.content.length > 140
+              ? `${input.content.slice(0, 137).replace(/\s+/g, " ").trim()}…`
+              : input.content.replace(/\s+/g, " ").trim();
+          const recipientRole =
+            recipientUserId === event.client_id ? "client" : "planner";
+          await notifyMessageReceived({
+            recipientUserId,
+            senderName: created.sender.full_name,
+            preview,
+            eventId: input.eventId,
+            recipientRole,
+            messageId: created.id,
+          });
+        }
+      }
+
+      return created;
     }),
 });

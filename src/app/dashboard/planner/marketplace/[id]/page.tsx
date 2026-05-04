@@ -18,6 +18,8 @@ import {
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
 import { trpc } from "@/lib/trpc";
+import { track } from "@/lib/analytics";
+import { ANALYTICS_EVENTS } from "@/lib/analytics-events";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { CurrencyInput } from "@/components/ui/currency-input";
@@ -126,6 +128,22 @@ export default function BriefDetailPage() {
     },
     onError: (e) => toast.error(e.message),
   });
+
+  // Planner-journey funnel — fired the first time the brief actually
+  // resolves. The mutationless query alone isn't a "view" — we wait for
+  // the data so cancelled / forbidden loads don't pollute the count.
+  useEffect(() => {
+    if (!brief) return;
+    track(ANALYTICS_EVENTS.BRIEF_VIEWED, {
+      event_id: brief.id,
+      event_type: brief.event_type,
+      has_design: Boolean(brief.design),
+      has_my_proposal: Boolean(brief.myProposal),
+    });
+    // We intentionally only track once per brief id; further re-renders
+    // (e.g. proposal mutations) shouldn't re-fire the view.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [brief?.id]);
 
   if (error) {
     return (

@@ -1,4 +1,5 @@
 import { router } from "../trpc";
+import { accountRouter } from "./account";
 import { adminRouter } from "./admin";
 import { adminOverviewRouter } from "./admin-overview";
 import { aiRouter } from "./ai";
@@ -8,6 +9,7 @@ import { eventsRouter } from "./events";
 import { inspirationRouter } from "./inspiration";
 import { marketplaceRouter } from "./marketplace";
 import { messagesRouter } from "./messages";
+import { notificationsRouter } from "./notifications";
 import { outreachRouter } from "./outreach";
 import { paymentSchedulesRouter } from "./payment-schedules";
 import { paymentsRouter } from "./payments";
@@ -24,6 +26,7 @@ import { vendorsRouter } from "./vendors";
 import { venueDesignsRouter } from "./venue-designs";
 
 export const appRouter = router({
+  account: accountRouter,
   admin: adminRouter,
   adminOverview: adminOverviewRouter,
   ai: aiRouter,
@@ -33,6 +36,7 @@ export const appRouter = router({
   inspiration: inspirationRouter,
   marketplace: marketplaceRouter,
   messages: messagesRouter,
+  notifications: notificationsRouter,
   outreach: outreachRouter,
   paymentSchedules: paymentSchedulesRouter,
   payments: paymentsRouter,

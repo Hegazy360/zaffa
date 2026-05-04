@@ -2,6 +2,8 @@ import { z } from "zod";
 import { router, protectedProcedure } from "../trpc";
 import { prisma } from "@/lib/prisma";
 import { cloudinary } from "@/lib/cloudinary";
+import { trackServer } from "@/lib/posthog";
+import { ANALYTICS_EVENTS } from "@/lib/analytics-events";
 
 const refSchema = z.object({
   id: z.string().min(1),
@@ -114,9 +116,18 @@ export const venueDesignsRouter = router({
         });
       }
 
-      return prisma.venueDesign.create({
+      const created = await prisma.venueDesign.create({
         data: { ...data, user_id: ctx.user.id },
       });
+      // Couple-journey funnel — top of the design step. We only fire on
+      // first save (no `id` in input) so re-saves don't re-count.
+      await trackServer(ctx.user.id, ANALYTICS_EVENTS.DESIGN_CREATED, {
+        design_id: created.id,
+        event_type: created.event_type,
+        setting: created.setting,
+        size: created.size,
+      });
+      return created;
     }),
 
   delete: protectedProcedure

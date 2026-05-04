@@ -33,7 +33,16 @@ const reemKufi = Reem_Kufi({
   weight: ["400", "500", "600", "700"],
 });
 
+function siteUrl(): string {
+  return (
+    process.env.NEXT_PUBLIC_APP_URL ??
+    process.env.NEXT_PUBLIC_SITE_URL ??
+    "https://zaffa.app"
+  );
+}
+
 export const metadata: Metadata = {
+  metadataBase: new URL(siteUrl()),
   title: {
     default: "Zaffa — Your Dream Event, Expertly Planned",
     template: "%s | Zaffa",
@@ -48,6 +57,28 @@ export const metadata: Metadata = {
     "wedding",
     "engagement",
   ],
+  applicationName: "Zaffa",
+  authors: [{ name: "Zaffa" }],
+  openGraph: {
+    type: "website",
+    siteName: "Zaffa",
+    title: "Zaffa — Your Dream Event, Expertly Planned",
+    description:
+      "Connect with Egypt's finest wedding planners and vendors. AI-powered style matching, mood boards, and seamless event planning.",
+    url: siteUrl(),
+    locale: "en_US",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Zaffa — Your Dream Event, Expertly Planned",
+    description:
+      "Connect with Egypt's finest wedding planners and vendors.",
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: { index: true, follow: true, "max-image-preview": "large" },
+  },
 };
 
 export default async function RootLayout({

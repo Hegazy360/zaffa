@@ -1,7 +1,9 @@
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
-import { router, protectedProcedure, publicProcedure } from "../trpc";
+import { router, protectedProcedure } from "../trpc";
 import { prisma } from "@/lib/prisma";
+import { trackServer } from "@/lib/posthog";
+import { ANALYTICS_EVENTS } from "@/lib/analytics-events";
 
 const eventTypeSchema = z.enum([
   "wedding",
@@ -26,11 +28,11 @@ async function requirePlanner(userId: string) {
 }
 
 export const plannerRouter = router({
-  // Public-facing planner profile by id. Used on `/planners/[id]` so couples
-  // (and signed-out visitors) can review the planner's portfolio + reviews
-  // before deciding to engage. Filters out anything we wouldn't want public
-  // (e.g. user_id is exposed but not the email).
-  byId: publicProcedure
+  // Planner profile by id. Used on `/planners/[id]` and the dashboard
+  // event view's planner card. Authenticated only — the public browse
+  // surface is currently gated behind the `publicBrowse` flag, so we
+  // don't want this procedure callable by anonymous clients either.
+  byId: protectedProcedure
     .input(z.object({ id: z.string().uuid() }))
     .query(async ({ input }) => {
       const planner = await prisma.plannerProfile.findUnique({
@@ -58,6 +60,61 @@ export const plannerRouter = router({
         });
       }
       return planner;
+    }),
+
+  // Planner directory used by `/planners`. Supports a basic location
+  // prefix match, a free-text query against business_name + bio, and an
+  // optional `verifiedOnly` toggle. Cursor-paginated. Authenticated-only
+  // for the same reason as `byId` — the public surface is dark-shipped
+  // behind the `publicBrowse` flag.
+  list: protectedProcedure
+    .input(
+      z.object({
+        location: z.string().trim().max(120).optional(),
+        query: z.string().trim().max(200).optional(),
+        verifiedOnly: z.boolean().optional(),
+        take: z.number().int().min(1).max(60).default(24),
+        cursor: z.string().uuid().optional(),
+      }),
+    )
+    .query(async ({ input }) => {
+      const where: Record<string, unknown> = {};
+      if (input.verifiedOnly) where.verified = true;
+      if (input.location && input.location.length > 0) {
+        where.location = { contains: input.location, mode: "insensitive" };
+      }
+      if (input.query && input.query.length > 0) {
+        where.OR = [
+          { business_name: { contains: input.query, mode: "insensitive" } },
+          { bio: { contains: input.query, mode: "insensitive" } },
+        ];
+      }
+      const items = await prisma.plannerProfile.findMany({
+        where,
+        orderBy: [
+          { verified: "desc" },
+          { avg_rating: "desc" },
+          { review_count: "desc" },
+          { created_at: "desc" },
+        ],
+        take: input.take + 1,
+        ...(input.cursor ? { cursor: { id: input.cursor }, skip: 1 } : {}),
+        include: {
+          profile: { select: { full_name: true, avatar_url: true } },
+          portfolio_items: {
+            orderBy: { created_at: "desc" },
+            take: 1,
+            select: { id: true, image_url: true, caption: true },
+          },
+          _count: { select: { reviews: true, portfolio_items: true } },
+        },
+      });
+      const hasMore = items.length > input.take;
+      const trimmed = hasMore ? items.slice(0, -1) : items;
+      return {
+        items: trimmed,
+        nextCursor: hasMore ? trimmed[trimmed.length - 1]?.id ?? null : null,
+      };
     }),
 
   // Returns the caller's planner profile or null if they aren't a planner.
@@ -106,6 +163,15 @@ export const plannerRouter = router({
           where: { id: ctx.user.id },
           data: { role: "planner" },
         });
+        // Activation funnel — fired only on the no-profile → has-profile
+        // transition so re-saves don't repeatedly inflate the funnel.
+        await trackServer(ctx.user.id, ANALYTICS_EVENTS.ONBOARDING_COMPLETED, {
+          role: "planner",
+        });
+        await trackServer(ctx.user.id, ANALYTICS_EVENTS.PROFILE_PUBLISHED, {
+          role: "planner",
+          planner_id: created.id,
+        });
         return created;
       }
 
@@ -119,6 +185,52 @@ export const plannerRouter = router({
             ? { specialties: input.specialties }
             : {}),
         },
+      });
+    }),
+
+  // Returns the planner's service-area (country + cities list). Powers the
+  // settings editor and the "set your service area to get matched" banner
+  // on the planner dashboard.
+  serviceArea: protectedProcedure.query(async ({ ctx }) => {
+    const planner = await prisma.plannerProfile.findUnique({
+      where: { user_id: ctx.user.id },
+      select: { service_country: true, service_cities: true },
+    });
+    if (!planner) return null;
+    const cities = Array.isArray(planner.service_cities)
+      ? (planner.service_cities as unknown[]).filter(
+          (c): c is string => typeof c === "string",
+        )
+      : [];
+    return { country: planner.service_country, cities };
+  }),
+
+  // Replaces the planner's service area. City names are trimmed + lowercased
+  // to match the substring match used by the `event_in_service_area`
+  // fan-out. Duplicates are collapsed.
+  updateServiceArea: protectedProcedure
+    .input(
+      z.object({
+        country: z.string().min(2).max(8),
+        cities: z.array(z.string().min(1).max(60)).max(20),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const planner = await requirePlanner(ctx.user.id);
+      const normalized = Array.from(
+        new Set(
+          input.cities
+            .map((c) => c.trim().toLowerCase())
+            .filter((c) => c.length > 0),
+        ),
+      );
+      return prisma.plannerProfile.update({
+        where: { id: planner.id },
+        data: {
+          service_country: input.country.trim().toUpperCase(),
+          service_cities: normalized,
+        },
+        select: { service_country: true, service_cities: true },
       });
     }),
 
@@ -170,7 +282,7 @@ export const plannerRouter = router({
       )
       .mutation(async ({ ctx, input }) => {
         const planner = await requirePlanner(ctx.user.id);
-        return prisma.portfolioItem.create({
+        const created = await prisma.portfolioItem.create({
           data: {
             planner_id: planner.id,
             image_url: input.image_url,
@@ -179,6 +291,13 @@ export const plannerRouter = router({
             style_tags: input.style_tags ?? [],
           },
         });
+        await trackServer(ctx.user.id, ANALYTICS_EVENTS.PORTFOLIO_ADDED, {
+          owner: "planner",
+          item_id: created.id,
+          planner_id: planner.id,
+          event_type: input.event_type ?? null,
+        });
+        return created;
       }),
 
     update: protectedProcedure

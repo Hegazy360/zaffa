@@ -8,6 +8,7 @@ import {
   VendorCategory,
 } from "@/generated/prisma/client";
 import { draftMessage } from "@/server/services/prospects/llm";
+import { enforceTrpcMany } from "@/lib/rate-limit";
 
 async function assertAdmin(userId: string) {
   const profile = await prisma.profile.findUnique({
@@ -104,6 +105,13 @@ export const outreachRouter = router({
     )
     .mutation(async ({ ctx, input }) => {
       await assertAdmin(ctx.user.id);
+      // LLM call — guard so a runaway admin script can't blow the OpenAI
+      // budget. Limits are per-admin, not global. Per-hour for bursts +
+      // per-day cost ceiling.
+      await enforceTrpcMany(
+        [{ key: "outreachDraft" }, { key: "outreachDraftDaily" }],
+        ctx.user.id,
+      );
       const prospect = await prisma.prospect.findUnique({
         where: { id: input.prospectId },
       });

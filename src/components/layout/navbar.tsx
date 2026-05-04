@@ -27,6 +27,7 @@ import {
 import { createClient } from "@/lib/supabase/client";
 import type { User as SupabaseUser } from "@supabase/supabase-js";
 import { cn } from "@/lib/utils";
+import { NotificationBell } from "@/components/notifications/notification-bell";
 
 function isActiveRoute(pathname: string | null, href: string): boolean {
   if (!pathname) return false;
@@ -107,7 +108,9 @@ export function Navbar() {
           {loading ? (
             <div className="h-10 w-10 animate-pulse rounded-full bg-muted" />
           ) : user ? (
-            <DropdownMenu>
+            <>
+              <NotificationBell userId={user.id} />
+              <DropdownMenu>
               <DropdownMenuTrigger
                 aria-label={t("accountMenu")}
                 className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-rose-600 to-amber-500 text-sm font-semibold text-white shadow-sm shadow-rose-600/20 ring-2 ring-transparent transition-all hover:shadow-md hover:shadow-rose-600/30 hover:ring-rose-200 focus-visible:ring-rose-300 focus-visible:outline-none dark:hover:ring-rose-900/60"
@@ -157,6 +160,7 @@ export function Navbar() {
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
+            </>
           ) : (
             <Button
               variant="ghost"

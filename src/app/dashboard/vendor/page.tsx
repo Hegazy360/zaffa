@@ -2,18 +2,16 @@
 
 import Link from "next/link";
 import {
-  ArrowRight,
   Briefcase,
   CheckCircle2,
   Inbox,
-  Sparkles,
   Star,
   Wallet,
 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { trpc } from "@/lib/trpc";
-import { Button } from "@/components/ui/button";
 import { decimalToNumber } from "@/lib/payments";
+import { VendorOnboardingWizard } from "@/components/onboarding/vendor-wizard";
 
 import { useFormatters } from "@/lib/use-formatters";
 export default function VendorDashboardPage() {
@@ -47,7 +45,7 @@ export default function VendorDashboardPage() {
   }
 
   if (!me.data) {
-    return <VendorSetupNeeded />;
+    return <VendorOnboardingWizard />;
   }
 
   const requested = (incoming.data ?? []).filter((e) => e.status === "requested");
@@ -288,26 +286,3 @@ function Stat({
   );
 }
 
-function VendorSetupNeeded() {
-  const tVendor = useTranslations("vendor");
-  return (
-    <div className="mx-auto max-w-2xl space-y-6 px-4 py-16 text-center sm:px-6">
-      <div className="inline-flex size-12 items-center justify-center rounded-full bg-gradient-to-br from-rose-500 to-amber-500 text-white">
-        <Sparkles className="size-5" />
-      </div>
-      <h1 className="font-display text-3xl font-light tracking-tight">
-        {tVendor("vendorSetupTitle")}
-      </h1>
-      <p className="text-sm text-muted-foreground">
-        {tVendor("vendorSetupBody")}
-      </p>
-      <Button
-        render={<Link href="/dashboard/vendor/profile" />}
-        className="gap-1.5 bg-gradient-to-r from-rose-600 to-amber-500 text-white"
-      >
-        {tVendor("getStarted")}{" "}
-        <ArrowRight className="size-4 rtl:-scale-x-100" />
-      </Button>
-    </div>
-  );
-}

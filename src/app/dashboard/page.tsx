@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { dashboardHomeFor } from "@/lib/dashboard-auth";
 import type { UserRole } from "@/types";
 
 export const dynamic = "force-dynamic";
@@ -20,17 +21,6 @@ export default async function DashboardPage() {
     .eq("id", user.id)
     .single();
 
-  const role = profile?.role as UserRole | undefined;
-
-  if (role === "admin") {
-    redirect("/dashboard/admin");
-  }
-  if (role === "planner") {
-    redirect("/dashboard/planner");
-  }
-  if (role === "vendor") {
-    redirect("/dashboard/vendor");
-  }
-
-  redirect("/dashboard/client");
+  const role = (profile?.role as UserRole | undefined) ?? "client";
+  redirect(dashboardHomeFor(role));
 }

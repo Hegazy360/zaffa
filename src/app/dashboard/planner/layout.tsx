@@ -1,11 +1,14 @@
 import { Navbar } from "@/components/layout/navbar";
 import { Sidebar, MobileSidebar } from "@/components/layout/sidebar";
+import { requireRole } from "@/lib/dashboard-auth";
 
-export default function PlannerDashboardLayout({
+export default async function PlannerDashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  await requireRole("planner");
+
   return (
     <div className="flex min-h-screen flex-col">
       <Navbar />

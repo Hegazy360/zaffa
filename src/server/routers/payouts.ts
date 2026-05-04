@@ -2,6 +2,8 @@ import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import { router, protectedProcedure } from "../trpc";
 import { prisma } from "@/lib/prisma";
+import { trackServer } from "@/lib/posthog";
+import { ANALYTICS_EVENTS } from "@/lib/analytics-events";
 
 async function requirePlanner(userId: string) {
   const planner = await prisma.plannerProfile.findUnique({
@@ -34,21 +36,29 @@ export const payoutsRouter = router({
       paidOutSelfAgg,
       paidOutVendorAgg,
       committedVendorAgg,
+      heldAgg,
     ] = await Promise.all([
       prisma.payment.aggregate({
         where: {
           status: "paid",
           payout_id: null,
+          disputed_at: null,
+          refunded_amount: 0,
           schedule: { planner_id: planner.id },
         },
         _sum: { net_to_planner_amount: true, amount: true },
       }),
       prisma.payment.aggregate({
         where: {
-          status: { in: ["paid", "refunded"] },
+          status: { in: ["paid", "refunded", "partially_refunded"] },
           schedule: { planner_id: planner.id },
         },
-        _sum: { amount: true, net_to_planner_amount: true, platform_fee_amount: true },
+        _sum: {
+          amount: true,
+          net_to_planner_amount: true,
+          platform_fee_amount: true,
+          refunded_amount: true,
+        },
       }),
       prisma.payout.aggregate({
         where: { planner_id: planner.id, recipient_type: "planner" },
@@ -62,14 +72,29 @@ export const payoutsRouter = router({
         where: { planner_id: planner.id, status: "pending" },
         _sum: { amount: true },
       }),
+      // Disputed-but-not-yet-paid-out installments. Held back from the
+      // available pool until the dispute resolves so we don't pay out
+      // funds we may have to claw back.
+      prisma.payment.aggregate({
+        where: {
+          status: "paid",
+          payout_id: null,
+          disputed_at: { not: null },
+          dispute_resolved_at: null,
+          schedule: { planner_id: planner.id },
+        },
+        _sum: { net_to_planner_amount: true, amount: true },
+      }),
     ]);
     const accrued = Number(lifetimeCollected._sum.net_to_planner_amount ?? 0);
+    const refundedTotal = Number(lifetimeCollected._sum.refunded_amount ?? 0);
     const paidOutSelf = Number(paidOutSelfAgg._sum.amount ?? 0);
     const paidOutVendors = Number(paidOutVendorAgg._sum.amount ?? 0);
     const committedToVendors = Number(committedVendorAgg._sum.amount ?? 0);
+    const heldForDispute = Number(heldAgg._sum.net_to_planner_amount ?? 0);
     const availableNow = Math.max(
       0,
-      accrued - paidOutSelf - paidOutVendors - committedToVendors,
+      accrued - paidOutSelf - paidOutVendors - committedToVendors - heldForDispute,
     );
     return {
       pendingNet: Number(pendingAgg._sum.net_to_planner_amount ?? 0),
@@ -78,10 +103,12 @@ export const payoutsRouter = router({
       lifetimeNet: accrued,
       lifetimeFees: Number(lifetimeCollected._sum.platform_fee_amount ?? 0),
       lifetimePaidOut: paidOutSelf,
+      lifetimeRefunded: refundedTotal,
       accrued,
       paidOutSelf,
       paidOutVendors,
       committedToVendors,
+      heldForDispute,
       availableNow,
     };
   }),
@@ -161,12 +188,14 @@ export const payoutsRouter = router({
   }),
 
   // Detailed list of paid-not-yet-paid-out installments. Useful both for
-  // the planner's earnings page and for the admin payout form.
+  // the planner's earnings page and for the admin payout form. We surface
+  // disputed/refunded rows too — the UI shows them with a "held" badge so
+  // the planner understands why they aren't included in `availableNow`.
   pendingInstallments: protectedProcedure.query(async ({ ctx }) => {
     const planner = await requirePlanner(ctx.user.id);
     return prisma.payment.findMany({
       where: {
-        status: "paid",
+        status: { in: ["paid", "partially_refunded"] },
         payout_id: null,
         schedule: { planner_id: planner.id },
       },
@@ -179,6 +208,9 @@ export const payoutsRouter = router({
         platform_fee_amount: true,
         currency: true,
         paid_at: true,
+        disputed_at: true,
+        dispute_status: true,
+        refunded_amount: true,
         event: { select: { id: true, title: true } },
       },
     });
@@ -196,6 +228,8 @@ export const payoutsRouter = router({
         where: {
           status: "paid",
           payout_id: null,
+          disputed_at: null,
+          refunded_amount: 0,
           schedule: { planner_id: planner.id },
         },
         _sum: { net_to_planner_amount: true },
@@ -207,7 +241,14 @@ export const payoutsRouter = router({
           message: "No pending balance to request",
         });
       }
-      // Future: send email / Slack to admin. For now, return ack.
+      // Planner-journey funnel — fired on each request even though the
+      // request itself isn't persisted. The admin queue still shows
+      // every planner with a balance, so this captures intent rather
+      // than state.
+      await trackServer(ctx.user.id, ANALYTICS_EVENTS.PAYOUT_REQUESTED, {
+        planner_id: planner.id,
+        pending_net: pending,
+      });
       return { ok: true, pendingNet: pending };
     }),
 });

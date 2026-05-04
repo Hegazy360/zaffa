@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { toast } from "sonner";
-import { Loader2, Wallet } from "lucide-react";
+import { AlertTriangle, Loader2, Wallet } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
@@ -25,6 +25,7 @@ export default function AdminPayoutsPage() {
   const f = useFormatters();
   const t = useTranslations("admin");
   const recent = trpc.admin.recentInstallments.useQuery({ limit: 25 });
+  const disputes = trpc.admin.disputes.useQuery();
 
   return (
     <div className="mx-auto max-w-6xl space-y-8 px-4 py-8 sm:px-6">
@@ -118,6 +119,56 @@ export default function AdminPayoutsPage() {
         )}
       </div>
 
+      <div className="rounded-2xl border border-red-200/70 bg-red-50/40">
+        <div className="flex items-center gap-2 border-b border-red-200/70 px-5 py-3">
+          <AlertTriangle className="size-4 text-red-700" aria-hidden />
+          <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-red-700">
+            {t("openDisputes")}
+          </p>
+        </div>
+        {disputes.isLoading ? (
+          <div className="px-5 py-6 text-center">
+            <Loader2 className="mx-auto size-5 animate-spin text-red-700" />
+          </div>
+        ) : (disputes.data?.length ?? 0) === 0 ? (
+          <p className="px-5 py-6 text-center text-sm text-muted-foreground">
+            {t("noDisputes")}
+          </p>
+        ) : (
+          <ul className="divide-y divide-red-200/70 text-sm">
+            {disputes.data!.map((d) => (
+              <li
+                key={d.id}
+                className="flex items-center justify-between gap-4 px-5 py-3"
+              >
+                <div className="min-w-0">
+                  <p className="truncate font-medium">{d.event.title}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {d.schedule?.planner?.business_name}
+                    {d.disputed_at &&
+                      ` · ${t("disputeOpened", { date: f.date(d.disputed_at, "medium") })}`}
+                    {d.dispute_status &&
+                      ` · ${t("disputeStatus", { status: d.dispute_status })}`}
+                  </p>
+                </div>
+                <div className="flex items-center gap-3">
+                  <p className="font-mono tabular-nums">
+                    {f.currency(decimalToNumber(d.amount), d.currency)}
+                  </p>
+                  <RefundDialog
+                    paymentId={d.id}
+                    label={d.event.title}
+                    currency={d.currency}
+                    gross={decimalToNumber(d.amount)}
+                    refunded={0}
+                  />
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+
       <div className="rounded-2xl border border-rose-100/70 bg-white/80">
         <div className="border-b border-rose-100/70 px-5 py-3">
           <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-rose-700/80">
@@ -156,13 +207,24 @@ export default function AdminPayoutsPage() {
                     )}
                   </p>
                 </div>
-                <div className="text-end">
-                  <p className="font-mono tabular-nums">
-                    {f.currency(decimalToNumber(p.amount), p.currency)}
-                  </p>
-                  <p className="text-[10px] capitalize text-muted-foreground">
-                    {p.status}
-                  </p>
+                <div className="flex items-center gap-3">
+                  <div className="text-end">
+                    <p className="font-mono tabular-nums">
+                      {f.currency(decimalToNumber(p.amount), p.currency)}
+                    </p>
+                    <p className="text-[10px] capitalize text-muted-foreground">
+                      {p.status}
+                    </p>
+                  </div>
+                  {p.status === "paid" || p.status === "partially_refunded" ? (
+                    <RefundDialog
+                      paymentId={p.id}
+                      label={`${p.label} · ${p.event.title}`}
+                      currency={p.currency}
+                      gross={decimalToNumber(p.amount)}
+                      refunded={decimalToNumber(p.refunded_amount ?? 0)}
+                    />
+                  ) : null}
                 </div>
               </li>
             ))}
@@ -170,6 +232,145 @@ export default function AdminPayoutsPage() {
         )}
       </div>
     </div>
+  );
+}
+
+function RefundDialog({
+  paymentId,
+  label,
+  currency,
+  gross,
+  refunded,
+}: {
+  paymentId: string;
+  label: string;
+  currency: string;
+  gross: number;
+  refunded: number;
+}) {
+  const t = useTranslations("admin");
+  const utils = trpc.useUtils();
+  const f = useFormatters();
+  const [open, setOpen] = useState(false);
+  const remaining = Math.max(0, gross - refunded);
+  const [amount, setAmount] = useState<string>(remaining.toFixed(2));
+  const [reason, setReason] = useState<
+    "requested_by_customer" | "duplicate" | "fraudulent"
+  >("requested_by_customer");
+  const [notes, setNotes] = useState("");
+
+  const refund = trpc.admin.refundPayment.useMutation({
+    onSuccess: (res) => {
+      toast.success(
+        t("refundIssuedToast", {
+          amount: f.currency(res.refundedAmount, currency),
+        }),
+      );
+      utils.admin.disputes.invalidate();
+      utils.admin.recentInstallments.invalidate();
+      utils.admin.pendingPayouts.invalidate();
+      setOpen(false);
+    },
+    onError: (e) => toast.error(e.message),
+  });
+
+  function onSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    const parsed = Number(amount);
+    if (!Number.isFinite(parsed) || parsed <= 0) {
+      toast.error(t("refundAmount"));
+      return;
+    }
+    refund.mutate({
+      paymentId,
+      amount: parsed,
+      reason,
+      notes: notes.trim() || undefined,
+    });
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger
+        render={<Button size="sm" variant="outline" className="gap-1.5" />}
+      >
+        {t("issueRefund")}
+      </DialogTrigger>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>{t("refundDialogTitle", { label })}</DialogTitle>
+          <DialogDescription>{t("refundDialogDesc")}</DialogDescription>
+        </DialogHeader>
+        <form onSubmit={onSubmit} className="space-y-4">
+          <div className="space-y-1.5">
+            <Label htmlFor="amount">{t("refundAmount")}</Label>
+            <Input
+              id="amount"
+              type="number"
+              step="0.01"
+              min={0.01}
+              max={remaining}
+              value={amount}
+              onChange={(e) => setAmount(e.target.value)}
+            />
+            <p className="text-xs text-muted-foreground">
+              {t("refundAmountHelp", {
+                remaining: remaining.toFixed(2),
+                currency,
+              })}
+            </p>
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="reason">{t("refundReason")}</Label>
+            <select
+              id="reason"
+              value={reason}
+              onChange={(e) =>
+                setReason(e.target.value as typeof reason)
+              }
+              className="h-9 w-full rounded-md border border-input bg-transparent px-3 text-sm"
+            >
+              <option value="requested_by_customer">
+                {t("refundReasonRequested")}
+              </option>
+              <option value="duplicate">{t("refundReasonDuplicate")}</option>
+              <option value="fraudulent">{t("refundReasonFraudulent")}</option>
+            </select>
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="refund-notes">{t("refundNotes")}</Label>
+            <Textarea
+              id="refund-notes"
+              rows={2}
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+            />
+          </div>
+          <div className="flex justify-end gap-2">
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={() => setOpen(false)}
+              disabled={refund.isPending}
+            >
+              {t("cancel")}
+            </Button>
+            <Button
+              type="submit"
+              disabled={refund.isPending}
+              className="bg-red-700 text-white hover:bg-red-800"
+            >
+              {refund.isPending ? (
+                <Loader2 className="me-2 size-4 animate-spin" />
+              ) : null}
+              {t("refundConfirm", {
+                amount: f.currency(Number(amount) || 0, currency),
+              })}
+            </Button>
+          </div>
+        </form>
+      </DialogContent>
+    </Dialog>
   );
 }
 

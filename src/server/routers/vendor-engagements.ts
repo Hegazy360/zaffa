@@ -2,6 +2,17 @@ import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import { router, protectedProcedure } from "../trpc";
 import { prisma } from "@/lib/prisma";
+import { formatMoney } from "./payment-schedules";
+import {
+  notifyEngagementCancelledToVendor,
+  notifyEngagementItemsUpdated,
+  notifyEngagementRequested,
+  notifyVendorEngagementAccepted,
+  notifyVendorEngagementCancelledToPlanner,
+  notifyVendorEngagementDeclined,
+} from "@/server/services/notifications/dispatchers";
+import { trackServer } from "@/lib/posthog";
+import { ANALYTICS_EVENTS } from "@/lib/analytics-events";
 
 // One row per requested catalog item or one-off custom line. Quantity can be
 // 0 for "ask the vendor" placeholders but we ignore those in the total.
@@ -259,8 +270,8 @@ export const vendorEngagementsRouter = router({
         (s, i) => s + i.unit_price * i.quantity,
         0,
       );
-      return prisma.$transaction(async (tx) => {
-        const engagement = await tx.vendorEngagement.create({
+      const engagement = await prisma.$transaction(async (tx) => {
+        return tx.vendorEngagement.create({
           data: {
             event_id: input.event_id,
             planner_id: planner.id,
@@ -284,8 +295,53 @@ export const vendorEngagementsRouter = router({
           },
           include: { items: true },
         });
-        return engagement;
       });
+
+      // Nudge the vendor that a fresh request landed in their inbox.
+      const notifyCtx = await prisma.vendorEngagement.findUnique({
+        where: { id: engagement.id },
+        select: {
+          vendor: { select: { user_id: true } },
+          planner: {
+            select: {
+              business_name: true,
+              profile: { select: { full_name: true } },
+            },
+          },
+          event: { select: { title: true } },
+        },
+      });
+      if (notifyCtx) {
+        await notifyEngagementRequested({
+          vendorUserId: notifyCtx.vendor.user_id,
+          plannerName:
+            notifyCtx.planner.business_name ||
+            notifyCtx.planner.profile.full_name ||
+            "A planner",
+          engagementId: engagement.id,
+          engagementTitle: engagement.title,
+          totalAmount: formatMoney(total, engagement.currency),
+          eventTitle: notifyCtx.event.title,
+        });
+      }
+
+      // Planner-journey funnel — fire the request from the planner's
+      // distinctId. Item count + total amount help us segment quickly
+      // (small experiments vs serious bookings).
+      await trackServer(
+        ctx.user.id,
+        ANALYTICS_EVENTS.VENDOR_ENGAGEMENT_REQUESTED,
+        {
+          engagement_id: engagement.id,
+          event_id: input.event_id,
+          vendor_id: input.vendor_id,
+          item_count: input.items.length,
+          total_amount: total,
+          currency: input.currency,
+        },
+      );
+
+      return engagement;
     }),
 
   // Vendor accepts or declines a pending request. Counter-offers are out of
@@ -317,7 +373,7 @@ export const vendorEngagementsRouter = router({
         });
       }
       const nextStatus = input.accept ? "accepted" : "declined";
-      return prisma.vendorEngagement.update({
+      const updated = await prisma.vendorEngagement.update({
         where: { id: engagement.id },
         data: {
           status: nextStatus,
@@ -327,6 +383,51 @@ export const vendorEngagementsRouter = router({
             : {}),
         },
       });
+
+      // Tell the planner so their inbox reflects the decision without a
+      // page refresh.
+      const notifyCtx = await prisma.vendorEngagement.findUnique({
+        where: { id: engagement.id },
+        select: {
+          title: true,
+          planner: { select: { user_id: true } },
+          vendor: {
+            select: {
+              business_name: true,
+              profile: { select: { full_name: true } },
+            },
+          },
+        },
+      });
+      if (notifyCtx) {
+        const vendorName =
+          notifyCtx.vendor.business_name ||
+          notifyCtx.vendor.profile.full_name ||
+          "Your vendor";
+        const args = {
+          plannerUserId: notifyCtx.planner.user_id,
+          vendorName,
+          engagementId: engagement.id,
+          engagementTitle: notifyCtx.title,
+        };
+        await (input.accept
+          ? notifyVendorEngagementAccepted(args)
+          : notifyVendorEngagementDeclined(args));
+      }
+
+      // Vendor-journey funnel — track which way the vendor went so we
+      // can build acceptance-rate and time-to-respond metrics.
+      await trackServer(
+        ctx.user.id,
+        input.accept
+          ? ANALYTICS_EVENTS.ENGAGEMENT_ACCEPTED
+          : ANALYTICS_EVENTS.ENGAGEMENT_DECLINED,
+        {
+          engagement_id: engagement.id,
+          vendor_id: vendor.id,
+        },
+      );
+      return updated;
     }),
 
   // Planner marks the engagement complete after final delivery. Required
@@ -351,10 +452,18 @@ export const vendorEngagementsRouter = router({
           message: "Only accepted or active engagements can be completed",
         });
       }
-      return prisma.vendorEngagement.update({
+      const updated = await prisma.vendorEngagement.update({
         where: { id: engagement.id },
         data: { status: "completed", completed_at: new Date() },
       });
+      // Vendor-journey funnel — the engagement reaching "completed" is
+      // the closing-the-loop moment that unlocks the planner's review.
+      // Tracked from the planner's distinctId (they're the caller); the
+      // event still stitches into the engagement timeline by id.
+      await trackServer(ctx.user.id, ANALYTICS_EVENTS.ENGAGEMENT_DELIVERED, {
+        engagement_id: engagement.id,
+      });
+      return updated;
     }),
 
   // Either side can cancel before completion. If there are pending releases
@@ -420,7 +529,7 @@ export const vendorEngagementsRouter = router({
             .filter(Boolean)
             .join("\n\n")
         : engagement.notes;
-      return prisma.vendorEngagement.update({
+      const updated = await prisma.vendorEngagement.update({
         where: { id: engagement.id },
         data: {
           status: "cancelled",
@@ -428,6 +537,54 @@ export const vendorEngagementsRouter = router({
           notes: nextNotes,
         },
       });
+
+      // Inform the other side. When the planner cancels we tell the vendor;
+      // when the vendor cancels we tell the planner so neither side has to
+      // chase the other for status.
+      const full = await prisma.vendorEngagement.findUnique({
+        where: { id: engagement.id },
+        select: {
+          title: true,
+          planner: {
+            select: {
+              user_id: true,
+              business_name: true,
+              profile: { select: { full_name: true } },
+            },
+          },
+          vendor: {
+            select: {
+              user_id: true,
+              business_name: true,
+              profile: { select: { full_name: true } },
+            },
+          },
+        },
+      });
+      if (full) {
+        if (isPlanner) {
+          await notifyEngagementCancelledToVendor({
+            vendorUserId: full.vendor.user_id,
+            plannerName:
+              full.planner.business_name ||
+              full.planner.profile.full_name ||
+              "Your planner",
+            engagementId: engagement.id,
+            engagementTitle: full.title,
+          });
+        } else {
+          await notifyVendorEngagementCancelledToPlanner({
+            plannerUserId: full.planner.user_id,
+            vendorName:
+              full.vendor.business_name ||
+              full.vendor.profile.full_name ||
+              "Your vendor",
+            engagementId: engagement.id,
+            engagementTitle: full.title,
+          });
+        }
+      }
+      return updated;
     }),
 
   // Vendor toggles a line item as delivered. We store the timestamp so the
@@ -492,7 +649,7 @@ export const vendorEngagementsRouter = router({
           message: "Items can only be edited while the request is pending",
         });
       }
-      return prisma.$transaction(async (tx) => {
+      const result = await prisma.$transaction(async (tx) => {
         await tx.vendorEngagementItem.deleteMany({
           where: { engagement_id: engagement.id },
         });
@@ -513,5 +670,39 @@ export const vendorEngagementsRouter = router({
           include: { items: true },
         });
       });
+
+      // Loop the vendor in so they re-review the updated request before
+      // accepting.
+      const notifyCtx = await prisma.vendorEngagement.findUnique({
+        where: { id: engagement.id },
+        select: {
+          title: true,
+          total_amount: true,
+          currency: true,
+          vendor: { select: { user_id: true } },
+          planner: {
+            select: {
+              business_name: true,
+              profile: { select: { full_name: true } },
+            },
+          },
+        },
+      });
+      if (notifyCtx) {
+        await notifyEngagementItemsUpdated({
+          vendorUserId: notifyCtx.vendor.user_id,
+          plannerName:
+            notifyCtx.planner.business_name ||
+            notifyCtx.planner.profile.full_name ||
+            "Your planner",
+          engagementId: engagement.id,
+          engagementTitle: notifyCtx.title,
+          totalAmount: formatMoney(
+            Number(notifyCtx.total_amount),
+            notifyCtx.currency,
+          ),
+        });
+      }
+      return result;
     }),
 });

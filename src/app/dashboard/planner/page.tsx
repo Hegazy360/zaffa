@@ -15,6 +15,7 @@ import { useTranslations, useLocale } from "next-intl";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { useFormatters } from "@/lib/use-formatters";
+import { PlannerOnboardingWizard } from "@/components/onboarding/planner-wizard";
 
 interface NormalizedPalette {
   colors: string[];
@@ -80,7 +81,7 @@ export default function PlannerDashboardPage() {
   }
 
   if (!planner) {
-    return <PlannerSetupNeeded />;
+    return <PlannerOnboardingWizard />;
   }
 
   const firstName =
@@ -555,29 +556,3 @@ function EmptyCard({
   );
 }
 
-function PlannerSetupNeeded() {
-  const tPlanner = useTranslations("planner");
-  return (
-    <div className="mx-auto max-w-3xl px-6 py-16">
-      <div className="rounded-2xl border border-rose-100/70 bg-white/70 p-8 backdrop-blur-sm dark:border-rose-900/30 dark:bg-card/80">
-        <p className="mb-1 text-[0.65rem] font-medium uppercase tracking-[0.3em] text-rose-700/80">
-          {tPlanner("almostThereEyebrow")}
-        </p>
-        <h1 className="font-display text-3xl font-light tracking-tight">
-          {tPlanner("setupProfileTitle")}
-        </h1>
-        <p className="mt-3 max-w-xl text-sm text-muted-foreground">
-          {tPlanner("setupProfileBody")}
-        </p>
-        <div className="mt-6 flex gap-3">
-          <Button
-            render={<Link href="/dashboard/planner/settings" />}
-            className="bg-gradient-to-r from-rose-600 to-amber-500 text-white"
-          >
-            {tPlanner("setupProfileCta")}
-          </Button>
-        </div>
-      </div>
-    </div>
-  );
-}

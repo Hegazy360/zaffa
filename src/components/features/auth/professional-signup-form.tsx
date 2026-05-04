@@ -10,6 +10,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { trpc } from "@/lib/trpc";
+import { track } from "@/lib/analytics";
+import { ANALYTICS_EVENTS } from "@/lib/analytics-events";
 import type { UserRole } from "@/types";
 import { RoleSelector } from "./role-selector";
 import { OAuthButtons } from "./oauth-buttons";
@@ -76,6 +78,15 @@ export function ProfessionalSignUpForm() {
       setLoading(false);
       return;
     }
+
+    // Activation funnel — fired client-side because this is the moment
+    // the user perceives "I just signed up". The role-specific
+    // `onboarding.completed` / `profile.published` events fire later
+    // server-side when the wizard saves.
+    track(ANALYTICS_EVENTS.AUTH_SIGNED_UP, {
+      role,
+      via: "email_password",
+    });
 
     if (authData.user) {
       const { error: profileError } = await supabase

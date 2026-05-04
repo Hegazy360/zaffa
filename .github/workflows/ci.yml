@@ -1,0 +1,85 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint-typecheck:
+    name: Lint & typecheck
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 20
+          cache: npm
+      - name: Install
+        run: npm ci
+      - name: Generate Prisma client
+        run: npx prisma generate
+      - name: Lint
+        run: npm run lint
+      - name: Typecheck
+        run: npx tsc --noEmit
+
+  test:
+    name: Unit tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 20
+          cache: npm
+      - name: Install
+        run: npm ci
+      - name: Generate Prisma client
+        run: npx prisma generate
+      - name: Run tests
+        run: npm test -- --run
+
+  build:
+    name: Production build
+    runs-on: ubuntu-latest
+    needs: [lint-typecheck]
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 20
+          cache: npm
+      - name: Install
+        run: npm ci
+      - name: Build
+        env:
+          # CI-only stub values so `next build` can statically analyze the app
+          # without contacting any real services. Production secrets live in
+          # the deploy environment (Vercel project settings).
+          NODE_ENV: production
+          DATABASE_URL: postgresql://stub:stub@localhost:5432/stub?schema=public
+          DIRECT_URL: postgresql://stub:stub@localhost:5432/stub?schema=public
+          NEXT_PUBLIC_SUPABASE_URL: https://stub.supabase.co
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: stub-anon-key
+          SUPABASE_SERVICE_ROLE_KEY: stub-service-role-key
+          STRIPE_SECRET_KEY: sk_test_stub
+          STRIPE_WEBHOOK_SECRET: whsec_stub
+          NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: pk_test_stub
+          OPENAI_API_KEY: sk-stub
+          RESEND_API_KEY: re_stub
+          RESEND_FROM_EMAIL: stub@example.com
+          NEXT_PUBLIC_APP_URL: https://example.com
+          CRON_SECRET: stub-cron
+          NOTIFICATION_UNSUBSCRIBE_SECRET: stub-unsubscribe
+          NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME: stub
+          NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET: stub
+          CLOUDINARY_API_KEY: stub
+          CLOUDINARY_API_SECRET: stub
+          CI: "true"
+        run: npm run build

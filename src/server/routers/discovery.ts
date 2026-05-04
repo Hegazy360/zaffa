@@ -7,6 +7,7 @@ import {
   ProspectSource,
 } from "@/generated/prisma/client";
 import { runDiscovery } from "@/server/services/prospects/run-discovery";
+import { enforceTrpc, enforceTrpcMany } from "@/lib/rate-limit";
 
 async function assertAdmin(userId: string) {
   const profile = await prisma.profile.findUnique({
@@ -195,6 +196,13 @@ export const discoveryRouter = router({
     )
     .mutation(async ({ ctx, input }) => {
       await assertAdmin(ctx.user.id);
+      // Per-admin throttle so a typo-loop or runaway script can't burn
+      // discovery budget before anyone notices. Per-hour for bursts +
+      // per-day cost ceiling.
+      await enforceTrpcMany(
+        [{ key: "discoveryRun" }, { key: "discoveryRunDaily" }],
+        ctx.user.id,
+      );
       const run = await prisma.discoveryRun.create({
         data: {
           source: input.source,
@@ -221,6 +229,10 @@ export const discoveryRouter = router({
     .input(z.object({ id: z.string().uuid() }))
     .mutation(async ({ ctx, input }) => {
       await assertAdmin(ctx.user.id);
+      await enforceTrpcMany(
+        [{ key: "discoveryRun" }, { key: "discoveryRunDaily" }],
+        ctx.user.id,
+      );
       const run = await prisma.discoveryRun.findUnique({
         where: { id: input.id },
       });

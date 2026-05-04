@@ -221,6 +221,16 @@ export function SchedulePanel({
         />
       )}
 
+      {side === "client" && feePct > 0 && (
+        <div
+          className="rounded-2xl border border-rose-100/70 bg-rose-50/40 px-4 py-3 text-xs text-rose-900/85"
+          title={t("feeIncludedTooltip", { pct: f.number(feePct) })}
+        >
+          <p>{t("feeIncludedClient", { pct: f.number(feePct) })}</p>
+          <p className="mt-1 text-rose-900/60">{t("receiptHint")}</p>
+        </div>
+      )}
+
       <div className="overflow-hidden rounded-2xl border border-rose-100/70 bg-white/80 backdrop-blur-sm">
         <div className="flex items-center justify-between gap-3 border-b border-rose-100/70 px-5 py-3">
           <div>
