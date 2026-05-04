@@ -149,8 +149,11 @@ jobs:
         run: npx prisma generate
 
       - name: Apply schema + seed test data
+        # Prisma 7 dropped `--skip-generate` from `db push`; we already ran
+        # `prisma generate` in the previous step, so the implicit regen here
+        # is a no-op.
         run: |
-          npx prisma db push --skip-generate
+          npx prisma db push
           npm run db:seed
 
       - name: Provision E2E auth users
