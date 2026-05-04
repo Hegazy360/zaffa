@@ -2,12 +2,16 @@ import Link from "next/link";
 import { Instagram } from "lucide-react";
 import { getTranslations } from "next-intl/server";
 import { isFlagEnabled } from "@/lib/flags";
+import {
+  WHATSAPP_LINK,
+  WHATSAPP_NUMBER_DISPLAY,
+} from "@/lib/contact-channels";
 
-// Lucide doesn't ship a TikTok glyph, so we render an inline SVG. Kept
-// here (not in `components/icons/`) because it has exactly one consumer
-// and inlining keeps the bundle one less import deep. Path data is the
-// official TikTok logo simplified to a single `currentColor` stroke so
-// it inherits text colour like every other footer icon.
+// Lucide doesn't ship TikTok or WhatsApp brand glyphs, so we render
+// inline SVGs. Kept here (not in `components/icons/`) because each has
+// exactly one consumer and inlining keeps the bundle one less import
+// deep. Path data uses `currentColor` so the icon inherits text colour
+// like every other footer icon.
 function TikTokIcon({ className }: { className?: string }) {
   return (
     <svg
@@ -22,14 +26,39 @@ function TikTokIcon({ className }: { className?: string }) {
   );
 }
 
+function WhatsAppIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      role="img"
+      aria-hidden="true"
+      viewBox="0 0 24 24"
+      fill="currentColor"
+      className={className}
+    >
+      <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.198-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.501-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.71.306 1.263.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347Zm-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884a9.83 9.83 0 0 1 6.991 2.898 9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.886 9.884Zm8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893A11.821 11.821 0 0 0 20.464 3.488Z" />
+    </svg>
+  );
+}
+
 interface SocialLink {
   href: string;
-  labelKey: "footerSocialInstagram" | "footerSocialTiktok";
+  labelKey:
+    | "footerSocialInstagram"
+    | "footerSocialTiktok"
+    | "footerSocialWhatsapp";
   Icon: React.ComponentType<{ className?: string }>;
+  /**
+   * Append the formatted phone number to the aria-label. WhatsApp benefits
+   * from a more descriptive label so screen-reader users hear the number
+   * before tapping; for IG / TikTok the channel name alone is enough.
+   */
+  ariaSuffix?: string;
 }
 
 // Single source of truth for the social icons rendered next to the
-// copyright. Both handles point at `zaffa.ai` per the brand inventory.
+// copyright. Instagram and TikTok point at the `zaffa.ai` handle;
+// WhatsApp opens the business chat with the number defined in
+// `contact-channels.ts`.
 const SOCIAL_LINKS: SocialLink[] = [
   {
     href: "https://instagram.com/zaffa.ai",
@@ -40,6 +69,12 @@ const SOCIAL_LINKS: SocialLink[] = [
     href: "https://tiktok.com/@zaffa.ai",
     labelKey: "footerSocialTiktok",
     Icon: TikTokIcon,
+  },
+  {
+    href: WHATSAPP_LINK,
+    labelKey: "footerSocialWhatsapp",
+    Icon: WhatsAppIcon,
+    ariaSuffix: WHATSAPP_NUMBER_DISPLAY,
   },
 ];
 
@@ -69,13 +104,15 @@ export async function Footer() {
               {t("footerFollow")}
             </p>
             <ul className="mt-2 flex items-center gap-2">
-              {SOCIAL_LINKS.map(({ href, labelKey, Icon }) => (
+              {SOCIAL_LINKS.map(({ href, labelKey, Icon, ariaSuffix }) => (
                 <li key={href}>
                   <a
                     href={href}
                     target="_blank"
                     rel="noopener noreferrer me"
-                    aria-label={t(labelKey)}
+                    aria-label={
+                      ariaSuffix ? `${t(labelKey)} — ${ariaSuffix}` : t(labelKey)
+                    }
                     className="inline-flex size-9 items-center justify-center rounded-full border border-rose-100/70 bg-white/80 text-rose-700 transition hover:border-rose-200 hover:bg-rose-50"
                   >
                     <Icon className="size-4" />

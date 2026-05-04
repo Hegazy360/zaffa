@@ -177,6 +177,7 @@
       "intro": "سواء كنت تخطّط لمناسبة، أو تتقدّم للانضمام كمنظّم أو مورّد، أو لديك استفسار صحفي — أرسل لنا رسالة من الأسفل أو استخدم إحدى القنوات المخصّصة، وسنوجّهها للشخص المناسب.",
       "supportLabel": "الدعم",
       "partnershipsLabel": "الشراكات",
+      "whatsappLabel": "واتساب",
       "locationLabel": "المكتب",
       "location": "القاهرة، مصر",
       "channelsTitle": "أو راسلنا مباشرة",
@@ -474,6 +475,7 @@
     "footerFollow": "تابعنا",
     "footerSocialInstagram": "إنستغرام",
     "footerSocialTiktok": "تيك توك",
+    "footerSocialWhatsapp": "واتساب",
     "footerCopyright": "© {year} زفّة. جميع الحقوق محفوظة.",
     "authCta": {
       "anonTitle": "جاهز لتخطّط لمناسبة أحلامك؟",

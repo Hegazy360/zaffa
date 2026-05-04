@@ -177,9 +177,10 @@
       "intro": "Whether you're planning an event, applying as a planner or vendor, or have a press inquiry — send us a message below or use one of the dedicated channels. We'll route it to the right person.",
       "supportLabel": "Support",
       "partnershipsLabel": "Partnerships",
+      "whatsappLabel": "WhatsApp",
       "locationLabel": "Office",
       "location": "Cairo, Egypt",
-      "channelsTitle": "Or email us directly",
+      "channelsTitle": "Or reach us directly",
       "formTitle": "Send us a message"
     },
     "about": {
@@ -474,6 +475,7 @@
     "footerFollow": "Follow us",
     "footerSocialInstagram": "Instagram",
     "footerSocialTiktok": "TikTok",
+    "footerSocialWhatsapp": "WhatsApp",
     "footerCopyright": "© {year} Zaffa. All rights reserved.",
     "authCta": {
       "anonTitle": "Ready to plan your dream event?",
