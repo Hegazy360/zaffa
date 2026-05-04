@@ -18,10 +18,24 @@
     "db:push": "prisma db push",
     "deploy:worker": "wrangler deploy --cwd workers/pinterest-search",
     "i18n:translate": "node scripts/translate-messages.mjs",
-    "test": "vitest"
+    "test": "vitest",
+    "test:ci": "vitest run --coverage",
+    "test:e2e": "playwright test",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "prepare": "husky"
   },
   "prisma": {
     "seed": "npx tsx prisma/seed.ts"
+  },
+  "lint-staged": {
+    "*.{ts,tsx}": [
+      "eslint --fix",
+      "bash -c 'tsc -p tsconfig.json --noEmit'",
+      "vitest related --run --passWithNoTests"
+    ],
+    "*.{js,mjs,cjs}": [
+      "eslint --fix"
+    ]
   },
   "dependencies": {
     "@base-ui/react": "^1.2.0",
@@ -71,7 +85,11 @@
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20260429.1",
+    "@playwright/test": "^1.59.1",
     "@tailwindcss/postcss": "^4",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.2",
+    "@testing-library/user-event": "^14.6.1",
     "@types/node": "^20",
     "@types/pg": "^8.18.0",
     "@types/react": "^19",
@@ -80,9 +98,13 @@
     "dotenv": "^17.3.1",
     "eslint": "^9",
     "eslint-config-next": "16.1.6",
+    "husky": "^9.1.7",
+    "jsdom": "^29.1.1",
+    "lint-staged": "^16.4.0",
     "tailwindcss": "^4",
     "typescript": "^5",
     "vitest": "^4.1.5",
+    "vitest-mock-extended": "^4.0.0",
     "wrangler": "^4.86.0"
   }
 }

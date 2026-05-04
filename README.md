@@ -123,15 +123,66 @@ For dev databases, `npm run db:push` is the fastest loop. **Do not** run it agai
 
 ## Tests
 
-`npm test` runs the [Vitest](https://vitest.dev/) suite under `tests/`. Today this covers:
+The test strategy is **layered** so that fast checks gate every commit, slower ones gate every push, and the heavy E2E run against Stripe lives in CI without slowing local iteration.
 
-- Fee math (`computeFee`, `decimalToNumber`, Stripe zero-decimal currency conversion)
-- Production env guards (`assertProductionEnv`) and cron authentication (`isAuthorizedCronRequest`)
-- Rate-limit IP extraction (`ipFromRequest`)
-- HMAC unsubscribe tokens (sign / verify / expiry / tampering)
-- Notification copy rendering in English + Arabic
+| Layer | When | Command | What runs |
+|---|---|---|---|
+| Pre-commit | Every `git commit` (Husky + lint-staged) | `npx lint-staged` | ESLint `--fix`, project `tsc --noEmit`, `vitest related --run` for staged `*.ts/tsx` |
+| Pre-push | Every `git push` (Husky) | `npm run test:ci && npm run build` | Full Vitest suite with coverage + `next build` smoke |
+| On-demand + CI | Manual or PR (GitHub Actions) | `npm run test:e2e` | Playwright money-path against `next dev` + seeded local Postgres + Stripe test mode |
 
-CI (`.github/workflows/ci.yml`) runs `lint`, `tsc --noEmit`, the test suite, and `next build` on every PR. Webhook + payment-schedule integration tests against a real Postgres are tracked as a follow-up.
+### Vitest (unit + integration)
+
+`npm test` runs the [Vitest](https://vitest.dev/) suite under `tests/` in two projects:
+
+- `node` — server-side helpers, tRPC routers (mocked Prisma + Stripe via `vitest-mock-extended`), the Stripe webhook (real `Stripe.webhooks.generateTestHeaderString`), notification dispatchers, the `payment-reminders` cron, and the Next middleware.
+- `jsdom` — React component tests (`@testing-library/react`) for `SchedulePanel` and `AmendmentDialog`.
+
+Coverage is enforced on the critical paths (`src/lib/payments.ts`, `src/lib/env-checks.ts`); see `vitest.config.ts`.
+
+### Playwright (E2E)
+
+The single E2E spec is `tests/e2e/money-path.spec.ts` — it walks one couple end-to-end:
+
+```
+client signs up -> creates event -> planner sends proposal + 3 installments
+        -> client accepts + pays deposit via Stripe test card 4242 4242 4242 4242
+        -> webhook lands -> installment paid -> admin releases planner payout
+```
+
+To run locally:
+
+1. `cp .env.test.example .env.test` and fill in Stripe **test-mode** keys + a local Postgres connection.
+2. Spin up Postgres + apply schema + seed accounts (roughly):
+   ```bash
+   docker run --name zaffa-test-pg -e POSTGRES_PASSWORD=zaffa -p 54329:5432 -d pgvector/pgvector:pg16
+   npx prisma db push && npm run db:seed
+   ```
+3. In a second terminal: `stripe listen --forward-to localhost:3100/api/webhooks/stripe` (paste the printed `whsec_…` into `STRIPE_WEBHOOK_SECRET` in `.env.test`).
+4. `npm run test:e2e`.
+
+The dev server is started by Playwright's `webServer` automatically on port `E2E_PORT` (default `3100`).
+
+To skip E2E entirely (for example, on slow networks): `SKIP_E2E=1 npm run test:e2e` is a no-op.
+
+To run a single spec / a single test:
+
+```bash
+npx playwright test tests/e2e/money-path.spec.ts
+npx playwright test -g "creates an event"
+npx playwright test --headed --debug   # step through interactively
+```
+
+### CI
+
+`.github/workflows/ci.yml` runs four jobs on every PR:
+
+- `lint-typecheck` — ESLint + `tsc --noEmit`
+- `test` — full Vitest suite
+- `build` — `next build` against stub env vars
+- `e2e` — Playwright money-path against a Postgres service container + Stripe test mode (gated on `lint-typecheck` + `test` going green so we don't burn minutes on a known-bad change)
+
+The E2E job needs the following GitHub Action **secrets** to be set on the repo: `E2E_SUPABASE_URL`, `E2E_SUPABASE_ANON_KEY`, `E2E_SUPABASE_SERVICE_ROLE_KEY`, `E2E_STRIPE_SECRET_KEY`, `E2E_STRIPE_PUBLISHABLE_KEY`, `E2E_STRIPE_WEBHOOK_SECRET`, `E2E_TEST_PASSWORD`.
 
 ## Receipts and VAT
 
@@ -158,6 +209,10 @@ VAT-compliant invoice PDFs and Egyptian e-invoice integration are explicitly **o
 | `npm run build` | Production build |
 | `npm run start` | Start production server |
 | `npm run lint` | Run ESLint |
+| `npm run typecheck` | `tsc --noEmit` (project-wide) |
+| `npm test` | Vitest in watch mode |
+| `npm run test:ci` | Vitest one-shot with coverage (used by `pre-push` and CI) |
+| `npm run test:e2e` | Playwright money-path (`SKIP_E2E=1` to skip) |
 | `npm run db:generate` | Generate Prisma client |
 | `npm run db:migrate` | Run Prisma migrations (dev only) |
 | `npm run db:push` | Push schema to database (dev only — see Migrations) |
