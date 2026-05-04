@@ -1,19 +1,27 @@
 "use client";
 
-import { useMemo, useState, type KeyboardEvent } from "react";
+import {
+  useMemo,
+  useRef,
+  useState,
+  type DragEvent,
+  type KeyboardEvent,
+} from "react";
 import {
   Image as ImageIcon,
   Loader2,
   Pencil,
   Plus,
+  RefreshCw,
   Trash2,
+  Upload,
   X,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
 import { trpc } from "@/lib/trpc";
+import { usePlannerImageUpload } from "@/hooks/use-planner-image-upload";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -292,6 +300,9 @@ function PortfolioForm({
   );
   const [tags, setTags] = useState<string[]>(styleTagsArray(item?.style_tags));
   const [tagDraft, setTagDraft] = useState("");
+  const [isDragOver, setIsDragOver] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const { uploadFile, isUploading } = usePlannerImageUpload();
 
   const eventTypeItems = useMemo(
     () =>
@@ -320,6 +331,18 @@ function PortfolioForm({
 
   const submitting = create.isPending || update.isPending;
 
+  async function handleFile(file: File | undefined) {
+    if (!file) return;
+    const url = await uploadFile(file);
+    if (url) setImageUrl(url);
+  }
+
+  function onDrop(e: DragEvent<HTMLDivElement>) {
+    e.preventDefault();
+    setIsDragOver(false);
+    handleFile(e.dataTransfer.files?.[0]);
+  }
+
   function addTag() {
     const v = tagDraft.trim();
     if (!v) return;
@@ -340,8 +363,8 @@ function PortfolioForm({
 
   function onSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!imageUrl.trim()) {
-      toast.error(t("imageUrlRequired"));
+    if (mode === "create" && !imageUrl.trim()) {
+      toast.error(t("uploadImageFirst"));
       return;
     }
     const eventTypeOrNull = eventType === "none" ? null : eventType;
@@ -364,28 +387,88 @@ function PortfolioForm({
 
   return (
     <form onSubmit={onSubmit} className="space-y-4">
-      <div className="space-y-1.5">
-        <Label htmlFor="image">{t("imageUrlLabel")}</Label>
-        <Input
-          id="image"
-          value={imageUrl}
-          onChange={(e) => setImageUrl(e.target.value)}
-          placeholder="https://…"
-          disabled={mode === "edit"}
-        />
-        {mode === "edit" && (
-          <p className="text-[11px] text-muted-foreground">
-            {t("imageUrlLocked")}
-          </p>
-        )}
-      </div>
-      {imageUrl && (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img
-          src={imageUrl}
-          alt=""
-          className="aspect-[4/3] w-full rounded-lg object-cover"
-        />
+      {mode === "create" ? (
+        <div className="space-y-1.5">
+          <Label>{t("imageLabel")}</Label>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={(e) => {
+              handleFile(e.target.files?.[0]);
+              e.target.value = "";
+            }}
+          />
+          {imageUrl ? (
+            <div className="group relative overflow-hidden rounded-xl border border-rose-100/70">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={imageUrl}
+                alt={t("uploadPreviewAlt")}
+                className="aspect-[4/3] w-full object-cover"
+              />
+              <div className="absolute inset-x-0 bottom-0 flex items-center justify-end gap-2 bg-gradient-to-t from-stone-900/70 to-transparent p-2">
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="secondary"
+                  className="gap-1"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={isUploading}
+                >
+                  {isUploading ? (
+                    <Loader2 className="size-3.5 animate-spin" />
+                  ) : (
+                    <RefreshCw className="size-3.5" />
+                  )}
+                  {t("replace")}
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <div
+              onClick={() => !isUploading && fileInputRef.current?.click()}
+              onDragOver={(e) => {
+                e.preventDefault();
+                setIsDragOver(true);
+              }}
+              onDragLeave={() => setIsDragOver(false)}
+              onDrop={onDrop}
+              className={`flex aspect-[4/3] cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed bg-rose-50/30 px-4 py-6 text-center transition ${
+                isDragOver
+                  ? "border-rose-400 bg-rose-50/80"
+                  : "border-rose-200/70 hover:border-rose-300"
+              } ${isUploading ? "pointer-events-none opacity-70" : ""}`}
+            >
+              {isUploading ? (
+                <>
+                  <Loader2 className="size-6 animate-spin text-rose-500" />
+                  <p className="text-sm text-muted-foreground">
+                    {t("uploadingDots")}
+                  </p>
+                </>
+              ) : (
+                <>
+                  <Upload className="size-6 text-rose-500" />
+                  <p className="text-sm font-medium">{t("uploadOrDrop")}</p>
+                  <p className="text-[11px] text-muted-foreground">
+                    {t("imageRules")}
+                  </p>
+                </>
+              )}
+            </div>
+          )}
+        </div>
+      ) : (
+        imageUrl && (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={imageUrl}
+            alt={item?.caption ?? ""}
+            className="aspect-[4/3] w-full rounded-lg object-cover"
+          />
+        )
       )}
       <div className="space-y-1.5">
         <Label htmlFor="caption">{t("captionLabel")}</Label>

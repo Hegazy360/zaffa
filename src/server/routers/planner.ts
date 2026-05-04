@@ -2,6 +2,7 @@ import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import { router, protectedProcedure } from "../trpc";
 import { prisma } from "@/lib/prisma";
+import { cloudinary } from "@/lib/cloudinary";
 import { trackServer } from "@/lib/posthog";
 import { ANALYTICS_EVENTS } from "@/lib/analytics-events";
 
@@ -261,6 +262,31 @@ export const plannerRouter = router({
       reviewCount: profile?.review_count ?? 0,
     };
   }),
+
+  // Direct upload of a portfolio image. Mirrors `vendors.uploadImage`:
+  // accepts a base64 data URL and pushes it to Cloudinary under the
+  // planner's folder. Available before `PlannerProfile` exists so the
+  // portfolio dialog can upload while the profile is still being filled in.
+  uploadImage: protectedProcedure
+    .input(
+      z.object({
+        dataUrl: z
+          .string()
+          .min(50)
+          .startsWith("data:image/", "Must be an image data URL"),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const result = await cloudinary.uploader.upload(input.dataUrl, {
+        folder: `zaffa-planners/${ctx.user.id}`,
+        resource_type: "image",
+        type: "upload",
+      });
+      return {
+        url: result.secure_url,
+        publicId: result.public_id,
+      };
+    }),
 
   portfolio: router({
     list: protectedProcedure.query(async ({ ctx }) => {
