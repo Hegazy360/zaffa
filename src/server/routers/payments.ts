@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
-import { Prisma } from "@prisma/client";
+import { Prisma } from "@/generated/prisma/client";
 import { router, protectedProcedure } from "../trpc";
 import { prisma } from "@/lib/prisma";
 import { getStripe } from "@/lib/stripe";
