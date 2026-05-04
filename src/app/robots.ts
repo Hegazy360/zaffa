@@ -21,6 +21,10 @@ export default function robots(): MetadataRoute.Robots {
     "/api/",
     "/unsubscribed",
     "/venue-designer/",
+    // Operational surface — only useful for existing users sent here from
+    // the footer. The page already emits `noindex` via metadata; we
+    // disallow it here so crawlers don't waste budget on it either.
+    "/report-bug",
   ];
   if (!isFlagEnabled("publicBrowse")) {
     disallow.push("/planners", "/vendors");

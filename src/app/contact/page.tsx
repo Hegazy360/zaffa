@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 import { Mail, MessageCircle, MapPin } from "lucide-react";
 import { LegalPage } from "@/components/marketing/legal-page";
+import { ContactForm } from "@/components/marketing/contact-form";
 
 export const metadata: Metadata = {
   title: "Contact",
@@ -17,7 +18,12 @@ export default async function ContactPage() {
       updated={t("subtitle")}
     >
       <p>{t("intro")}</p>
-      <ul className="not-prose mt-6 grid gap-3 sm:grid-cols-2">
+
+      <h2 className="!mt-10">{t("formTitle")}</h2>
+      <ContactForm kind="contact" />
+
+      <h2 className="!mt-12">{t("channelsTitle")}</h2>
+      <ul className="not-prose mt-4 grid gap-3 sm:grid-cols-2">
         <li className="flex items-start gap-3 rounded-2xl border border-rose-100/70 bg-white/80 p-4">
           <Mail className="mt-0.5 size-5 text-rose-700" aria-hidden />
           <div className="min-w-0">

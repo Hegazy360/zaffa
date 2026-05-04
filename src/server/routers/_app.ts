@@ -4,6 +4,7 @@ import { adminRouter } from "./admin";
 import { adminOverviewRouter } from "./admin-overview";
 import { aiRouter } from "./ai";
 import { availabilityRouter } from "./availability";
+import { contactRouter } from "./contact";
 import { discoveryRouter } from "./discovery";
 import { eventsRouter } from "./events";
 import { inspirationRouter } from "./inspiration";
@@ -31,6 +32,7 @@ export const appRouter = router({
   adminOverview: adminOverviewRouter,
   ai: aiRouter,
   availability: availabilityRouter,
+  contact: contactRouter,
   discovery: discoveryRouter,
   events: eventsRouter,
   inspiration: inspirationRouter,

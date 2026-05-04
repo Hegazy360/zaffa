@@ -27,6 +27,11 @@ export const limiters = {
   authPasswordReset: makeLimiter("rl:auth:reset", 5, "1 h"),
   // Public unsubscribe HMAC route — abused only to enumerate user ids.
   unsubscribe: makeLimiter("rl:unsub", 30, "1 m"),
+  // Public contact / bug-report form. Tight per-identifier window so a
+  // bot that solves the honeypot can't blast our inbox; a human with a
+  // legitimate follow-up message will easily clear it.
+  contactForm: makeLimiter("rl:contact", 5, "10 m"),
+  contactFormDaily: makeLimiter("rl:contact:d", 20, "1 d"),
   // Per-user AI surfaces. These are the most expensive operations.
   // Two layers: the per-hour limiter caps burst usage; the per-day
   // limiter is the cost ceiling. Render image calls cost ~$0.04 each at
