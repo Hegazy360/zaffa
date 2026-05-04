@@ -11,6 +11,7 @@
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate dev",
     "db:seed": "npx tsx prisma/seed.ts",
+    "db:seed-e2e-users": "npx tsx prisma/seed-e2e-auth.ts",
     "db:seed-images": "npx dotenvx run --env-file=.env.local -- npx tsx prisma/seed-images.ts",
     "db:seed-outreach-templates": "npx dotenvx run --env-file=.env.local -- npx tsx prisma/seed-outreach-templates.ts",
     "dev:seed-notification": "npx dotenvx run --env-file=.env.local -- npx tsx scripts/seed-notification.ts",

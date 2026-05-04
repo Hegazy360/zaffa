@@ -153,6 +153,15 @@ jobs:
           npx prisma db push --skip-generate
           npm run db:seed
 
+      - name: Provision E2E auth users
+        # Creates client@/planner@/admin@test.zaffa in the Supabase project
+        # pointed at by E2E_SUPABASE_* AND inserts matching profile rows in
+        # the ephemeral CI Postgres — see prisma/seed-e2e-auth.ts for why
+        # both writes are necessary.
+        env:
+          E2E_TEST_PASSWORD: ${{ secrets.E2E_TEST_PASSWORD }}
+        run: npm run db:seed-e2e-users
+
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium
 

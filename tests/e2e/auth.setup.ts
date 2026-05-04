@@ -42,7 +42,7 @@ for (const role of ROLES) {
     // The auth pages live under (auth)/auth in the App Router. Adjust the
     // selectors here if the form ever changes — these are the stable test
     // ids from the editorial split-screen redesign.
-    await page.goto("/auth/sign-in");
+    await page.goto("/auth/signin");
 
     await page.getByLabel(/email/i).fill(role.email);
     await page.getByLabel(/password/i).fill(role.password);
