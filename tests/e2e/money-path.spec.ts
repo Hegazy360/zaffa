@@ -93,7 +93,9 @@ test.describe("money path: design → proposal → stripe pay → admin payout",
             .first()
             .click();
         }
-        await page.waitForURL(/\/venue-designer\/new/, { timeout: 15_000 });
+        // Next.js dev-mode first compile on CI's runners is slow (~5-10s),
+        // so give this navigation a comfortable 45s ceiling.
+        await page.waitForURL(/\/venue-designer\/new/, { timeout: 45_000 });
       });
 
       await test.step("rename the design so it becomes dirty, then save", async () => {
@@ -259,20 +261,31 @@ test.describe("money path: design → proposal → stripe pay → admin payout",
           .first()
           .click();
 
-        await page.waitForURL(/checkout\.stripe\.com/, { timeout: 30_000 });
+        await page.waitForURL(/checkout\.stripe\.com/, { timeout: 45_000 });
         // Stripe's hosted Checkout is a heavy SPA — wait for the submit
         // button testid before we even try to fill fields, otherwise we race
         // against hydration.
         await page
           .getByTestId("hosted-payment-submit-button")
-          .waitFor({ state: "visible", timeout: 30_000 });
+          .waitFor({ state: "visible", timeout: 45_000 });
 
-        // Stripe always requires an email (top of the form) and a cardholder
-        // name. We fill them unconditionally; labels are stable. Card number,
-        // expiry, and CVC live inside Stripe-hosted iframes, so `getByLabel`
-        // with Playwright's frame-piercing does the right thing.
-        await page.getByLabel(/^email$/i).fill("e2e+stripe@test.zaffa");
+        // Email + cardholder name are client-required. Stripe's React inputs
+        // sometimes ignore Playwright's synthetic `input` events from
+        // `.fill()`, which manifests in CI as an apparently-clicked Pay
+        // button that never submits ("REQUIRED" label appears). Click to
+        // focus and `pressSequentially` (real keystrokes) is the reliable
+        // path — slower, but the whole Stripe step is dominated by network.
+        const email = page
+          .locator('input[type="email"], input[name="email"]')
+          .first();
+        await email.waitFor({ state: "visible", timeout: 15_000 });
+        await email.click();
+        await email.pressSequentially("e2e+stripe@test.zaffa", { delay: 15 });
+        await expect(email).toHaveValue("e2e+stripe@test.zaffa");
 
+        // Card data lives inside Stripe-hosted iframes; `getByLabel` pierces
+        // frames, and `.fill` works fine on those inputs (they aren't the
+        // ones with the controlled-input quirk).
         await page.getByLabel(/card number/i).fill("4242424242424242");
         await page
           .getByLabel(/expiration|expiry/i)
@@ -280,17 +293,22 @@ test.describe("money path: design → proposal → stripe pay → admin payout",
           .fill("12 / 34");
         await page.getByLabel(/cvc/i).first().fill("123");
 
-        const nameOnCard = page.getByLabel(/name on card|cardholder name/i);
+        const nameOnCard = page
+          .locator(
+            'input[name="billingName"], input[placeholder*="Full name" i]',
+          )
+          .first();
         if (await nameOnCard.isVisible().catch(() => false)) {
-          await nameOnCard.fill("Playwright Tester");
+          await nameOnCard.click();
+          await nameOnCard.pressSequentially("Playwright Tester", { delay: 15 });
+          await expect(nameOnCard).toHaveValue("Playwright Tester");
         }
 
-        // Country default is geo-based; we need a ZIP/postal for "United
-        // States", not for most other countries. Fill optimistically if the
-        // field is rendered.
-        const postal = page.getByLabel(/zip|postal/i);
+        // Country default is geo-based (France on GitHub's US runners —
+        // don't ask). Fill a ZIP only if the country renders one.
+        const postal = page.getByLabel(/zip|postal/i).first();
         if (await postal.isVisible().catch(() => false)) {
-          await postal.first().fill("10000");
+          await postal.fill("10000");
         }
 
         await page.getByTestId("hosted-payment-submit-button").click();
