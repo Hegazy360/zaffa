@@ -44,9 +44,9 @@ for (const role of ROLES) {
     // ids from the editorial split-screen redesign.
     await page.goto("/auth/signin");
 
-    await page.getByLabel(/email/i).fill(role.email);
-    await page.getByLabel(/password/i).fill(role.password);
-    await page.getByRole("button", { name: /sign in/i }).click();
+    await page.getByLabel(/^email$/i).fill(role.email);
+    await page.getByLabel(/^password$/i).fill(role.password);
+    await page.getByRole("button", { name: /^sign in$/i }).click();
 
     // Sign-in lands on the role's dashboard — wait until the URL changes
     // off the auth page before persisting cookies.
