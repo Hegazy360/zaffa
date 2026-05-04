@@ -121,6 +121,25 @@ async function main() {
         update: { role: role.role, full_name: role.full_name },
         create: { id: userId, role: role.role, full_name: role.full_name },
       });
+
+      // Planner marketplace (`/dashboard/planner/marketplace`) gates on
+      // `planner.me` returning a PlannerProfile — without one, the page shows
+      // an empty "Set up profile" state and the E2E specs can never find a
+      // brief to propose on. Upsert a minimal PlannerProfile for the planner
+      // test user so the marketplace is live immediately after seeding.
+      if (role.role === UserRole.planner) {
+        await prisma.plannerProfile.upsert({
+          where: { user_id: userId },
+          update: {},
+          create: {
+            user_id: userId,
+            business_name: "E2E Planner Co.",
+            bio: "Fixture planner used by the Playwright money-path specs.",
+            location: "Cairo",
+            verified: true,
+          },
+        });
+      }
     }
   } finally {
     await prisma.$disconnect();
