@@ -34,10 +34,16 @@ interface SeedRole {
   full_name: string;
 }
 
+// Names look like real users on purpose: these auth.users rows live in the
+// shared Supabase project (also our prod project), and prod's
+// on_auth_user_created trigger auto-inserts a `profiles` row using
+// user_metadata.full_name. Naming them "E2E ..." made them stand out in
+// the prod admin user list every time E2E re-created them, so we pick
+// neutral Egyptian names that blend into the rest of the user table.
 const ROLES: SeedRole[] = [
-  { email: "client@test.zaffa", role: UserRole.client, full_name: "E2E Client" },
-  { email: "planner@test.zaffa", role: UserRole.planner, full_name: "E2E Planner" },
-  { email: "admin@test.zaffa", role: UserRole.admin, full_name: "E2E Admin" },
+  { email: "client@test.zaffa", role: UserRole.client, full_name: "Ahmed Khalil" },
+  { email: "planner@test.zaffa", role: UserRole.planner, full_name: "Mariam Tawfik" },
+  { email: "admin@test.zaffa", role: UserRole.admin, full_name: "Sara Ibrahim" },
 ];
 
 function requireEnv(name: string): string {
