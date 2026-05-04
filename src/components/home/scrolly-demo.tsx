@@ -82,97 +82,103 @@ export function ScrollyDemo() {
       const section = sectionRef.current;
       if (!section) return;
       if (typeof window === "undefined") return;
-      // Mobile/tablet renders a static stacked variant — no pin, no scrub.
-      if (!window.matchMedia(DESKTOP_MQ).matches) return;
 
-      gsap.set(stepRefs.current, { opacity: 0 });
-      gsap.set(stepRefs.current[0], { opacity: 1 });
-      gsap.set(captionRefs.current, { opacity: 0, y: 18 });
-      gsap.set(captionRefs.current[0], { opacity: 1, y: 0 });
+      // Use gsap.matchMedia so the ScrollTrigger pin is created only at >=lg
+      // and is automatically torn down (with its pin spacer) when the viewport
+      // drops below — otherwise resizing from desktop to mobile leaves a 400vh
+      // pin spacer in the page and the user feels a long "paused" scroll on
+      // mobile even though all the mobile content has already been seen.
+      const mm = gsap.matchMedia();
+      mm.add(DESKTOP_MQ, () => {
+        gsap.set(stepRefs.current, { opacity: 0 });
+        gsap.set(stepRefs.current[0], { opacity: 1 });
+        gsap.set(captionRefs.current, { opacity: 0, y: 18 });
+        gsap.set(captionRefs.current[0], { opacity: 1, y: 0 });
 
-      gsap.set(swatchRefs.current, { y: 60, scale: 0.5, opacity: 0 });
-      gsap.set(refRefs.current, { y: 50, scale: 0.85, opacity: 0 });
-      gsap.set(renderImgRef.current, { scale: 1.06, opacity: 0 });
-      gsap.set(videoChromeRef.current, { opacity: 0 });
+        gsap.set(swatchRefs.current, { y: 60, scale: 0.5, opacity: 0 });
+        gsap.set(refRefs.current, { y: 50, scale: 0.85, opacity: 0 });
+        gsap.set(renderImgRef.current, { scale: 1.06, opacity: 0 });
+        gsap.set(videoChromeRef.current, { opacity: 0 });
 
-      const tl = gsap.timeline({
-        scrollTrigger: {
-          trigger: section,
-          start: "top top",
-          end: "+=400%",
-          pin: true,
-          scrub: 0.5,
-          anticipatePin: 1,
-          invalidateOnRefresh: true,
-          onUpdate: (self) => {
-            if (progressRef.current) {
-              progressRef.current.style.transform = `scaleX(${self.progress})`;
-            }
-            const idx = Math.min(
-              3,
-              Math.max(0, Math.floor(self.progress * 3.999)),
-            );
-            stepBadgeRefs.current.forEach((el, i) => {
-              if (!el) return;
-              el.dataset.active = i === idx ? "true" : "false";
-            });
+        const tl = gsap.timeline({
+          scrollTrigger: {
+            trigger: section,
+            start: "top top",
+            end: "+=400%",
+            pin: true,
+            scrub: 0.5,
+            anticipatePin: 1,
+            invalidateOnRefresh: true,
+            onUpdate: (self) => {
+              if (progressRef.current) {
+                progressRef.current.style.transform = `scaleX(${self.progress})`;
+              }
+              const idx = Math.min(
+                3,
+                Math.max(0, Math.floor(self.progress * 3.999)),
+              );
+              stepBadgeRefs.current.forEach((el, i) => {
+                if (!el) return;
+                el.dataset.active = i === idx ? "true" : "false";
+              });
+            },
           },
-        },
+        });
+
+        // STEP 1 enter
+        tl.to(
+          swatchRefs.current,
+          {
+            y: 0,
+            scale: 1,
+            opacity: 1,
+            duration: 0.10,
+            stagger: 0.02,
+            ease: "back.out(1.5)",
+          },
+          0.02,
+        );
+
+        // 1 → 2
+        tl.to(stepRefs.current[0], { opacity: 0, duration: 0.03 }, 0.22);
+        tl.to(captionRefs.current[0], { opacity: 0, y: -18, duration: 0.03 }, 0.22);
+        tl.to(stepRefs.current[1], { opacity: 1, duration: 0.03 }, 0.26);
+        tl.to(captionRefs.current[1], { opacity: 1, y: 0, duration: 0.03 }, 0.26);
+        tl.to(
+          refRefs.current,
+          {
+            y: 0,
+            scale: 1,
+            opacity: 1,
+            duration: 0.10,
+            stagger: 0.022,
+            ease: "power3.out",
+          },
+          0.28,
+        );
+
+        // 2 → 3
+        tl.to(stepRefs.current[1], { opacity: 0, duration: 0.03 }, 0.48);
+        tl.to(captionRefs.current[1], { opacity: 0, y: -18, duration: 0.03 }, 0.48);
+        tl.to(stepRefs.current[2], { opacity: 1, duration: 0.03 }, 0.52);
+        tl.to(captionRefs.current[2], { opacity: 1, y: 0, duration: 0.03 }, 0.52);
+        tl.to(
+          renderImgRef.current,
+          { scale: 1, opacity: 1, duration: 0.12, ease: "power3.out" },
+          0.54,
+        );
+
+        // 3 → 4
+        tl.to(stepRefs.current[2], { opacity: 0, duration: 0.03 }, 0.74);
+        tl.to(captionRefs.current[2], { opacity: 0, y: -18, duration: 0.03 }, 0.74);
+        tl.to(stepRefs.current[3], { opacity: 1, duration: 0.03 }, 0.78);
+        tl.to(captionRefs.current[3], { opacity: 1, y: 0, duration: 0.03 }, 0.78);
+        tl.to(
+          videoChromeRef.current,
+          { opacity: 1, duration: 0.10, ease: "power2.out" },
+          0.76,
+        );
       });
-
-      // STEP 1 enter
-      tl.to(
-        swatchRefs.current,
-        {
-          y: 0,
-          scale: 1,
-          opacity: 1,
-          duration: 0.10,
-          stagger: 0.02,
-          ease: "back.out(1.5)",
-        },
-        0.02,
-      );
-
-      // 1 → 2
-      tl.to(stepRefs.current[0], { opacity: 0, duration: 0.03 }, 0.22);
-      tl.to(captionRefs.current[0], { opacity: 0, y: -18, duration: 0.03 }, 0.22);
-      tl.to(stepRefs.current[1], { opacity: 1, duration: 0.03 }, 0.26);
-      tl.to(captionRefs.current[1], { opacity: 1, y: 0, duration: 0.03 }, 0.26);
-      tl.to(
-        refRefs.current,
-        {
-          y: 0,
-          scale: 1,
-          opacity: 1,
-          duration: 0.10,
-          stagger: 0.022,
-          ease: "power3.out",
-        },
-        0.28,
-      );
-
-      // 2 → 3
-      tl.to(stepRefs.current[1], { opacity: 0, duration: 0.03 }, 0.48);
-      tl.to(captionRefs.current[1], { opacity: 0, y: -18, duration: 0.03 }, 0.48);
-      tl.to(stepRefs.current[2], { opacity: 1, duration: 0.03 }, 0.52);
-      tl.to(captionRefs.current[2], { opacity: 1, y: 0, duration: 0.03 }, 0.52);
-      tl.to(
-        renderImgRef.current,
-        { scale: 1, opacity: 1, duration: 0.12, ease: "power3.out" },
-        0.54,
-      );
-
-      // 3 → 4
-      tl.to(stepRefs.current[2], { opacity: 0, duration: 0.03 }, 0.74);
-      tl.to(captionRefs.current[2], { opacity: 0, y: -18, duration: 0.03 }, 0.74);
-      tl.to(stepRefs.current[3], { opacity: 1, duration: 0.03 }, 0.78);
-      tl.to(captionRefs.current[3], { opacity: 1, y: 0, duration: 0.03 }, 0.78);
-      tl.to(
-        videoChromeRef.current,
-        { opacity: 1, duration: 0.10, ease: "power2.out" },
-        0.76,
-      );
     },
     { scope: sectionRef, dependencies: [reduce] },
   );
@@ -503,26 +509,18 @@ function MobilePaletteVisual({
   t: ReturnType<typeof useTranslations<"marketing">>;
 }) {
   return (
-    <div className="-mx-6 px-6">
-      <div className="flex snap-x snap-mandatory gap-3 overflow-x-auto pb-2">
-        {PALETTE.map((p) => (
-          <div
-            key={p.hex}
-            className="flex shrink-0 snap-start flex-col items-center gap-2"
-          >
-            <span
-              className="h-28 w-20 rounded-[1.25rem] shadow-xl shadow-rose-900/20 ring-1 ring-rose-900/15"
-              style={{ backgroundColor: p.hex }}
-            />
-            <span className="font-mono text-[0.6rem] tracking-wide text-foreground/80">
-              {p.hex}
-            </span>
-            <span className="text-[0.55rem] uppercase tracking-[0.25em] text-muted-foreground">
-              {t(p.nameKey)}
-            </span>
-          </div>
-        ))}
-      </div>
+    <div className="grid grid-cols-5 gap-2">
+      {PALETTE.map((p) => (
+        <div key={p.hex} className="flex min-w-0 flex-col items-center gap-2">
+          <span
+            className="aspect-[2/3] w-full rounded-2xl shadow-xl shadow-rose-900/20 ring-1 ring-rose-900/15"
+            style={{ backgroundColor: p.hex }}
+          />
+          <span className="truncate text-[0.55rem] uppercase tracking-[0.2em] text-muted-foreground">
+            {t(p.nameKey)}
+          </span>
+        </div>
+      ))}
     </div>
   );
 }
