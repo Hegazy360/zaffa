@@ -122,6 +122,16 @@ jobs:
       PLATFORM_FEE_PCT: "8"
       PLATFORM_NAME: Zaffa
       E2E_PORT: "3100"
+      # Stubs for third-party APIs the money path does not actually call but
+      # whose SDKs throw at module-load time if the env var is missing (Resend
+      # constructor, Cloudinary config, OpenAI/OpenRouter client).
+      RESEND_API_KEY: re_stub
+      RESEND_FROM_EMAIL: stub@example.com
+      OPENAI_API_KEY: sk-stub
+      NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME: stub
+      NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET: stub
+      CLOUDINARY_API_KEY: stub
+      CLOUDINARY_API_SECRET: stub
       # Per-role accounts seeded by `npm run db:seed` in the previous step.
       E2E_CLIENT_EMAIL: client@test.zaffa
       E2E_CLIENT_PASSWORD: ${{ secrets.E2E_TEST_PASSWORD }}
