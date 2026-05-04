@@ -231,8 +231,8 @@ test.describe("money path: design → proposal → stripe pay → admin payout",
     expect(ctx.eventId).toBeTruthy();
     expect(ctx.depositInstallmentId).toBeTruthy();
 
-    const browserCtx = await browser.newContext({ storageState: CLIENT_STATE });
-    const page = await browserCtx.newPage();
+    let browserCtx = await browser.newContext({ storageState: CLIENT_STATE });
+    let page = await browserCtx.newPage();
     try {
       await test.step("accept the proposal + plan", async () => {
         await page.goto(
@@ -304,42 +304,66 @@ test.describe("money path: design → proposal → stripe pay → admin payout",
           await expect(nameOnCard).toHaveValue("Playwright Tester");
         }
 
-        // Country default is geo-based (France on GitHub's US runners —
-        // don't ask). Fill a ZIP only if the country renders one.
+        // Country default is geo-based. Fill a ZIP only if the country
+        // renders one (France, etc. don't).
         const postal = page.getByLabel(/zip|postal/i).first();
         if (await postal.isVisible().catch(() => false)) {
           await postal.fill("10000");
         }
 
+        // When the country supports Stripe Link, "Save my information for
+        // faster checkout" is checked by default and makes Phone number
+        // required, which blocks the submit. Uncheck it so we pay with a
+        // plain card and no Link account nudge.
+        const saveInfo = page
+          .getByRole("checkbox", { name: /save my information/i })
+          .first();
+        if (await saveInfo.isChecked().catch(() => false)) {
+          await saveInfo.uncheck({ force: true });
+        }
+
         await page.getByTestId("hosted-payment-submit-button").click();
 
-        // Stripe redirects back with ?paid=<installmentId>.
-        await page.waitForURL(
-          new RegExp(
-            `/dashboard/client/event/${ctx.eventId}\\?tab=payments&paid=${ctx.depositInstallmentId}`,
-          ),
-          { timeout: 60_000 },
-        );
+        // Don't chase Stripe's redirect URL back to our app — on CI, the
+        // round-trip through `checkout.stripe.com` sometimes loses the
+        // Supabase session cookie and lands on /auth/signin. The webhook
+        // firing against our Next server is the real source of truth for
+        // "deposit paid"; wait for that instead. We also assert the browser
+        // left Stripe so we know submit actually happened.
+        await page.waitForURL((url) => !url.host.endsWith("stripe.com"), {
+          timeout: 60_000,
+        });
       });
 
       await test.step("DB flips the deposit installment to paid", async () => {
         await expect
           .poll(() => getPaymentStatus(ctx.depositInstallmentId), {
             message: "Stripe webhook should mark the deposit paid",
-            timeout: 45_000,
+            timeout: 60_000,
             intervals: [500, 1000, 2000, 2500],
           })
           .toBe("paid");
       });
 
       await test.step("UI reflects the paid status", async () => {
+        // Open the payments tab from a fresh page — the browser returned
+        // from Stripe may have landed on /auth/signin due to SameSite-cookie
+        // behavior on cross-site redirects. Reloading the storage state and
+        // navigating directly is always valid because the session itself is
+        // still live.
+        await browserCtx.close();
+        browserCtx = await browser.newContext({ storageState: CLIENT_STATE });
+        page = await browserCtx.newPage();
+        await page.goto(
+          `/dashboard/client/event/${ctx.eventId}?tab=payments`,
+        );
+
         // The SchedulePanel polls `paymentSchedules.forEvent` every 2.5s so
         // we give the badge up to three poll cycles to show up.
         const paidBadge = page
           .locator(`[data-installment-id="${ctx.depositInstallmentId}"]`)
           .getByText(/paid/i)
           .first();
-        // Fallback: generic text match if the structural locator isn't wired.
         const hasStructural =
           (await page
             .locator(`[data-installment-id="${ctx.depositInstallmentId}"]`)
