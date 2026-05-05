@@ -74,6 +74,9 @@ export const prospectsRouter = router({
           email: true,
           whatsapp: true,
           instagram: true,
+          // Surfaced so the list-row "Quick Send" button knows whether it
+          // needs to (re)generate a draft before opening WhatsApp Web.
+          draft_whatsapp: true,
           city: true,
           country: true,
           followers: true,

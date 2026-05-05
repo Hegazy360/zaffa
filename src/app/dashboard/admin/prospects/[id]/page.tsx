@@ -31,6 +31,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { QuickSendWhatsapp } from "@/components/features/prospects/quick-send-whatsapp";
 import { toast } from "sonner";
 
 type Channel = "email" | "whatsapp" | "instagram";
@@ -474,6 +475,13 @@ function DraftsPanel({
       )}
 
       <div className="mt-3 flex flex-wrap items-center gap-2">
+        {activeChannel === "whatsapp" && contact.whatsapp && (
+          <QuickSendWhatsapp
+            prospectId={prospectId}
+            whatsapp={contact.whatsapp}
+            draft={existing.whatsapp}
+          />
+        )}
         <Button
           size="sm"
           onClick={() =>

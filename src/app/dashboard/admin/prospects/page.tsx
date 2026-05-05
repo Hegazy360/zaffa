@@ -19,6 +19,7 @@ import {
   UserRound,
 } from "lucide-react";
 import { trpc } from "@/lib/trpc";
+import { cn } from "@/lib/utils";
 import { useFormatters } from "@/lib/use-formatters";
 import {
   prospectDisplayName,
@@ -26,6 +27,7 @@ import {
 } from "@/lib/prospect-display";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import { QuickSendWhatsapp } from "@/components/features/prospects/quick-send-whatsapp";
 import { Input } from "@/components/ui/input";
 import {
   Dialog,
@@ -91,7 +93,18 @@ export default function AdminProspectsPage() {
   });
   const funnel = trpc.prospects.funnel.useQuery();
 
-  const items = useMemo(() => list.data?.items ?? [], [list.data]);
+  // Stable client-side resort: WhatsApp-having rows first, preserving the
+  // server's quality ordering inside each group. Cheaper than re-querying
+  // and avoids the awkwardness of trying to do "nulls last" + secondary
+  // sort against a unique nullable column in Postgres.
+  const items = useMemo(() => {
+    const raw = list.data?.items ?? [];
+    return [...raw].sort((a, b) => {
+      const aw = a.whatsapp ? 0 : 1;
+      const bw = b.whatsapp ? 0 : 1;
+      return aw - bw;
+    });
+  }, [list.data]);
 
   return (
     <div className="mx-auto max-w-7xl space-y-6 px-4 py-8 sm:px-6">
@@ -171,6 +184,20 @@ export default function AdminProspectsPage() {
         />
       </div>
 
+      {/* Subtle nudge so the W shortcut is discoverable. We only render it
+          when there's at least one WA-eligible row, otherwise it's noise. */}
+      {items.some((p) => p.whatsapp) && (
+        <p className="-mb-2 ms-1 text-[11px] text-muted-foreground">
+          {t.rich("quickSendKbHint", {
+            kbd: (chunks) => (
+              <kbd className="mx-0.5 inline-flex h-[18px] items-center rounded border border-rose-200/70 bg-white px-1.5 font-mono text-[10px] font-medium text-rose-700 shadow-sm">
+                {chunks}
+              </kbd>
+            ),
+          })}
+        </p>
+      )}
+
       <div className="rounded-2xl border border-rose-100/70 bg-white/80">
         {list.isLoading ? (
           <div className="flex h-40 items-center justify-center">
@@ -184,12 +211,40 @@ export default function AdminProspectsPage() {
             </p>
           </div>
         ) : (
-          <ul className="divide-y divide-rose-100/70">
+          <ul
+            className="divide-y divide-rose-100/70"
+            // Keyboard shortcut: "W" on a focused row fires WhatsApp send.
+            // We listen at the ul level so any focused row Link bubbles up
+            // here. Ignore when the user is typing in a form field that
+            // somehow bubbled (defensive — search input is outside this ul).
+            onKeyDown={(e) => {
+              if (e.key !== "w" && e.key !== "W") return;
+              if (e.metaKey || e.ctrlKey || e.altKey) return;
+              const target = e.target as HTMLElement | null;
+              if (
+                target?.tagName === "INPUT" ||
+                target?.tagName === "TEXTAREA" ||
+                (target as HTMLElement)?.isContentEditable
+              ) {
+                return;
+              }
+              const row = target?.closest("li[data-prospect-row]");
+              const btn = row?.querySelector<HTMLButtonElement>(
+                "[data-quicksend-wa]",
+              );
+              if (!btn || btn.disabled) return;
+              e.preventDefault();
+              btn.click();
+            }}
+          >
             {items.map((p) => (
-              <li key={p.id}>
+              <li key={p.id} data-prospect-row className="relative">
                 <Link
                   href={`/dashboard/admin/prospects/${p.id}`}
-                  className="flex items-center gap-4 px-5 py-3 transition-colors hover:bg-rose-50/40"
+                  className={cn(
+                    "flex items-center gap-4 px-5 py-3 transition-colors hover:bg-rose-50/40",
+                    p.whatsapp && "pe-16",
+                  )}
                 >
                   <Avatar className="size-10">
                     {p.avatar_url && <AvatarImage src={p.avatar_url} />}
@@ -227,6 +282,19 @@ export default function AdminProspectsPage() {
                     {f.relativeTime(p.created_at)}
                   </span>
                 </Link>
+                {/* Floats over the row link so we can fire WhatsApp without
+                    navigating into the prospect detail page. The button
+                    itself stops propagation/preventDefaults the click. */}
+                {p.whatsapp && (
+                  <div className="absolute end-4 top-1/2 -translate-y-1/2">
+                    <QuickSendWhatsapp
+                      prospectId={p.id}
+                      whatsapp={p.whatsapp}
+                      draft={p.draft_whatsapp}
+                      variant="compact"
+                    />
+                  </div>
+                )}
               </li>
             ))}
           </ul>
