@@ -22,7 +22,7 @@ export default async function AuthLayout({
   const tNav = await getTranslations("nav");
 
   return (
-    <div className="relative isolate flex min-h-screen flex-col bg-gradient-to-b from-rose-50/60 via-background to-background dark:from-rose-950/20">
+    <div className="relative isolate flex min-h-screen flex-col overflow-x-clip bg-gradient-to-b from-rose-50/60 via-background to-background dark:from-rose-950/20">
       <div
         aria-hidden
         className="pointer-events-none absolute inset-0 grain-bg opacity-40"
