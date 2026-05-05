@@ -1369,7 +1369,7 @@
     "channel": "Channel",
     "subjectLabel": "Subject",
     "bodyLabel": "Body",
-    "bodyPlaceholder": "Hi {name},\n\nI run partnerships at Zaffa, an event marketplace in Egypt…",
+    "bodyPlaceholder": "Hi [first name],\n\nI run partnerships at Zaffa, an event marketplace in Egypt…",
     "bodyHint": "Write the body the way you'd send it. The LLM will keep your tone but personalize 1–2 details based on the prospect's bio and city.",
     "activeTemplate": "Active",
     "inactive": "Inactive",

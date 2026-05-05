@@ -1,26 +1,13 @@
-// Seeds the OutreachTemplate table with the canonical set of cold-outreach
-// templates used by the prospecting pipeline.
+// Seeds the OutreachTemplate table with the canonical cold-outreach copy
+// used by the prospecting pipeline.
 //
-// Tone: Egyptian Arabic (masry / colloquial), warm and human. The pitch is
-//   - free for the planner/vendor (no listing fees, no subscription)
-//   - couples & planners post briefs → you get a notification with the full
-//     details → you submit a proposal in a couple of minutes
-//   - we just want to make finding work easier, more transparent, and less
-//     of a chase
-//   - door is always open: any question, just reply
-//
-// Each template body is passed verbatim to the LLM in `draftMessage()`. The
-// LLM rewrites it for each prospect, weaving in 1-2 specific facts (a city,
-// a recent shoot, a vibe) and appending the personalized invitation URL.
-// We deliberately do NOT mention the prospect's business name; the LLM
-// uses {first_name} for the greeting and pulls something concrete from the
-// bio for the compliment.
-//
-// We seed only the three primary buckets (planner / vendor / unknown) per
-// channel — the new pitch doesn't change meaningfully across vendor
-// categories, and the LLM personalizes every send anyway. If you ever need
-// a category-specific override, the admin UI can add one without changing
-// this file.
+// One template body, used verbatim across every channel × prospect-type
+// combination the picker can request (planner / vendor / unknown × email /
+// whatsapp / instagram). The founder asked for a single pitch sent to
+// everyone, with no per-channel shortening or per-type variation. The LLM
+// in draftMessage() still personalizes [الاسم] (first name), [حاجة محددة]
+// (a specific concrete detail from their bio/work), and [رابط] (the
+// invitation URL), but otherwise passes the body through as-is.
 //
 // IMPORTANT: this script wipes the entire OutreachTemplate table before
 // inserting. Any templates created via the admin UI will be removed —
@@ -50,171 +37,55 @@ interface TemplateSeed {
 }
 
 // ---------------------------------------------------------------------------
-// EMAIL — Egyptian Arabic, low-key and short. Subject is mandatory but kept
-// flat (no teasers, no hype). We end on the bare https://zaffa.ai sentinel;
-// the LLM swaps it for the personalized /join?invitation=… URL during
-// draftMessage().
+// One body, used everywhere. Placeholders the LLM will fill at draft time:
+//   [الاسم]      → prospect first name
+//   [حاجة محددة] → 1 concrete detail from their bio/work (a city, vibe, recent
+//                   shoot, specialty…) — chosen by the LLM, never invented
+//   [رابط]       → personalized https://zaffa.ai/join?invitation=… URL
 // ---------------------------------------------------------------------------
 
-const EMAIL_TEMPLATES: TemplateSeed[] = [
-  {
-    name: "Email · Planner · Egyptian Arabic intro",
-    channel: "email",
-    type: "planner",
-    subject: "من زفّة",
-    body: `ازيك يا {first_name}،
+const SHARED_BODY = `أهلاً [الاسم] 🌸
 
-شُفت شغلك في تنظيم الأفراح وعجبني، فحبّيت أبعتلك.
+تابعت شغلك في [حاجة محددة] وحقيقي بهرني الذوق والتفاصيل، عشان كده حبينا نوصلك.
 
-أنا من زفّة (zaffa.ai)، منصّة مصرية جديدة للأفراح والمناسبات. الفكرة باختصار: لمّا أيّ كابل يدوّر على منظّم، بيكتب تفاصيل فرحه على المنصّة — تاريخ، ميزانية، عدد المعازيم، الأسلوب اللي عايزه. بيوصلك إشعار بالتفاصيل دي، ولو الشغل يناسبك تبعت عرضك في دقيقتين.
+احنا من برنامج زفّة، اتأسست بعد تجربة تخطيط حقيقية كانت كابوس — قعدة بين 10 جروبات واتساب، جداول مالهاش آخر، ومحدش عارف مين بيعمل إيه. فكرنا في حاجة بسيطة: منصة واحدة تجمع العرسان، التصميم, المخططين، الموردين، الدفع، والمتابعة في مكان واحد — عشان المخطط يركز على الإبداع، مش على إدارة الفوضى.
 
-مفيش اشتراك ولا رسوم، المنصّة مجانية عليك. الفكرة بس إننا نسهّل وصول الشغل ونخلّي العملية شفّافة من غير جري ورا حد.
+إحنا لسه في البداية، وبنحب نبني المنصة مع ناس بتفهم الشغل من جواه. يشرفنا تجرب زفّة وتقولنا رأيك بصراحة — إيه اللي شغال، إيه اللي ناقص، وإيه اللي ممكن نخليه أحسن و يساعدك في شغلك.
 
-دي دعوتك تنضمّ من اللينك ده:
-https://zaffa.ai
+وعشان نقدّر الناس اللي معانا من الأول، بنجهز سلسلة من الـ incentives للمخططين الأوائل خلال الشهور الجاية:
 
-أيّ سؤال، ردّ على الإيميل ده في أيّ وقت.
+✅ 5,000 جنيه مكافآت مرتبطة بالاستخدام الفعلي
+✅ نسبة عمولة مميزة لأول 6 شهور
+✅ ظهور مميز في الصفحة الرئيسية
+✅ و اكتر قريبًا 🎁
 
-تحياتي،
-فريق زفّة`,
-  },
-  {
-    name: "Email · Vendor · Egyptian Arabic intro",
-    channel: "email",
-    type: "vendor",
-    subject: "من زفّة",
-    body: `ازيك يا {first_name}،
+مفيش commitment ومفيش تكلفة، بس فرصة تكون من أول الناس اللي يشكّلوا المنصة.
 
-شُفت شغلك وعجبني، فحبّيت أبعتلك.
+لينك التجربة:
+[رابط]
 
-أنا من زفّة (zaffa.ai)، منصّة مصرية جديدة للأفراح والمناسبات. لمّا أيّ منظّم يدوّر على مورّد لمناسبة، بيكتب التفاصيل على المنصّة — التاريخ، الميزانية، الحاجات المطلوبة. بيوصلك إشعار وتقدر تبعت عرضك لو الشغل يناسبك.
+في انتظار رأيك،
+فريق زفّة`;
 
-كل حاجة من على المنصّة، والاشتراك مجاني عليك. الفكرة بس إننا نوفّر عليك الوقت ونوصّلك شغل بطريقة مرتّبة وشفّافة.
+const SUBJECT = "من زفّة";
 
-دي دعوتك تنضمّ:
-https://zaffa.ai
+const CHANNELS = ["email", "whatsapp", "instagram"] as const;
+const TYPES: ProspectType[] = ["planner", "vendor", "unknown"];
 
-أيّ سؤال، ردّ في أيّ وقت.
-
-تحياتي،
-فريق زفّة`,
-  },
-  {
-    name: "Email · Unknown / general · Egyptian Arabic intro",
-    channel: "email",
-    type: "unknown",
-    subject: "من زفّة",
-    body: `ازيك يا {first_name}،
-
-شُفت شغلك وحبّيت أبعتلك.
-
-أنا من زفّة (zaffa.ai)، منصّة مصرية جديدة للأفراح والمناسبات بتربط العرسان بالمنظّمين والمورّدين. لمّا حد يدوّر على فريق لمناسبة، بيوصل إشعار للناس اللي شغلهم مناسب بكل التفاصيل وبيقدروا يبعتوا عروضهم.
-
-المنصّة مجانية. لو شغلك ليه علاقة بعالم الأفراح، يا ريت تردّ بسطر صغير عن طبيعة شغلك وأنا هاكمّل معاك. أو خد جولة من اللينك ده:
-https://zaffa.ai
-
-أيّ سؤال، أنا موجود.
-
-تحياتي،
-فريق زفّة`,
-  },
-];
-
-// ---------------------------------------------------------------------------
-// WHATSAPP — قصيرة ولـ low-key، حوالي 50-70 كلمة. مفيش subject. مفيش
-// emoji زيادة (الـ 👋 في الافتتاحية كافي).
-// ---------------------------------------------------------------------------
-
-const WHATSAPP_TEMPLATES: TemplateSeed[] = [
-  {
-    name: "WhatsApp · Planner · Egyptian Arabic intro",
-    channel: "whatsapp",
-    type: "planner",
-    body: `ازيك يا {first_name}، شُفت شغلك وعجبني فحبّيت أبعتلك.
-
-أنا من زفّة (zaffa.ai)، منصّة مصرية جديدة للأفراح. لمّا أيّ كابل يدوّر على منظّم، بيوصلك إشعار بتفاصيل المناسبة (تاريخ، ميزانية، عدد المعازيم) وتقدر تبعت عرضك في دقيقتين. مفيش اشتراك، كله مجاني.
-
-دي دعوتك تنضمّ:
-https://zaffa.ai
-
-أيّ سؤال، كلّمني هنا.`,
-  },
-  {
-    name: "WhatsApp · Vendor · Egyptian Arabic intro",
-    channel: "whatsapp",
-    type: "vendor",
-    body: `ازيك يا {first_name}، شُفت شغلك وعجبني فحبّيت أبعتلك.
-
-أنا من زفّة (zaffa.ai)، منصّة مصرية جديدة للأفراح والمناسبات. لمّا أيّ منظّم يدوّر على مورّد لمناسبة، بيوصلك إشعار بالتفاصيل وتقدر تبعت عرضك لو الشغل يناسبك. مفيش اشتراك، كله مجاني.
-
-دي دعوتك تنضمّ:
-https://zaffa.ai
-
-أيّ سؤال، أنا موجود.`,
-  },
-  {
-    name: "WhatsApp · Unknown / general · Egyptian Arabic intro",
-    channel: "whatsapp",
-    type: "unknown",
-    body: `ازيك يا {first_name}، شُفت شغلك وحبّيت أبعتلك.
-
-أنا من زفّة (zaffa.ai)، منصّة مصرية جديدة للأفراح والمناسبات بتربط العرسان بالمنظّمين والمورّدين. كل اللي شغله مناسب لأيّ مناسبة بيوصله إشعار وبيبعت عرضه. المنصّة مجانية.
-
-لو شغلك ليه علاقة بالعالم ده، اللينك ده ليك:
-https://zaffa.ai`,
-  },
-];
-
-// ---------------------------------------------------------------------------
-// INSTAGRAM DM — أقصر حاجة، 30-50 كلمة. مفيش emoji ولا hype — chat
-// عادي ما بين شخصين.
-// ---------------------------------------------------------------------------
-
-const INSTAGRAM_TEMPLATES: TemplateSeed[] = [
-  {
-    name: "Instagram · Planner · Egyptian Arabic soft intro",
-    channel: "instagram",
-    type: "planner",
-    body: `ازيك يا {first_name}، شُفت شغلك وعجبني.
-
-أنا من زفّة (zaffa.ai)، منصّة مصرية جديدة للأفراح. لمّا حد يدوّر على منظّم، بيوصلك إشعار بالتفاصيل وتقدر تبعت عرضك. كله مجاني.
-
-اللينك ده ليك:
-https://zaffa.ai`,
-  },
-  {
-    name: "Instagram · Vendor · Egyptian Arabic soft intro",
-    channel: "instagram",
-    type: "vendor",
-    body: `ازيك يا {first_name}، شُفت شغلك وعجبني.
-
-أنا من زفّة (zaffa.ai)، منصّة مصرية جديدة للأفراح. أيّ منظّم بيدوّر على مورّد لمناسبة، بيوصلك إشعار وتقدر تبعت عرضك. كله مجاني.
-
-اللينك ده ليك:
-https://zaffa.ai`,
-  },
-  {
-    name: "Instagram · Unknown / general · Egyptian Arabic soft intro",
-    channel: "instagram",
-    type: "unknown",
-    body: `ازيك يا {first_name}، شُفت شغلك وحبّيت أبعتلك.
-
-أنا من زفّة (zaffa.ai)، منصّة مصرية جديدة للأفراح. لو شغلك ليه علاقة بالعالم ده، خد جولة من هنا:
-https://zaffa.ai`,
-  },
-];
-
-const ALL_TEMPLATES: TemplateSeed[] = [
-  ...EMAIL_TEMPLATES,
-  ...WHATSAPP_TEMPLATES,
-  ...INSTAGRAM_TEMPLATES,
-];
+const ALL_TEMPLATES: TemplateSeed[] = CHANNELS.flatMap((channel) =>
+  TYPES.map((type) => ({
+    name: `${channel} · ${type} · Founding Planner pitch`,
+    channel,
+    type,
+    subject: channel === "email" ? SUBJECT : null,
+    body: SHARED_BODY,
+  })),
+);
 
 async function main() {
-  // Wipe everything first — the founder asked for a full replacement of
-  // the previous English founding-partner pitch with the new Egyptian
-  // Arabic copy. Anything custom in the table will be removed; if you
-  // need it preserved, snapshot first.
+  // Wipe everything first — full replacement of any previous copy. Anything
+  // custom in the table will be removed; if you need it preserved, snapshot
+  // before running.
   const removed = await prisma.outreachTemplate.deleteMany({});
   console.log(`Removed ${removed.count} existing templates.`);
 

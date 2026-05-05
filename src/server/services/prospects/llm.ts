@@ -5,8 +5,10 @@
 //   1. extractContact() — given a free-text bio + page snippet, pull out
 //      structured contact info, classify (planner/vendor + category), and
 //      score the lead 0–100.
-//   2. draftMessage() — render a per-channel outreach draft using a
-//      template + the prospect's facts.
+//   2. draftMessage() — render an outreach draft by asking the LLM for
+//      two short personalization slots (first name + a single concrete
+//      detail) and substituting them, plus the signup URL, into the
+//      template body verbatim. The model never rewrites the pitch.
 //
 // All calls use response_format: json_object so we can parse safely.
 
@@ -131,39 +133,56 @@ export async function extractContact(input: {
   };
 }
 
-const DRAFT_SYSTEM = `You are an Egyptian event-marketplace ops assistant
-drafting a personalized outreach message. Use the template's tone, but
-weave in 1-2 specific details from the prospect's facts so it doesn't read
-as a copy/paste. Do not lie about anything you cannot verify. Keep it
-concise — the channel limits below MUST be respected.
+// We no longer ask the LLM to regenerate the message body. The template
+// body is sent verbatim; the LLM only fills two small personalization
+// slots ([الاسم], [حاجة محددة]) and we substitute them — plus the
+// signup URL — server-side. Cheaper, faster, and impossible for the
+// model to drop or reword the pitch.
+const SLOT_SYSTEM = `You extract two short personalization slots for a
+cold-outreach message about an Egyptian event-planning marketplace. Return
+JSON only — no prose, no markdown.
 
-Channel limits:
-- email: subject <= 80 chars, body <= 180 words. Output JSON: { "subject": string, "body": string }
-- whatsapp: <= 110 words. Output JSON: { "body": string }
-- instagram: <= 80 words. Output JSON: { "body": string }
+Schema:
+{
+  "first_name": string,   // How to address the prospect in the greeting.
+                          //   Rules:
+                          //   - If display_name (or the bio) clearly
+                          //     identifies a real PERSON, return ONLY
+                          //     their first name (e.g. "Ahmed Hassan"
+                          //     → "Ahmed"; "نهى عبد الفتاح" → "نهى").
+                          //   - If display_name is a BUSINESS or BRAND
+                          //     (e.g. "Weddy Rose For Events", "Cairo
+                          //     Catering Co.", "Studio Noor"), return
+                          //     the brand name itself, lightly cleaned:
+                          //     drop trailing descriptors like "for
+                          //     events", "studio", "co", "ltd", "llc",
+                          //     "official", and trim to AT MOST the
+                          //     first two meaningful words. So
+                          //     "Weddy Rose For Events" → "Weddy Rose",
+                          //     "Cairo Catering Co." → "Cairo
+                          //     Catering", "Studio Noor" → "Studio
+                          //     Noor".
+                          //   - Keep the original script (Arabic stays
+                          //     Arabic, Latin stays Latin). Do not
+                          //     translate or transliterate.
+                          //   - Only fall back to "صديقي" if
+                          //     display_name is empty or pure noise
+                          //     (e.g. "user_8273", "????").
+  "specific":   string    // 2–6 words, Egyptian Arabic, naming ONE
+                          //   concrete thing about their work that you
+                          //   can verify from the bio/summary/facts —
+                          //   a city, a vibe, a recent project, a
+                          //   specialty, a signature look. Examples:
+                          //   "تنظيم الأفراح في الساحل", "تصميم
+                          //   البوكيهات", "صور العرسان". If nothing
+                          //   concrete is available, use "شغلك".
+}
 
-Personalization rules:
-- Use the prospect's FIRST NAME only (derived from display_name). Do NOT
-  address them by their business/brand name and do NOT include the business
-  or brand name anywhere in the body. If display_name is itself a business
-  (e.g. "Cairo Catering Co."), greet them with a friendly fallback like
-  "Hey there" rather than the business name.
-- Pull the 1-2 specific details from concrete facts in their bio
-  (a recent shoot, a city, a vibe, a specialty), NOT from the business name.
-- The product is called Zaffa. Never write zaffa.app or any other domain.
-- IMPORTANT: end with a soft CTA and copy the EXACT URL provided in the
-  payload's "signup_url" field. Do not modify it, do not URL-encode it
-  again, do not invent a different path. That URL is a personalized
-  invitation link tied to this prospect.
-
-Tone: warm, friendly, conversational. ALWAYS preserve the LANGUAGE and
-REGISTER of the template body — if it's Egyptian Arabic (masry / colloquial
-"ازيك / إحنا / عايز" style, NOT formal MSA), keep it Egyptian Arabic; if
-it's English, keep it English. Do not switch languages just because the
-prospect's bio happens to be in the other language. The only exception:
-if the template is in English but the prospect is clearly Arabic-only
-(bio entirely Arabic, no English handle), you may translate it into the
-same Egyptian Arabic colloquial register.`;
+Hard rules:
+- Never invent facts. When unsure, use the fallback values above.
+- Keep "specific" short (2–6 words) and lowercase-style, no trailing
+  punctuation.
+- Output strictly valid JSON with exactly those two string fields.`;
 
 export interface DraftedMessage {
   subject?: string;
@@ -232,6 +251,89 @@ function buildSignupUrl(displayName: string | null | undefined): string {
   return `${base}/join?invitation=${encodeURIComponent(name)}`;
 }
 
+interface PersonalizationSlots {
+  first_name: string;
+  specific: string;
+}
+
+// Split out so the picker / preview can fall back to a synchronous render
+// if the LLM call fails. Substitutes the three known placeholders into
+// the template body verbatim.
+function renderTemplate(
+  templateBody: string,
+  slots: PersonalizationSlots,
+  signupUrl: string,
+): string {
+  let body = templateBody
+    .split("[الاسم]").join(slots.first_name)
+    .split("[حاجة محددة]").join(slots.specific)
+    .split("[رابط]").join(signupUrl);
+
+  // Belt-and-braces: legacy templates may still use {first_name} or a
+  // bare https://zaffa.ai URL instead of the bracket placeholders. Patch
+  // those too so this function works for both old and new seed copy.
+  body = body.split("{first_name}").join(slots.first_name);
+  if (!body.includes(signupUrl)) {
+    body = body.replace(/https?:\/\/zaffa\.ai\/?(?!\S)/gi, signupUrl);
+    if (!body.includes(signupUrl)) {
+      body = `${body.trimEnd()}\n\n${signupUrl}`;
+    }
+  }
+  return body;
+}
+
+// Cheap heuristic fallback used when the LLM call fails or returns junk.
+// Tries to mirror the SLOT_SYSTEM rules: real person → first name, brand
+// → cleaned brand (first 1–2 meaningful words, descriptors stripped),
+// pure noise → "صديقي".
+const BRAND_DESCRIPTORS = new Set([
+  "for", "and", "the",
+  "co", "co.", "llc", "ltd", "inc", "company",
+  "studio", "studios", "atelier",
+  "events", "event", "weddings", "wedding",
+  "catering", "photography", "videography", "productions", "production",
+  "official", "page", "egypt",
+]);
+
+function cleanBrand(name: string): string {
+  const tokens = name.split(/\s+/).filter(Boolean);
+  const meaningful = tokens.filter(
+    (t) => !BRAND_DESCRIPTORS.has(t.toLowerCase().replace(/[.,]/g, "")),
+  );
+  const picked = (meaningful.length ? meaningful : tokens).slice(0, 2);
+  return picked.join(" ").trim();
+}
+
+function looksLikePersonName(name: string): boolean {
+  // Two short word, no brand descriptors, no digits → probably a person.
+  const tokens = name.split(/\s+/).filter(Boolean);
+  if (tokens.length === 0 || tokens.length > 3) return false;
+  if (/\d/.test(name)) return false;
+  for (const t of tokens) {
+    if (BRAND_DESCRIPTORS.has(t.toLowerCase().replace(/[.,]/g, ""))) {
+      return false;
+    }
+  }
+  return true;
+}
+
+function heuristicSlots(prospect: {
+  display_name: string;
+  city?: string | null;
+}): PersonalizationSlots {
+  const name = (prospect.display_name ?? "").trim();
+  let firstName: string;
+  if (!name || /^[\W_]+$/.test(name) || /^user[_-]?\d+$/i.test(name)) {
+    firstName = "صديقي";
+  } else if (looksLikePersonName(name)) {
+    firstName = name.split(/\s+/)[0] ?? name;
+  } else {
+    firstName = cleanBrand(name) || name;
+  }
+  const specific = prospect.city ? `شغلك في ${prospect.city}` : "شغلك";
+  return { first_name: firstName, specific };
+}
+
 export async function draftMessage(input: {
   channel: "email" | "whatsapp" | "instagram";
   template: { subject?: string | null; body: string };
@@ -246,34 +348,34 @@ export async function draftMessage(input: {
   };
 }): Promise<DraftedMessage> {
   const signupUrl = buildSignupUrl(input.prospect.display_name);
-  const out = await callJson<DraftedMessage>([
-    { role: "system", content: DRAFT_SYSTEM },
-    {
-      role: "user",
-      content: JSON.stringify({
-        channel: input.channel,
-        template: input.template,
-        prospect: input.prospect,
-        signup_url: signupUrl,
-      }),
-    },
-  ]);
-  // Defensive post-processing: if the LLM dropped a bare "zaffa.ai" without
-  // the invitation param, swap in the personalized one. This keeps every
-  // outreach message tied to a tracked invitation link even if the model
-  // gets sloppy.
-  let body = out.body ?? "";
-  if (!body.includes(signupUrl)) {
-    body = body.replace(
-      /https?:\/\/zaffa\.ai\/?(?!\S)/gi,
-      signupUrl,
-    );
-    if (!body.includes(signupUrl)) {
-      body = `${body.trimEnd()}\n\n${signupUrl}`;
-    }
+
+  let slots: PersonalizationSlots;
+  try {
+    const raw = await callJson<Partial<PersonalizationSlots>>([
+      { role: "system", content: SLOT_SYSTEM },
+      {
+        role: "user",
+        content: JSON.stringify({ prospect: input.prospect }),
+      },
+    ]);
+    const fallback = heuristicSlots(input.prospect);
+    slots = {
+      first_name:
+        (typeof raw.first_name === "string" && raw.first_name.trim()) ||
+        fallback.first_name,
+      specific:
+        (typeof raw.specific === "string" && raw.specific.trim()) ||
+        fallback.specific,
+    };
+  } catch {
+    // If the LLM is down or rate-limited, still produce a usable draft
+    // from the template — the operator can edit before sending.
+    slots = heuristicSlots(input.prospect);
   }
+
+  const body = renderTemplate(input.template.body, slots, signupUrl);
   return {
-    subject: out.subject?.slice(0, 200),
+    subject: input.template.subject?.slice(0, 200) ?? undefined,
     body,
   };
 }

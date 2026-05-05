@@ -98,11 +98,17 @@ export default function OutreachTemplatesPage() {
                     {!tpl.active && <Badge tone="stone">{t("inactive")}</Badge>}
                   </div>
                   {tpl.subject && (
-                    <p className="mt-1 truncate text-xs text-muted-foreground">
+                    <p
+                      dir="auto"
+                      className="mt-1 truncate text-xs text-muted-foreground"
+                    >
                       {t("subjectLabel")}: {tpl.subject}
                     </p>
                   )}
-                  <pre className="mt-2 line-clamp-3 whitespace-pre-wrap text-xs text-muted-foreground">
+                  <pre
+                    dir="auto"
+                    className="mt-2 line-clamp-3 whitespace-pre-wrap text-xs text-muted-foreground"
+                  >
                     {tpl.body}
                   </pre>
                   <p className="mt-2 text-[10px] text-muted-foreground">
@@ -275,6 +281,7 @@ function TemplateDialog({ template }: { template?: Template }) {
             <div className="space-y-1.5">
               <Label>{t("subjectLabel")}</Label>
               <Input
+                dir="auto"
                 value={form.subject}
                 onChange={(e) =>
                   setForm((s) => ({ ...s, subject: e.target.value }))
@@ -285,6 +292,7 @@ function TemplateDialog({ template }: { template?: Template }) {
           <div className="space-y-1.5">
             <Label>{t("bodyLabel")}</Label>
             <Textarea
+              dir="auto"
               required
               rows={8}
               value={form.body}

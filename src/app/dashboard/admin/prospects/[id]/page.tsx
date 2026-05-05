@@ -284,7 +284,10 @@ export default function ProspectDetailPage({
           <p className="mb-2 text-[10px] font-medium uppercase tracking-[0.2em] text-rose-700/80">
             {t("bio")}
           </p>
-          <p className="whitespace-pre-wrap text-sm text-muted-foreground">
+          <p
+            dir="auto"
+            className="whitespace-pre-wrap text-sm text-muted-foreground"
+          >
             {p.bio}
           </p>
         </section>
@@ -331,6 +334,7 @@ export default function ProspectDetailPage({
           {t("notes")}
         </p>
         <Textarea
+          dir="auto"
           rows={3}
           value={currentNotes}
           onChange={(e) => setNotes(e.target.value)}
@@ -457,7 +461,10 @@ function DraftsPanel({
       </div>
 
       {text ? (
-        <pre className="whitespace-pre-wrap rounded-lg bg-stone-50 p-3 text-xs text-stone-700 ring-1 ring-stone-200">
+        <pre
+          dir="auto"
+          className="whitespace-pre-wrap rounded-lg bg-stone-50 p-3 text-xs text-stone-700 ring-1 ring-stone-200"
+        >
           {text}
         </pre>
       ) : (
