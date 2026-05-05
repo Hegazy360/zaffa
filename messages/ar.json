@@ -388,6 +388,7 @@
     "strengthStrong": "قويّة",
     "strengthExcellent": "ممتازة",
     "continueWithGoogle": "المتابعة عبر Google",
+    "continueWithGooglePickRoleFirst": "اختر دورًا لمتابعة التسجيل عبر Google",
     "errorPageTitle": "حدث ما قطع هذا الرابط",
     "errorPageRequestNew": "اطلب رابطًا جديدًا",
     "errorPageTryAgain": "حاول تسجيل الدخول من جديد",
@@ -1616,6 +1617,9 @@
     "copied": "تم النسخ إلى الحافظة",
     "openIn": "افتح في {channel}",
     "markContacted": "تعليم كمُتواصَل معه",
+    "quickSendWhatsapp": "إرسال عبر واتساب",
+    "quickSendKbHint": "ملاحظة — ركّز على صف ثم اضغط <kbd>W</kbd> للإرسال عبر واتساب.",
+    "draftFailedGeneric": "تعذّر إعداد الرسالة. حاول مرة أخرى.",
     "depth": "العمق",
     "depthHelp": "مدى التعمّق في البحث — كلما زاد التعمّق، زادت طلبات الـAPI والنتائج.",
     "depthLabel": {

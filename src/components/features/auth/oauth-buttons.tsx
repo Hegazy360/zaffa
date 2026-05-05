@@ -4,6 +4,11 @@ import { useTranslations } from "next-intl";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import {
+  PENDING_ROLE_COOKIE,
+  PENDING_ROLE_TTL_SECONDS,
+  type OAuthPromotableRole,
+} from "@/lib/auth/pending-role";
 
 // Inline Google "G" mark — keeps brand fidelity without pulling in a new
 // icon package (lucide ships a generic Chrome browser icon instead).
@@ -35,11 +40,45 @@ function GoogleIcon({ className }: { className?: string }) {
   );
 }
 
-export function OAuthButtons() {
+interface OAuthButtonsProps {
+  // The role the user picked before clicking "Continue with Google", if
+  // any. When set, we stash it in a short-lived cookie so /auth/callback
+  // can promote the freshly-created profile from the default `client`
+  // role to the chosen one. Without this, planners and vendors who pick
+  // OAuth silently end up registered as clients.
+  intendedRole?: OAuthPromotableRole | null;
+  // When true, OAuth requires `intendedRole` to be selected before it can
+  // be used — disables the button until the caller supplies a role.
+  // Used on the professional sign-up form so a planner/vendor can't
+  // accidentally fall through the role picker by clicking Google first.
+  requireRole?: boolean;
+}
+
+export function OAuthButtons({
+  intendedRole = null,
+  requireRole = false,
+}: OAuthButtonsProps = {}) {
   const supabase = createClient();
   const t = useTranslations("auth");
 
+  const disabled = requireRole && !intendedRole;
+
   const handleOAuthSignIn = async () => {
+    if (intendedRole) {
+      // Set a short-lived, SameSite=Lax cookie. `Lax` is required so the
+      // cookie survives the cross-site redirect back from Google. We add
+      // `Secure` only when the page is served over HTTPS so localhost dev
+      // (http://localhost:3000) still works.
+      const isHttps =
+        typeof window !== "undefined" &&
+        window.location.protocol === "https:";
+      const secureFlag = isHttps ? "; Secure" : "";
+      document.cookie =
+        `${PENDING_ROLE_COOKIE}=${encodeURIComponent(intendedRole)}` +
+        `; Max-Age=${PENDING_ROLE_TTL_SECONDS}` +
+        `; Path=/` +
+        `; SameSite=Lax${secureFlag}`;
+    }
     await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
@@ -48,7 +87,9 @@ export function OAuthButtons() {
     });
   };
 
-  const label = t("continueWithGoogle");
+  const label = disabled
+    ? t("continueWithGooglePickRoleFirst")
+    : t("continueWithGoogle");
 
   return (
     <Button
@@ -59,6 +100,7 @@ export function OAuthButtons() {
         "bg-white text-gray-800 hover:bg-gray-50 border border-gray-200 dark:bg-gray-900 dark:text-gray-100 dark:border-gray-700 dark:hover:bg-gray-800",
       )}
       onClick={handleOAuthSignIn}
+      disabled={disabled}
       aria-label={label}
     >
       <GoogleIcon className="size-5" />

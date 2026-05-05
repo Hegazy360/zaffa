@@ -388,6 +388,7 @@
     "strengthStrong": "Strong",
     "strengthExcellent": "Excellent",
     "continueWithGoogle": "Continue with Google",
+    "continueWithGooglePickRoleFirst": "Pick a role to continue with Google",
     "errorPageTitle": "Something interrupted that link",
     "errorPageRequestNew": "Request a new link",
     "errorPageTryAgain": "Try signing in again",
@@ -1391,6 +1392,9 @@
     "copied": "Copied to clipboard",
     "openIn": "Open in {channel}",
     "markContacted": "Mark as contacted",
+    "quickSendWhatsapp": "Send on WhatsApp",
+    "quickSendKbHint": "Tip — focus a row and press <kbd>W</kbd> to send on WhatsApp.",
+    "draftFailedGeneric": "Could not draft the message. Try again.",
     "depth": "Depth",
     "depthHelp": "How aggressively to fetch — deeper = more API calls + more results.",
     "depthLabel": {

@@ -306,7 +306,7 @@ export function ProfessionalSignUpForm() {
               </span>
             </div>
           </div>
-          <OAuthButtons />
+          <OAuthButtons intendedRole={role} requireRole />
         </>
       )}
 
