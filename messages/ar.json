@@ -642,6 +642,13 @@
     "sizeMediumHint": "من ٥٠ إلى ١٥٠ ضيفًا",
     "sizeLarge": "كبير",
     "sizeLargeHint": "أكثر من ١٥٠ ضيفًا",
+    "guestCountLabel": "عدد المدعوّين المتوقع",
+    "guestCountPlaceholder": "مثال: ١٢٠",
+    "guestCountUnit": "مدعوّ",
+    "guestCountHelp": "اضغط على رقم جاهز أو اكتب العدد المتوقع لحفلك.",
+    "guestCountBucketIntimate": "صغير وحميمي (حتى ٥٠)",
+    "guestCountBucketMedium": "متوسّط (٥٠–١٥٠)",
+    "guestCountBucketLarge": "كبير (أكثر من ١٥٠)",
     "paletteDescription": "اختر لوحة جاهزة كنقطة بداية أو اصنع لوحتك الخاصة. سيدمج الذكاء الاصطناعي هذه الألوان في التصميم النهائي.",
     "curatedPalettesLabel": "لوحات ألوان مختارة",
     "customLabel": "مخصّص",
@@ -855,7 +862,12 @@
     "refTables": "الطاولات والجلوس",
     "refFlowers": "الزهور",
     "refLighting": "الإضاءة",
-    "refVenueDecor": "الديكور والتركيبات"
+    "refVenueDecor": "الديكور والتركيبات",
+    "expectedGuests": "عدد المدعوّين المتوقع",
+    "guestsIntimate": "حتى ~50 مدعوًّا",
+    "guestsMedium": "50–150 مدعوًّا",
+    "guestsLarge": "أكثر من 150 مدعوًّا",
+    "guestsExact": "{count, plural, one {# مدعوّ} other {# مدعوّ}}"
   },
   "planner": {
     "dateNotSet": "التاريخ غير محدّد",

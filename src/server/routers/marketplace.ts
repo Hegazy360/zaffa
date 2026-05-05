@@ -161,6 +161,7 @@ export const marketplaceRouter = router({
               thumbnail: true,
               setting: true,
               size: true,
+              guest_count: true,
               style_notes: true,
               references: true,
               media: {

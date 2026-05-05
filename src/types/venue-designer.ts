@@ -45,6 +45,26 @@ export type Setting = "indoor" | "outdoor" | "tent";
 
 export type Size = "intimate" | "medium" | "large";
 
+export const GUEST_COUNT_MIN = 2;
+export const GUEST_COUNT_MAX = 10000;
+
+// Quick-pick chips shown in the designer alongside the numeric input. These
+// are intentionally evenly-spread sentinels (not bucket boundaries) so the
+// couple can land on a sensible default with one tap and tweak from there.
+export const GUEST_COUNT_PRESETS: readonly number[] = [
+  30, 75, 120, 175, 250, 400,
+];
+
+// Map a precise guest count to one of the three coarse buckets the AI scene
+// generator uses to pick a layout descriptor. Tuned so the boundaries match
+// the labels we expose elsewhere ("up to ~50", "50-150", "150+").
+export function sizeFromGuestCount(count: number | null | undefined): Size {
+  if (count == null || !Number.isFinite(count) || count <= 0) return "medium";
+  if (count <= 50) return "intimate";
+  if (count <= 150) return "medium";
+  return "large";
+}
+
 export interface Ref {
   id: string;
   url: string;
@@ -66,7 +86,12 @@ export interface DesignDocument {
   name: string;
   eventType: EventType;
   setting: Setting;
+  // Coarse bucket — kept for the AI scene generator. Derived from
+  // `guestCount` whenever a precise count is set.
   size: Size;
+  // Exact expected guest count. Optional so existing designs created before
+  // this field was added still hydrate cleanly.
+  guestCount: number | null;
   palette: DesignPalette;
   references: DesignReferences;
   styleNotes?: string;
@@ -85,6 +110,7 @@ export const DEFAULT_DESIGN: DesignDocument = {
   eventType: "wedding",
   setting: "indoor",
   size: "medium",
+  guestCount: null,
   palette: { colors: [] },
   references: EMPTY_REFERENCES,
   styleNotes: "",

@@ -54,6 +54,22 @@ const SIZE_LAYOUT: Record<string, string> = {
     "a large layout (200+ guests) with many tables fanning out across the space, a wide aisle or central path, and a prominent focal point",
 };
 
+// When the host gave us a precise headcount, build a layout sentence that
+// names the actual number rather than a bucket sample. Keeps the AI from
+// generating a 30-table room when the couple expects 80 guests.
+function describeLayoutForGuests(count: number): string {
+  if (count <= 50) {
+    return `an intimate layout sized for about ${count} guests, with a few long or round tables and a single clear focal point`;
+  }
+  if (count <= 150) {
+    return `a layout sized for about ${count} guests, with multiple round or long tables arranged across the space and a clear focal point`;
+  }
+  if (count <= 300) {
+    return `a sizable layout for about ${count} guests, with many tables fanning out across the space, a wide aisle or central path, and a prominent focal point`;
+  }
+  return `a grand layout for about ${count} guests, with extensive table coverage across a large space, broad aisles, and a striking, prominent focal point`;
+}
+
 export interface RenderReference {
   url: string;
   category: ReferenceCategory;
@@ -63,6 +79,10 @@ export interface RenderSceneInput {
   eventType: string;
   setting: string;
   size: string;
+  // Optional precise expected guest count. When provided, the layout
+  // sentence is built around the exact number; otherwise we fall back to
+  // the coarse bucket described in SIZE_LAYOUT.
+  guestCount?: number | null;
   palette: { name?: string; colors: string[] };
   references: RenderReference[];
   styleNotes?: string;
@@ -76,7 +96,10 @@ function buildPrompt(
 ): string {
   const settingInfo =
     SETTING_DESCRIPTOR[input.setting] ?? SETTING_DESCRIPTOR.indoor;
-  const layout = SIZE_LAYOUT[input.size] ?? SIZE_LAYOUT.medium;
+  const layout =
+    typeof input.guestCount === "number" && input.guestCount > 0
+      ? describeLayoutForGuests(input.guestCount)
+      : SIZE_LAYOUT[input.size] ?? SIZE_LAYOUT.medium;
 
   const palettePart = input.palette.colors.length
     ? `Color palette: ${input.palette.colors.join(", ")}${

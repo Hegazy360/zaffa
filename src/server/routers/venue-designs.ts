@@ -37,6 +37,19 @@ const eventTypeSchema = z.enum([
 ]);
 const settingSchema = z.enum(["indoor", "outdoor", "tent"]);
 const sizeSchema = z.enum(["intimate", "medium", "large"]);
+// Mirrors GUEST_COUNT_MIN / GUEST_COUNT_MAX in the client types — kept as a
+// literal so we don't pull a client module into the server bundle.
+const guestCountSchema = z.number().int().min(2).max(10000);
+
+// Server-side mirror of `sizeFromGuestCount` (kept duplicated rather than
+// imported because the client module references React/Zod-free constants
+// only). If the buckets ever shift, update both call sites.
+function deriveSize(count: number | null | undefined): "intimate" | "medium" | "large" {
+  if (count == null) return "medium";
+  if (count <= 50) return "intimate";
+  if (count <= 150) return "medium";
+  return "large";
+}
 
 export const venueDesignsRouter = router({
   list: protectedProcedure.query(async ({ ctx }) => {
@@ -49,6 +62,7 @@ export const venueDesignsRouter = router({
         event_type: true,
         setting: true,
         size: true,
+        guest_count: true,
         palette: true,
         thumbnail: true,
         updated_at: true,
@@ -84,7 +98,11 @@ export const venueDesignsRouter = router({
         name: z.string().min(1).max(200),
         event_type: eventTypeSchema.default("wedding"),
         setting: settingSchema.default("indoor"),
+        // `size` stays accepted for callers that don't yet send guest_count
+        // (and as a fallback for the AI scene generator), but when a count
+        // is provided it overrides the bucket.
         size: sizeSchema.default("medium"),
+        guest_count: guestCountSchema.nullish(),
         palette: paletteSchema.default({ colors: [] }),
         references: referencesSchema.default({
           overall_vibe: [],
@@ -98,11 +116,14 @@ export const venueDesignsRouter = router({
       })
     )
     .mutation(async ({ ctx, input }) => {
+      const guestCount = input.guest_count ?? null;
+      const derivedSize = guestCount != null ? deriveSize(guestCount) : input.size;
       const data = {
         name: input.name,
         event_type: input.event_type,
         setting: input.setting,
-        size: input.size,
+        size: derivedSize,
+        guest_count: guestCount,
         palette: input.palette,
         references: input.references,
         style_notes: input.style_notes ?? null,
@@ -126,6 +147,7 @@ export const venueDesignsRouter = router({
         event_type: created.event_type,
         setting: created.setting,
         size: created.size,
+        guest_count: created.guest_count,
       });
       return created;
     }),

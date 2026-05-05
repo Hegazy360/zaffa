@@ -5,6 +5,7 @@ import {
   MAX_REFERENCES_PER_CATEGORY,
   MAX_TOTAL_REFERENCES,
   REFERENCE_CATEGORIES,
+  sizeFromGuestCount,
   type DesignDocument,
   type DesignPalette,
   type EventType,
@@ -23,6 +24,7 @@ interface VenueDesignerState extends DesignDocument {
   setEventType: (eventType: EventType) => void;
   setSetting: (setting: Setting) => void;
   setSize: (size: Size) => void;
+  setGuestCount: (guestCount: number | null) => void;
   setPalette: (palette: DesignPalette) => void;
   setStyleNotes: (notes: string) => void;
 
@@ -58,6 +60,14 @@ export const useVenueDesignerStore = create<VenueDesignerState>((set, get) => ({
   setEventType: (eventType) => set({ eventType }),
   setSetting: (setting) => set({ setting }),
   setSize: (size) => set({ size }),
+  // Setting guestCount also updates the coarse size bucket so the AI scene
+  // generator sees a layout that matches the count without callers having
+  // to remember to keep both in sync.
+  setGuestCount: (guestCount) =>
+    set({
+      guestCount,
+      size: guestCount != null ? sizeFromGuestCount(guestCount) : get().size,
+    }),
   setPalette: (palette) => set({ palette }),
   setStyleNotes: (styleNotes) => set({ styleNotes }),
 
@@ -119,6 +129,7 @@ export const useVenueDesignerStore = create<VenueDesignerState>((set, get) => ({
       eventType: s.eventType,
       setting: s.setting,
       size: s.size,
+      guestCount: s.guestCount,
       palette: s.palette,
       references: s.references,
       styleNotes: s.styleNotes ?? "",
@@ -126,11 +137,18 @@ export const useVenueDesignerStore = create<VenueDesignerState>((set, get) => ({
   },
 
   deserialize: (doc) => {
+    const guestCount = doc.guestCount ?? null;
     set({
       name: doc.name ?? DEFAULT_DESIGN.name,
       eventType: doc.eventType ?? DEFAULT_DESIGN.eventType,
       setting: doc.setting ?? DEFAULT_DESIGN.setting,
-      size: doc.size ?? DEFAULT_DESIGN.size,
+      // If a precise count came back from the server, prefer the bucket it
+      // implies so the in-memory size never drifts from the count.
+      size:
+        guestCount != null
+          ? sizeFromGuestCount(guestCount)
+          : doc.size ?? DEFAULT_DESIGN.size,
+      guestCount,
       palette: doc.palette ?? { colors: [] },
       references: normalizeReferences(doc.references),
       styleNotes: doc.styleNotes ?? "",

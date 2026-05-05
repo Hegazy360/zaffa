@@ -70,6 +70,7 @@ export function GenerateRenderPanel({ designId }: GenerateRenderPanelProps) {
   const eventType = useVenueDesignerStore((s) => s.eventType);
   const setting = useVenueDesignerStore((s) => s.setting);
   const size = useVenueDesignerStore((s) => s.size);
+  const guestCount = useVenueDesignerStore((s) => s.guestCount);
   const palette = useVenueDesignerStore((s) => s.palette);
   const references = useVenueDesignerStore((s) => s.references);
   const styleNotes = useVenueDesignerStore((s) => s.styleNotes ?? "");
@@ -199,6 +200,7 @@ export function GenerateRenderPanel({ designId }: GenerateRenderPanelProps) {
       eventType,
       setting,
       size,
+      guestCount: guestCount ?? null,
       palette,
       references: flatRefs,
       styleNotes: styleNotes.trim() || undefined,
@@ -208,6 +210,7 @@ export function GenerateRenderPanel({ designId }: GenerateRenderPanelProps) {
     eventType,
     setting,
     size,
+    guestCount,
     palette,
     flatRefs,
     styleNotes,
@@ -224,6 +227,7 @@ export function GenerateRenderPanel({ designId }: GenerateRenderPanelProps) {
         eventType,
         setting,
         size,
+        guestCount: guestCount ?? null,
         palette,
         styleNotes: styleNotes.trim() || undefined,
       },
@@ -233,6 +237,7 @@ export function GenerateRenderPanel({ designId }: GenerateRenderPanelProps) {
     eventType,
     setting,
     size,
+    guestCount,
     palette,
     styleNotes,
     videoMutation,

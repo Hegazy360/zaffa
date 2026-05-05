@@ -41,6 +41,7 @@ function snapshotKey(doc: DesignDocument): string {
     eventType: doc.eventType,
     setting: doc.setting,
     size: doc.size,
+    guestCount: doc.guestCount ?? null,
     palette: doc.palette,
     references: doc.references,
     styleNotes: doc.styleNotes ?? "",
@@ -92,6 +93,7 @@ export function VenueDesigner({ designId }: VenueDesignerProps) {
   const eventType = useVenueDesignerStore((s) => s.eventType);
   const setting = useVenueDesignerStore((s) => s.setting);
   const size = useVenueDesignerStore((s) => s.size);
+  const guestCount = useVenueDesignerStore((s) => s.guestCount);
   const palette = useVenueDesignerStore((s) => s.palette);
   const references = useVenueDesignerStore((s) => s.references);
   const styleNotes = useVenueDesignerStore((s) => s.styleNotes);
@@ -134,6 +136,7 @@ export function VenueDesigner({ designId }: VenueDesignerProps) {
       eventType: (existingDesign.event_type as EventType) ?? "wedding",
       setting: (existingDesign.setting as Setting) ?? "indoor",
       size: (existingDesign.size as Size) ?? "medium",
+      guestCount: existingDesign.guest_count ?? null,
       palette: normalizePalette(existingDesign.palette),
       references: normalizeReferences(existingDesign.references),
       styleNotes: existingDesign.style_notes ?? "",
@@ -152,6 +155,7 @@ export function VenueDesigner({ designId }: VenueDesignerProps) {
       event_type: doc.eventType,
       setting: doc.setting,
       size: doc.size,
+      guest_count: doc.guestCount ?? null,
       palette: doc.palette,
       references: doc.references,
       style_notes: doc.styleNotes ?? null,
@@ -166,11 +170,12 @@ export function VenueDesigner({ designId }: VenueDesignerProps) {
         eventType,
         setting,
         size,
+        guestCount,
         palette,
         references,
         styleNotes,
       }),
-    [name, eventType, setting, size, palette, references, styleNotes]
+    [name, eventType, setting, size, guestCount, palette, references, styleNotes]
   );
 
   const dirty = loaded && currentKey !== lastSavedKey;

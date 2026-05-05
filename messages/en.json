@@ -630,7 +630,12 @@
     "refTables": "Tables & seating",
     "refFlowers": "Florals",
     "refLighting": "Lighting",
-    "refVenueDecor": "Decor & structure"
+    "refVenueDecor": "Decor & structure",
+    "expectedGuests": "Expected guests",
+    "guestsIntimate": "Up to ~50 guests",
+    "guestsMedium": "50–150 guests",
+    "guestsLarge": "150+ guests",
+    "guestsExact": "{count, plural, one {# guest} other {# guests}}"
   },
   "planner": {
     "dateNotSet": "Date not set",
@@ -1815,6 +1820,13 @@
     "sizeMediumHint": "50-150 guests",
     "sizeLarge": "Large",
     "sizeLargeHint": "150+ guests",
+    "guestCountLabel": "Expected guests",
+    "guestCountPlaceholder": "e.g. 120",
+    "guestCountUnit": "guests",
+    "guestCountHelp": "Tap a preset or enter the number you're planning for.",
+    "guestCountBucketIntimate": "Intimate (up to ~50)",
+    "guestCountBucketMedium": "Medium (50–150)",
+    "guestCountBucketLarge": "Large (150+)",
     "paletteDescription": "Pick a starting palette or build your own. The AI will weave these colors through the final render.",
     "curatedPalettesLabel": "Curated palettes",
     "customLabel": "Custom",

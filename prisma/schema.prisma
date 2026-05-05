@@ -528,7 +528,13 @@ model VenueDesign {
   name        String    @default("Untitled Design")
   event_type  String    @default("wedding")
   setting     String    @default("indoor")
+  // Coarse size bucket (intimate / medium / large) — kept for the AI scene
+  // generator's layout descriptor. Derived on save from `guest_count` when
+  // a precise count is provided; otherwise selected directly.
   size        String    @default("medium")
+  // Exact expected guest count entered by the couple. Optional because
+  // older designs were captured before this field existed.
+  guest_count Int?
   palette     Json      @default("{}")
   references  Json      @default("{}")
   style_notes String?

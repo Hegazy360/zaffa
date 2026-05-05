@@ -191,7 +191,7 @@ export default function MarketplacePage() {
                 <Link
                   key={brief.id}
                   href={`/dashboard/planner/marketplace/${brief.id}`}
-                  className="group relative block overflow-hidden rounded-2xl border border-rose-100/70 bg-white/80 backdrop-blur-sm ring-1 ring-foreground/[0.04] transition-all hover:-translate-y-0.5 hover:shadow-[0_20px_50px_-20px_rgba(244,63,94,0.25)]"
+                  className="group relative flex flex-col overflow-hidden rounded-2xl border border-rose-100/70 bg-white/80 backdrop-blur-sm ring-1 ring-foreground/[0.04] transition-all hover:-translate-y-0.5 hover:shadow-[0_20px_50px_-20px_rgba(244,63,94,0.25)]"
                 >
                   <div className="relative aspect-[4/3] overflow-hidden bg-gradient-to-br from-rose-50 to-amber-50/60">
                     {heroImage ? (
@@ -224,34 +224,45 @@ export default function MarketplacePage() {
                       </div>
                     )}
                   </div>
-                  <div className="space-y-2 p-4">
-                    <h3 className="font-display text-base font-medium leading-tight tracking-tight">
-                      {brief.title}
-                    </h3>
-                    <p className="text-[11px] capitalize text-muted-foreground">
-                      {t("withClient", {
-                        type: brief.event_type,
-                        firstName: brief.client_first_name,
-                      })}
-                    </p>
-                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
-                      <span className="inline-flex items-center gap-1">
-                        <CalendarDays className="size-3" />
-                        {brief.event_date
-                          ? f.date(brief.event_date, "medium")
-                          : t("dateOpen")}
-                      </span>
-                      {brief.venue && (
+                  <div className="flex flex-1 flex-col p-4">
+                    <div className="space-y-2">
+                      <h3 className="font-display text-base font-medium leading-tight tracking-tight">
+                        {brief.title}
+                      </h3>
+                      <p className="text-[11px] capitalize text-muted-foreground">
+                        {t("withClient", {
+                          type: brief.event_type,
+                          firstName: brief.client_first_name,
+                        })}
+                      </p>
+                      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
                         <span className="inline-flex items-center gap-1">
-                          <MapPin className="size-3" />
-                          <span className="max-w-[120px] truncate">
-                            {brief.venue}
-                          </span>
+                          <CalendarDays className="size-3" />
+                          {brief.event_date
+                            ? f.date(brief.event_date, "medium")
+                            : t("dateOpen")}
                         </span>
-                      )}
-                      {budget && (
-                        <span className="inline-flex items-center rounded-full bg-rose-50 px-1.5 py-0.5 text-[10px] font-medium text-rose-700 ring-1 ring-rose-100">
+                        {brief.venue && (
+                          <span className="inline-flex items-center gap-1">
+                            <MapPin className="size-3" />
+                            <span className="max-w-[120px] truncate">
+                              {brief.venue}
+                            </span>
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    <div className="mt-4 flex items-baseline justify-between gap-3 border-t border-rose-100/70 pt-3">
+                      <span className="text-[10px] font-medium uppercase tracking-[0.18em] text-muted-foreground">
+                        {t("budget")}
+                      </span>
+                      {budget ? (
+                        <span className="font-display text-sm font-medium tabular-nums text-rose-700">
                           {budget}
+                        </span>
+                      ) : (
+                        <span className="text-xs italic text-muted-foreground/80">
+                          {t("notShared")}
                         </span>
                       )}
                     </div>

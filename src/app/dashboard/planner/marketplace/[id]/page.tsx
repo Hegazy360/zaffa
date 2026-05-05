@@ -177,6 +177,23 @@ export default function BriefDetailPage() {
   const budget = decimalToNumber(brief.budget);
   const conflictRows = conflicts ?? [];
   const myProposal = brief.myProposal;
+  const guestsLabel: string | null = (() => {
+    if (design?.guest_count && design.guest_count > 0) {
+      // The exact count is the most useful signal for the planner & their
+      // vendors (catering price, table count, room sizing).
+      return t("guestsExact", { count: design.guest_count });
+    }
+    switch (design?.size) {
+      case "intimate":
+        return t("guestsIntimate");
+      case "medium":
+        return t("guestsMedium");
+      case "large":
+        return t("guestsLarge");
+      default:
+        return null;
+    }
+  })();
 
   return (
     <div className="relative isolate min-h-[calc(100vh-4rem)] w-full overflow-x-hidden bg-gradient-to-b from-rose-50/50 via-background to-background">
@@ -275,11 +292,6 @@ export default function BriefDetailPage() {
                 )}
               </div>
               <div className="space-y-4 p-5">
-                {design?.name && (
-                  <h2 className="font-display text-xl font-light tracking-tight">
-                    {design.name}
-                  </h2>
-                )}
                 {palette.length > 0 && (
                   <div>
                     <p className="mb-2 text-[10px] font-medium uppercase tracking-[0.2em] text-muted-foreground">
@@ -404,6 +416,12 @@ export default function BriefDetailPage() {
                     <dt className="shrink-0 text-muted-foreground">{t("venue")}</dt>
                     <dd className="min-w-0 break-words text-end">{brief.venue || t("open")}</dd>
                   </div>
+                  {guestsLabel && (
+                    <div className="flex justify-between gap-3">
+                      <dt className="shrink-0 text-muted-foreground">{t("expectedGuests")}</dt>
+                      <dd className="min-w-0 break-words text-end">{guestsLabel}</dd>
+                    </div>
+                  )}
                   <div className="flex justify-between gap-3">
                     <dt className="shrink-0 text-muted-foreground">{t("budget")}</dt>
                     <dd className="min-w-0 break-words text-end">{budget > 0 ? f.currency(budget) : t("notShared")}</dd>

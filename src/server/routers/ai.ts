@@ -32,6 +32,9 @@ export const aiRouter = router({
         ]),
         setting: z.enum(["indoor", "outdoor", "tent"]),
         size: z.enum(["intimate", "medium", "large"]),
+        // Optional precise count — when present, the scene generator uses
+        // it verbatim in the layout descriptor instead of the bucket sample.
+        guestCount: z.number().int().min(2).max(10000).nullish(),
         palette: z.object({
           name: z.string().optional(),
           colors: z.array(z.string()).max(8).default([]),
@@ -65,6 +68,7 @@ export const aiRouter = router({
         event_type: input.eventType,
         setting: input.setting,
         size: input.size,
+        guest_count: input.guestCount ?? null,
         reference_count: input.references.length,
       });
       return result;
@@ -85,6 +89,7 @@ export const aiRouter = router({
             ]),
             setting: z.enum(["indoor", "outdoor", "tent"]),
             size: z.enum(["intimate", "medium", "large"]),
+            guestCount: z.number().int().min(2).max(10000).nullish(),
             palette: z
               .object({
                 name: z.string().optional(),
