@@ -42,6 +42,7 @@ import {
 } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 import { SchedulePanel } from "@/components/payments/SchedulePanel";
+import { InspirationBoard } from "@/components/venue-designer/InspirationBoard";
 import { useRealtimeMessageSync } from "@/hooks/use-realtime-messages";
 
 import { useFormatters } from "@/lib/use-formatters";
@@ -338,6 +339,7 @@ export default function PlannerEventDetailPage() {
                       thumbnail: approvedDesign.thumbnail,
                       palette: approvedDesign.palette,
                       references: approvedDesign.references,
+                      style_notes: approvedDesign.style_notes,
                       media: approvedDesign.media,
                     }
                   : null
@@ -576,41 +578,13 @@ interface DesignSnapshot {
   thumbnail: string | null;
   palette: unknown;
   references: unknown;
+  style_notes: string | null;
   media: Array<{
     id: string;
     url: string;
     type: string;
     parent_id: string | null;
   }>;
-}
-
-interface FlatRef {
-  id: string;
-  url: string;
-  thumbnailUrl?: string;
-}
-
-function flattenReferences(value: unknown): FlatRef[] {
-  if (!value || typeof value !== "object" || Array.isArray(value)) return [];
-  const out: FlatRef[] = [];
-  for (const [category, refs] of Object.entries(
-    value as Record<string, unknown>
-  )) {
-    if (!Array.isArray(refs)) continue;
-    for (const r of refs) {
-      if (!r || typeof r !== "object") continue;
-      const obj = r as Record<string, unknown>;
-      const url = typeof obj.url === "string" ? obj.url : null;
-      if (!url) continue;
-      out.push({
-        id: typeof obj.id === "string" ? obj.id : `${category}-${out.length}`,
-        url,
-        thumbnailUrl:
-          typeof obj.thumbnailUrl === "string" ? obj.thumbnailUrl : undefined,
-      });
-    }
-  }
-  return out;
 }
 
 function DesignTab({ design }: { design: DesignSnapshot | null }) {
@@ -639,7 +613,6 @@ function DesignTab({ design }: { design: DesignSnapshot | null }) {
     renders[0] ??
     null;
   const heroImage = selectedRender?.url ?? design.thumbnail ?? null;
-  const refs = flattenReferences(design.references);
   // Videos linked (parent_id) to the selected render. Legacy videos with
   // parent_id === null only appear when the design has a single render
   // (safe assumption that the video came from it).
@@ -649,10 +622,38 @@ function DesignTab({ design }: { design: DesignSnapshot | null }) {
     if (m.parent_id === null && renders.length <= 1) return true;
     return false;
   });
+  const styleNotes = design.style_notes?.trim() || null;
 
   return (
     <div className="space-y-6">
+      {/* Inspiration first — so the planner sees what the couple is reaching
+          for, by category, before the polished AI output. The render only
+          shows what the model interpreted; the inspiration is what the
+          couple actually meant. */}
+      <InspirationBoard references={design.references} />
+
+      {styleNotes && (
+        <div className="rounded-2xl border border-rose-100/70 bg-white/80 p-5 backdrop-blur-sm">
+          <p className="mb-2 text-[10px] font-medium uppercase tracking-[0.2em] text-rose-700/80">
+            {t("coupleStyleNotesHeading")}
+          </p>
+          <p className="whitespace-pre-wrap text-sm leading-relaxed text-foreground/90">
+            {styleNotes}
+          </p>
+        </div>
+      )}
+
       <div className="overflow-hidden rounded-2xl border border-rose-100/70 bg-white/80 backdrop-blur-sm">
+        <div className="flex items-center justify-between border-b border-rose-100/70 px-5 py-3">
+          <div>
+            <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-rose-700/80">
+              {t("aiRenderHeading")}
+            </p>
+            <p className="text-[11px] text-muted-foreground">
+              {t("aiRenderHint")}
+            </p>
+          </div>
+        </div>
         {heroImage && (
           <div className="relative aspect-[16/9] bg-gradient-to-br from-rose-50 to-amber-50/60">
             {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -690,25 +691,6 @@ function DesignTab({ design }: { design: DesignSnapshot | null }) {
           )}
         </div>
       </div>
-
-      {refs.length > 0 && (
-        <div className="rounded-2xl border border-rose-100/70 bg-white/80 p-5 backdrop-blur-sm">
-          <p className="mb-3 text-[10px] font-medium uppercase tracking-[0.2em] text-muted-foreground">
-            {t("referencesCount", { count: refs.length })}
-          </p>
-          <div className="grid grid-cols-3 gap-2 sm:grid-cols-4 md:grid-cols-6">
-            {refs.map((r) => (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                key={r.id}
-                src={r.thumbnailUrl ?? r.url}
-                alt=""
-                className="aspect-square w-full rounded-lg object-cover"
-              />
-            ))}
-          </div>
-        </div>
-      )}
 
       {videos.length > 0 && (
         <div className="rounded-2xl border border-rose-100/70 bg-white/80 p-5 backdrop-blur-sm">

@@ -34,6 +34,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { InspirationBoard } from "@/components/venue-designer/InspirationBoard";
 
 function normalizePalette(value: unknown): string[] {
   if (value && typeof value === "object" && !Array.isArray(value)) {
@@ -43,52 +44,6 @@ function normalizePalette(value: unknown): string[] {
     }
   }
   return [];
-}
-
-interface RefItem {
-  id: string;
-  url: string;
-  thumbnailUrl?: string;
-  category: string;
-}
-
-const REFERENCE_CATEGORY_KEYS: Record<
-  string,
-  | "refOverallVibe"
-  | "refTables"
-  | "refFlowers"
-  | "refLighting"
-  | "refVenueDecor"
-> = {
-  overall_vibe: "refOverallVibe",
-  tables: "refTables",
-  flowers: "refFlowers",
-  lighting: "refLighting",
-  venue_decor: "refVenueDecor",
-};
-
-// Pull all reference images out of the design.references JSON (grouped by
-// category in the venue designer) and flatten into a single gallery list.
-function flattenReferences(value: unknown): RefItem[] {
-  if (!value || typeof value !== "object" || Array.isArray(value)) return [];
-  const out: RefItem[] = [];
-  for (const [category, refs] of Object.entries(value as Record<string, unknown>)) {
-    if (!Array.isArray(refs)) continue;
-    for (const r of refs) {
-      if (!r || typeof r !== "object") continue;
-      const obj = r as Record<string, unknown>;
-      const url = typeof obj.url === "string" ? obj.url : null;
-      if (!url) continue;
-      out.push({
-        id: typeof obj.id === "string" ? obj.id : `${category}-${out.length}`,
-        url,
-        thumbnailUrl:
-          typeof obj.thumbnailUrl === "string" ? obj.thumbnailUrl : undefined,
-        category,
-      });
-    }
-  }
-  return out;
 }
 
 function decimalToNumber(value: unknown): number {
@@ -275,7 +230,7 @@ export default function BriefDetailPage() {
 
         <div className="grid gap-8 lg:grid-cols-12">
           {/* Design */}
-          <section className="lg:col-span-7">
+          <section className="space-y-6 lg:col-span-7">
             <div className="overflow-hidden rounded-2xl border border-rose-100/70 bg-white/70 backdrop-blur-sm">
               <div className="relative aspect-[4/3] bg-gradient-to-br from-rose-50 to-amber-50/60">
                 {heroImage ? (
@@ -326,31 +281,6 @@ export default function BriefDetailPage() {
                   </div>
                 )}
                 {(() => {
-                  const refs = flattenReferences(design?.references);
-                  if (refs.length === 0) return null;
-                  return (
-                    <div>
-                      <p className="mb-2 text-[10px] font-medium uppercase tracking-[0.2em] text-muted-foreground">
-                        {t("references", { count: refs.length })}
-                      </p>
-                      <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4">
-                        {refs.slice(0, 12).map((r) => {
-                          const altKey = REFERENCE_CATEGORY_KEYS[r.category];
-                          return (
-                            // eslint-disable-next-line @next/next/no-img-element
-                            <img
-                              key={r.id}
-                              src={r.thumbnailUrl ?? r.url}
-                              alt={altKey ? t(altKey) : ""}
-                              className="aspect-square w-full rounded-lg object-cover"
-                            />
-                          );
-                        })}
-                      </div>
-                    </div>
-                  );
-                })()}
-                {(() => {
                   if (!design) return null;
                   // Only show videos generated from the displayed render.
                   // Legacy videos (parent_id === null) only appear when the
@@ -394,6 +324,10 @@ export default function BriefDetailPage() {
                 })()}
               </div>
             </div>
+
+            {design?.references != null && (
+              <InspirationBoard references={design.references} compact />
+            )}
           </section>
 
           {/* Brief facts + proposal */}
