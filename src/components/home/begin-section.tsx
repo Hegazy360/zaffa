@@ -7,31 +7,28 @@ import { useTranslations } from "next-intl";
 import { ArrowRight, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-// Four warm, on-palette editorial details — the "what's on your moodboard"
-// preview for the final invitation.
+// Four AI-rendered examples produced on the platform — the "what's on your
+// moodboard" preview for the final invitation. Tile positions/rotations are
+// tuned for visual rhythm and don't depend on the specific image.
 const COLLAGE = [
   {
-    // Long candlelit tablescape detail
-    src: "https://images.unsplash.com/photo-1738669469820-259d9c7189bb?auto=format&fit=crop&w=900&q=85",
-    alt: "A long table set with flowers and candles",
+    src: "/home/examples/collage-1.jpeg",
+    alt: "An AI-rendered wedding venue example",
     cls: "start-[6%] top-[8%] h-44 w-32 rotate-[-6deg] sm:h-56 sm:w-40",
   },
   {
-    // Pale pink and cream rose bouquet
-    src: "https://images.unsplash.com/photo-1774975433902-a79ace1d6fa5?auto=format&fit=crop&w=900&q=85",
-    alt: "A bouquet of pale pink and cream roses",
+    src: "/home/examples/collage-2.png",
+    alt: "An AI-rendered wedding venue example",
     cls: "end-[8%] top-[14%] h-40 w-32 rotate-[5deg] sm:h-52 sm:w-40",
   },
   {
-    // Beach wedding setup at sunset with warm florals (Pinterest)
-    src: "https://i.pinimg.com/originals/15/fe/65/15fe6548657b7f5778dfd81837356273.jpg",
-    alt: "A beach wedding setup at sunset with warm florals",
+    src: "/home/examples/collage-3.png",
+    alt: "An AI-rendered wedding venue example",
     cls: "start-[14%] bottom-[10%] h-44 w-32 rotate-[3deg] sm:h-56 sm:w-40",
   },
   {
-    // Champagne-toned wedding tablescape with ivory florals (Pinterest)
-    src: "https://i.pinimg.com/originals/a3/15/cf/a315cf34bfe1ea4cd3da22875a0fb24d.png",
-    alt: "A champagne-toned wedding tablescape styled with ivory florals",
+    src: "/home/examples/collage-4.png",
+    alt: "An AI-rendered wedding venue example",
     cls: "end-[12%] bottom-[14%] h-40 w-32 rotate-[-4deg] sm:h-52 sm:w-40",
   },
 ] as const;

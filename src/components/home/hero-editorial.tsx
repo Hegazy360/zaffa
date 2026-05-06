@@ -3,41 +3,21 @@
 import Image from "next/image";
 import Link from "next/link";
 import { motion, useReducedMotion } from "framer-motion";
-import { useRef } from "react";
 import { useTranslations } from "next-intl";
 import { ArrowRight, Sparkles, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useParallax } from "./parallax";
 
-// All three intentionally hold the cream/petal/rose/amber palette so the hero
-// reads as one editorial composition, not three unrelated stock photos.
-// Pinterest `originals/` URLs give us higher quality and more curatorial weight.
-const HERO_IMAGES = {
-  // Romantic alfresco outdoor reception — the kind of room we'd design (Pinterest)
-  primary:
-    "https://i.pinimg.com/originals/c1/c7/e8/c1c7e8c387cdadcc45d435e716de3e97.jpg",
-  // Detail — peony centerpieces in dreamy cream and rose (Pinterest)
-  secondary:
-    "https://i.pinimg.com/originals/c8/bb/ac/c8bbac4ac8efcc2c900329576a626fd1.jpg",
-  // Outdoor warm tablescape lit by hundreds of candles (Pinterest)
-  tertiary:
-    "https://i.pinimg.com/originals/9a/0b/ab/9a0bab0c6488a9e5c08e586622a3578f.jpg",
-} as const;
+// One AI-rendered example — a representative output of the kind of room our
+// platform helps couples design. Static (no parallax) so the hero reads as a
+// magazine spread, not an interactive toy.
+const HERO_IMAGE = "/home/examples/hero.jpeg";
 
 export function HeroEditorial() {
-  const sectionRef = useRef<HTMLElement>(null);
   const reduce = useReducedMotion();
   const t = useTranslations("marketing");
 
-  const yPrimary = useParallax(sectionRef, [60, -60]);
-  const ySecondary = useParallax(sectionRef, [-40, 40]);
-  const yTertiary = useParallax(sectionRef, [80, -40]);
-
   return (
-    <section
-      ref={sectionRef}
-      className="relative isolate overflow-hidden bg-gradient-to-b from-rose-50/60 via-background to-background dark:from-rose-950/20"
-    >
+    <section className="relative isolate overflow-hidden bg-gradient-to-b from-rose-50/60 via-background to-background dark:from-rose-950/20">
       <div
         aria-hidden
         className="pointer-events-none absolute inset-0 grain-bg opacity-60"
@@ -63,18 +43,14 @@ export function HeroEditorial() {
             initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: reduce ? 0 : 0.9, delay: 0.05 }}
-            className="font-display text-balance text-[clamp(2.75rem,7vw,6rem)] font-light leading-[0.95] tracking-tight"
+            className="font-display text-balance text-[clamp(2.5rem,6.5vw,5.25rem)] font-light leading-[1] tracking-tight"
           >
             {t("heroTitlePart1")}{" "}
-            <span className="font-arabic font-medium text-rose-600 dark:text-rose-300">
-              {t("heroZaffa")}
-            </span>
-            ,
-            <br />
-            <span className="italic">{t("heroTitlePart2Italic")}</span>{" "}
+            <span className="italic">{t("heroTitleItalic")}</span>{" "}
             <span className="bg-gradient-to-br from-rose-600 via-rose-500 to-amber-500 bg-clip-text text-transparent">
-              {t("heroTitlePart2Tail")}
-            </span>
+              {t("heroTitleHighlight")}
+            </span>{" "}
+            {t("heroTitleTail")}
           </motion.h1>
 
           <motion.p
@@ -100,6 +76,9 @@ export function HeroEditorial() {
               {t("heroCta")}
               <ArrowRight className="h-4 w-4 transition-transform rtl:-scale-x-100 group-hover:translate-x-0.5 rtl:group-hover:-translate-x-0.5" />
             </Button>
+            <p className="text-xs text-muted-foreground sm:ms-2">
+              {t("heroCtaHint")}
+            </p>
           </motion.div>
 
           <motion.div
@@ -149,87 +128,30 @@ export function HeroEditorial() {
           </motion.div>
         </div>
 
-        <div className="relative lg:col-span-6">
-          <div className="relative mx-auto aspect-[4/5] w-full max-w-md lg:max-w-none">
-            <motion.div
-              style={{ y: yPrimary }}
-              className="absolute inset-0 z-20 overflow-hidden rounded-[2rem] shadow-2xl shadow-rose-900/10 ring-1 ring-black/5"
-            >
-              <Image
-                src={HERO_IMAGES.primary}
-                alt="A romantic alfresco wedding reception in cream and rose tones"
-                fill
-                sizes="(min-width: 1024px) 40vw, 90vw"
-                priority
-                className="object-cover"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent" />
-            </motion.div>
-
-            <motion.div
-              style={{ y: ySecondary }}
-              className="absolute -start-6 -top-6 z-30 hidden h-40 w-32 overflow-hidden rounded-2xl shadow-xl shadow-rose-900/15 ring-1 ring-black/5 sm:block md:h-52 md:w-40 lg:-start-10"
-            >
-              <Image
-                src={HERO_IMAGES.secondary}
-                alt="A dreamy peony centerpiece in cream and rose tones"
-                fill
-                sizes="200px"
-                className="object-cover"
-              />
-            </motion.div>
-
-            <motion.div
-              style={{ y: yTertiary }}
-              className="absolute -bottom-8 -end-4 z-30 hidden h-44 w-36 overflow-hidden rounded-2xl shadow-xl shadow-rose-900/15 ring-1 ring-black/5 sm:block md:h-56 md:w-44 lg:-end-10"
-            >
-              <Image
-                src={HERO_IMAGES.tertiary}
-                alt="A warm outdoor tablescape lit by hundreds of candles"
-                fill
-                sizes="220px"
-                className="object-cover"
-              />
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: reduce ? 0 : 0.8, delay: 0.5 }}
-              className="absolute -bottom-2 start-1/2 z-40 flex w-[88%] -translate-x-1/2 items-center gap-3 rounded-2xl border bg-background/85 p-3 shadow-xl backdrop-blur-md sm:start-4 sm:w-auto sm:max-w-xs sm:translate-x-0"
-            >
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-rose-100 to-amber-100 dark:from-rose-900/40 dark:to-amber-900/40">
-                <Sparkles className="h-5 w-5 text-rose-600" />
-              </div>
-              <div className="min-w-0">
-                <p className="text-xs font-semibold leading-tight">
-                  {t("heroAiStyleMatch")}
-                </p>
-                <p className="truncate text-xs text-muted-foreground">
-                  {t("heroAiStyleHint")}
-                </p>
-              </div>
-            </motion.div>
-          </div>
-        </div>
-      </div>
-
-      {!reduce && (
         <motion.div
-          aria-hidden
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 1.4, duration: 0.6 }}
-          className="pointer-events-none absolute bottom-8 start-1/2 hidden -translate-x-1/2 flex-col items-center gap-2 text-[0.65rem] uppercase tracking-[0.3em] text-muted-foreground lg:flex"
+          initial={{ opacity: 0, y: 24 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: reduce ? 0 : 0.9, delay: 0.2 }}
+          className="relative flex items-center lg:col-span-6"
         >
-          <span>{t("heroSeeHow")}</span>
-          <motion.span
-            animate={{ y: [0, 6, 0] }}
-            transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
-            className="block h-6 w-px bg-gradient-to-b from-rose-500/60 to-transparent"
-          />
+          {/* No aspect-ratio container: render the image at its natural shape
+             (here 16:9 landscape) so it isn't cropped. `flex items-center` on
+             the parent keeps the card vertically centered next to the taller
+             copy column on desktop. */}
+          <div className="relative mx-auto w-full max-w-md overflow-hidden rounded-[2rem] shadow-2xl shadow-rose-900/10 ring-1 ring-black/5 lg:max-w-none">
+            <Image
+              src={HERO_IMAGE}
+              alt="An AI-rendered wedding venue example produced on the platform"
+              width={1376}
+              height={768}
+              sizes="(min-width: 1024px) 40vw, 90vw"
+              priority
+              className="block h-auto w-full"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent" />
+          </div>
         </motion.div>
-      )}
+      </div>
     </section>
   );
 }

@@ -2,9 +2,10 @@ import type { Metadata } from "next";
 import { Navbar } from "@/components/layout/navbar";
 import { Footer } from "@/components/layout/footer";
 import { HeroEditorial } from "@/components/home/hero-editorial";
-import { ScrollyDemo } from "@/components/home/scrolly-demo";
-import { EditorialReel } from "@/components/home/editorial-reel";
+import { HowItWorks } from "@/components/home/how-it-works";
 import { BeginSection } from "@/components/home/begin-section";
+import { MarketplaceTeaser } from "@/components/home/marketplace-teaser";
+import { fetchMarketplaceTeaser } from "@/lib/marketplace-teaser";
 
 export const metadata: Metadata = {
   title: "Zaffa — Your Dream Event, Expertly Planned",
@@ -20,22 +21,29 @@ export const metadata: Metadata = {
   },
 };
 
-export default function HomePage() {
+// ISR: refresh the teaser data at most every 5 minutes. Plenty fresh for
+// the "platform is buzzing" social proof, and one DB hit per 5 minutes is
+// well within budget even on a busy day.
+export const revalidate = 300;
+
+export default async function HomePage() {
+  const teaser = await fetchMarketplaceTeaser();
+
   return (
     <div className="flex min-h-screen flex-col">
       <Navbar />
 
       <main className="flex-1">
-        {/* Act I — The promise */}
+        {/* What the platform is */}
         <HeroEditorial />
 
-        {/* Act II — The atelier (centerpiece) */}
-        <ScrollyDemo />
+        {/* How it works — four simple steps with screenshots */}
+        <HowItWorks />
 
-        {/* Act III — The proof */}
-        <EditorialReel />
+        {/* The pulse — who's already on the platform */}
+        <MarketplaceTeaser data={teaser} variant="home" />
 
-        {/* Act IV — Begin */}
+        {/* Final CTA */}
         <BeginSection />
       </main>
 

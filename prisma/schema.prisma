@@ -154,28 +154,28 @@ enum NotificationType {
 }
 
 model Profile {
-  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  role       UserRole @default(client)
-  full_name  String
-  avatar_url String?
-  phone      String?
+  id                     String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  role                   UserRole  @default(client)
+  full_name              String
+  avatar_url             String?
+  phone                  String?
   // Two-letter locale ("en", "ar"). Persisted server-side so the choice
   // follows the user across devices. Middleware seeds the cookie from
   // Accept-Language for anonymous visitors.
-  locale     String   @default("en")
+  locale                 String    @default("en")
   // Set to a timestamp when the user clicks the unsubscribe link in any
   // transactional email. In-app notifications are unaffected; we just stop
   // emailing them for everything.
-  email_unsubscribed_at DateTime?
+  email_unsubscribed_at  DateTime?
   // Soft-delete request timestamps. `deletion_requested_at` is set when
   // the user clicks "Delete account" in settings; `deletion_scheduled_for`
   // is the date a background job will hard-delete the row. Sign-in is
   // refused while either is set so the grace period still gives them an
   // unmistakable signal that their account is being wound down.
-  deletion_requested_at DateTime?
+  deletion_requested_at  DateTime?
   deletion_scheduled_for DateTime?
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
+  created_at             DateTime  @default(now())
+  updated_at             DateTime  @updatedAt
 
   planner_profile     PlannerProfile?
   vendor_profile      VendorProfile?
@@ -191,24 +191,24 @@ model Profile {
 }
 
 model PlannerProfile {
-  id            String                       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  user_id       String                       @unique @db.Uuid
-  business_name String
-  bio           String?
-  location      String?
-  specialties   Json                         @default("[]")
+  id              String                       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id         String                       @unique @db.Uuid
+  business_name   String
+  bio             String?
+  location        String?
+  specialties     Json                         @default("[]")
   // Structured service-area used by the "new event in your area" notification
   // fan-out. `service_cities` is a JSON array of lowercased city names; an
   // empty array disables area-based matching for this planner. Existing rows
   // default to empty + EG so we can roll the column out without a backfill.
-  service_country String                     @default("EG")
-  service_cities  Json                       @default("[]")
-  avg_rating    Decimal                      @default(0) @db.Decimal(3, 2)
-  review_count  Int                          @default(0)
-  verified      Boolean                      @default(false)
-  embedding     Unsupported("vector(1536)")?
-  created_at    DateTime                     @default(now())
-  updated_at    DateTime                     @updatedAt
+  service_country String                       @default("EG")
+  service_cities  Json                         @default("[]")
+  avg_rating      Decimal                      @default(0) @db.Decimal(3, 2)
+  review_count    Int                          @default(0)
+  verified        Boolean                      @default(false)
+  embedding       Unsupported("vector(1536)")?
+  created_at      DateTime                     @default(now())
+  updated_at      DateTime                     @updatedAt
 
   profile            Profile            @relation(fields: [user_id], references: [id], onDelete: Cascade)
   events             Event[]            @relation("PlannerEvents")
@@ -417,6 +417,11 @@ model Event {
   payment_schedules  PaymentSchedule[]
   vendor_engagements VendorEngagement[]
 
+  // Hot path: the marketplace teaser counts/fetches "open briefs"
+  // (planner_id IS NULL). Without this we seq-scan `events` on every
+  // home-page render. Composite with status because the second teaser
+  // count filters by status as well.
+  @@index([planner_id, status])
   @@map("events")
 }
 
@@ -547,7 +552,11 @@ model VenueDesign {
   event Event?             @relation(fields: [event_id], references: [id], onDelete: SetNull)
   media VenueDesignMedia[]
 
-  @@index([event_id])
+  // Marketplace teaser joins event → designs and filters approved_at IS
+  // NOT NULL. Composite (event_id, approved_at) supersedes the bare
+  // event_id index for the EXISTS subquery in the teaser count and is
+  // still usable for any lookup that filters on event_id alone.
+  @@index([event_id, approved_at])
   @@map("venue_designs")
 }
 
@@ -781,49 +790,49 @@ enum DiscoveryRunStatus {
 }
 
 model Prospect {
-  id              String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  source          ProspectSource
+  id                String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  source            ProspectSource
   // ID assigned by the source (e.g. IG user id, FB page id). Combined with
   // `source` it gives us a stable cross-run identity for upserts.
-  source_id       String?
-  source_url      String?
-  display_name    String
+  source_id         String?
+  source_url        String?
+  display_name      String
   // Public handle (IG/TikTok username, FB page slug, etc.).
-  handle          String?
-  prospect_type   ProspectType   @default(unknown)
-  vendor_category VendorCategory?
-  email           String?
-  whatsapp        String?
-  phone           String?
-  instagram       String?
-  facebook        String?
-  tiktok          String?
-  website         String?
-  bio             String?
-  city            String?
-  country         String?        @default("EG")
-  followers       Int?
-  avatar_url      String?
+  handle            String?
+  prospect_type     ProspectType    @default(unknown)
+  vendor_category   VendorCategory?
+  email             String?
+  whatsapp          String?
+  phone             String?
+  instagram         String?
+  facebook          String?
+  tiktok            String?
+  website           String?
+  bio               String?
+  city              String?
+  country           String?         @default("EG")
+  followers         Int?
+  avatar_url        String?
   // Cloudinary / source URLs of representative work.
-  sample_images   Json           @default("[]")
-  status          ProspectStatus @default(new)
+  sample_images     Json            @default("[]")
+  status            ProspectStatus  @default(new)
   // 0–100 LLM-assigned signal-quality score (higher = better fit).
-  qualifying_score Int?
-  notes           String?
-  draft_email     String?
-  draft_whatsapp  String?
-  draft_instagram String?
-  contacted_at    DateTime?
-  contacted_via   String?
-  replied_at      DateTime?
+  qualifying_score  Int?
+  notes             String?
+  draft_email       String?
+  draft_whatsapp    String?
+  draft_instagram   String?
+  contacted_at      DateTime?
+  contacted_via     String?
+  replied_at        DateTime?
   // Filled by the signup matcher when this prospect creates an account.
-  signed_up_user_id String?      @unique @db.Uuid
+  signed_up_user_id String?         @unique @db.Uuid
   // Verbatim payload from the source row for forensics/debugging.
-  raw_payload     Json?
-  discovery_run_id String?       @db.Uuid
-  created_at      DateTime       @default(now())
-  updated_at      DateTime       @updatedAt
-  last_seen_at    DateTime?
+  raw_payload       Json?
+  discovery_run_id  String?         @db.Uuid
+  created_at        DateTime        @default(now())
+  updated_at        DateTime        @updatedAt
+  last_seen_at      DateTime?
 
   discovery_run DiscoveryRun? @relation(fields: [discovery_run_id], references: [id], onDelete: SetNull)
 
@@ -885,9 +894,9 @@ model OutreachTemplate {
 // effects. Auto-cleaned by a periodic prune job rather than at write time
 // to keep the hot path fast.
 model StripeWebhookEvent {
-  id           String   @id
+  id           String    @id
   type         String
-  received_at  DateTime @default(now())
+  received_at  DateTime  @default(now())
   processed_at DateTime?
 
   @@index([received_at])
@@ -902,14 +911,14 @@ model StripeWebhookEvent {
 // remaining balance. `created_by_user_id` is null for refunds that
 // originated in the Stripe dashboard.
 model PaymentRefund {
-  id                  String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  payment_id          String   @db.Uuid
-  stripe_refund_id    String   @unique
-  amount              Decimal  @db.Decimal(10, 2)
-  currency            String   @default("EGP")
-  reason              String?
-  created_by_user_id  String?  @db.Uuid
-  created_at          DateTime @default(now())
+  id                 String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  payment_id         String   @db.Uuid
+  stripe_refund_id   String   @unique
+  amount             Decimal  @db.Decimal(10, 2)
+  currency           String   @default("EGP")
+  reason             String?
+  created_by_user_id String?  @db.Uuid
+  created_at         DateTime @default(now())
 
   payment Payment @relation(fields: [payment_id], references: [id], onDelete: Cascade)
 

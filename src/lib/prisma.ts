@@ -25,7 +25,39 @@ function createPrismaClient() {
     max: isServerless ? 3 : 10,
     idleTimeoutMillis: isServerless ? 10_000 : 30_000,
   });
-  return new PrismaClient({ adapter });
+
+  // Opt-in query timing log. Enable with PRISMA_QUERY_LOG=1 to see every
+  // statement Prisma issues plus its wall-clock duration. Anything above
+  // SLOW_QUERY_MS surfaces with a "[prisma:slow]" prefix so it's easy to
+  // grep dev output.
+  const queryLogEnabled = process.env.PRISMA_QUERY_LOG === "1";
+  const slowQueryMs = Number(process.env.PRISMA_SLOW_QUERY_MS ?? 100);
+
+  const client = new PrismaClient({
+    adapter,
+    log: queryLogEnabled
+      ? [
+          { emit: "event", level: "query" },
+          { emit: "stdout", level: "warn" },
+          { emit: "stdout", level: "error" },
+        ]
+      : [{ emit: "stdout", level: "error" }],
+  });
+
+  if (queryLogEnabled) {
+    // `e.duration` is wall-clock ms for the query as seen by the client —
+    // includes the network round-trip to pgbouncer + Postgres exec time.
+    // If duration is small but the page is still slow, the bottleneck is
+    // either request count (N+1) or non-DB work.
+    client.$on("query", (e) => {
+      const tag = e.duration >= slowQueryMs ? "[prisma:slow]" : "[prisma]";
+      console.log(
+        `${tag} ${e.duration}ms  ${e.query}  ${e.params}`,
+      );
+    });
+  }
+
+  return client;
 }
 
 export const prisma = globalForPrisma.prisma ?? createPrismaClient();
