@@ -64,7 +64,20 @@ describe("middleware: SITE_PASSWORD gate", () => {
     expect(res.status).toBe(401);
   });
 
-  it("accepts correct basic auth and falls through to updateSession", async () => {
+  it("accepts correct basic auth and falls through to updateSession on auth-aware routes", async () => {
+    process.env.SITE_PASSWORD = "letmein";
+    const ok = `Basic ${Buffer.from("preview:letmein").toString("base64")}`;
+    const res = await middleware(
+      buildRequest("https://app.test/dashboard", {
+        headers: { authorization: ok, "accept-language": "en" },
+        cookies: { zaffa_locale: "en" },
+      })
+    );
+    expect(res.status).toBe(200);
+    expect(updateSessionMock).toHaveBeenCalled();
+  });
+
+  it("accepts correct basic auth on marketing routes without hitting updateSession", async () => {
     process.env.SITE_PASSWORD = "letmein";
     const ok = `Basic ${Buffer.from("preview:letmein").toString("base64")}`;
     const res = await middleware(
@@ -74,7 +87,7 @@ describe("middleware: SITE_PASSWORD gate", () => {
       })
     );
     expect(res.status).toBe(200);
-    expect(updateSessionMock).toHaveBeenCalled();
+    expect(updateSessionMock).not.toHaveBeenCalled();
   });
 
   it("uses SITE_USERNAME when set, defaulting to 'preview' otherwise", async () => {
@@ -112,8 +125,38 @@ describe("middleware: publicBrowse flag", () => {
       })
     );
     expect(res.status).toBe(200);
-    expect(updateSessionMock).toHaveBeenCalled();
+    // Public browse routes are intentionally not auth-aware — they should
+    // skip the Supabase round-trip even when the flag lets them through.
+    expect(updateSessionMock).not.toHaveBeenCalled();
   });
+});
+
+describe("middleware: auth-aware routing", () => {
+  it.each(["/dashboard", "/dashboard/vendor", "/venue-designer", "/auth/signin"])(
+    "calls updateSession on %s",
+    async (path) => {
+      const res = await middleware(
+        buildRequest(`https://app.test${path}`, {
+          cookies: { zaffa_locale: "en" },
+        })
+      );
+      expect(res.status).toBe(200);
+      expect(updateSessionMock).toHaveBeenCalledTimes(1);
+    }
+  );
+
+  it.each(["/", "/about", "/sitemap.xml", "/robots.txt"])(
+    "skips updateSession on public route %s",
+    async (path) => {
+      const res = await middleware(
+        buildRequest(`https://app.test${path}`, {
+          cookies: { zaffa_locale: "en" },
+        })
+      );
+      expect(res.status).toBe(200);
+      expect(updateSessionMock).not.toHaveBeenCalled();
+    }
+  );
 });
 
 describe("middleware: locale cookie seeding", () => {
