@@ -1,9 +1,12 @@
 import Link from "next/link";
+import { Suspense } from "react";
 import { ArrowRight, HeartHandshake, Sparkles } from "lucide-react";
 import { getTranslations } from "next-intl/server";
 import { ProfessionalSignUpForm } from "@/components/features/auth/professional-signup-form";
-import { MarketplaceTeaser } from "@/components/home/marketplace-teaser";
-import { fetchMarketplaceTeaser } from "@/lib/marketplace-teaser";
+import {
+  MarketplaceTeaserSection,
+  MarketplaceTeaserSkeleton,
+} from "@/components/home/marketplace-teaser-section";
 
 export const metadata = {
   title: "Join Zaffa as a Planner or Vendor",
@@ -36,7 +39,6 @@ export default async function ProfessionalSignUpPage({ searchParams }: PageProps
   const t = await getTranslations("auth");
   const params = await searchParams;
   const invitation = sanitizeInvitation(params.invitation);
-  const teaser = await fetchMarketplaceTeaser();
 
   return (
     <div className="space-y-8">
@@ -86,8 +88,13 @@ export default async function ProfessionalSignUpPage({ searchParams }: PageProps
       </div>
 
       {/* Live wall of open briefs — the "why join now" pitch. Anonymized
-          server-side; the cards just tease the platform's pulse. */}
-      <MarketplaceTeaser data={teaser} variant="planner-signup" />
+          server-side; the cards just tease the platform's pulse. Streamed
+          via Suspense so the form below is interactive immediately. */}
+      <Suspense
+        fallback={<MarketplaceTeaserSkeleton variant="planner-signup" />}
+      >
+        <MarketplaceTeaserSection variant="planner-signup" />
+      </Suspense>
 
       <ProfessionalSignUpForm />
 

@@ -25,9 +25,13 @@ export async function updateSession(request: NextRequest) {
     }
   );
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  // Use getClaims() instead of getUser(): it verifies the access-token JWT
+  // signature locally against the project's published JWK (cached after the
+  // first call) instead of round-tripping to https://*.supabase.co/auth/v1
+  // for every request. Middleware fires on every navigation + every static-
+  // adjacent fetch, so this saves ~100–200ms / request from outside Europe.
+  const { data: claimsData } = await supabase.auth.getClaims();
+  const user = claimsData?.claims ? { id: claimsData.claims.sub } : null;
 
   const isAuthPage = request.nextUrl.pathname.startsWith("/auth");
   const isDashboardPage = request.nextUrl.pathname.startsWith("/dashboard");

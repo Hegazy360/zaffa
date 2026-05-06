@@ -1,4 +1,5 @@
 import "server-only";
+import { unstable_cache } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { sizeFromGuestCount, type Size } from "@/types/venue-designer";
 
@@ -33,6 +34,16 @@ export interface MarketplaceTeaserData {
 
 const MAX_TEASERS = 6;
 
+/**
+ * How long to cache the teaser between recomputes. Matches the page's ISR
+ * window so dev (where ISR is bypassed) and prod (where ISR holds) end up
+ * with roughly the same DB hit rate. Bump in lockstep with `revalidate` on
+ * the consuming pages.
+ */
+const CACHE_TTL_SECONDS = 300;
+const CACHE_KEY = ["marketplace-teaser", "v1"] as const;
+export const MARKETPLACE_TEASER_CACHE_TAG = "marketplace-teaser";
+
 function paletteColors(value: unknown): string[] {
   if (!value || typeof value !== "object" || Array.isArray(value)) return [];
   const obj = value as Record<string, unknown>;
@@ -52,36 +63,47 @@ function eventMonthIso(date: Date | null | undefined): string | null {
 }
 
 /**
- * Fetch the anonymized teaser data shown on the marketing home page and the
- * planner sign-up page. Falls back to an empty result on any DB error so the
- * marketing pages never blow up because of an outage.
+ * Underlying read. Issues exactly two DB round-trips:
+ *   1. A single aggregate query computing both teaser counts via FILTER.
+ *   2. The findMany for the visible cards.
+ * Both are independent best-effort marketing numbers (no invariant to
+ * protect), so we fire them concurrently. Wrapped by `fetchMarketplaceTeaser`
+ * which adds the data-cache layer; do not call this directly from pages.
  */
-export async function fetchMarketplaceTeaser(): Promise<MarketplaceTeaserData> {
+async function fetchMarketplaceTeaserUncached(): Promise<MarketplaceTeaserData> {
   try {
-    // These three reads are independent best-effort marketing numbers — no
-    // invariant to protect — so we issue them concurrently on separate
-    // connections instead of serializing them inside an interactive
-    // transaction. On a remote (eu-west) DB this turns 3× round-trip
-    // latency into 1×.
-    const [openCount, activeCount, openBriefs] = await Promise.all([
-      prisma.event.count({
-        where: {
-          planner_id: null,
-          designs: { some: { approved_at: { not: null } } },
-        },
-      }),
-      // Anyone designing right now: open briefs + couples still iterating
-      // on a design. This is the "platform is buzzing" number on the home
-      // page; deliberately broader than `openCount` so it includes drafts.
-      prisma.event.count({
-        where: {
-          OR: [
-            { planner_id: null },
-            { designs: { some: {} } },
-          ],
-          status: { in: ["draft", "planning"] },
-        },
-      }),
+    const [counts, openBriefs] = await Promise.all([
+      // One round-trip for both counts. `COUNT(*) FILTER (...)` is a
+      // standard SQL aggregate that lets us compute conditional counts in
+      // a single pass over `events`, instead of paying two separate index
+      // scans + RTTs. EXISTS subqueries hit the (event_id, approved_at)
+      // composite index on `venue_designs`.
+      prisma.$queryRaw<
+        { open_count: bigint; active_count: bigint }[]
+      >`
+        SELECT
+          COUNT(*) FILTER (
+            WHERE planner_id IS NULL
+              AND EXISTS (
+                SELECT 1
+                FROM venue_designs d
+                WHERE d.event_id = e.id
+                  AND d.approved_at IS NOT NULL
+              )
+          ) AS open_count,
+          COUNT(*) FILTER (
+            WHERE status::text IN ('draft', 'planning')
+              AND (
+                planner_id IS NULL
+                OR EXISTS (
+                  SELECT 1
+                  FROM venue_designs d
+                  WHERE d.event_id = e.id
+                )
+              )
+          ) AS active_count
+        FROM events e
+      `,
       prisma.event.findMany({
         where: {
           planner_id: null,
@@ -97,9 +119,15 @@ export async function fetchMarketplaceTeaser(): Promise<MarketplaceTeaserData> {
             where: { approved_at: { not: null } },
             orderBy: { approved_at: "desc" },
             take: 1,
+            // The marketing surface deliberately reads only `media[0].url`
+            // — every render uploaded through the AI pipeline lives in
+            // Cloudinary, so we get a stable CDN URL we can safely embed
+            // and cache. The legacy `thumbnail` column on `venue_designs`
+            // can hold inline `data:` URIs from a removed write path; we
+            // ignore it here so a few dirty rows can't bloat the payload
+            // (or blow past `unstable_cache`'s 2 MB ceiling) for everyone.
             select: {
               palette: true,
-              thumbnail: true,
               size: true,
               guest_count: true,
               media: {
@@ -114,10 +142,13 @@ export async function fetchMarketplaceTeaser(): Promise<MarketplaceTeaserData> {
       }),
     ]);
 
+    const row = counts[0];
+    const openCount = row ? Number(row.open_count) : 0;
+    const activeCount = row ? Number(row.active_count) : 0;
+
     const teasers: PublicBriefTeaser[] = openBriefs.map((e) => {
       const design = e.designs[0];
-      const heroImage =
-        design?.media[0]?.url ?? design?.thumbnail ?? null;
+      const heroImage = design?.media[0]?.url ?? null;
       const guestBand: Size | null = design
         ? design.guest_count != null
           ? sizeFromGuestCount(design.guest_count)
@@ -138,9 +169,26 @@ export async function fetchMarketplaceTeaser(): Promise<MarketplaceTeaserData> {
       total_active: activeCount,
       teasers,
     };
-  } catch {
+  } catch (err) {
     // The marketing surfaces are public — never let a DB hiccup kill the
-    // page. The component degrades to its empty state.
+    // page. The component degrades to its empty state. Logged so the
+    // failure is debuggable: silent fallbacks are exactly what made
+    // a Prisma TLS regression look like "the events list just disappeared"
+    // for several minutes (until the cached empty payload also expired).
+    console.error("[marketplace-teaser] DB read failed; serving empty state", err);
     return { total_open: 0, total_active: 0, teasers: [] };
   }
 }
+
+/**
+ * Cached fetcher for the anonymized teaser shown on the marketing home and
+ * planner sign-up pages. Backed by Next's data cache so concurrent renders
+ * (and dev hits, where ISR doesn't apply) share one DB round-trip per
+ * `CACHE_TTL_SECONDS`. Tag with `MARKETPLACE_TEASER_CACHE_TAG` to bust on
+ * relevant writes if we ever need real-time freshness.
+ */
+export const fetchMarketplaceTeaser: () => Promise<MarketplaceTeaserData> =
+  unstable_cache(fetchMarketplaceTeaserUncached, [...CACHE_KEY], {
+    revalidate: CACHE_TTL_SECONDS,
+    tags: [MARKETPLACE_TEASER_CACHE_TAG],
+  });

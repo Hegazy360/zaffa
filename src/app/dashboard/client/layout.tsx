@@ -1,17 +1,17 @@
 import { Navbar } from "@/components/layout/navbar";
 import { Sidebar, MobileSidebar } from "@/components/layout/sidebar";
-import { requireRole } from "@/lib/dashboard-auth";
+import { navUserFromProfile, requireRole } from "@/lib/dashboard-auth";
 
 export default async function ClientDashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  await requireRole("client");
+  const profile = await requireRole("client");
 
   return (
     <div className="flex min-h-screen flex-col">
-      <Navbar />
+      <Navbar initialUser={navUserFromProfile(profile)} />
       <div className="flex flex-1">
         <Sidebar role="client" />
         <main className="flex min-w-0 flex-1 flex-col">

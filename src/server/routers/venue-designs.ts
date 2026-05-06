@@ -165,7 +165,17 @@ export const venueDesignsRouter = router({
       z.object({
         design_id: z.string().uuid(),
         type: z.enum(["render", "video"]),
-        url: z.string().min(1),
+        // Must be a CDN URL — we explicitly reject inline `data:` URIs here
+        // because storing multi-MB base64 strings in `venue_design_media.url`
+        // bloats every downstream read (marketing teaser, message previews,
+        // dashboards). Both the AI scene generator and the video generator
+        // upload to Cloudinary before this point and pass the secure URL.
+        url: z
+          .string()
+          .min(1)
+          .refine((u) => !u.startsWith("data:"), {
+            message: "media url must be a CDN URL, not an inline data URI",
+          }),
         // Optional: id of the source render this video was generated from.
         // Lets us scope videos to a specific render when displaying.
         parent_id: z.string().uuid().nullish(),

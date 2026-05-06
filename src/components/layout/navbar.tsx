@@ -27,7 +27,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { createClient } from "@/lib/supabase/client";
-import type { User as SupabaseUser } from "@supabase/supabase-js";
+import type { NavUser } from "@/lib/auth-user";
 import { cn } from "@/lib/utils";
 import { NotificationBell } from "@/components/notifications/notification-bell";
 
@@ -37,10 +37,27 @@ function isActiveRoute(pathname: string | null, href: string): boolean {
   return pathname === href || pathname.startsWith(href + "/");
 }
 
-export function Navbar() {
+interface NavbarProps {
+  /**
+   * Pre-resolved current user from the server. When provided, the navbar
+   * renders the avatar / NotificationBell on the very first paint instead
+   * of waiting for a client-side auth round-trip — which means
+   * NotificationBell's tRPC queries fire in the same batch as the page's
+   * own queries instead of a tick later. Pass `null` for pages where you
+   * already know the visitor is anonymous; omit entirely on pages that
+   * don't have the info server-side (the navbar will then do its own fast
+   * `getClaims()` lookup).
+   */
+  initialUser?: NavUser | null;
+}
+
+export function Navbar({ initialUser }: NavbarProps = {}) {
   const [open, setOpen] = useState(false);
-  const [user, setUser] = useState<SupabaseUser | null>(null);
-  const [loading, setLoading] = useState(true);
+  // If the server told us who the user is, we're authoritative on first
+  // render — no loading flicker. If `initialUser` was omitted (undefined),
+  // start in the loading state and resolve client-side via `getClaims()`.
+  const [user, setUser] = useState<NavUser | null>(initialUser ?? null);
+  const [loading, setLoading] = useState(initialUser === undefined);
   const router = useRouter();
   const pathname = usePathname();
   const supabase = createClient();
@@ -48,20 +65,67 @@ export function Navbar() {
   const tBrand = useTranslations("brand");
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => {
-      setUser(data.user);
-      setLoading(false);
-    });
+    let mounted = true;
 
+    // Only run the client-side lookup when the server didn't already
+    // populate `initialUser`. `getClaims()` verifies the JWT signature
+    // locally via the project's published JWK (cached) — no round-trip
+    // to Supabase Auth, unlike `getUser()`.
+    if (initialUser === undefined) {
+      void supabase.auth.getClaims().then(({ data }) => {
+        if (!mounted) return;
+        const claims = data?.claims;
+        if (!claims?.sub) {
+          setUser(null);
+        } else {
+          const meta = (claims.user_metadata ?? {}) as {
+            full_name?: unknown;
+            avatar_url?: unknown;
+          };
+          setUser({
+            id: claims.sub,
+            email:
+              typeof claims.email === "string" ? claims.email : null,
+            fullName:
+              typeof meta.full_name === "string" ? meta.full_name : null,
+            avatarUrl:
+              typeof meta.avatar_url === "string" ? meta.avatar_url : null,
+          });
+        }
+        setLoading(false);
+      });
+    }
+
+    // Always subscribe to auth state changes so sign-in / sign-out in
+    // another tab (or the sign-out button below) flips the UI live.
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
+      const u = session?.user;
+      if (!u) {
+        setUser(null);
+      } else {
+        const meta = (u.user_metadata ?? {}) as {
+          full_name?: unknown;
+          avatar_url?: unknown;
+        };
+        setUser({
+          id: u.id,
+          email: u.email ?? null,
+          fullName:
+            typeof meta.full_name === "string" ? meta.full_name : null,
+          avatarUrl:
+            typeof meta.avatar_url === "string" ? meta.avatar_url : null,
+        });
+      }
       setLoading(false);
     });
 
-    return () => subscription.unsubscribe();
-  }, [supabase.auth]);
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
+  }, [supabase.auth, initialUser]);
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
@@ -70,12 +134,11 @@ export function Navbar() {
     router.refresh();
   };
 
-  const userInitial = user?.user_metadata?.full_name
-    ? (user.user_metadata.full_name as string).charAt(0).toUpperCase()
+  const userInitial = user?.fullName
+    ? user.fullName.charAt(0).toUpperCase()
     : user?.email?.charAt(0).toUpperCase() ?? "?";
 
-  const displayName =
-    (user?.user_metadata?.full_name as string) ?? user?.email ?? "";
+  const displayName = user?.fullName ?? user?.email ?? "";
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/60 bg-background/70 backdrop-blur-xl supports-[backdrop-filter]:bg-background/55">

@@ -17,6 +17,18 @@ import { isFlagEnabled } from "@/lib/flags";
 // edge to get the correct status code on the wire.
 const PUBLIC_BROWSE_ROUTE = /^\/(planners|vendors)(\/.*)?$/;
 
+// Paths whose middleware behaviour actually depends on the Supabase session:
+//   - /dashboard/*       → redirect to signin when unauthenticated
+//   - /venue-designer/*  → redirect to signin when unauthenticated
+//   - /auth/*            → redirect away to dashboard when already signed in
+//                          (except /auth/reset-password, which the recovery
+//                          flow needs to reach with a temporary session)
+// Every other route — marketing, public browse, sitemaps, robots, error
+// pages — can skip the `supabase.auth.getUser()` round-trip entirely.
+// Keeping this in sync with `updateSession` is the only correctness
+// requirement; if you add a gated route there, add it here too.
+const AUTH_AWARE_ROUTE = /^\/(dashboard|venue-designer|auth)(\/.*)?$/;
+
 // Pre-launch gate. When `SITE_PASSWORD` is set we require HTTP Basic Auth on
 // every HTML route so the app can be attached to a custom domain without
 // exposing it to the public yet. Unset → no gate (so local dev just works).
@@ -110,7 +122,13 @@ export async function middleware(request: NextRequest) {
     });
   }
 
-  const response = await updateSession(request);
+  // The Supabase session round-trip costs 100–500ms and is only needed
+  // for the auth-aware routes above. Everything else (marketing, sitemap,
+  // robots, /api/* — though /api/* is excluded by the matcher anyway) can
+  // skip it. Big TTFB win for the marketing home and other public pages.
+  const response = AUTH_AWARE_ROUTE.test(request.nextUrl.pathname)
+    ? await updateSession(request)
+    : NextResponse.next({ request });
 
   // Seed the locale cookie on first hit so server renders + the request
   // config helper always have a concrete locale to read. We negotiate from

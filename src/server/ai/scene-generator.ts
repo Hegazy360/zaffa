@@ -1,5 +1,27 @@
+import { cloudinary } from "@/lib/cloudinary";
+
 const IMAGE_MODEL =
   process.env.AI_IMAGE_MODEL ?? "google/gemini-3-pro-image-preview";
+
+/**
+ * OpenRouter returns generated images as inline `data:` URIs. Embedding
+ * those directly into our DB bloats every downstream read — the marketing
+ * teaser, message previews, planner dashboards — and pushes single rows
+ * into the megabyte range. We mirror what `video-generator.ts` does for
+ * Luma stills: upload to Cloudinary on the server, then hand back a stable
+ * CDN URL the rest of the app can safely embed and cache.
+ */
+async function uploadRenderToCloudinary(dataUrlOrUrl: string): Promise<string> {
+  // If we already have a CDN URL (model swap, retries, alternate providers),
+  // there's nothing to upload — return it as-is.
+  if (!dataUrlOrUrl.startsWith("data:")) return dataUrlOrUrl;
+  const result = await cloudinary.uploader.upload(dataUrlOrUrl, {
+    folder: "zaffa-renders",
+    resource_type: "image",
+    type: "upload",
+  });
+  return result.secure_url;
+}
 
 export type ReferenceCategory =
   | "overall_vibe"
@@ -212,8 +234,11 @@ export async function renderScene(input: RenderSceneInput) {
     throw new Error("No image was generated");
   }
 
+  const rawUrl = message.images[0].image_url.url as string;
+  const imageUrl = await uploadRenderToCloudinary(rawUrl);
+
   return {
-    imageUrl: message.images[0].image_url.url as string,
+    imageUrl,
     text: (message.content as string | null) ?? null,
   };
 }

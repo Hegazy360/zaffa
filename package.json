@@ -14,6 +14,7 @@
     "db:seed-e2e-users": "npx tsx prisma/seed-e2e-auth.ts",
     "db:seed-images": "npx dotenvx run --env-file=.env.local -- npx tsx prisma/seed-images.ts",
     "db:seed-outreach-templates": "npx dotenvx run --env-file=.env.local -- npx tsx prisma/seed-outreach-templates.ts",
+    "db:migrate-images": "npx dotenvx run --env-file=.env.local --overload -- npx tsx scripts/migrate-design-images.ts",
     "dev:seed-notification": "npx dotenvx run --env-file=.env.local -- npx tsx scripts/seed-notification.ts",
     "dev:preview-emails": "npx dotenvx run --env-file=.env.local -- npx tsx scripts/preview-notification-emails.ts",
     "db:push": "prisma db push",

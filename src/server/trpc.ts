@@ -2,11 +2,30 @@ import { initTRPC, TRPCError } from "@trpc/server";
 import superjson from "superjson";
 import { createClient } from "@/lib/supabase/server";
 
+/**
+ * Slim user shape derived from the verified access-token JWT. Only the
+ * fields actually consumed by routers (id, email) are surfaced here.
+ * `null` for anonymous requests.
+ */
+export type TRPCUser = { id: string; email: string | null } | null;
+
 export async function createTRPCContext() {
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  // `getClaims()` verifies the JWT signature locally against the project's
+  // published JWK (cached after the first fetch). No Supabase Auth API
+  // round-trip per request — saves ~100–200ms per tRPC batch from outside
+  // the EU. For procedures that need the *latest* user state (e.g. just-
+  // changed email), call `supabase.auth.getUser()` ad-hoc inside the
+  // procedure instead of pulling it through the shared context.
+  const { data, error } = await supabase.auth.getClaims();
+  let user: TRPCUser = null;
+  if (!error && data?.claims?.sub) {
+    user = {
+      id: data.claims.sub,
+      email:
+        typeof data.claims.email === "string" ? data.claims.email : null,
+    };
+  }
 
   return { supabase, user };
 }

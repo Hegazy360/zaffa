@@ -76,15 +76,21 @@ function AuthIdentitySync() {
 
     let mounted = true;
 
-    void supabase.auth.getUser().then(({ data }) => {
+    // Use getClaims() instead of getUser(): we only need id/email/name
+    // for analytics identity, and getClaims verifies the JWT locally
+    // against the project's JWK rather than round-tripping to
+    // /auth/v1/user. Saves ~100–200ms on first paint per session.
+    void supabase.auth.getClaims().then(({ data }) => {
       if (!mounted) return;
-      const user = data.user;
-      if (user) {
-        posthog.identify(user.id, {
-          email: user.email,
-          name: user.user_metadata?.full_name as string | undefined,
+      const claims = data?.claims;
+      if (claims?.sub) {
+        const meta = (claims.user_metadata ?? {}) as { full_name?: unknown };
+        posthog.identify(claims.sub, {
+          email: typeof claims.email === "string" ? claims.email : undefined,
+          name:
+            typeof meta.full_name === "string" ? meta.full_name : undefined,
         });
-        setUserId(user.id);
+        setUserId(claims.sub);
       }
     });
 

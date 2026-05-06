@@ -1,7 +1,15 @@
 import { redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
 import { prisma } from "@/lib/prisma";
+import { getNavUser, type NavUser } from "@/lib/auth-user";
 import type { UserRole } from "@/types";
+
+export type DashboardProfile = {
+  id: string;
+  role: UserRole;
+  full_name: string;
+  avatar_url: string | null;
+  email: string | null;
+};
 
 /**
  * Guard for role-specific dashboard layouts. Performs three checks, in
@@ -21,24 +29,26 @@ import type { UserRole } from "@/types";
  * grant them impersonation access, flip a single flag here rather than
  * auditing every page.
  *
- * Returns the profile so the caller can use it for e.g. greeting copy.
+ * Returns the profile so the caller can use it for e.g. greeting copy
+ * AND for handing it to the navbar without forcing the navbar to make
+ * its own auth round-trip.
  */
 export async function requireRole(
   allowed: UserRole | UserRole[],
-): Promise<{ id: string; role: UserRole }> {
+): Promise<DashboardProfile> {
   const allowedRoles = Array.isArray(allowed) ? allowed : [allowed];
 
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  // `getNavUser()` verifies the access-token JWT locally against the
+  // project's JWK — no Supabase Auth round-trip. Layouts re-render on
+  // every navigation, so this matters.
+  const user = await getNavUser();
   if (!user) {
     redirect("/auth/signin");
   }
 
   const profile = await prisma.profile.findUnique({
     where: { id: user.id },
-    select: { id: true, role: true },
+    select: { id: true, role: true, full_name: true, avatar_url: true },
   });
   if (!profile) {
     // Auth session exists but no profile row — send to /dashboard which
@@ -50,7 +60,27 @@ export async function requireRole(
     redirect(dashboardHomeFor(profile.role));
   }
 
-  return profile;
+  return {
+    id: profile.id,
+    role: profile.role,
+    full_name: profile.full_name,
+    avatar_url: profile.avatar_url ?? null,
+    email: user.email,
+  };
+}
+
+/**
+ * Build the slim `NavUser` shape the navbar consumes from a profile that
+ * `requireRole` already loaded — saves the navbar from doing its own
+ * `getClaims()` call when the layout already knows who's signed in.
+ */
+export function navUserFromProfile(profile: DashboardProfile): NavUser {
+  return {
+    id: profile.id,
+    email: profile.email,
+    fullName: profile.full_name,
+    avatarUrl: profile.avatar_url,
+  };
 }
 
 /**

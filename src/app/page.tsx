@@ -1,11 +1,14 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { Navbar } from "@/components/layout/navbar";
 import { Footer } from "@/components/layout/footer";
 import { HeroEditorial } from "@/components/home/hero-editorial";
 import { HowItWorks } from "@/components/home/how-it-works";
 import { BeginSection } from "@/components/home/begin-section";
-import { MarketplaceTeaser } from "@/components/home/marketplace-teaser";
-import { fetchMarketplaceTeaser } from "@/lib/marketplace-teaser";
+import {
+  MarketplaceTeaserSection,
+  MarketplaceTeaserSkeleton,
+} from "@/components/home/marketplace-teaser-section";
 
 export const metadata: Metadata = {
   title: "Zaffa — Your Dream Event, Expertly Planned",
@@ -26,9 +29,7 @@ export const metadata: Metadata = {
 // well within budget even on a busy day.
 export const revalidate = 300;
 
-export default async function HomePage() {
-  const teaser = await fetchMarketplaceTeaser();
-
+export default function HomePage() {
   return (
     <div className="flex min-h-screen flex-col">
       <Navbar />
@@ -40,8 +41,12 @@ export default async function HomePage() {
         {/* How it works — four simple steps with screenshots */}
         <HowItWorks />
 
-        {/* The pulse — who's already on the platform */}
-        <MarketplaceTeaser data={teaser} variant="home" />
+        {/* The pulse — who's already on the platform. Streamed: the rest of
+            the marketing shell flushes immediately while the DB query for
+            the anonymized briefs resolves in the background. */}
+        <Suspense fallback={<MarketplaceTeaserSkeleton variant="home" />}>
+          <MarketplaceTeaserSection variant="home" />
+        </Suspense>
 
         {/* Final CTA */}
         <BeginSection />
