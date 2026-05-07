@@ -115,6 +115,19 @@ const REFERENCE_CATEGORIES = [
   "venue_decor",
 ] as const;
 
+type ReferenceCategory = (typeof REFERENCE_CATEGORIES)[number];
+
+// Same translation keys the planner-facing InspirationBoard uses, so the
+// language is identical for couples + planners (one source of truth for
+// "what does flowers mean").
+const CATEGORY_LABEL_KEYS: Record<ReferenceCategory, string> = {
+  overall_vibe: "categoryOverallVibe",
+  tables: "categoryTables",
+  flowers: "categoryFlowers",
+  lighting: "categoryLighting",
+  venue_decor: "categoryVenueDecor",
+};
+
 export function Microsite({
   pack,
   recipient,
@@ -122,6 +135,7 @@ export function Microsite({
   visionPackPriceLabel,
 }: MicrositeProps) {
   const t = useTranslations("visionPack");
+  const tDesigner = useTranslations("designer");
   const reduceMotion = useReducedMotion();
   const palette = paletteOf(design?.palette);
   const references = referencesOf(design?.references);
@@ -131,9 +145,13 @@ export function Microsite({
   const videos = (design?.media ?? []).filter((m) => m.type === "video");
   const heroImg = renders[heroIdx]?.url ?? renders[0]?.url ?? design?.thumbnail ?? null;
 
-  const flatRefs = REFERENCE_CATEGORIES.flatMap((cat) =>
-    references[cat].map((r) => ({ ...r, category: cat })),
-  ).slice(0, 12);
+  const populatedCategories = REFERENCE_CATEGORIES.filter(
+    (cat) => references[cat].length > 0,
+  );
+  const totalRefs = REFERENCE_CATEGORIES.reduce(
+    (n, cat) => n + references[cat].length,
+    0,
+  );
 
   const recipientName = recipient.full_name?.trim() || "A Zaffa couple";
 
@@ -294,33 +312,55 @@ export function Microsite({
           </section>
         )}
 
-        {/* Mood board (references) */}
-        {flatRefs.length > 0 && (
+        {/* Mood board (references) — grouped by category so the eye has
+            handles to grab onto, matching the planner marketplace view. */}
+        {totalRefs > 0 && (
           <section className="mx-auto max-w-6xl px-6 py-16 sm:py-20">
-            <div className="mb-8 flex items-center gap-3">
-              <Heart className="size-4 text-rose-600" />
-              <h2 className="font-display text-2xl font-light tracking-tight sm:text-3xl">
-                {t("micrositeMoodboardTitle")}
-              </h2>
+            <div className="mb-10 flex flex-wrap items-end justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <Heart className="size-4 text-rose-600" />
+                <h2 className="font-display text-2xl font-light tracking-tight sm:text-3xl">
+                  {t("micrositeMoodboardTitle")}
+                </h2>
+              </div>
+              <span className="text-[10px] font-medium uppercase tracking-[0.22em] text-muted-foreground">
+                {totalRefs} {totalRefs === 1 ? "reference" : "references"}
+              </span>
             </div>
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-6">
-              {flatRefs.map((r) => (
-                <div
-                  key={r.id}
-                  className="aspect-square overflow-hidden rounded-lg bg-muted ring-1 ring-foreground/[0.05]"
-                >
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={r.url}
-                    alt=""
-                    loading="lazy"
-                    className="h-full w-full object-cover"
-                  />
+
+            <div className="space-y-12">
+              {populatedCategories.map((cat) => (
+                <div key={cat}>
+                  <div className="mb-4 flex items-baseline justify-between gap-3 border-b border-rose-100/80 pb-2 dark:border-rose-900/40">
+                    <h3 className="font-display text-lg font-light tracking-tight sm:text-xl">
+                      {tDesigner(CATEGORY_LABEL_KEYS[cat])}
+                    </h3>
+                    <span className="text-[10px] font-medium uppercase tracking-[0.2em] text-muted-foreground">
+                      {references[cat].length}
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-6">
+                    {references[cat].map((r) => (
+                      <div
+                        key={r.id}
+                        className="aspect-square overflow-hidden rounded-lg bg-muted ring-1 ring-foreground/[0.05]"
+                      >
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={r.url}
+                          alt=""
+                          loading="lazy"
+                          className="h-full w-full object-cover"
+                        />
+                      </div>
+                    ))}
+                  </div>
                 </div>
               ))}
             </div>
+
             {design?.style_notes && (
-              <p className="mx-auto mt-10 max-w-2xl text-balance text-center text-sm italic text-muted-foreground sm:text-base">
+              <p className="mx-auto mt-12 max-w-2xl text-balance text-center text-sm italic text-muted-foreground sm:text-base">
                 &ldquo;{design.style_notes}&rdquo;
               </p>
             )}

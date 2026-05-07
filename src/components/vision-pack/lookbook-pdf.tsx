@@ -179,6 +179,34 @@ const styles = StyleSheet.create({
     height: "100%",
     objectFit: "cover",
   },
+  // Category sections on the mood board page — one per populated bucket
+  // so the reader sees Florals, Lighting, Tables etc. as discrete groups
+  // rather than a soup of images.
+  categoryBlock: {
+    marginBottom: 22,
+  },
+  categoryHeader: {
+    flexDirection: "row",
+    alignItems: "baseline",
+    justifyContent: "space-between",
+    borderBottomWidth: 1,
+    borderBottomColor: "#f1e6dc",
+    paddingBottom: 6,
+    marginBottom: 10,
+  },
+  categoryHeading: {
+    fontFamily: "Fraunces",
+    fontWeight: 300,
+    fontSize: 16,
+    color: "#1f1a17",
+  },
+  categoryCount: {
+    fontFamily: "Inter",
+    fontSize: 8,
+    letterSpacing: 2,
+    textTransform: "uppercase",
+    color: "#a88a7a",
+  },
   styleNotes: {
     fontFamily: "Fraunces",
     fontStyle: "italic",
@@ -212,19 +240,43 @@ interface RefItem {
   url: string;
 }
 
+interface DesignReferences {
+  overall_vibe: RefItem[];
+  tables: RefItem[];
+  flowers: RefItem[];
+  lighting: RefItem[];
+  venue_decor: RefItem[];
+}
+
+type ReferenceCategory = keyof DesignReferences;
+
+// Display order + labels for the mood board page. Mirrors the planner
+// marketplace view (`InspirationBoard`) so the printed lookbook reads the
+// same as what the recipient sees on screen — one source of truth for
+// "what does flowers mean".
+const CATEGORY_ORDER: readonly ReferenceCategory[] = [
+  "overall_vibe",
+  "flowers",
+  "tables",
+  "venue_decor",
+  "lighting",
+];
+
+const CATEGORY_LABELS: Record<ReferenceCategory, string> = {
+  overall_vibe: "Overall vibe",
+  flowers: "Florals",
+  tables: "Tables & seating",
+  venue_decor: "Decor & structure",
+  lighting: "Lighting",
+};
+
 interface DesignDoc {
   name: string;
   event_type: string;
   setting: string;
   size: string;
   palette?: { name?: string; colors: string[] };
-  references?: {
-    overall_vibe: RefItem[];
-    tables: RefItem[];
-    flowers: RefItem[];
-    lighting: RefItem[];
-    venue_decor: RefItem[];
-  };
+  references?: DesignReferences;
   style_notes?: string | null;
   media: MediaItem[];
 }
@@ -242,15 +294,13 @@ export function LookbookDocument({
 }: LookbookProps): ReactElement<DocumentProps> {
   const palette = design.palette ?? { colors: [] };
   const refs = design.references;
-  const flatRefs: RefItem[] = refs
-    ? [
-        ...refs.overall_vibe,
-        ...refs.flowers,
-        ...refs.tables,
-        ...refs.venue_decor,
-        ...refs.lighting,
-      ].slice(0, 9)
+  const populatedCategories: ReferenceCategory[] = refs
+    ? CATEGORY_ORDER.filter((cat) => refs[cat] && refs[cat].length > 0)
     : [];
+  const totalRefs = populatedCategories.reduce(
+    (n, cat) => n + (refs?.[cat]?.length ?? 0),
+    0,
+  );
   const renders = design.media.filter((m) => m.type === "render").slice(0, 12);
 
   const dateLabel = publishedAt
@@ -298,21 +348,40 @@ export function LookbookDocument({
         </View>
       </Page>
 
-      {/* ------- Mood board ------- */}
-      {flatRefs.length > 0 && (
+      {/* ------- Mood board (categorized) -------
+          react-pdf flows content across pages automatically; `wrap={false}`
+          on each category block keeps a category from being split awkwardly
+          across a page break. */}
+      {totalRefs > 0 && refs && (
         <Page size="A4" style={styles.page}>
           <View style={styles.pageHeader}>
             <Text style={styles.brandMark}>Zaffa</Text>
             <Text style={styles.sectionLabel}>Mood board</Text>
           </View>
           <Text style={styles.sectionTitle}>The references</Text>
-          <View style={styles.moodboardGrid}>
-            {flatRefs.map((r) => (
-              <View key={r.id} style={styles.moodboardCell}>
-                <Image src={r.url} style={styles.moodboardImage} />
+          {populatedCategories.map((cat) => {
+            const items = refs[cat];
+            return (
+              <View key={cat} style={styles.categoryBlock} wrap={false}>
+                <View style={styles.categoryHeader}>
+                  <Text style={styles.categoryHeading}>
+                    {CATEGORY_LABELS[cat]}
+                  </Text>
+                  <Text style={styles.categoryCount}>
+                    {String(items.length).padStart(2, "0")} ·{" "}
+                    {items.length === 1 ? "Picture" : "Pictures"}
+                  </Text>
+                </View>
+                <View style={styles.moodboardGrid}>
+                  {items.map((r) => (
+                    <View key={r.id} style={styles.moodboardCell}>
+                      <Image src={r.url} style={styles.moodboardImage} />
+                    </View>
+                  ))}
+                </View>
               </View>
-            ))}
-          </View>
+            );
+          })}
           {design.style_notes ? (
             <Text style={styles.styleNotes}>{`\u201C${design.style_notes}\u201D`}</Text>
           ) : null}
