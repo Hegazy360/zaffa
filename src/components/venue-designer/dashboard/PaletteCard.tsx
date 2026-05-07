@@ -15,6 +15,7 @@ import { Label } from "@/components/ui/label";
 import { Plus, X } from "lucide-react";
 import { useVenueDesignerStore } from "@/stores/venue-designer-store";
 import { PALETTE_PRESETS } from "@/data/palettes";
+import { PaletteSwatchRow } from "@/components/design-system/PaletteSwatchRow";
 import { cn } from "@/lib/utils";
 
 const HEX_RE = /^#([0-9a-f]{3}|[0-9a-f]{6})$/i;
@@ -72,15 +73,10 @@ export function PaletteCard() {
                     : "border-input"
                 )}
               >
-                <div className="flex h-6 overflow-hidden rounded-md ring-1 ring-foreground/10">
-                  {preset.colors.map((c) => (
-                    <div
-                      key={c}
-                      className="h-full flex-1"
-                      style={{ backgroundColor: c }}
-                    />
-                  ))}
-                </div>
+                <PaletteSwatchRow
+                  palette={{ colors: preset.colors }}
+                  layout="stripes"
+                />
                 <div className="mt-2 text-sm font-medium">{preset.name}</div>
                 <div className="text-xs text-muted-foreground">
                   {preset.description}

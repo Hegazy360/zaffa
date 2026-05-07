@@ -202,6 +202,12 @@ const roleLinks: Record<UserRole, NavLink[]> = {
       icon: FileText,
     },
     {
+      href: "/dashboard/admin/posts",
+      labelKey: "posts",
+      icon: ImageIcon,
+      match: ["/dashboard/admin/posts"],
+    },
+    {
       href: "/dashboard/admin/payouts",
       labelKey: "plannerPayouts",
       icon: Wallet,

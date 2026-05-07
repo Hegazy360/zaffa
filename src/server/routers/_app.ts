@@ -2,6 +2,7 @@ import { router } from "../trpc";
 import { accountRouter } from "./account";
 import { adminRouter } from "./admin";
 import { adminOverviewRouter } from "./admin-overview";
+import { adminPostsRouter } from "./admin-posts";
 import { aiRouter } from "./ai";
 import { availabilityRouter } from "./availability";
 import { contactRouter } from "./contact";
@@ -31,6 +32,7 @@ export const appRouter = router({
   account: accountRouter,
   admin: adminRouter,
   adminOverview: adminOverviewRouter,
+  adminPosts: adminPostsRouter,
   ai: aiRouter,
   availability: availabilityRouter,
   contact: contactRouter,

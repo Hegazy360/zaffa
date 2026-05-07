@@ -1,27 +1,4 @@
-import { cloudinary } from "@/lib/cloudinary";
-
-const IMAGE_MODEL =
-  process.env.AI_IMAGE_MODEL ?? "google/gemini-3-pro-image-preview";
-
-/**
- * OpenRouter returns generated images as inline `data:` URIs. Embedding
- * those directly into our DB bloats every downstream read — the marketing
- * teaser, message previews, planner dashboards — and pushes single rows
- * into the megabyte range. We mirror what `video-generator.ts` does for
- * Luma stills: upload to Cloudinary on the server, then hand back a stable
- * CDN URL the rest of the app can safely embed and cache.
- */
-async function uploadRenderToCloudinary(dataUrlOrUrl: string): Promise<string> {
-  // If we already have a CDN URL (model swap, retries, alternate providers),
-  // there's nothing to upload — return it as-is.
-  if (!dataUrlOrUrl.startsWith("data:")) return dataUrlOrUrl;
-  const result = await cloudinary.uploader.upload(dataUrlOrUrl, {
-    folder: "zaffa-renders",
-    resource_type: "image",
-    type: "upload",
-  });
-  return result.secure_url;
-}
+import { generateImage } from "./image-gen";
 
 export type ReferenceCategory =
   | "overall_vibe"
@@ -192,53 +169,9 @@ export async function renderScene(input: RenderSceneInput) {
 
   const prompt = buildPrompt(input, ordered);
 
-  const content: Array<
-    | { type: "image_url"; image_url: { url: string } }
-    | { type: "text"; text: string }
-  > = ordered.map((ref) => ({
-    type: "image_url" as const,
-    image_url: { url: ref.url },
-  }));
-  content.push({ type: "text", text: prompt });
-
-  const response = await fetch(
-    "https://openrouter.ai/api/v1/chat/completions",
-    {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: IMAGE_MODEL,
-        messages: [
-          {
-            role: "user",
-            content,
-          },
-        ],
-        modalities: ["image", "text"],
-      }),
-    }
-  );
-
-  if (!response.ok) {
-    const err = await response.text();
-    throw new Error(`Image generation failed: ${response.status} ${err}`);
-  }
-
-  const data = await response.json();
-  const message = data.choices?.[0]?.message;
-
-  if (!message?.images?.length) {
-    throw new Error("No image was generated");
-  }
-
-  const rawUrl = message.images[0].image_url.url as string;
-  const imageUrl = await uploadRenderToCloudinary(rawUrl);
-
-  return {
-    imageUrl,
-    text: (message.content as string | null) ?? null,
-  };
+  return generateImage({
+    prompt,
+    references: ordered.map((ref) => ({ url: ref.url })),
+    cloudinaryFolder: "zaffa-renders",
+  });
 }

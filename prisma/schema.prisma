@@ -1061,3 +1061,64 @@ model VisionPackPricing {
 
   @@map("vision_pack_pricing")
 }
+
+// Status lifecycle for an admin-generated social post.
+//   pending   — fresh out of the generator, waiting for triage
+//   published — admin marked it ready (manual posting happens off-platform)
+//   discarded — rejected
+enum PostStatus {
+  pending
+  published
+  discarded
+}
+
+// Carousel format. Each format has its own slide order — see
+// `src/lib/post-generator/formats.ts`.
+enum PostFormat {
+  inspo_to_render
+  palette_test
+  real_bride
+  planner_pov
+  three_words
+}
+
+// Admin-only generated Instagram/TikTok carousel posts. Renders, palette,
+// inspiration board, and slide layout are produced by the post generator
+// pipeline (`src/server/posts/`) and rasterized client-side via
+// html-to-image when the admin clicks "Render to HD". Publishing is a
+// status-flip only — actual posting to IG/TikTok is manual from a phone.
+model Post {
+  id     String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  status PostStatus @default(pending)
+  format PostFormat
+  vibe   String
+
+  // NamedPalette: { name: string, colors: { name: string, hex: string }[] }
+  palette Json
+
+  // CoupleNames: { partner_a: string, partner_b: string }
+  couple_names Json
+
+  // string[] of 6-8 mirrored Cloudinary URLs (we don't trust pinterest CDNs)
+  inspiration_image_urls Json
+
+  // string[] of 1-4 Cloudinary URLs depending on format
+  render_image_urls Json
+
+  // SlideRecord[] — see `src/types/posts.ts`
+  slides Json
+
+  caption  String @db.Text
+  // Exactly 5 entries (1 broad / 1 vibe-specific / 1 community /
+  // 1 cultural-when-applicable / 1 zaffa-adjacent). Stored as Json string[]
+  // rather than Postgres array to keep the slot rule client-validatable.
+  hashtags Json
+
+  created_by   String    @db.Uuid
+  created_at   DateTime  @default(now()) @db.Timestamptz(6)
+  updated_at   DateTime  @updatedAt @db.Timestamptz(6)
+  published_at DateTime? @db.Timestamptz(6)
+
+  @@index([status, created_at(sort: Desc)])
+  @@map("posts")
+}
