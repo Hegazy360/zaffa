@@ -10,6 +10,8 @@ import {
   Download,
   X,
   Plus,
+  Copy,
+  Check,
 } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
@@ -50,6 +52,7 @@ export function PostMetadataSidebar({
   const [caption, setCaption] = useState(post.caption);
   const [hashtags, setHashtags] = useState<string[]>(post.hashtags);
   const [hashtagDraft, setHashtagDraft] = useState("");
+  const [justCopied, setJustCopied] = useState(false);
 
   useEffect(() => {
     setVibe(post.vibe);
@@ -123,6 +126,38 @@ export function PostMetadataSidebar({
 
   const removeHashtag = (idx: number) => {
     setHashtags(hashtags.filter((_, i) => i !== idx));
+  };
+
+  // Copies the caption followed by a blank line and the hashtags, e.g.
+  //   golden hour, slow morning, jasmine air ✨
+  //
+  //   #weddinginspo #tuscanwedding #moodboard #editorial #zaffa
+  // Operates on the live (possibly unsaved) values so the user can
+  // tweak in-place and copy without an intermediate Save round-trip.
+  const handleCopyCaption = async () => {
+    const tags = hashtags.map((t) => `#${t}`).join(" ");
+    const text = tags ? `${caption.trim()}\n\n${tags}` : caption.trim();
+    try {
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(text);
+      } else {
+        // Fallback for non-secure contexts (older browsers / http://).
+        const ta = document.createElement("textarea");
+        ta.value = text;
+        ta.style.position = "fixed";
+        ta.style.opacity = "0";
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand("copy");
+        document.body.removeChild(ta);
+      }
+      setJustCopied(true);
+      toast.success("Caption + hashtags copied");
+      window.setTimeout(() => setJustCopied(false), 1500);
+    } catch (err) {
+      console.error("Copy failed", err);
+      toast.error("Copy failed — clipboard blocked by browser");
+    }
   };
 
   const handleDownloadZip = async () => {
@@ -248,11 +283,37 @@ export function PostMetadataSidebar({
           </div>
 
           <div className="space-y-1.5">
-            <div className="flex items-baseline justify-between">
+            <div className="flex items-baseline justify-between gap-2">
               <Label htmlFor="caption">Caption</Label>
-              <span className="text-[10px] text-muted-foreground">
-                {caption.length} chars
-              </span>
+              <div className="flex items-baseline gap-2">
+                <span className="text-[10px] text-muted-foreground">
+                  {caption.length} chars
+                </span>
+                <button
+                  type="button"
+                  onClick={handleCopyCaption}
+                  disabled={!caption.trim() && hashtags.length === 0}
+                  title="Copy caption + hashtags"
+                  className={cn(
+                    "inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-[0.14em] transition-colors",
+                    "text-stone-600 ring-1 ring-stone-200 hover:bg-stone-50 hover:text-stone-900",
+                    "disabled:cursor-not-allowed disabled:opacity-50",
+                    justCopied && "bg-emerald-50 text-emerald-700 ring-emerald-200",
+                  )}
+                >
+                  {justCopied ? (
+                    <>
+                      <Check className="size-3" />
+                      Copied
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="size-3" />
+                      Copy
+                    </>
+                  )}
+                </button>
+              </div>
             </div>
             <Textarea
               id="caption"

@@ -39,7 +39,11 @@ const securityHeaders = [
       "font-src 'self' data: https://fonts.gstatic.com",
       "img-src 'self' data: blob: https://*.stripe.com https://*.supabase.co https://res.cloudinary.com https://images.unsplash.com https://i.pinimg.com https://*.googleusercontent.com https://*.fbcdn.net https://*.i.posthog.com",
       "media-src 'self' blob: https://res.cloudinary.com",
-      "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.stripe.com https://*.cloudinary.com https://api.openai.com https://openrouter.ai https://api.resend.com https://*.upstash.io https://va.vercel-scripts.com https://vitals.vercel-insights.com https://*.i.posthog.com",
+      // `data:` is required by `html-to-image` (used by the admin post
+      // rasterizer): it walks the DOM and re-fetches embedded images,
+      // some of which we pre-inline as data URLs. `data:` is an inline
+      // scheme — no remote endpoint, no exfiltration risk.
+      "connect-src 'self' data: https://*.supabase.co wss://*.supabase.co https://api.stripe.com https://*.cloudinary.com https://api.openai.com https://openrouter.ai https://api.resend.com https://*.upstash.io https://va.vercel-scripts.com https://vitals.vercel-insights.com https://*.i.posthog.com",
       "frame-src 'self' https://js.stripe.com https://hooks.stripe.com https://checkout.stripe.com",
       "frame-ancestors 'self'",
       "base-uri 'self'",
