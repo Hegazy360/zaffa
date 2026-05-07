@@ -35,6 +35,8 @@ export default function AdminPostDetailPage({ params }: PageProps) {
   const handleRasterizeAll = useCallback(async () => {
     if (!post) return;
     setIsRasterizing(true);
+    let okCount = 0;
+    let failCount = 0;
     try {
       for (let i = 0; i < post.slides.length; i++) {
         const el = slideRefs.current.get(i);
@@ -46,15 +48,23 @@ export default function AdminPostDetailPage({ params }: PageProps) {
             slide_index: i,
             png_url: pngUrl,
           });
+          okCount += 1;
+          // Refetch after each slide so the UI (carousel "rendered"
+          // badge + Download button counter) updates progressively.
+          await utils.adminPosts.get.invalidate({ id: post.id });
         } catch (err) {
+          failCount += 1;
           console.error(`Slide ${i + 1} rasterization failed`, err);
           toast.error(
             `Slide ${i + 1} failed: ${err instanceof Error ? err.message : "unknown error"}`,
           );
         }
       }
-      utils.adminPosts.get.invalidate({ id: post.id });
-      toast.success("Slides rendered to HD");
+      if (failCount === 0) {
+        toast.success(`${okCount} slide${okCount === 1 ? "" : "s"} rendered to HD`);
+      } else if (okCount > 0) {
+        toast.warning(`${okCount} ok, ${failCount} failed — see console`);
+      }
     } finally {
       setIsRasterizing(false);
     }

@@ -152,9 +152,9 @@ export function PostMetadataSidebar({
     URL.revokeObjectURL(a.href);
   };
 
-  const allRasterized =
-    post.slides.length > 0 &&
-    post.slides.every((s) => s.rendered_png_url !== null);
+  const rasterizedCount = post.slides.filter(
+    (s) => s.rendered_png_url !== null,
+  ).length;
 
   return (
     <aside className="space-y-6">
@@ -346,11 +346,11 @@ export function PostMetadataSidebar({
             size="sm"
             variant="outline"
             onClick={handleDownloadZip}
-            disabled={!allRasterized}
+            disabled={rasterizedCount === 0 || isRasterizing}
             className="w-full gap-1.5"
           >
             <Download className="size-3.5" />
-            Download PNGs (.zip)
+            Download {rasterizedCount}/{post.slides.length} PNGs (.zip)
           </Button>
           <Button
             size="sm"
