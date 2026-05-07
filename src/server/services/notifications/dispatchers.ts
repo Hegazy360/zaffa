@@ -471,6 +471,22 @@ export function notifyEngagementCancelledToVendor(args: {
   });
 }
 
+// ----- Vision Pack -----
+
+export function notifyVisionPackReady(args: {
+  recipientUserId: string;
+  packId: string;
+  windowDays: number;
+}): Promise<void> {
+  return notify({
+    userId: args.recipientUserId,
+    type: "vision_pack_ready",
+    link: `/venue-designer`,
+    vars: { days: args.windowDays },
+    data: { packId: args.packId, windowDays: args.windowDays },
+  });
+}
+
 // ----- Shared -----
 
 export function notifyMessageReceived(args: {

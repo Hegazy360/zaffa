@@ -22,6 +22,7 @@ import { PaletteCard } from "./dashboard/PaletteCard";
 import { ReferenceCategoryCard } from "./dashboard/ReferenceCategoryCard";
 import { StyleNotesCard } from "./dashboard/StyleNotesCard";
 import { GenerateRenderPanel } from "./dashboard/GenerateRenderPanel";
+import { ShareAndFinishPanel } from "@/components/vision-pack/share-and-finish-panel";
 import {
   DesignerStepper,
   StepHeading,
@@ -333,6 +334,28 @@ function StepBody({ step, designId }: StepBodyProps) {
     case "notes":
       return <StyleNotesCard />;
     case "generate":
-      return <GenerateRenderPanel designId={designId} />;
+      return <GenerateStep designId={designId} />;
   }
+}
+
+/**
+ * Last-step composite: the AI render panel sits on top, and the
+ * share/lookbook/find-planner CTAs live directly underneath so couples
+ * can publish, download, or hand off without leaving the designer.
+ *
+ * `hasMedia` is sourced from the same `venueDesigns.getById` query that
+ * GenerateRenderPanel uses — react-query dedupes so this is free.
+ */
+function GenerateStep({ designId }: { designId?: string }) {
+  const { data: design } = trpc.venueDesigns.getById.useQuery(
+    { id: designId! },
+    { enabled: !!designId },
+  );
+  const hasMedia = (design?.media?.length ?? 0) > 0;
+  return (
+    <div className="space-y-8">
+      <GenerateRenderPanel designId={designId} />
+      <ShareAndFinishPanel designId={designId} hasMedia={hasMedia} />
+    </div>
+  );
 }

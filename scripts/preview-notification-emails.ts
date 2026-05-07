@@ -142,6 +142,9 @@ const DEMO_VARS: Record<NotificationType, Vars> = {
     preview:
       "\u201cHey! Quick question about the floral palette — would you be open to a softer blush instead of coral?\u201d",
   },
+  vision_pack_ready: {
+    days: 60,
+  },
 };
 
 function parseArgs(): {

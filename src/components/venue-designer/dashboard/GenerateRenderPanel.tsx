@@ -29,6 +29,7 @@ import {
   REFERENCE_CATEGORIES,
   type ReferenceCategory,
 } from "@/types/venue-designer";
+import { usePackPaywall } from "@/components/vision-pack/VisionPackPaywallProvider";
 
 interface GenerateRenderPanelProps {
   designId?: string;
@@ -67,6 +68,7 @@ const EVENT_TYPE_KEY: Record<string, string> = {
 export function GenerateRenderPanel({ designId }: GenerateRenderPanelProps) {
   const t = useTranslations("designer");
   const f = useFormatters();
+  const paywall = usePackPaywall();
   const eventType = useVenueDesignerStore((s) => s.eventType);
   const setting = useVenueDesignerStore((s) => s.setting);
   const size = useVenueDesignerStore((s) => s.size);
@@ -138,8 +140,15 @@ export function GenerateRenderPanel({ designId }: GenerateRenderPanelProps) {
           url: data.imageUrl,
         });
       }
+      // Refetch the recipient's pack so the quota badge in the header
+      // re-renders with the decremented count without a full reload.
+      utils.visionPacks.current.invalidate();
     },
     onError: (err) => {
+      // Pack-paywall errors (PACK_REQUIRED / PACK_QUOTA_RENDERS /
+      // PACK_WINDOW_EXPIRED) pop the modal instead of toast-ing. Anything
+      // else falls through to the existing render-failed toast.
+      if (paywall.handleError(err)) return;
       toast.error(err.message || t("renderFailed"));
     },
   });
@@ -148,8 +157,10 @@ export function GenerateRenderPanel({ designId }: GenerateRenderPanelProps) {
     onSuccess: (data) => {
       setGenerationId(data.generationId);
       setView("video-pending");
+      utils.visionPacks.current.invalidate();
     },
     onError: (err) => {
+      if (paywall.handleError(err)) return;
       setVideoError(err.message);
     },
   });

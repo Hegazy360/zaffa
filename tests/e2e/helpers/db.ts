@@ -145,6 +145,102 @@ export interface PayoutInfo {
   amount: number;
 }
 
+export interface VisionPackRow {
+  id: string;
+  status: string;
+  micrositeSlug: string | null;
+  micrositePublic: boolean;
+  micrositePublishedAt: Date | null;
+  rendersUsed: number;
+  rendersQuota: number;
+  videosUsed: number;
+  videosQuota: number;
+}
+
+/**
+ * Resolves the Vision Pack row for the recipient that owns a given
+ * email in `auth.users`. Returns null when the user has never bought
+ * a pack. Used by `pack-path.spec.ts` to wait on webhook activation.
+ *
+ * The query joins on `auth.users` because that's where Supabase stores
+ * the email column — `profiles` only carries the canonical user id.
+ */
+export async function getVisionPackByRecipient(
+  email: string,
+): Promise<VisionPackRow | null> {
+  const { rows } = await getPool().query<{
+    id: string;
+    status: string;
+    microsite_slug: string | null;
+    microsite_public: boolean;
+    microsite_published_at: Date | null;
+    renders_used: number;
+    renders_quota: number;
+    videos_used: number;
+    videos_quota: number;
+  }>(
+    `SELECT vp.id, vp.status::text AS status, vp.microsite_slug,
+            vp.microsite_public, vp.microsite_published_at,
+            vp.renders_used, vp.renders_quota,
+            vp.videos_used, vp.videos_quota
+       FROM vision_packs vp
+       JOIN auth.users u ON u.id = vp.recipient_user_id
+      WHERE u.email = $1
+      ORDER BY vp.created_at DESC LIMIT 1`,
+    [email],
+  );
+  if (rows.length === 0) return null;
+  const r = rows[0];
+  return {
+    id: r.id,
+    status: r.status,
+    micrositeSlug: r.microsite_slug,
+    micrositePublic: r.microsite_public,
+    micrositePublishedAt: r.microsite_published_at,
+    rendersUsed: Number(r.renders_used),
+    rendersQuota: Number(r.renders_quota),
+    videosUsed: Number(r.videos_used),
+    videosQuota: Number(r.videos_quota),
+  };
+}
+
+/** Lookup a Vision Pack by id. Used after we've cached the id. */
+export async function getVisionPackById(
+  packId: string,
+): Promise<VisionPackRow | null> {
+  const { rows } = await getPool().query<{
+    id: string;
+    status: string;
+    microsite_slug: string | null;
+    microsite_public: boolean;
+    microsite_published_at: Date | null;
+    renders_used: number;
+    renders_quota: number;
+    videos_used: number;
+    videos_quota: number;
+  }>(
+    `SELECT id, status::text AS status, microsite_slug,
+            microsite_public, microsite_published_at,
+            renders_used, renders_quota,
+            videos_used, videos_quota
+       FROM vision_packs WHERE id = $1`,
+    [packId],
+  );
+  if (rows.length === 0) return null;
+  const r = rows[0];
+  return {
+    id: r.id,
+    status: r.status,
+    micrositeSlug: r.microsite_slug,
+    micrositePublic: r.microsite_public,
+    micrositePublishedAt: r.microsite_published_at,
+    rendersUsed: Number(r.renders_used),
+    rendersQuota: Number(r.renders_quota),
+    videosUsed: Number(r.videos_used),
+    videosQuota: Number(r.videos_quota),
+  };
+}
+
 /**
  * Returns the payout linked to a given installment (or null if none yet).
  * Used by the admin step to verify a payout row was persisted.

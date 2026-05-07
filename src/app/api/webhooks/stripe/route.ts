@@ -14,7 +14,16 @@ import {
   notifyPaymentPaid,
   notifyPaymentReceivedToPlanner,
   notifyPaymentRefunded,
+  notifyVisionPackReady,
 } from "@/server/services/notifications/dispatchers";
+import {
+  activatePackFromCheckout,
+  expirePendingCheckout,
+} from "@/server/routers/vision-packs";
+import {
+  VISION_PACK_CHECKOUT_KIND,
+  VISION_PACK_WINDOW_DAYS,
+} from "@/lib/vision-pack";
 
 // All Stripe webhook events that bear on the payment system. We treat the
 // list as a whitelist; anything else is acknowledged with 200 + logged so we
@@ -45,6 +54,16 @@ const HANDLED = new Set([
 const FUNDS_WITHDRAWN_SUFFIX = ":funds_withdrawn";
 
 async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
+  // Multiple Checkout flows funnel through this single webhook handler
+  // (installments + Vision Pack today; future SKUs land here too). The
+  // `metadata.kind` discriminator routes the session to the right
+  // sub-handler. Falls back to the legacy installment path when no
+  // `kind` is set so older sessions in flight still work.
+  const kind = session.metadata?.kind;
+  if (kind === VISION_PACK_CHECKOUT_KIND) {
+    await handleVisionPackCheckoutCompleted(session);
+    return;
+  }
   const installmentId = session.metadata?.installmentId;
   if (!installmentId) return;
   const installment = await prisma.payment.findUnique({
@@ -181,6 +200,14 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
 // `awaiting_payment` forever. Reverting to `pending` re-enables the
 // "Pay now" button so the client can retry.
 async function handleCheckoutExpired(session: Stripe.Checkout.Session) {
+  // Same dispatch as the completed handler — Vision Pack expirations
+  // delete the abandoned pending row so the user can start a fresh
+  // checkout without seeing "you already have a pack".
+  if (session.metadata?.kind === VISION_PACK_CHECKOUT_KIND) {
+    const packId = session.metadata?.packId;
+    if (packId) await expirePendingCheckout(packId);
+    return;
+  }
   const installmentId = session.metadata?.installmentId;
   if (!installmentId) return;
   await prisma.payment.updateMany({
@@ -194,6 +221,67 @@ async function handleCheckoutExpired(session: Stripe.Checkout.Session) {
       stripe_checkout_session_id: null,
     },
   });
+}
+
+// Vision Pack checkout success:
+//  - flip pack to `active`
+//  - set 60-day expiry
+//  - generate the public microsite slug
+//  - fire the "your pack is ready" notification + email
+//
+// Idempotent — the underlying `activatePackFromCheckout` short-circuits
+// if the pack is already past `pending_payment`, so a webhook retry is
+// a no-op.
+async function handleVisionPackCheckoutCompleted(
+  session: Stripe.Checkout.Session,
+) {
+  const packId = session.metadata?.packId;
+  if (!packId) {
+    logger.warn("stripe.webhook.vision_pack.missing_pack_id", {
+      sessionId: session.id,
+    });
+    return;
+  }
+  const paymentIntentId =
+    typeof session.payment_intent === "string"
+      ? session.payment_intent
+      : session.payment_intent?.id ?? null;
+
+  await activatePackFromCheckout({ packId, paymentIntentId });
+
+  // Send the "your pack is ready" notification (in-app bell + email).
+  const pack = await prisma.visionPack.findUnique({
+    where: { id: packId },
+    select: {
+      id: true,
+      recipient_user_id: true,
+      buyer_user_id: true,
+      amount: true,
+      currency: true,
+    },
+  });
+  if (pack?.recipient_user_id) {
+    await notifyVisionPackReady({
+      recipientUserId: pack.recipient_user_id,
+      packId: pack.id,
+      windowDays: VISION_PACK_WINDOW_DAYS,
+    });
+  }
+
+  // Funnel signal: this is the moment money actually reaches us. Captured
+  // against the buyer's distinctId so the couple-journey funnel stitches
+  // together browser pageviews + this server-side ground truth.
+  if (pack) {
+    await captureServer(
+      pack.buyer_user_id,
+      ANALYTICS_EVENTS.VISION_PACK_PURCHASED,
+      {
+        pack_id: pack.id,
+        amount: Number(pack.amount) || 0,
+        currency: pack.currency,
+      },
+    );
+  }
 }
 
 async function handlePaymentFailed(pi: Stripe.PaymentIntent) {
@@ -390,6 +478,15 @@ async function handleDisputeClosed(dispute: Stripe.Dispute) {
 // PaymentIntent failure path so the client can retry with a different
 // method instead of being stuck in `awaiting_payment`.
 async function handleAsyncPaymentFailed(session: Stripe.Checkout.Session) {
+  // Vision pack: same treatment as `expired` — drop the pending row so
+  // the user can start a fresh checkout without seeing "you already have
+  // a pack". No notification because the user already saw the failure on
+  // the Stripe page.
+  if (session.metadata?.kind === VISION_PACK_CHECKOUT_KIND) {
+    const packId = session.metadata?.packId;
+    if (packId) await expirePendingCheckout(packId);
+    return;
+  }
   const installmentId = session.metadata?.installmentId;
   if (!installmentId) return;
   const updated = await prisma.payment.updateMany({

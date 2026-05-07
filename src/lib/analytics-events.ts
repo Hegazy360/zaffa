@@ -15,6 +15,11 @@ export const ANALYTICS_EVENTS = {
   PROFILE_PUBLISHED: "profile.published",
 
   // Couple journey ----------------------------------------------------------
+  VISION_PACK_CHECKOUT_STARTED: "vision_pack.checkout_started",
+  VISION_PACK_PURCHASED: "vision_pack.purchased",
+  VISION_PACK_MICROSITE_PUBLISHED: "vision_pack.microsite_published",
+  VISION_PACK_LOOKBOOK_DOWNLOADED: "vision_pack.lookbook_downloaded",
+  VISION_PACK_FIND_PLANNER_CLICKED: "vision_pack.find_planner_clicked",
   DESIGN_CREATED: "design.created",
   DESIGN_RENDER_GENERATED: "design.render_generated",
   DESIGN_VIDEO_GENERATED: "design.video_generated",

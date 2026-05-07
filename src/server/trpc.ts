@@ -9,7 +9,14 @@ import { createClient } from "@/lib/supabase/server";
  */
 export type TRPCUser = { id: string; email: string | null } | null;
 
-export async function createTRPCContext() {
+interface CreateTRPCContextArgs {
+  /** The fetch Request when called via the route handler — used to read
+   *  per-request signals like the country cookie or geo headers without
+   *  importing `next/headers` deep inside individual procedures. */
+  req?: Request;
+}
+
+export async function createTRPCContext(args: CreateTRPCContextArgs = {}) {
   const supabase = await createClient();
   // `getClaims()` verifies the JWT signature locally against the project's
   // published JWK (cached after the first fetch). No Supabase Auth API
@@ -27,7 +34,7 @@ export async function createTRPCContext() {
     };
   }
 
-  return { supabase, user };
+  return { supabase, user, req: args.req ?? null };
 }
 
 export type TRPCContext = Awaited<ReturnType<typeof createTRPCContext>>;

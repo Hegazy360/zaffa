@@ -10,15 +10,25 @@ import {
   MarketplaceTeaserSkeleton,
 } from "@/components/home/marketplace-teaser-section";
 
+import {
+  formatPriceLabel,
+  seedPricingFor,
+} from "@/lib/vision-pack-pricing";
+
+// The OG card / search snippet uses the default seed price ("from $99"
+// framing) rather than per-country dynamic pricing — keeping the home
+// page statically cacheable matters more than perfect price-tag fidelity
+// in the social card. The on-page hero + CTA localize per-visitor via
+// the client `useVisionPackPricing` hook.
+const META_PRICE_LABEL = formatPriceLabel(seedPricingFor(null));
+
 export const metadata: Metadata = {
-  title: "Zaffa — Your Dream Event, Expertly Planned",
-  description:
-    "Egypt's editorial event atelier. Connect with vetted wedding planners and vendors, design your venue with AI-powered mood boards, and pay through a secure escrow.",
+  title: `Zaffa — Your wedding, visualized from ${META_PRICE_LABEL}`,
+  description: `The Wedding Vision Pack: 20 photoreal renders, 2 short videos, a printable lookbook PDF, and a shareable microsite — from ${META_PRICE_LABEL}. Optional planner match comes after, on your terms.`,
   alternates: { canonical: "/" },
   openGraph: {
-    title: "Zaffa — Your Dream Event, Expertly Planned",
-    description:
-      "Egypt's editorial event atelier. Vetted planners + vendors, AI venue design, and Stripe-backed escrow.",
+    title: `Zaffa — Your wedding, visualized from ${META_PRICE_LABEL}`,
+    description: `The Wedding Vision Pack: 20 renders + 2 videos + lookbook + microsite from ${META_PRICE_LABEL}. Planner match optional.`,
     url: "/",
     type: "website",
   },

@@ -7,6 +7,7 @@ import {
   Briefcase,
   CalendarDays,
   Loader2,
+  Sparkles,
   TrendingDown,
   TrendingUp,
   UserRound,
@@ -205,6 +206,18 @@ export default function AdminOverview() {
                 title={t("vendorPayoutsTitle")}
                 hint={t("vendorPayoutsHint")}
                 icon={<Briefcase className="size-4" />}
+              />
+              <ShortcutCard
+                href="/dashboard/admin/vision-packs"
+                title={t("visionPacksTitle")}
+                hint={t("visionPacksHint")}
+                icon={<Sparkles className="size-4" />}
+              />
+              <ShortcutCard
+                href="/dashboard/admin/vision-pack-pricing"
+                title={t("visionPackPricingTitle")}
+                hint={t("visionPackPricingHint")}
+                icon={<Sparkles className="size-4" />}
               />
             </div>
           </section>

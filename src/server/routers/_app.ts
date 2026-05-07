@@ -25,6 +25,7 @@ import { vendorReleasesRouter } from "./vendor-releases";
 import { vendorReviewsRouter } from "./vendor-reviews";
 import { vendorsRouter } from "./vendors";
 import { venueDesignsRouter } from "./venue-designs";
+import { visionPacksRouter } from "./vision-packs";
 
 export const appRouter = router({
   account: accountRouter,
@@ -53,6 +54,7 @@ export const appRouter = router({
   vendorReleases: vendorReleasesRouter,
   vendorReviews: vendorReviewsRouter,
   venueDesigns: venueDesignsRouter,
+  visionPacks: visionPacksRouter,
 });
 
 export type AppRouter = typeof appRouter;

@@ -6,6 +6,7 @@ import { motion, useReducedMotion } from "framer-motion";
 import { useTranslations } from "next-intl";
 import { ArrowRight, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useVisionPackPricing } from "@/components/vision-pack/use-pricing";
 
 // Four AI-rendered examples produced on the platform — the "what's on your
 // moodboard" preview for the final invitation. Tile positions/rotations are
@@ -43,6 +44,7 @@ const PRESS = [
 
 export function BeginSection() {
   const reduce = useReducedMotion();
+  const pricing = useVisionPackPricing();
   const t = useTranslations("marketing");
 
   return (
@@ -104,7 +106,7 @@ export function BeginSection() {
             transition={{ duration: reduce ? 0 : 0.7, delay: 0.15 }}
             className="mt-5 max-w-xl text-pretty text-base text-muted-foreground sm:mt-6 md:text-lg"
           >
-            {t("beginSubtitle")}
+            {t("beginSubtitle", { price: pricing.label })}
           </motion.p>
         </div>
 
@@ -149,7 +151,7 @@ export function BeginSection() {
               render={<Link href="/venue-designer" />}
               className="group h-12 w-full gap-2 bg-gradient-to-r from-rose-600 to-amber-500 px-6 text-base text-white shadow-lg shadow-rose-600/20 transition-all hover:opacity-90 hover:shadow-rose-600/30 sm:w-auto sm:px-8"
             >
-              {t("beginCta")}
+              {t("beginCta", { price: pricing.label })}
               <ArrowRight className="h-4 w-4 transition-transform rtl:-scale-x-100 group-hover:translate-x-0.5 rtl:group-hover:-translate-x-0.5" />
             </Button>
             <p className="text-xs text-muted-foreground sm:ms-2">

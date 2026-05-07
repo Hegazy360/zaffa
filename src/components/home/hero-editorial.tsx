@@ -6,6 +6,7 @@ import { motion, useReducedMotion } from "framer-motion";
 import { useTranslations } from "next-intl";
 import { ArrowRight, Sparkles, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useVisionPackPricing } from "@/components/vision-pack/use-pricing";
 
 // One AI-rendered example — a representative output of the kind of room our
 // platform helps couples design. Static (no parallax) so the hero reads as a
@@ -15,6 +16,7 @@ const HERO_IMAGE = "/home/examples/hero.jpeg";
 export function HeroEditorial() {
   const reduce = useReducedMotion();
   const t = useTranslations("marketing");
+  const pricing = useVisionPackPricing();
 
   return (
     <section className="relative isolate overflow-hidden bg-gradient-to-b from-rose-50/60 via-background to-background dark:from-rose-950/20">
@@ -43,7 +45,7 @@ export function HeroEditorial() {
             className="mb-5 inline-flex w-fit items-center gap-2 rounded-full border border-rose-200/60 bg-white/60 px-3 py-1.5 text-[0.65rem] uppercase tracking-[0.18em] text-rose-700 backdrop-blur-md sm:mb-6 sm:px-4 sm:text-xs dark:border-rose-900/40 dark:bg-rose-950/30 dark:text-rose-200"
           >
             <Sparkles className="h-3.5 w-3.5" />
-            {t("heroEyebrow")}
+            {t("heroEyebrow", { price: pricing.label })}
           </motion.div>
 
           <motion.h1
@@ -104,7 +106,7 @@ export function HeroEditorial() {
               render={<Link href="/venue-designer" />}
               className="group h-12 w-full gap-2 bg-gradient-to-r from-rose-600 to-amber-500 px-6 text-base text-white shadow-lg shadow-rose-600/20 transition-all hover:opacity-90 hover:shadow-rose-600/30 sm:w-auto sm:px-8"
             >
-              {t("heroCta")}
+              {t("heroCta", { price: pricing.label })}
               <ArrowRight className="h-4 w-4 transition-transform rtl:-scale-x-100 group-hover:translate-x-0.5 rtl:group-hover:-translate-x-0.5" />
             </Button>
             <p className="text-xs text-muted-foreground sm:ms-2">

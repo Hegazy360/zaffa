@@ -5,6 +5,7 @@ import { startVideoGeneration, getVideoStatus } from "../ai/video-generator";
 import { enforceTrpcMany } from "@/lib/rate-limit";
 import { trackServer } from "@/lib/posthog";
 import { ANALYTICS_EVENTS } from "@/lib/analytics-events";
+import { consumeQuota, requireActivePack } from "./vision-packs";
 
 const referenceCategorySchema = z.enum([
   "overall_vibe",
@@ -44,8 +45,15 @@ export const aiRouter = router({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      // Per-hour burst cap + per-day cost ceiling. Keeps a single user
-      // from running up the OpenAI bill if they leave the designer open.
+      // Paywall gate: require an active Vision Pack with renders quota
+      // remaining. Throws FORBIDDEN with a stable message string the UI
+      // pattern-matches on (PACK_REQUIRED / PACK_QUOTA_RENDERS /
+      // PACK_WINDOW_EXPIRED) to surface the right modal.
+      const pack = await requireActivePack(ctx.user.id, "render");
+      // Per-hour burst cap + per-day cost ceiling. Even on a paid pack
+      // these stay — they're independent abuse protection (a single user
+      // shouldn't cost us $100 of OpenAI in five minutes regardless of
+      // whether they paid 499 EGP).
       await enforceTrpcMany(
         [
           {
@@ -61,6 +69,9 @@ export const aiRouter = router({
         ctx.user.id,
       );
       const result = await renderScene(input);
+      // Atomically decrement the quota. Done after a successful render
+      // so a failed OpenAI call doesn't burn a slot from the pack.
+      await consumeQuota(pack.id, "render");
       // Couple-journey funnel — every successful AI render is a step
       // toward a finished design. Tracking the input shape (event type,
       // setting, palette size) lets us compare conversion across config.
@@ -70,6 +81,7 @@ export const aiRouter = router({
         size: input.size,
         guest_count: input.guestCount ?? null,
         reference_count: input.references.length,
+        pack_id: pack.id,
       });
       return result;
     }),
@@ -102,6 +114,9 @@ export const aiRouter = router({
       })
     )
     .mutation(async ({ ctx, input }) => {
+      // Same paywall pattern as renders. Videos are the most expensive
+      // generation surface, so the gate matters most here.
+      const pack = await requireActivePack(ctx.user.id, "video");
       await enforceTrpcMany(
         [
           {
@@ -118,11 +133,13 @@ export const aiRouter = router({
         ctx.user.id,
       );
       const result = await startVideoGeneration(input);
+      await consumeQuota(pack.id, "video");
       // Fired on the start of generation — completion is async/polled,
       // and the user-perceived moment of "I asked for a video" is here.
       await trackServer(ctx.user.id, ANALYTICS_EVENTS.DESIGN_VIDEO_GENERATED, {
         event_type: input.context?.eventType ?? null,
         setting: input.context?.setting ?? null,
+        pack_id: pack.id,
       });
       return result;
     }),

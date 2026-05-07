@@ -402,6 +402,22 @@ const CATALOG: Record<
       eyebrow: "رسالة جديدة",
     },
   },
+
+  // ----- Vision Pack -----
+  vision_pack_ready: {
+    en: {
+      title: "Your Wedding Vision Pack is ready",
+      body: "Your pack is unlocked. Head to the designer and start generating — every render, video, and the lookbook are all included. Your generation window is open for the next {days} days.",
+      ctaLabel: "Open the designer",
+      eyebrow: "Vision Pack",
+    },
+    ar: {
+      title: "باقة رؤية الزفاف جاهزة",
+      body: "تمّ فتح باقتك. ادخل المصمّم وابدأ التوليد — كل الصور والفيديوهات والكتيّب متضمَّنة. نافذتك مفتوحة لمدة {days} يومًا.",
+      ctaLabel: "افتح المصمّم",
+      eyebrow: "باقة الرؤية",
+    },
+  },
 };
 
 /**
@@ -673,6 +689,12 @@ export function buildFacts(
     case "message_received":
       // Message preview is already the body copy — a facts strip here
       // would be noise.
+      return undefined;
+
+    case "vision_pack_ready":
+      // The transactional email is short by design (single CTA);
+      // surfacing facts here would clutter what's effectively a welcome
+      // moment, not a status update.
       return undefined;
 
     default:

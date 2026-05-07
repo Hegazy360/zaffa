@@ -10,6 +10,7 @@ const {
   dispatchersMock,
   captureServerMock,
   retrievePIMock,
+  visionPackMock,
   headerStore,
 } = await vi.hoisted(async () => {
   const { mockDeep } = await import("vitest-mock-extended");
@@ -24,15 +25,21 @@ const {
       notifyPaymentPaid: vi.fn(),
       notifyPaymentReceivedToPlanner: vi.fn(),
       notifyPaymentRefunded: vi.fn(),
+      notifyVisionPackReady: vi.fn(),
     },
     captureServerMock: vi.fn(),
     retrievePIMock: vi.fn(),
+    visionPackMock: {
+      activatePackFromCheckout: vi.fn(),
+      expirePendingCheckout: vi.fn(),
+    },
     headerStore,
   };
 });
 
 vi.mock("@/lib/prisma", () => ({ prisma: prismaMock }));
 vi.mock("@/server/services/notifications/dispatchers", () => dispatchersMock);
+vi.mock("@/server/routers/vision-packs", () => visionPackMock);
 vi.mock("@/lib/posthog", () => ({ captureServer: captureServerMock }));
 vi.mock("@/lib/logger", () => ({
   reportError: vi.fn(),
@@ -64,9 +71,12 @@ const { POST } = await import("@/app/api/webhooks/stripe/route");
 beforeEach(() => {
   process.env.STRIPE_WEBHOOK_SECRET = WEBHOOK_SECRET;
   for (const fn of Object.values(dispatchersMock)) fn.mockReset();
+  for (const fn of Object.values(visionPackMock)) fn.mockReset();
   captureServerMock.mockReset();
   retrievePIMock.mockReset();
   retrievePIMock.mockResolvedValue({ latest_charge: "ch_test_123" });
+  visionPackMock.activatePackFromCheckout.mockResolvedValue(undefined);
+  visionPackMock.expirePendingCheckout.mockResolvedValue(undefined);
 });
 
 afterEach(() => {
@@ -216,5 +226,64 @@ describe("POST /api/webhooks/stripe", () => {
       expect.any(String),
       expect.objectContaining({ amount: 1000, fee: 80, net: 920 })
     );
+  });
+
+  it("checkout.session.completed routes vision_pack metadata to the pack handler", async () => {
+    const packId = randomUUID();
+    const buyerId = randomUUID();
+    const recipientId = randomUUID();
+
+    prismaMock.stripeWebhookEvent.create.mockResolvedValue({} as never);
+    prismaMock.stripeWebhookEvent.update.mockResolvedValue({} as never);
+    prismaMock.visionPack.findUnique.mockResolvedValue({
+      id: packId,
+      recipient_user_id: recipientId,
+      buyer_user_id: buyerId,
+      amount: 499,
+      currency: "EGP",
+    } as never);
+
+    const body = buildEvent("checkout.session.completed", {
+      id: "cs_test_pack",
+      payment_intent: "pi_pack_123",
+      metadata: { kind: "vision_pack", packId },
+    });
+    const res = await dispatch(body);
+    expect(res.status).toBe(200);
+
+    expect(visionPackMock.activatePackFromCheckout).toHaveBeenCalledWith({
+      packId,
+      paymentIntentId: "pi_pack_123",
+    });
+    expect(dispatchersMock.notifyVisionPackReady).toHaveBeenCalledWith(
+      expect.objectContaining({
+        recipientUserId: recipientId,
+        packId,
+      }),
+    );
+    expect(captureServerMock).toHaveBeenCalledWith(
+      buyerId,
+      expect.any(String),
+      expect.objectContaining({ pack_id: packId, amount: 499 }),
+    );
+    // Installment path is NOT touched.
+    expect(prismaMock.payment.update).not.toHaveBeenCalled();
+  });
+
+  it("checkout.session.expired with vision_pack metadata expires the pending pack", async () => {
+    const packId = randomUUID();
+    prismaMock.stripeWebhookEvent.create.mockResolvedValue({} as never);
+    prismaMock.stripeWebhookEvent.update.mockResolvedValue({} as never);
+
+    const body = buildEvent("checkout.session.expired", {
+      id: "cs_test_expired",
+      metadata: { kind: "vision_pack", packId },
+    });
+    const res = await dispatch(body);
+    expect(res.status).toBe(200);
+
+    expect(visionPackMock.expirePendingCheckout).toHaveBeenCalledWith(packId);
+    // Installment expiration path not touched.
+    expect(prismaMock.payment.updateMany).not.toHaveBeenCalled();
   });
 });

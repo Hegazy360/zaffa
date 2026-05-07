@@ -9,6 +9,7 @@ import {
   notifyPaymentRefunded,
   notifyPayoutReceived,
 } from "@/server/services/notifications/dispatchers";
+import { reportError } from "@/lib/logger";
 
 async function assertAdmin(userId: string) {
   const profile = await prisma.profile.findUnique({
@@ -601,5 +602,301 @@ export const adminRouter = router({
         });
       }
       return payout;
+    }),
+
+  // ----- Vision Pack admin -----
+
+  /** Paginated list of all VisionPack rows for ops. */
+  listVisionPacks: protectedProcedure
+    .input(
+      z.object({
+        status: z
+          .enum([
+            "pending_payment",
+            "active",
+            "fulfilled",
+            "refunded",
+            "expired",
+          ])
+          .optional(),
+        query: z.string().max(120).optional(),
+        limit: z.number().int().min(1).max(100).default(50),
+        cursor: z.string().datetime().nullish(),
+      }),
+    )
+    .query(async ({ ctx, input }) => {
+      await assertAdmin(ctx.user.id);
+      const limit = input.limit;
+      const cursorDate = input.cursor ? new Date(input.cursor) : null;
+      const items = await prisma.visionPack.findMany({
+        where: {
+          ...(input.status ? { status: input.status } : {}),
+          ...(cursorDate ? { created_at: { lt: cursorDate } } : {}),
+          ...(input.query
+            ? {
+                OR: [
+                  {
+                    microsite_slug: {
+                      contains: input.query,
+                      mode: "insensitive",
+                    },
+                  },
+                  {
+                    recipient: {
+                      full_name: {
+                        contains: input.query,
+                        mode: "insensitive",
+                      },
+                    },
+                  },
+                  {
+                    buyer: {
+                      full_name: {
+                        contains: input.query,
+                        mode: "insensitive",
+                      },
+                    },
+                  },
+                ],
+              }
+            : {}),
+        },
+        orderBy: { created_at: "desc" },
+        take: limit + 1,
+        select: {
+          id: true,
+          status: true,
+          created_at: true,
+          paid_at: true,
+          expires_at: true,
+          amount: true,
+          currency: true,
+          renders_quota: true,
+          renders_used: true,
+          videos_quota: true,
+          videos_used: true,
+          microsite_slug: true,
+          microsite_published_at: true,
+          lookbook_downloaded_at: true,
+          refunded_at: true,
+          stripe_payment_intent_id: true,
+          buyer: {
+            select: { id: true, full_name: true, avatar_url: true },
+          },
+          recipient: {
+            select: { id: true, full_name: true, avatar_url: true },
+          },
+          event: {
+            select: { id: true, title: true },
+          },
+        },
+      });
+      const nextCursor =
+        items.length > limit
+          ? items[limit]!.created_at.toISOString()
+          : null;
+      return { items: items.slice(0, limit), nextCursor };
+    }),
+
+  /**
+   * Issue a full Stripe refund on a Vision Pack purchase and flip the
+   * row to `refunded`. No partial refunds — the pack is a packaged
+   * SKU, not an installment ledger. Does not gate on the
+   * `isPackRefundable` heuristic (admin can override the tripwire).
+   */
+  refundVisionPack: protectedProcedure
+    .input(
+      z.object({
+        packId: z.string().uuid(),
+        reason: z.string().max(500).optional(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      await assertAdmin(ctx.user.id);
+      const pack = await prisma.visionPack.findUnique({
+        where: { id: input.packId },
+        select: {
+          id: true,
+          status: true,
+          amount: true,
+          currency: true,
+          stripe_payment_intent_id: true,
+          recipient_user_id: true,
+        },
+      });
+      if (!pack) throw new TRPCError({ code: "NOT_FOUND" });
+      if (!pack.stripe_payment_intent_id) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Pack has no Stripe payment intent — nothing to refund.",
+        });
+      }
+      if (pack.status === "refunded") {
+        throw new TRPCError({
+          code: "CONFLICT",
+          message: "Pack is already refunded.",
+        });
+      }
+
+      const stripe = getStripe();
+      const refund = await stripe.refunds.create({
+        payment_intent: pack.stripe_payment_intent_id,
+        reason: "requested_by_customer",
+        metadata: {
+          kind: "vision_pack",
+          packId: pack.id,
+          initiatedBy: ctx.user.id,
+        },
+      });
+
+      await prisma.visionPack
+        .update({
+          where: { id: pack.id },
+          data: {
+            status: "refunded",
+            refunded_at: new Date(),
+            refund_reason: input.reason ?? null,
+          },
+        })
+        .catch((err: unknown) =>
+          reportError("admin.visionPack.refund.update_failed", err, {
+            packId: pack.id,
+          }),
+        );
+
+      return { refundId: refund.id, amount: Number(pack.amount) };
+    }),
+
+  /**
+   * Manual quota top-up for a Vision Pack. Used when ops decides to
+   * compensate a customer (e.g. a string of failed renders). Adds the
+   * requested counts to the existing quota and re-activates a fulfilled
+   * pack so the user can keep generating.
+   */
+  topUpVisionPackQuota: protectedProcedure
+    .input(
+      z.object({
+        packId: z.string().uuid(),
+        addRenders: z.number().int().min(0).max(100).default(0),
+        addVideos: z.number().int().min(0).max(20).default(0),
+        extendDays: z.number().int().min(0).max(180).default(0),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      await assertAdmin(ctx.user.id);
+      if (
+        input.addRenders === 0 &&
+        input.addVideos === 0 &&
+        input.extendDays === 0
+      ) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Nothing to top up — set at least one positive amount.",
+        });
+      }
+      const pack = await prisma.visionPack.findUnique({
+        where: { id: input.packId },
+        select: {
+          id: true,
+          status: true,
+          renders_quota: true,
+          videos_quota: true,
+          expires_at: true,
+        },
+      });
+      if (!pack) throw new TRPCError({ code: "NOT_FOUND" });
+      if (pack.status === "refunded") {
+        throw new TRPCError({
+          code: "CONFLICT",
+          message: "Cannot top up a refunded pack.",
+        });
+      }
+      const newExpires =
+        input.extendDays > 0 && pack.expires_at
+          ? new Date(
+              pack.expires_at.getTime() + input.extendDays * 24 * 60 * 60 * 1000,
+            )
+          : pack.expires_at;
+      const updated = await prisma.visionPack.update({
+        where: { id: pack.id },
+        data: {
+          renders_quota: pack.renders_quota + input.addRenders,
+          videos_quota: pack.videos_quota + input.addVideos,
+          expires_at: newExpires,
+          // Re-arm a fulfilled pack so the user can generate again on
+          // the bumped quota.
+          ...(pack.status === "fulfilled" || pack.status === "expired"
+            ? { status: "active" as const }
+            : {}),
+        },
+      });
+      return {
+        renders_quota: updated.renders_quota,
+        videos_quota: updated.videos_quota,
+        expires_at: updated.expires_at,
+        status: updated.status,
+      };
+    }),
+
+  /**
+   * Vision Pack pricing — admin CRUD for the per-country override
+   * table. The seed table in `src/lib/vision-pack-pricing.ts` is the
+   * floor; rows here override on a per-country basis at runtime, no
+   * deploy required.
+   *
+   * `country_code` is either an ISO-3166-1 alpha-2 code (uppercase) or
+   * the literal "DEFAULT" sentinel for the unmapped fallback.
+   */
+  listVisionPackPricing: protectedProcedure.query(async ({ ctx }) => {
+    await assertAdmin(ctx.user.id);
+    const rows = await prisma.visionPackPricing.findMany({
+      orderBy: [{ country_code: "asc" }],
+    });
+    return rows;
+  }),
+
+  upsertVisionPackPricing: protectedProcedure
+    .input(
+      z.object({
+        country_code: z
+          .string()
+          .regex(/^([A-Z]{2}|DEFAULT)$/, "Use a 2-letter ISO code or 'DEFAULT'")
+          .max(8),
+        amount: z.number().int().min(1).max(1_000_000),
+        currency: z
+          .string()
+          .length(3)
+          .regex(/^[A-Z]{3}$/, "Use a 3-letter ISO 4217 currency code"),
+        notes: z.string().max(500).optional(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      await assertAdmin(ctx.user.id);
+      return prisma.visionPackPricing.upsert({
+        where: { country_code: input.country_code },
+        create: {
+          country_code: input.country_code,
+          amount: input.amount,
+          currency: input.currency,
+          notes: input.notes ?? null,
+          updated_by: ctx.user.id,
+        },
+        update: {
+          amount: input.amount,
+          currency: input.currency,
+          notes: input.notes ?? null,
+          updated_by: ctx.user.id,
+        },
+      });
+    }),
+
+  deleteVisionPackPricing: protectedProcedure
+    .input(z.object({ country_code: z.string().max(8) }))
+    .mutation(async ({ ctx, input }) => {
+      await assertAdmin(ctx.user.id);
+      await prisma.visionPackPricing.deleteMany({
+        where: { country_code: input.country_code },
+      });
+      return { ok: true };
     }),
 });

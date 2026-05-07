@@ -27,7 +27,7 @@ const handler = (req: Request) =>
     endpoint: "/api/trpc",
     req,
     router: appRouter,
-    createContext: createTRPCContext,
+    createContext: ({ req }) => createTRPCContext({ req }),
     onError({ error, path, type, ctx }) {
       const code: string =
         error instanceof TRPCError ? error.code : "INTERNAL_SERVER_ERROR";

@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { MediaGalleryDialog } from "./MediaGalleryDialog";
+import { VisionPackQuotaBadge } from "@/components/vision-pack/VisionPackQuotaBadge";
 
 interface DesignerHeaderProps {
   name: string;
@@ -102,8 +103,18 @@ export function DesignerHeader({
         </div>
       </div>
 
-      {/* Row B on mobile: actions wrap; right-aligned cluster on desktop */}
-      <div className="flex flex-wrap items-center justify-end gap-2 md:ms-auto md:gap-1">
+      {/* Row B on mobile: actions wrap; right-aligned cluster on desktop.
+          The Vision Pack quota pill gets its own lane on the far end so
+          it can't be squeezed into a wrapping line that overlaps the
+          name input or the Approve button on mid widths. */}
+      <div className="flex flex-wrap items-center justify-end gap-2 md:ms-auto md:gap-1.5">
+        <VisionPackQuotaBadge />
+
+        <div
+          className="hidden h-4 w-px bg-border md:block"
+          aria-hidden
+        />
+
         {designId && (
           <>
             <Button

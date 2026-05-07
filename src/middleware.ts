@@ -9,6 +9,16 @@ import {
   locales,
 } from "@/i18n/config";
 import { isFlagEnabled } from "@/lib/flags";
+import {
+  VISION_PACK_COUNTRY_COOKIE,
+  normalizeCountryCode,
+} from "@/lib/vision-pack-pricing";
+
+// 1 year — country doesn't change often, and a stale entry only impacts
+// pricing display (the resolved price is computed server-side per-request,
+// so a cookie outliving a real geo move just delays the price update by
+// at most one cookie cycle).
+const COUNTRY_COOKIE_MAX_AGE = 60 * 60 * 24 * 365;
 
 // Routes the `publicBrowse` flag controls. When the flag is off, anything
 // matching this regex is rejected at the edge with a real 404 — calling
@@ -151,6 +161,32 @@ export async function middleware(request: NextRequest) {
     response.cookies.set(LOCALE_COOKIE, chosen, {
       path: "/",
       maxAge: LOCALE_COOKIE_MAX_AGE,
+      sameSite: "lax",
+    });
+  }
+
+  // Seed the country cookie from the upstream geo signal so server
+  // components + tRPC procedures resolve Vision Pack pricing for the
+  // visitor's market. Read order:
+  //   - Vercel: `request.geo.country` (production), `x-vercel-ip-country`
+  //   - Cloudflare: `cf-ipcountry`
+  //   - Local dev: nothing — fall through to DEFAULT seed.
+  // Always re-write when the upstream signal disagrees with the cookie
+  // (e.g. user moved networks), but skip the write when nothing changed
+  // to avoid a cache-bust on every hit.
+  const detectedCountry = normalizeCountryCode(
+    // request.geo is Vercel-specific; tolerate environments without it.
+    (request as NextRequest & { geo?: { country?: string } }).geo?.country ??
+      request.headers.get("x-vercel-ip-country") ??
+      request.headers.get("cf-ipcountry"),
+  );
+  const existingCountry = normalizeCountryCode(
+    request.cookies.get(VISION_PACK_COUNTRY_COOKIE)?.value,
+  );
+  if (detectedCountry && detectedCountry !== existingCountry) {
+    response.cookies.set(VISION_PACK_COUNTRY_COOKIE, detectedCountry, {
+      path: "/",
+      maxAge: COUNTRY_COOKIE_MAX_AGE,
       sameSite: "lax",
     });
   }

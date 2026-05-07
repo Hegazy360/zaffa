@@ -17,6 +17,12 @@ import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { Navbar } from "@/components/layout/navbar";
 import { useFormatters } from "@/lib/use-formatters";
+import {
+  VisionPackBuyCta,
+  VisionPackQuotaBadge,
+} from "@/components/vision-pack/VisionPackQuotaBadge";
+import { usePackPaywall } from "@/components/vision-pack/VisionPackPaywallProvider";
+import { useVisionPackPricing } from "@/components/vision-pack/use-pricing";
 
 interface NormalizedPalette {
   colors: string[];
@@ -37,8 +43,12 @@ export default function VenueDesignerGalleryPage() {
   const router = useRouter();
   const reduceMotion = useReducedMotion();
   const t = useTranslations("designer");
+  const tv = useTranslations("visionPack");
   const f = useFormatters();
   const { data: designs, isLoading } = trpc.venueDesigns.list.useQuery();
+  const { data: pack } = trpc.visionPacks.current.useQuery();
+  const paywall = usePackPaywall();
+  const pricing = useVisionPackPricing();
   const utils = trpc.useUtils();
 
   const deleteMutation = trpc.venueDesigns.delete.useMutation({
@@ -154,15 +164,60 @@ export default function VenueDesignerGalleryPage() {
               {t("gallerySubtitle")}
             </p>
           </div>
-          <Button
-            size="lg"
-            onClick={() => router.push("/venue-designer/new")}
-            className="h-11 gap-2 bg-gradient-to-r from-rose-600 to-amber-500 px-5 text-white shadow-lg shadow-rose-500/20 hover:opacity-90 hover:shadow-rose-500/30"
-          >
-            <Plus className="size-4" />
-            {t("newDesign")}
-          </Button>
+          <div className="flex flex-col items-end gap-2 sm:items-end">
+            {pack ? (
+              <VisionPackQuotaBadge />
+            ) : null}
+            {pack ? (
+              <Button
+                size="lg"
+                onClick={() => router.push("/venue-designer/new")}
+                className="h-11 gap-2 bg-gradient-to-r from-rose-600 to-amber-500 px-5 text-white shadow-lg shadow-rose-500/20 hover:opacity-90 hover:shadow-rose-500/30"
+              >
+                <Plus className="size-4" />
+                {t("newDesign")}
+              </Button>
+            ) : (
+              <VisionPackBuyCta returnPath="/venue-designer/new" />
+            )}
+          </div>
         </motion.header>
+
+        {/* No-pack hero banner: when the user has never bought a pack, lead
+            with the paid value prop instead of the free-designer pitch. */}
+        {!pack && !isLoading && (
+          <motion.section
+            initial={reduceMotion ? false : { opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
+            className="mb-12 overflow-hidden rounded-2xl border border-rose-200/70 bg-gradient-to-br from-rose-50/80 via-white to-amber-50/60 p-6 shadow-sm dark:border-rose-900/50 dark:from-rose-950/30 dark:via-background dark:to-amber-950/20 sm:p-8"
+          >
+            <div className="flex flex-col items-start gap-5 sm:flex-row sm:items-center sm:justify-between">
+              <div className="space-y-2 max-w-xl">
+                <div className="inline-flex items-center gap-1.5 rounded-full border border-rose-200/70 bg-white/80 px-3 py-1 text-[10px] font-medium tracking-[0.2em] text-rose-700 uppercase backdrop-blur-sm dark:border-rose-900/50 dark:bg-rose-950/40 dark:text-rose-200">
+                  <Sparkles className="size-3" />
+                  {tv("name")}
+                </div>
+                <h2 className="font-display text-2xl font-light tracking-tight sm:text-3xl">
+                  {tv("tagline")}
+                </h2>
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  {tv("paywallBody", { price: pricing.label })}
+                </p>
+              </div>
+              <Button
+                size="lg"
+                onClick={() =>
+                  paywall.open({ returnPath: "/venue-designer/new" })
+                }
+                className="h-11 gap-2 bg-gradient-to-r from-rose-600 to-amber-500 px-5 text-white shadow-lg shadow-rose-500/20 hover:opacity-90"
+              >
+                <Sparkles className="size-4" />
+                {tv("buyCtaShort", { price: pricing.label })}
+              </Button>
+            </div>
+          </motion.section>
+        )}
 
         {isLoading ? (
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">

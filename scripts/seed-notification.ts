@@ -224,6 +224,10 @@ const DEMO_VARS: Record<NotificationType, SeedVars> = {
     engagementTitle: "Full-service floral (ceremony + reception)",
     totalAmount: "EGP 52,000",
   },
+  // Vision Pack
+  vision_pack_ready: {
+    days: 60,
+  },
   // Shared
   message_received: {
     senderName: "Nour, your planner",
