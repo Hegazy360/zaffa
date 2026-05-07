@@ -32,12 +32,6 @@ import { LookbookDownloadButton } from "./lookbook-download-button";
 interface Props {
   /** Owner of this design — used to wire the find-planner CTA to a saved design. */
   designId?: string;
-  /**
-   * Whether the current design has at least one render or video saved. When
-   * false we keep the chrome but disable the actions that need media (the
-   * lookbook PDF) and surface a friendly "generate first" hint instead.
-   */
-  hasMedia: boolean;
 }
 
 /**
@@ -55,8 +49,12 @@ interface Props {
  * The component fetches the recipient's pack itself; it returns null
  * when there's no pack so the designer step renders nothing extra for
  * users who haven't purchased yet (the paywall handles that case).
+ *
+ * The parent `GenerateStep` only mounts this panel after the first
+ * render lands, so we can assume there's always renderable media here —
+ * no empty-state branch to worry about.
  */
-export function ShareAndFinishPanel({ designId, hasMedia }: Props) {
+export function ShareAndFinishPanel({ designId }: Props) {
   const t = useTranslations("visionPack");
   const router = useRouter();
   const utils = trpc.useUtils();
@@ -218,18 +216,12 @@ export function ShareAndFinishPanel({ designId, hasMedia }: Props) {
           title={t("shareSectionLookbookTitle")}
           description={t("shareSectionLookbookBody")}
         >
-          {hasMedia ? (
-            <LookbookDownloadButton
-              packId={pack.id}
-              size="sm"
-              variant="outline"
-              hideHint
-            />
-          ) : (
-            <p className="text-[11px] text-muted-foreground/85">
-              {t("shareEmptyHint")}
-            </p>
-          )}
+          <LookbookDownloadButton
+            packId={pack.id}
+            size="sm"
+            variant="outline"
+            hideHint
+          />
         </Section>
 
         {/* Find a planner */}

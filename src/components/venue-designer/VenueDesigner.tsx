@@ -340,22 +340,25 @@ function StepBody({ step, designId }: StepBodyProps) {
 
 /**
  * Last-step composite: the AI render panel sits on top, and the
- * share/lookbook/find-planner CTAs live directly underneath so couples
- * can publish, download, or hand off without leaving the designer.
+ * share/lookbook/find-planner CTAs only appear once the couple has at
+ * least one render — sharing an empty pack would just confuse recipients.
  *
- * `hasMedia` is sourced from the same `venueDesigns.getById` query that
- * GenerateRenderPanel uses — react-query dedupes so this is free.
+ * `hasRender` is sourced from the same `venueDesigns.getById` query that
+ * GenerateRenderPanel drives — react-query dedupes so the query is free,
+ * and it auto-refetches when GenerateRenderPanel invalidates after a
+ * successful render, so the share panel slides in the moment the first
+ * render lands.
  */
 function GenerateStep({ designId }: { designId?: string }) {
   const { data: design } = trpc.venueDesigns.getById.useQuery(
     { id: designId! },
     { enabled: !!designId },
   );
-  const hasMedia = (design?.media?.length ?? 0) > 0;
+  const hasRender = (design?.media ?? []).some((m) => m.type === "render");
   return (
     <div className="space-y-8">
       <GenerateRenderPanel designId={designId} />
-      <ShareAndFinishPanel designId={designId} hasMedia={hasMedia} />
+      {hasRender ? <ShareAndFinishPanel designId={designId} /> : null}
     </div>
   );
 }

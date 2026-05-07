@@ -4,6 +4,7 @@ import { Navbar } from "@/components/layout/navbar";
 import { Footer } from "@/components/layout/footer";
 import { HeroEditorial } from "@/components/home/hero-editorial";
 import { HowItWorks } from "@/components/home/how-it-works";
+import { ShareSection } from "@/components/home/share-section";
 import { BeginSection } from "@/components/home/begin-section";
 import {
   MarketplaceTeaserSection,
@@ -50,6 +51,11 @@ export default function HomePage() {
 
         {/* How it works — four simple steps with screenshots */}
         <HowItWorks />
+
+        {/* The artefacts — what you walk away with: a private microsite
+            and a printable lookbook PDF, designed for the audiences that
+            matter (family, friends, every planner you meet). */}
+        <ShareSection />
 
         {/* The pulse — who's already on the platform. Streamed: the rest of
             the marketing shell flushes immediately while the DB query for
