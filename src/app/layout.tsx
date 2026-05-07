@@ -48,10 +48,9 @@ export const metadata: Metadata = {
     template: "%s | Zaffa",
   },
   description:
-    "Connect with Egypt's finest wedding planners and vendors. AI-powered style matching, mood boards, and seamless event planning.",
+    "Connect with vetted wedding planners and vendors. AI-powered style matching, mood boards, and seamless event planning.",
   keywords: [
     "wedding planner",
-    "Egypt",
     "event planning",
     "زفة",
     "wedding",
@@ -64,7 +63,7 @@ export const metadata: Metadata = {
     siteName: "Zaffa",
     title: "Zaffa — Your Dream Event, Expertly Planned",
     description:
-      "Connect with Egypt's finest wedding planners and vendors. AI-powered style matching, mood boards, and seamless event planning.",
+      "Connect with vetted wedding planners and vendors. AI-powered style matching, mood boards, and seamless event planning.",
     url: siteUrl(),
     locale: "en_US",
   },
@@ -72,7 +71,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Zaffa — Your Dream Event, Expertly Planned",
     description:
-      "Connect with Egypt's finest wedding planners and vendors.",
+      "Connect with vetted wedding planners and vendors.",
   },
   robots: {
     index: true,

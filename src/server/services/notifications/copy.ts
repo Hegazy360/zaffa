@@ -442,7 +442,7 @@ export function formatCopy(tpl: string, vars: CopyVars): string {
 const CHROME = {
   en: {
     tagline: "Celebrations, thoughtfully staged.",
-    location: "Cairo, Egypt",
+    location: "Paris, France",
     seeUpdates: "Or see every update.",
     openInbox: "Open your inbox",
     preferences: "Notification preferences",
@@ -451,7 +451,7 @@ const CHROME = {
   },
   ar: {
     tagline: "حفلات تُصمَّم بعناية.",
-    location: "القاهرة، مصر",
+    location: "باريس، فرنسا",
     seeUpdates: "أو اطّلع على جميع التحديثات.",
     openInbox: "افتح الإشعارات",
     preferences: "إعدادات الإشعارات",

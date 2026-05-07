@@ -5,7 +5,7 @@ import { LegalPage } from "@/components/marketing/legal-page";
 export const metadata: Metadata = {
   title: "About",
   description:
-    "Zaffa is a curated platform for Egyptian event planning — connecting clients with vetted planners and vendors.",
+    "Zaffa is a curated event-planning platform — connecting couples with vetted planners and vendors.",
 };
 
 export default async function AboutPage() {

@@ -344,7 +344,7 @@ export function LookbookDocument({
         </View>
         <View style={styles.footer}>
           <Text>Zaffa</Text>
-          <Text>Cairo, Egypt</Text>
+          <Text>zaffa.ai</Text>
         </View>
       </Page>
 
@@ -425,9 +425,7 @@ export function LookbookDocument({
             Your wedding,{"\n"}visualized.
           </Text>
           <View style={styles.hairline} />
-          <Text style={styles.meta}>
-            zaffa.ai{"\n"}Cairo, Egypt
-          </Text>
+          <Text style={styles.meta}>zaffa.ai</Text>
         </View>
       </Page>
     </Document>
