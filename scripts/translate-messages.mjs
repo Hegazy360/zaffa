@@ -133,7 +133,7 @@ async function translateBatch(items) {
     "Content-Type": "application/json",
   };
   if (isOpenRouter) {
-    headers["HTTP-Referer"] = "https://zaffa.app";
+    headers["HTTP-Referer"] = "https://www.zaffa.ai";
     headers["X-Title"] = "Zaffa i18n";
   }
   const res = await fetch(`${BASE_URL}/chat/completions`, {
