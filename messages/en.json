@@ -436,7 +436,9 @@
     "discovery": "Discovery",
     "outreach": "Outreach",
     "templates": "Templates",
-    "posts": "Posts"
+    "posts": "Posts",
+    "visionPacks": "Vision Packs",
+    "visionPackPricing": "Pack pricing"
   },
   "marketing": {
     "heroEyebrow": "Wedding Vision Pack — {price}",

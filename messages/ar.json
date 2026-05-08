@@ -436,7 +436,9 @@
     "discovery": "الاكتشاف",
     "outreach": "التواصل",
     "templates": "القوالب",
-    "posts": "المنشورات"
+    "posts": "المنشورات",
+    "visionPacks": "حزم الرؤية",
+    "visionPackPricing": "تسعير الحزم"
   },
   "marketing": {
     "heroEyebrow": "حزمة رؤية الزفاف — {price}",

@@ -25,6 +25,8 @@ import {
   Wand2,
   Briefcase,
   ImageIcon,
+  Sparkles,
+  Tag,
   type LucideIcon,
 } from "lucide-react";
 
@@ -216,6 +218,17 @@ const roleLinks: Record<UserRole, NavLink[]> = {
       href: "/dashboard/admin/vendor-payouts",
       labelKey: "vendorPayouts",
       icon: Store,
+    },
+    {
+      href: "/dashboard/admin/vision-packs",
+      labelKey: "visionPacks",
+      icon: Sparkles,
+      match: ["/dashboard/admin/vision-packs"],
+    },
+    {
+      href: "/dashboard/admin/vision-pack-pricing",
+      labelKey: "visionPackPricing",
+      icon: Tag,
     },
   ],
 };
