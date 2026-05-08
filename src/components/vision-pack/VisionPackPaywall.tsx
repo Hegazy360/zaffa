@@ -76,7 +76,14 @@ export function VisionPackPaywall({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg p-0 gap-0 overflow-hidden">
+      {/*
+        Three-row layout: hero (auto) / scrollable body (1fr) / CTA (auto).
+        Capping the dialog at `100dvh-2rem` keeps it inside the viewport on
+        mobile (where the iOS URL bar would otherwise eat the bottom of a
+        plain `100vh` calc), while the inner middle row owns the scrolling
+        so the CTA stays pinned and visible at every height.
+      */}
+      <DialogContent className="sm:max-w-lg p-0 gap-0 overflow-hidden grid-rows-[auto_1fr_auto] max-h-[calc(100dvh-2rem)]">
         {/* Hero band — mirrors the email template eyebrow + headline */}
         <div className="relative bg-gradient-to-br from-rose-50/80 via-white to-amber-50/60 px-6 pt-7 pb-5 dark:from-rose-950/30 dark:via-background dark:to-amber-950/20">
           <div className="inline-flex items-center gap-1.5 rounded-full border border-rose-200/70 bg-white/80 px-3 py-1 text-[10px] font-medium tracking-[0.2em] text-rose-700 uppercase backdrop-blur-sm dark:border-rose-900/50 dark:bg-rose-950/40 dark:text-rose-200">
@@ -91,47 +98,53 @@ export function VisionPackPaywall({
           </DialogDescription>
         </div>
 
-        {/* What's included */}
-        <div className="px-6 py-5 border-t border-rose-100/70 dark:border-rose-900/40">
-          <div className="text-[10px] font-semibold tracking-[0.2em] text-muted-foreground uppercase mb-3">
-            {t("includesEyebrow")}
+        {/* Scrollable body. `min-h-0` is required so the grid's 1fr row can
+            actually shrink below its content's intrinsic height — without
+            it `overflow-y-auto` is a no-op. */}
+        <div className="min-h-0 overflow-y-auto overscroll-contain">
+          {/* What's included */}
+          <div className="px-6 py-5 border-t border-rose-100/70 dark:border-rose-900/40">
+            <div className="text-[10px] font-semibold tracking-[0.2em] text-muted-foreground uppercase mb-3">
+              {t("includesEyebrow")}
+            </div>
+            <ul className="space-y-2.5 text-sm">
+              <PackInclude icon={ImageIcon} text={t("includesMoodboard")} />
+              <PackInclude
+                icon={ImageIcon}
+                text={t("includesRenders", {
+                  count: VISION_PACK_RENDERS_QUOTA,
+                  styles: VISION_PACK_STYLES,
+                })}
+              />
+              <PackInclude
+                icon={Film}
+                text={t("includesVideos", { count: VISION_PACK_VIDEOS_QUOTA })}
+              />
+              <PackInclude icon={FileText} text={t("includesLookbook")} />
+              <PackInclude icon={Globe} text={t("includesMicrosite")} />
+              <PackInclude
+                icon={Calendar}
+                text={t("includesWindow", { days: VISION_PACK_WINDOW_DAYS })}
+              />
+            </ul>
           </div>
-          <ul className="space-y-2.5 text-sm">
-            <PackInclude icon={ImageIcon} text={t("includesMoodboard")} />
-            <PackInclude
-              icon={ImageIcon}
-              text={t("includesRenders", {
-                count: VISION_PACK_RENDERS_QUOTA,
-                styles: VISION_PACK_STYLES,
+
+          {/* Stacking note + refund */}
+          <div className="px-6 py-4 border-t border-rose-100/70 bg-muted/30 text-xs text-muted-foreground leading-relaxed dark:border-rose-900/40">
+            <p>
+              {t("stackingNote", {
+                pct: VISION_PACK_DEFAULT_PLATFORM_FEE_PCT,
+                price: pricing.label,
               })}
-            />
-            <PackInclude
-              icon={Film}
-              text={t("includesVideos", { count: VISION_PACK_VIDEOS_QUOTA })}
-            />
-            <PackInclude icon={FileText} text={t("includesLookbook")} />
-            <PackInclude icon={Globe} text={t("includesMicrosite")} />
-            <PackInclude
-              icon={Calendar}
-              text={t("includesWindow", { days: VISION_PACK_WINDOW_DAYS })}
-            />
-          </ul>
+            </p>
+            <p className="mt-2 font-medium text-foreground/80">
+              {t("refundPolicyShort")}
+            </p>
+          </div>
         </div>
 
-        {/* Stacking note + refund */}
-        <div className="px-6 py-4 border-t border-rose-100/70 bg-muted/30 text-xs text-muted-foreground leading-relaxed dark:border-rose-900/40">
-          <p>
-            {t("stackingNote", {
-              pct: VISION_PACK_DEFAULT_PLATFORM_FEE_PCT,
-              price: pricing.label,
-            })}
-          </p>
-          <p className="mt-2 font-medium text-foreground/80">
-            {t("refundPolicyShort")}
-          </p>
-        </div>
-
-        {/* CTA */}
+        {/* CTA — sits in the third grid row, so it stays pinned at the
+            bottom of the dialog regardless of how tall the body grows. */}
         <div className="px-6 py-4 border-t border-rose-100/70 bg-background dark:border-rose-900/40 flex flex-col-reverse gap-2 sm:flex-row sm:items-center sm:justify-between">
           <Button
             type="button"
