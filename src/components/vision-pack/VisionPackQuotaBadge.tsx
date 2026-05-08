@@ -5,6 +5,7 @@ import { Sparkles, Image as ImageIcon, Video, Calendar } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { usePackPaywall } from "./VisionPackPaywallProvider";
+import { useVisionPackPricing } from "./use-pricing";
 
 /**
  * Compact pill shown in the designer header that surfaces the remaining
@@ -94,6 +95,7 @@ export function VisionPackBuyCta({
 }) {
   const t = useTranslations("visionPack");
   const paywall = usePackPaywall();
+  const pricing = useVisionPackPricing();
   const className =
     variant === "primary"
       ? "gap-2 bg-gradient-to-r from-rose-600 to-amber-500 text-white shadow-lg shadow-rose-500/20 hover:opacity-90"
@@ -107,9 +109,7 @@ export function VisionPackBuyCta({
       className={`${className} ${fullWidth ? "w-full" : ""}`}
     >
       <Sparkles className="size-4" />
-      {t("buyCtaShort", {
-        price: 499,
-      })}
+      {t("buyCtaShort", { price: pricing.label })}
     </Button>
   );
 }
