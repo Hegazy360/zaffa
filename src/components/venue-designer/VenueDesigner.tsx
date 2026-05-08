@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
 import { motion, useReducedMotion } from "framer-motion";
 import { useTranslations } from "next-intl";
@@ -83,7 +82,6 @@ function normalizePalette(value: unknown): DesignDocument["palette"] {
 }
 
 export function VenueDesigner({ designId }: VenueDesignerProps) {
-  const router = useRouter();
   const t = useTranslations("designer");
   const serialize = useVenueDesignerStore((s) => s.serialize);
   const deserialize = useVenueDesignerStore((s) => s.deserialize);
@@ -124,7 +122,25 @@ export function VenueDesigner({ designId }: VenueDesignerProps) {
     onSuccess: (result) => {
       if (!currentId) {
         setCurrentId(result.id);
-        router.replace(`/venue-designer/${result.id}`);
+        // Update the URL to the new design's permalink in place. We use
+        // `history.replaceState` rather than `router.replace` for two
+        // reasons that both manifested as bugs:
+        //   1) `router.replace(/venue-designer/<id>)` drops the
+        //      `#step=...` hash, which `useDesignerStep` reads on every
+        //      hashchange — so the autosave was silently jolting the
+        //      user back to step 1.
+        //   2) router.replace also unmounts `new/page.tsx` and mounts
+        //      `[id]/page.tsx`, which fires `getById` and re-runs
+        //      `deserialize(doc)`. Any edits the user made between the
+        //      save firing and the new mount would be overwritten by
+        //      the older just-saved snapshot. Staying on the same tree
+        //      avoids the race entirely.
+        // On full reload the [id] route picks up the URL correctly, so
+        // there's no permalink regression.
+        if (typeof window !== "undefined") {
+          const url = `/venue-designer/${result.id}${window.location.hash}`;
+          window.history.replaceState(null, "", url);
+        }
       }
       setLastSavedKey(snapshotKey(serialize()));
     },
