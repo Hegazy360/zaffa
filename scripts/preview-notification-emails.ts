@@ -145,6 +145,12 @@ const DEMO_VARS: Record<NotificationType, Vars> = {
   vision_pack_ready: {
     days: 60,
   },
+  venue_lead_opened: {
+    coupleName: "Layla & Adam",
+    venueName: "Sahara Pavilion",
+    venueCity: "Cairo",
+    eventTitle: "Layla & Adam's Summer Rooftop",
+  },
 };
 
 function parseArgs(): {

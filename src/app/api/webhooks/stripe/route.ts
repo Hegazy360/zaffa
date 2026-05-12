@@ -24,6 +24,7 @@ import {
   VISION_PACK_CHECKOUT_KIND,
   VISION_PACK_WINDOW_DAYS,
 } from "@/lib/vision-pack";
+import { minorToMajor } from "@/lib/vision-pack-pricing";
 
 // All Stripe webhook events that bear on the payment system. We treat the
 // list as a whitelist; anything else is acknowledged with 200 + logged so we
@@ -272,12 +273,19 @@ async function handleVisionPackCheckoutCompleted(
   // against the buyer's distinctId so the couple-journey funnel stitches
   // together browser pageviews + this server-side ground truth.
   if (pack) {
+    // VisionPack.amount is in minor units; report major units in
+    // analytics to stay consistent with the rest of the funnel where
+    // payments use Decimal majors.
+    const amountMajor = pack.amount
+      ? minorToMajor(Number(pack.amount), pack.currency)
+      : 0;
     await captureServer(
       pack.buyer_user_id,
       ANALYTICS_EVENTS.VISION_PACK_PURCHASED,
       {
         pack_id: pack.id,
-        amount: Number(pack.amount) || 0,
+        amount: amountMajor,
+        amount_minor: Number(pack.amount) || 0,
         currency: pack.currency,
       },
     );

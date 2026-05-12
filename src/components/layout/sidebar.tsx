@@ -27,6 +27,8 @@ import {
   ImageIcon,
   Sparkles,
   Tag,
+  Building2,
+  CalendarHeart,
   type LucideIcon,
 } from "lucide-react";
 
@@ -229,6 +231,18 @@ const roleLinks: Record<UserRole, NavLink[]> = {
       href: "/dashboard/admin/vision-pack-pricing",
       labelKey: "visionPackPricing",
       icon: Tag,
+    },
+    {
+      href: "/dashboard/admin/events",
+      labelKey: "events",
+      icon: CalendarHeart,
+      match: ["/dashboard/admin/events"],
+    },
+    {
+      href: "/dashboard/admin/venues",
+      labelKey: "venues",
+      icon: Building2,
+      match: ["/dashboard/admin/venues"],
     },
   ],
 };

@@ -418,6 +418,22 @@ const CATALOG: Record<
       eyebrow: "باقة الرؤية",
     },
   },
+
+  // ----- Ops: venue lead -----
+  venue_lead_opened: {
+    en: {
+      title: "{coupleName} is interested in {venueName}",
+      body: "{coupleName} clicked \"I'm interested\" on {venueName} ({venueCity}) for {eventTitle}. Reach out to the venue and introduce them.",
+      ctaLabel: "Open the event",
+      eyebrow: "Venue lead",
+    },
+    ar: {
+      title: "أبدى {coupleName} اهتمامًا بـ {venueName}",
+      body: "ضغط {coupleName} على \"مهتمّ\" بمكان {venueName} في {venueCity} لمناسبة {eventTitle}. تواصل مع المكان وقدّمه إليهم.",
+      ctaLabel: "فتح المناسبة",
+      eyebrow: "طلب مكان",
+    },
+  },
 };
 
 /**
@@ -696,6 +712,18 @@ export function buildFacts(
       // surfacing facts here would clutter what's effectively a welcome
       // moment, not a status update.
       return undefined;
+
+    case "venue_lead_opened": {
+      const venueName = str(vars.venueName);
+      const venueCity = str(vars.venueCity);
+      const venueLabel: NotificationFact | null = venueName
+        ? {
+            label: locale === "ar" ? "المكان" : "Venue",
+            value: venueCity ? `${venueName} · ${venueCity}` : venueName,
+          }
+        : null;
+      return compact([pair("event", eventTitle), venueLabel]);
+    }
 
     default:
       return undefined;

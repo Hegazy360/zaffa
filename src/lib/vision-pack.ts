@@ -1,37 +1,114 @@
-// Vision Pack — shared constants + helpers used by both the tRPC routers
-// and the Stripe webhook. Centralised so the paywall, the checkout SKU,
-// and the refund tripwire all reference the same numbers.
+// Vision Pack — shared SKU registry, quotas, and lifecycle helpers used
+// by both the tRPC routers and the Stripe webhook. Centralised so the
+// paywall, the checkout SKU, and the refund tripwire all reference the
+// same numbers.
 //
-// To change pack pricing or composition, edit `VISION_PACK_SKU` here and
-// update the EN/AR copy under `visionPack.*` in `messages/*.json`. Bump
-// the `version` if past purchases need to keep their old quota math.
+// To add a new tier, append an entry to `PACK_SKUS` here, seed prices
+// for it in `src/lib/vision-pack-pricing.ts` (`SEED_PRICING[sku]`), and
+// update the EN/AR copy under `marketing.tier*` / `visionPack.*` in
+// `messages/*.json`. No DB migration is needed — `VisionPack.sku` is a
+// free-form text column.
 
-export const VISION_PACK_PRICE_EGP = 499;
-export const VISION_PACK_PRICE_CURRENCY = "EGP";
 /** Generation window in days from `paid_at` / `redeemed_at`. */
 export const VISION_PACK_WINDOW_DAYS = 60;
 /** Refund tripwire — full refund window from `paid_at`. */
 export const VISION_PACK_REFUND_HOURS = 24;
-export const VISION_PACK_RENDERS_QUOTA = 20;
-export const VISION_PACK_VIDEOS_QUOTA = 2;
-export const VISION_PACK_STYLES = 3;
-
 /** Default platform fee % shown in the pack-vs-marketplace stacking copy. */
 export const VISION_PACK_DEFAULT_PLATFORM_FEE_PCT = 8;
 
+export interface PackQuotas {
+  /** Number of photoreal renders included. */
+  renders: number;
+  /** Number of distinct style buckets. */
+  styles: number;
+  /** Number of short videos included. */
+  videos: number;
+}
+
+export interface PackSku {
+  id: string;
+  /** Marketing label (English). Localised display strings live in messages/*.json. */
+  name: string;
+  quotas: PackQuotas;
+  /** True when the pack unlocks the planner-marketplace handoff. */
+  includesPlannerMatch: boolean;
+  /** True when Zaffa curates venue recommendations for this pack's event. */
+  includesVenueRecs: boolean;
+  /** Generation window in days from `paid_at` / `redeemed_at`. */
+  durationDays: number;
+}
+
 /**
- * SKU descriptor — one source of truth for the Stripe Checkout line item
- * + the on-page "what's included" copy.
+ * Two SKUs ship today:
+ *   - **Design Pack** (`wedding_design_pack_v1`): the $19.99 starter
+ *     tier — design + microsite + PDF, no planner/venue matching.
+ *   - **Vision Pack** (`wedding_vision_pack_v1`): the original $99
+ *     full pack — bigger quotas, planner marketplace, plus
+ *     Zaffa-curated venue recommendations on the couple's event page.
+ *
+ * Stamped onto every `VisionPack` row at checkout time so individual
+ * purchases keep their tier even if the registry changes later.
  */
-export const VISION_PACK_SKU = {
-  id: "wedding_vision_pack_v1",
-  priceEgp: VISION_PACK_PRICE_EGP,
-  currency: VISION_PACK_PRICE_CURRENCY,
-  windowDays: VISION_PACK_WINDOW_DAYS,
-  rendersQuota: VISION_PACK_RENDERS_QUOTA,
-  videosQuota: VISION_PACK_VIDEOS_QUOTA,
-  styles: VISION_PACK_STYLES,
-} as const;
+export const PACK_SKUS = {
+  wedding_design_pack_v1: {
+    id: "wedding_design_pack_v1",
+    name: "Design Pack",
+    quotas: { renders: 10, styles: 2, videos: 1 },
+    includesPlannerMatch: false,
+    includesVenueRecs: false,
+    durationDays: VISION_PACK_WINDOW_DAYS,
+  },
+  wedding_vision_pack_v1: {
+    id: "wedding_vision_pack_v1",
+    name: "Vision Pack",
+    quotas: { renders: 20, styles: 3, videos: 2 },
+    includesPlannerMatch: true,
+    includesVenueRecs: true,
+    durationDays: VISION_PACK_WINDOW_DAYS,
+  },
+} as const satisfies Record<string, PackSku>;
+
+export type PackSkuId = keyof typeof PACK_SKUS;
+
+/** Default SKU for the home/marketing surface and any legacy code path. */
+export const DEFAULT_PACK_SKU: PackSkuId = "wedding_design_pack_v1";
+
+/** SKU id of the higher-tier pack (planner + venue matching). */
+export const VISION_PACK_SKU_ID: PackSkuId = "wedding_vision_pack_v1";
+
+/** Order in which tiers should appear on marketing/comparison surfaces. */
+export const PACK_SKU_ORDER: readonly PackSkuId[] = [
+  "wedding_design_pack_v1",
+  "wedding_vision_pack_v1",
+];
+
+/**
+ * Narrowed lookup. Returns `null` for unknown ids so callers can decide
+ * whether to fall back or surface an error.
+ */
+export function getPackSku(id: string | null | undefined): PackSku | null {
+  if (!id) return null;
+  return (PACK_SKUS as Record<string, PackSku>)[id] ?? null;
+}
+
+/** Throwing variant for code paths where the SKU is required to proceed. */
+export function requirePackSku(id: string | null | undefined): PackSku {
+  const sku = getPackSku(id);
+  if (!sku) {
+    throw new Error(`Unknown Vision Pack SKU: ${id ?? "<empty>"}`);
+  }
+  return sku;
+}
+
+/** Convenience: does this row's SKU unlock the planner marketplace handoff? */
+export function packIncludesPlannerMatch(skuId: string | null | undefined): boolean {
+  return getPackSku(skuId)?.includesPlannerMatch ?? false;
+}
+
+/** Convenience: does this row's SKU surface Zaffa-curated venue recs? */
+export function packIncludesVenueRecs(skuId: string | null | undefined): boolean {
+  return getPackSku(skuId)?.includesVenueRecs ?? false;
+}
 
 /**
  * Generate a URL-safe slug for the public microsite. Combined with the

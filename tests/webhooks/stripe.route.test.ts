@@ -235,11 +235,14 @@ describe("POST /api/webhooks/stripe", () => {
 
     prismaMock.stripeWebhookEvent.create.mockResolvedValue({} as never);
     prismaMock.stripeWebhookEvent.update.mockResolvedValue({} as never);
+    // `amount` is stored in minor units now (Stripe-aligned cents/piastres);
+    // 49900 piastres = EGP 499 retail. The analytics handler converts back
+    // to major units for the `amount` field and also emits `amount_minor`.
     prismaMock.visionPack.findUnique.mockResolvedValue({
       id: packId,
       recipient_user_id: recipientId,
       buyer_user_id: buyerId,
-      amount: 499,
+      amount: 49900,
       currency: "EGP",
     } as never);
 
@@ -264,7 +267,11 @@ describe("POST /api/webhooks/stripe", () => {
     expect(captureServerMock).toHaveBeenCalledWith(
       buyerId,
       expect.any(String),
-      expect.objectContaining({ pack_id: packId, amount: 499 }),
+      expect.objectContaining({
+        pack_id: packId,
+        amount: 499,
+        amount_minor: 49900,
+      }),
     );
     // Installment path is NOT touched.
     expect(prismaMock.payment.update).not.toHaveBeenCalled();

@@ -10,6 +10,11 @@ import {
   notifyPayoutReceived,
 } from "@/server/services/notifications/dispatchers";
 import { reportError } from "@/lib/logger";
+import { PACK_SKUS, type PackSkuId } from "@/lib/vision-pack";
+
+const packSkuSchema = z.enum(
+  Object.keys(PACK_SKUS) as [PackSkuId, ...PackSkuId[]],
+);
 
 async function assertAdmin(userId: string) {
   const profile = await prisma.profile.findUnique({
@@ -841,28 +846,38 @@ export const adminRouter = router({
   /**
    * Vision Pack pricing — admin CRUD for the per-country override
    * table. The seed table in `src/lib/vision-pack-pricing.ts` is the
-   * floor; rows here override on a per-country basis at runtime, no
-   * deploy required.
+   * floor; rows here override on a per-(sku, country) basis at runtime,
+   * no deploy required.
    *
    * `country_code` is either an ISO-3166-1 alpha-2 code (uppercase) or
-   * the literal "DEFAULT" sentinel for the unmapped fallback.
+   * the literal "DEFAULT" sentinel for the unmapped fallback. `sku` is
+   * a SKU id from `PACK_SKUS` (defaults to the higher-tier Vision Pack
+   * to keep legacy callers working). Amounts are stored in **minor
+   * units** (cents/piastres) — the admin form authors fractional major
+   * units (e.g. `19.99`) and the page-level handler does the multiply
+   * before invoking the upsert.
    */
-  listVisionPackPricing: protectedProcedure.query(async ({ ctx }) => {
-    await assertAdmin(ctx.user.id);
-    const rows = await prisma.visionPackPricing.findMany({
-      orderBy: [{ country_code: "asc" }],
-    });
-    return rows;
-  }),
+  listVisionPackPricing: protectedProcedure
+    .input(z.object({ sku: packSkuSchema.optional() }).optional())
+    .query(async ({ ctx, input }) => {
+      await assertAdmin(ctx.user.id);
+      return prisma.visionPackPricing.findMany({
+        where: input?.sku ? { sku: input.sku } : undefined,
+        orderBy: [{ sku: "asc" }, { country_code: "asc" }],
+      });
+    }),
 
   upsertVisionPackPricing: protectedProcedure
     .input(
       z.object({
+        sku: packSkuSchema,
         country_code: z
           .string()
           .regex(/^([A-Z]{2}|DEFAULT)$/, "Use a 2-letter ISO code or 'DEFAULT'")
           .max(8),
-        amount: z.number().int().min(1).max(1_000_000),
+        // Amount in minor units. We allow 0 so admins can stage
+        // promotional pricing freely; UI keeps a >= 1 nudge.
+        amount: z.number().int().min(0).max(100_000_000),
         currency: z
           .string()
           .length(3)
@@ -873,8 +888,14 @@ export const adminRouter = router({
     .mutation(async ({ ctx, input }) => {
       await assertAdmin(ctx.user.id);
       return prisma.visionPackPricing.upsert({
-        where: { country_code: input.country_code },
+        where: {
+          sku_country_code: {
+            sku: input.sku,
+            country_code: input.country_code,
+          },
+        },
         create: {
+          sku: input.sku,
           country_code: input.country_code,
           amount: input.amount,
           currency: input.currency,
@@ -891,11 +912,16 @@ export const adminRouter = router({
     }),
 
   deleteVisionPackPricing: protectedProcedure
-    .input(z.object({ country_code: z.string().max(8) }))
+    .input(
+      z.object({
+        sku: packSkuSchema,
+        country_code: z.string().max(8),
+      }),
+    )
     .mutation(async ({ ctx, input }) => {
       await assertAdmin(ctx.user.id);
       await prisma.visionPackPricing.deleteMany({
-        where: { country_code: input.country_code },
+        where: { sku: input.sku, country_code: input.country_code },
       });
       return { ok: true };
     }),

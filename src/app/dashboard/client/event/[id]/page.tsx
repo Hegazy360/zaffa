@@ -61,6 +61,7 @@ import { cn } from "@/lib/utils";
 import type { EventStatus } from "@/types";
 import { SchedulePanel } from "@/components/payments/SchedulePanel";
 import { useRealtimeMessageSync } from "@/hooks/use-realtime-messages";
+import { RecommendedVenuesCard } from "./_components/recommended-venues-card";
 
 import { useFormatters } from "@/lib/use-formatters";
 const TABS = [
@@ -559,6 +560,9 @@ interface OverviewEvent {
     location: string | null;
     profile: { full_name: string; avatar_url: string | null };
   } | null;
+  // Latest VisionPack stamped onto this event. Used to gate
+  // tier-specific UI (e.g. the venue recommendations card).
+  vision_packs: { id: string; sku: string; status: string }[];
 }
 
 function OverviewTab({
@@ -611,7 +615,13 @@ function OverviewTab({
     });
   };
 
+  // Pull the most-recent Vision Pack stamped onto this event so the
+  // recommendations card knows whether to render. Coming from
+  // events.byId via the new `vision_packs` include.
+  const latestPackSku = event.vision_packs?.[0]?.sku ?? null;
+
   return (
+    <div className="space-y-6">
     <div className="grid gap-6 lg:grid-cols-3">
       {/* Details */}
       <div className="lg:col-span-2">
@@ -847,6 +857,9 @@ function OverviewTab({
           )}
         </div>
       </div>
+    </div>
+
+      <RecommendedVenuesCard eventId={event.id} packSku={latestPackSku} />
     </div>
   );
 }

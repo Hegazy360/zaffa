@@ -7,7 +7,6 @@ import {
   ImagePlus,
   Palette,
   Sparkles,
-  HeartHandshake,
   type LucideIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -19,18 +18,10 @@ import { cn } from "@/lib/utils";
 // aspect ratio so nothing is cropped — no fixed 16:10 box. Until a screenshot
 // is wired up the step shows a clean "screenshot coming soon" placeholder.
 interface StepDef {
-  id: "inspirations" | "palette" | "ai" | "share";
+  id: "inspirations" | "palette" | "ai";
   icon: LucideIcon;
-  titleKey:
-    | "howStep1Title"
-    | "howStep2Title"
-    | "howStep3Title"
-    | "howStep4Title";
-  bodyKey:
-    | "howStep1Body"
-    | "howStep2Body"
-    | "howStep3Body"
-    | "howStep4Body";
+  titleKey: "howStep1Title" | "howStep2Title" | "howStep3Title";
+  bodyKey: "howStep1Body" | "howStep2Body" | "howStep3Body";
   screenshot: {
     src: string;
     width: number;
@@ -40,6 +31,12 @@ interface StepDef {
   suggestedFilename: string;
 }
 
+// "Hand it to your planner" (formerly step 4) is hidden for now while
+// we ship the two-tier pricing surface — the Design Pack flow doesn't
+// involve a planner handoff, so leading with it on the marketing page
+// would mis-set expectations. The screenshot asset and `howStep4*`
+// translation keys are kept in place so we can reinstate without a
+// content reshoot when the planner-led flow gets re-emphasized.
 const STEPS: StepDef[] = [
   {
     id: "inspirations",
@@ -76,18 +73,6 @@ const STEPS: StepDef[] = [
       height: 948,
     },
     suggestedFilename: "step-3-ai-render.png",
-  },
-  {
-    id: "share",
-    icon: HeartHandshake,
-    titleKey: "howStep4Title",
-    bodyKey: "howStep4Body",
-    screenshot: {
-      src: "/home/how-it-works/step-4-share-with-planner.png",
-      width: 1110,
-      height: 1568,
-    },
-    suggestedFilename: "step-4-share-with-planner.png",
   },
 ];
 

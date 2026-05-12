@@ -1,31 +1,72 @@
 // Vision Pack — per-country pricing.
 //
 // Resolution order (all server-side, in `resolveVisionPackPricing`):
-//   1. `vision_pack_pricing[country_code = <ISO-2 from cookie>]`  (DB override)
-//   2. `vision_pack_pricing[country_code = 'DEFAULT']`            (DB override)
-//   3. `SEED_PRICING[country]`                                    (this file)
-//   4. EU expansion → `SEED_PRICING.EU`
-//   5. `SEED_PRICING.DEFAULT`
+//   1. `vision_pack_pricing[(sku, country_code = <ISO-2 from cookie>)]`
+//   2. `vision_pack_pricing[(sku, country_code = 'DEFAULT')]`
+//   3. `SEED_PRICING[sku][country]`
+//   4. EU expansion → `SEED_PRICING[sku].EU`
+//   5. `SEED_PRICING[sku].DEFAULT`
 //
 // The DB layer is the admin's runtime control surface; the seed is the
 // floor that ships with code so a fresh deploy always has a price for
 // every country.
+//
+// IMPORTANT: amounts are stored and passed around in **minor units**
+// (cents/piastres). $19.99 is `1999`, EGP 499 is `49900`. This aligns
+// with Stripe's smallest-currency-unit convention so the checkout path
+// can pass `amount` straight into `unit_amount` without re-multiplying.
+// Display helpers handle the divide-by-100 for 2-decimal currencies and
+// passthrough for zero-decimal currencies (JPY, KRW, …).
+
+import {
+  DEFAULT_PACK_SKU,
+  type PackSkuId,
+} from "./vision-pack";
 
 export const VISION_PACK_COUNTRY_COOKIE = "zaffa_country";
 
 export interface VisionPackPrice {
-  /** Major-units amount (e.g. 499, 99). Stripe-side conversion lives in `toStripeAmount`. */
+  /** Minor-units amount (e.g. 1999 for $19.99, 49900 for 499 EGP). */
   amount: number;
   /** ISO 4217 code (e.g. "EGP", "USD"). */
   currency: string;
 }
 
 /**
- * Seed price matrix. The home market (EG) keeps EGP; GCC nations with
- * 2-decimal currencies and stable USD pegs price in their native
- * currency at a ~$130 equivalent. North America/UK/EU price in their
- * native currencies at the premium tier. Everything else lands on the
- * USD default.
+ * Currencies whose smallest unit equals one major unit (no fractional
+ * subdivision). Mirrors `ZERO_DECIMAL_CURRENCIES` in
+ * `src/lib/payments.ts`. For these, the DB `amount` IS the major-unit
+ * figure — both `formatPriceLabel` and the Stripe path skip the /100.
+ */
+const ZERO_DECIMAL_CURRENCIES: ReadonlySet<string> = new Set([
+  "BIF", "CLP", "DJF", "GNF", "JPY", "KMF", "KRW", "MGA", "PYG",
+  "RWF", "UGX", "VND", "VUV", "XAF", "XOF", "XPF",
+]);
+
+/**
+ * Convert a stored minor-units amount into the major-units number used
+ * by `Intl.NumberFormat`. e.g. (1999, "USD") -> 19.99; (499, "JPY") -> 499.
+ */
+export function minorToMajor(amount: number, currency: string): number {
+  const code = currency.toUpperCase();
+  if (ZERO_DECIMAL_CURRENCIES.has(code)) return amount;
+  return amount / 100;
+}
+
+/** Convenience for tests/seeds that author prices in major units. */
+function majorToMinor(amount: number, currency: string): number {
+  const code = currency.toUpperCase();
+  if (ZERO_DECIMAL_CURRENCIES.has(code)) return Math.round(amount);
+  return Math.round(amount * 100);
+}
+
+type PerCountrySeed = Record<string, VisionPackPrice>;
+
+/**
+ * Author the seed in major units for legibility — `99 USD`, `499 EGP` —
+ * then convert to the minor-unit storage shape consumers see. Adding a
+ * new country: drop another entry in the right SKU bucket; adding a new
+ * SKU: add a top-level key here and a matching `PACK_SKUS` entry.
  *
  * 3-decimal currencies (KWD/BHD/OMR/JOD/IQD/LYD/TND) are intentionally
  * routed to USD via the default — Stripe's smallest-unit math for those
@@ -33,29 +74,53 @@ export interface VisionPackPrice {
  * we don't want to encode into a public-pricing seed. Admins can still
  * override per country via the dashboard if needed.
  */
-export const SEED_PRICING: Record<string, VisionPackPrice> = {
-  // Home market.
-  EG: { amount: 499, currency: "EGP" },
-
-  // GCC — 2-decimal currencies only (KWD/BHD/OMR fall through to default).
-  SA: { amount: 499, currency: "SAR" },
-  AE: { amount: 499, currency: "AED" },
-  QA: { amount: 499, currency: "QAR" },
-
-  // UK.
-  GB: { amount: 79, currency: "GBP" },
-
-  // EU bloc — handled via the EU expansion below, but we also keep an
-  // explicit entry so a direct lookup hits without the expansion.
-  EU: { amount: 89, currency: "EUR" },
-
-  // North America.
-  US: { amount: 99, currency: "USD" },
-  CA: { amount: 99, currency: "USD" }, // CA → USD by intent (premium tier set in USD).
-
-  // Global default for anywhere not explicitly listed (and not EU).
-  DEFAULT: { amount: 99, currency: "USD" },
+const SEED_AUTHORED: Record<PackSkuId, Record<string, { amount: number; currency: string }>> = {
+  // ----- Design Pack — $19.99 USD default -----
+  // Lower-tier "design + microsite + PDF" pack. No planner/venue
+  // matching included. Local equivalents are roughly 5× cheaper than
+  // the full Vision Pack to communicate it as the entry point.
+  wedding_design_pack_v1: {
+    EG: { amount: 99, currency: "EGP" },
+    SA: { amount: 99, currency: "SAR" },
+    AE: { amount: 99, currency: "AED" },
+    QA: { amount: 99, currency: "QAR" },
+    GB: { amount: 15.99, currency: "GBP" },
+    EU: { amount: 17.99, currency: "EUR" },
+    US: { amount: 19.99, currency: "USD" },
+    CA: { amount: 19.99, currency: "USD" },
+    DEFAULT: { amount: 19.99, currency: "USD" },
+  },
+  // ----- Vision Pack — original $99 USD default -----
+  // Unchanged from the single-SKU world; carries forward the same
+  // regional matrix so existing customers see the same prices.
+  wedding_vision_pack_v1: {
+    EG: { amount: 499, currency: "EGP" },
+    SA: { amount: 499, currency: "SAR" },
+    AE: { amount: 499, currency: "AED" },
+    QA: { amount: 499, currency: "QAR" },
+    GB: { amount: 79, currency: "GBP" },
+    EU: { amount: 89, currency: "EUR" },
+    US: { amount: 99, currency: "USD" },
+    CA: { amount: 99, currency: "USD" },
+    DEFAULT: { amount: 99, currency: "USD" },
+  },
 };
+
+/**
+ * Resolved seed price matrix in **minor units**. `SEED_PRICING[sku][country]`
+ * gives the floor when no DB override exists.
+ */
+export const SEED_PRICING: Record<PackSkuId, PerCountrySeed> = Object.fromEntries(
+  Object.entries(SEED_AUTHORED).map(([sku, perCountry]) => [
+    sku,
+    Object.fromEntries(
+      Object.entries(perCountry).map(([code, p]) => [
+        code,
+        { amount: majorToMinor(p.amount, p.currency), currency: p.currency },
+      ]),
+    ),
+  ]),
+) as Record<PackSkuId, PerCountrySeed>;
 
 /**
  * EU member states (27). When the visitor's country is one of these and
@@ -68,27 +133,50 @@ export const EU_MEMBER_STATES: ReadonlySet<string> = new Set([
   "PL", "PT", "RO", "SK", "SI", "ES", "SE",
 ]);
 
+function pickFromBucket(
+  bucket: PerCountrySeed | undefined,
+  countryCode: string | null | undefined,
+): VisionPackPrice {
+  if (!bucket) {
+    // Defensive: an unknown SKU in the seed should never happen because
+    // the type system pairs `PACK_SKUS` and `SEED_PRICING`, but we still
+    // need a sane fallback so a typo doesn't break the home page.
+    return { amount: 0, currency: "USD" };
+  }
+  if (!countryCode) return bucket.DEFAULT;
+  const code = countryCode.toUpperCase();
+  if (bucket[code]) return bucket[code];
+  if (EU_MEMBER_STATES.has(code) && bucket.EU) return bucket.EU;
+  return bucket.DEFAULT;
+}
+
 /**
  * Resolve the price for a given country code purely from the seed
  * matrix. Used as a fallback when the DB override layer doesn't have a
- * matching row. Pass `null`/`undefined` to get the global default.
+ * matching row. Pass `null`/`undefined` to get the global default for
+ * the requested SKU. Defaults to the Design Pack (lowest tier) when no
+ * SKU is supplied — that's the price quoted on the home page hero.
  */
 export function seedPricingFor(
   countryCode: string | null | undefined,
+  sku: PackSkuId = DEFAULT_PACK_SKU,
 ): VisionPackPrice {
-  if (!countryCode) return SEED_PRICING.DEFAULT;
-  const code = countryCode.toUpperCase();
-  if (SEED_PRICING[code]) return SEED_PRICING[code];
-  if (EU_MEMBER_STATES.has(code)) return SEED_PRICING.EU;
-  return SEED_PRICING.DEFAULT;
+  const bucket = SEED_PRICING[sku] ?? SEED_PRICING[DEFAULT_PACK_SKU];
+  return pickFromBucket(bucket, countryCode);
 }
 
 /**
  * Format a `{ amount, currency }` pair as a localized string. Uses
  * `Intl.NumberFormat` so each currency picks up its conventional symbol
- * placement and thousands separators. We pin `maximumFractionDigits: 0`
- * because the SKU is an integer in major units and showing ".00" feels
- * cluttered for retail pricing.
+ * placement and thousands separators.
+ *
+ * Two display modes drive `fractionDigits`:
+ *  - 2-decimal currencies (USD, EGP, …) show `.99` only when the price
+ *    is non-round in major units (e.g. `$19.99`); round prices like
+ *    `$99` print without trailing `.00` to keep retail copy clean.
+ *  - Zero-decimal currencies (JPY, KRW, …) always print without
+ *    fractions — `Intl` would honor that automatically but we pin the
+ *    digits explicitly so the output stays stable across runtimes.
  *
  * Falls back to `"<currency> <amount>"` if Intl rejects the pair (rare,
  * but defensive — e.g. an invalid currency code from a hand-edited DB row).
@@ -97,15 +185,20 @@ export function formatPriceLabel(
   price: VisionPackPrice,
   locale: string = "en",
 ): string {
+  const code = price.currency.toUpperCase();
+  const major = minorToMajor(price.amount, code);
+  const isZeroDecimal = ZERO_DECIMAL_CURRENCIES.has(code);
+  const isWholeNumber = Math.abs(major - Math.round(major)) < 0.005;
+  const fractionDigits = isZeroDecimal || isWholeNumber ? 0 : 2;
   try {
     return new Intl.NumberFormat(locale, {
       style: "currency",
-      currency: price.currency,
-      maximumFractionDigits: 0,
-      minimumFractionDigits: 0,
-    }).format(price.amount);
+      currency: code,
+      maximumFractionDigits: fractionDigits,
+      minimumFractionDigits: fractionDigits,
+    }).format(major);
   } catch {
-    return `${price.currency} ${price.amount}`;
+    return `${code} ${major}`;
   }
 }
 
@@ -126,3 +219,29 @@ export function normalizeCountryCode(
   if (!/^[A-Z]{2}$/.test(trimmed)) return null;
   return trimmed;
 }
+
+/** Iterate every (sku, country) seed pair — used by the admin panel's
+ * "seed reference" view to list prices that aren't yet overridden. */
+export function listSeedPrices(): Array<{
+  sku: PackSkuId;
+  country_code: string;
+  amount: number;
+  currency: string;
+}> {
+  const out: Array<{
+    sku: PackSkuId;
+    country_code: string;
+    amount: number;
+    currency: string;
+  }> = [];
+  for (const sku of Object.keys(SEED_PRICING) as PackSkuId[]) {
+    const bucket = SEED_PRICING[sku];
+    for (const [country_code, p] of Object.entries(bucket)) {
+      out.push({ sku, country_code, amount: p.amount, currency: p.currency });
+    }
+  }
+  return out;
+}
+
+export { PACK_SKUS } from "./vision-pack";
+export type { PackSkuId } from "./vision-pack";

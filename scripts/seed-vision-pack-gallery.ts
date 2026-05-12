@@ -25,11 +25,11 @@ import {
   buildReferencesJson,
 } from "../src/server/seed-data/vision-packs";
 import {
-  VISION_PACK_PRICE_EGP,
-  VISION_PACK_RENDERS_QUOTA,
-  VISION_PACK_VIDEOS_QUOTA,
+  PACK_SKUS,
+  VISION_PACK_SKU_ID,
   VISION_PACK_WINDOW_DAYS,
 } from "../src/lib/vision-pack";
+import { seedPricingFor } from "../src/lib/vision-pack-pricing";
 
 // Deterministic UUID v5-style derivation from a stable string. Avoids
 // migrations needing a fresh seed run; re-running keeps the same id.
@@ -146,18 +146,25 @@ async function main() {
         },
       });
     } else {
+      // Gallery seed always lands the higher-tier Vision Pack so the
+      // featured stories show the full feature surface (planner match
+      // + venue recs unlocked downstream). Pricing pulled from the EG
+      // seed in minor units so the row matches what real EG buyers see.
+      const sku = PACK_SKUS[VISION_PACK_SKU_ID];
+      const egPricing = seedPricingFor("EG", VISION_PACK_SKU_ID);
       await prisma.visionPack.create({
         data: {
+          sku: sku.id,
           buyer_user_id: userId,
           recipient_user_id: userId,
           status: "fulfilled",
           paid_at: now,
           redeemed_at: now,
           expires_at: expiresAt,
-          amount: VISION_PACK_PRICE_EGP,
-          currency: "EGP",
-          renders_quota: VISION_PACK_RENDERS_QUOTA,
-          videos_quota: VISION_PACK_VIDEOS_QUOTA,
+          amount: egPricing.amount,
+          currency: egPricing.currency,
+          renders_quota: sku.quotas.renders,
+          videos_quota: sku.quotas.videos,
           renders_used: seed.design.renders.length,
           videos_used: seed.design.video ? 1 : 0,
           microsite_slug: seed.micrositeSlug,

@@ -487,6 +487,41 @@ export function notifyVisionPackReady(args: {
   });
 }
 
+// ----- Ops: venue lead -----
+//
+// Couple clicked "I'm interested" on a Zaffa-curated venue. Fan out to
+// every admin so the on-call ops person sees it in the notifications
+// bell + email and can facilitate the introduction with the venue.
+export async function notifyVenueLeadOpened(args: {
+  eventId: string;
+  eventTitle: string;
+  recommendationId: string;
+  venueName: string;
+  venueCity: string;
+  coupleName: string;
+}): Promise<void> {
+  const admins = await prisma.profile.findMany({
+    where: { role: "admin" },
+    select: { id: true },
+  });
+  if (admins.length === 0) return;
+  await notifyMany({
+    userIds: admins.map((a) => a.id),
+    type: "venue_lead_opened",
+    link: `/dashboard/admin/events/${args.eventId}`,
+    varsFor: () => ({
+      coupleName: args.coupleName,
+      venueName: args.venueName,
+      venueCity: args.venueCity,
+      eventTitle: args.eventTitle,
+    }),
+    data: {
+      eventId: args.eventId,
+      recommendationId: args.recommendationId,
+    },
+  });
+}
+
 // ----- Shared -----
 
 export function notifyMessageReceived(args: {

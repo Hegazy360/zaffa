@@ -4,21 +4,22 @@ import { Prisma } from "@/generated/prisma/client";
 import { router, protectedProcedure, publicProcedure } from "../trpc";
 import { prisma } from "@/lib/prisma";
 import { getStripe } from "@/lib/stripe";
+import { paymentSuccessUrlBase, platformName } from "@/lib/payments";
 import {
-  paymentSuccessUrlBase,
-  platformName,
-  toStripeAmount,
-} from "@/lib/payments";
-import {
+  DEFAULT_PACK_SKU,
+  PACK_SKUS,
+  PACK_SKU_ORDER,
+  type PackSkuId,
   VISION_PACK_CHECKOUT_KIND,
-  VISION_PACK_RENDERS_QUOTA,
-  VISION_PACK_SKU,
-  VISION_PACK_VIDEOS_QUOTA,
   VISION_PACK_WINDOW_DAYS,
   generateMicrositeSlug,
+  getPackSku,
   isPackWindowExpired,
+  packIncludesPlannerMatch,
+  requirePackSku,
 } from "@/lib/vision-pack";
 import {
+  resolveAllVisionPackPricing,
   resolveCountryFromRequest,
   resolveVisionPackPricing,
 } from "@/server/services/vision-pack-pricing";
@@ -26,6 +27,10 @@ import { reportError } from "@/lib/logger";
 import { trackServer } from "@/lib/posthog";
 import { ANALYTICS_EVENTS } from "@/lib/analytics-events";
 import { notifyEventInServiceArea } from "@/server/services/notifications/dispatchers";
+
+const packSkuSchema = z.enum(
+  Object.keys(PACK_SKUS) as [PackSkuId, ...PackSkuId[]],
+);
 
 /**
  * Read the recipient's currently-active pack, if any. Returns null when
@@ -64,8 +69,13 @@ export const visionPacksRouter = router({
           Math.ceil((pack.expires_at.getTime() - Date.now()) / msPerDay),
         )
       : 0;
+    const skuMeta = getPackSku(pack.sku);
     return {
       id: pack.id,
+      sku: pack.sku,
+      sku_name: skuMeta?.name ?? pack.sku,
+      includes_planner_match: skuMeta?.includesPlannerMatch ?? false,
+      includes_venue_recs: skuMeta?.includesVenueRecs ?? false,
       status: pack.status,
       paid_at: pack.paid_at,
       expires_at: pack.expires_at,
@@ -92,17 +102,27 @@ export const visionPacksRouter = router({
    * post-checkout pages can all consume the same source of truth.
    *
    * The pricing pipeline is:
-   *   geo cookie/header → DB override (country) → DB override (DEFAULT)
-   *   → seed (country) → seed (EU expansion) → seed (DEFAULT)
+   *   geo cookie/header → DB override (sku, country) → DB override
+   *   (sku, DEFAULT) → seed (country) → seed (EU expansion) → seed
+   *   (DEFAULT)
+   *
+   * Pass a SKU to fetch a single tier's price; omit it to fetch every
+   * tier in one round-trip (used by the home/comparison surfaces).
    *
    * Callers should treat `amount` + `currency` as opaque and feed them
    * through `formatPriceLabel` for display.
    */
-  pricing: publicProcedure.query(async ({ ctx }) => {
-    const country = resolveCountryFromRequest(ctx.req);
-    const pricing = await resolveVisionPackPricing(country);
-    return pricing;
-  }),
+  pricing: publicProcedure
+    .input(z.object({ sku: packSkuSchema.optional() }).optional())
+    .query(async ({ ctx, input }) => {
+      const country = resolveCountryFromRequest(ctx.req);
+      if (input?.sku) {
+        const pricing = await resolveVisionPackPricing(country, input.sku);
+        return { country, tiers: [pricing] };
+      }
+      const tiers = await resolveAllVisionPackPricing(country, PACK_SKU_ORDER);
+      return { country, tiers };
+    }),
 
   /**
    * Self-purchase checkout. Creates a `VisionPack` row in
@@ -116,6 +136,10 @@ export const visionPacksRouter = router({
     .input(
       z
         .object({
+          // Which tier the user is buying. Defaults to the entry-tier
+          // Design Pack so legacy CTAs that never passed a SKU still
+          // resolve to a valid SKU.
+          sku: packSkuSchema.optional(),
           // Optional: where to bounce back to after success/cancel — lets
           // the gallery, microsite, and marketing pages all share the
           // same checkout flow.
@@ -135,21 +159,27 @@ export const visionPacksRouter = router({
         });
       }
 
+      const skuId: PackSkuId = input?.sku ?? DEFAULT_PACK_SKU;
+      const skuMeta = requirePackSku(skuId);
+
       // Resolve per-country pricing from the geo cookie/header. Falls
       // back to the global default when the visitor is in an unmapped
       // market — the seed always provides a USD floor.
       const country = resolveCountryFromRequest(ctx.req);
-      const pricing = await resolveVisionPackPricing(country);
+      const pricing = await resolveVisionPackPricing(country, skuId);
 
       const pack = await prisma.visionPack.create({
         data: {
+          sku: skuId,
           buyer_user_id: ctx.user.id,
           recipient_user_id: ctx.user.id,
           status: "pending_payment",
+          // `amount` is in minor units (e.g. 1999 for $19.99) — see
+          // schema comment on VisionPack.amount.
           amount: pricing.amount,
           currency: pricing.currency,
-          renders_quota: VISION_PACK_RENDERS_QUOTA,
-          videos_quota: VISION_PACK_VIDEOS_QUOTA,
+          renders_quota: skuMeta.quotas.renders,
+          videos_quota: skuMeta.quotas.videos,
         },
       });
 
@@ -173,6 +203,12 @@ export const visionPacksRouter = router({
       }
 
       const stripe = getStripe();
+      const venueDescriptor = skuMeta.includesVenueRecs
+        ? " plus curated venue recommendations"
+        : "";
+      const plannerDescriptor = skuMeta.includesPlannerMatch
+        ? " and an optional planner match"
+        : "";
       const session = await stripe.checkout.sessions.create({
         mode: "payment",
         line_items: [
@@ -180,10 +216,12 @@ export const visionPacksRouter = router({
             price_data: {
               currency: pricing.currency.toLowerCase(),
               product_data: {
-                name: `${platformName()} — Wedding Vision Pack`,
-                description: `${VISION_PACK_RENDERS_QUOTA} renders, ${VISION_PACK_VIDEOS_QUOTA} videos, lookbook & microsite. ${VISION_PACK_WINDOW_DAYS}-day window.`,
+                name: `${platformName()} — ${skuMeta.name}`,
+                description: `${skuMeta.quotas.renders} renders, ${skuMeta.quotas.videos} videos, lookbook & microsite${venueDescriptor}${plannerDescriptor}. ${skuMeta.durationDays}-day window.`,
               },
-              unit_amount: toStripeAmount(pricing.amount, pricing.currency),
+              // DB amounts are already in Stripe's smallest-currency
+              // units, so we forward them verbatim.
+              unit_amount: pricing.amount,
             },
             quantity: 1,
           },
@@ -192,6 +230,7 @@ export const visionPacksRouter = router({
         metadata: {
           kind: VISION_PACK_CHECKOUT_KIND,
           packId: pack.id,
+          sku: skuId,
           buyerId: ctx.user.id,
           country: pricing.country ?? "",
           pricingSource: pricing.source,
@@ -200,6 +239,7 @@ export const visionPacksRouter = router({
           metadata: {
             kind: VISION_PACK_CHECKOUT_KIND,
             packId: pack.id,
+            sku: skuId,
           },
           ...(buyerEmail ? { receipt_email: buyerEmail } : {}),
         },
@@ -217,6 +257,7 @@ export const visionPacksRouter = router({
         ANALYTICS_EVENTS.VISION_PACK_CHECKOUT_STARTED,
         {
           pack_id: pack.id,
+          sku: skuId,
           amount: pricing.amount,
           currency: pricing.currency,
           country: pricing.country,
@@ -298,6 +339,15 @@ export const visionPacksRouter = router({
         : await loadPackForUser(ctx.user.id);
       if (!pack) {
         throw new TRPCError({ code: "NOT_FOUND", message: "PACK_NOT_FOUND" });
+      }
+      // Lower-tier Design Pack doesn't unlock the planner marketplace —
+      // gate explicitly so the upsell button surfaces a clear error rather
+      // than silently creating an event the user can't act on.
+      if (!packIncludesPlannerMatch(pack.sku)) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "PACK_TIER_NO_PLANNER_MATCH",
+        });
       }
       // If the pack is already linked to an event, just bounce.
       if (pack.event_id) {
@@ -716,8 +766,6 @@ export async function expirePendingCheckout(packId: string): Promise<void> {
 }
 
 export {
-  VISION_PACK_RENDERS_QUOTA,
-  VISION_PACK_VIDEOS_QUOTA,
+  PACK_SKUS,
   VISION_PACK_WINDOW_DAYS,
-  VISION_PACK_SKU,
 };

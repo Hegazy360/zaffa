@@ -234,6 +234,12 @@ const DEMO_VARS: Record<NotificationType, SeedVars> = {
     preview:
       "\u201cHey! Quick question about the floral palette — would you be open to a softer blush instead of coral?\u201d",
   },
+  venue_lead_opened: {
+    coupleName: "Layla & Adam",
+    venueName: "Sahara Pavilion",
+    venueCity: "Cairo",
+    eventTitle: "Layla & Adam's Summer Rooftop",
+  },
 };
 
 function parseArgs(): {

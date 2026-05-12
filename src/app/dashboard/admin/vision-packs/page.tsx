@@ -28,6 +28,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { useFormatters } from "@/lib/use-formatters";
+import { minorToMajor } from "@/lib/vision-pack-pricing";
 
 type StatusFilter =
   | "all"
@@ -176,7 +177,13 @@ function PackRow({ row }: { row: PackRowItem }) {
   const t = useTranslations("admin");
   const f = useFormatters();
   const statusKey = row.status as StatusFilter;
-  const amountLabel = f.currency(Number(row.amount), row.currency);
+  // VisionPack.amount is stored in minor units (cents/piastres) — convert
+  // before handing to the locale-aware currency formatter so e.g. 1999
+  // renders as "$19.99" instead of "$1,999".
+  const amountLabel = f.currency(
+    minorToMajor(Number(row.amount), row.currency),
+    row.currency,
+  );
 
   return (
     <li className="flex flex-col gap-3 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">

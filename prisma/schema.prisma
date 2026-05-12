@@ -161,6 +161,9 @@ enum NotificationType {
   message_received
   // Vision Pack lifecycle (couple-facing)
   vision_pack_ready
+  // Ops/admin: couple clicked "I'm interested" on a recommended venue.
+  // Fan-out target is whichever admins should action the introduction.
+  venue_lead_opened
 }
 
 model Profile {
@@ -418,17 +421,18 @@ model Event {
   created_at         DateTime    @default(now())
   updated_at         DateTime    @updatedAt
 
-  client             Profile            @relation("ClientEvents", fields: [client_id], references: [id], onDelete: Cascade)
-  planner            PlannerProfile?    @relation("PlannerEvents", fields: [planner_id], references: [id])
-  vendors            EventVendor[]
-  messages           Message[]
-  designs            VenueDesign[]
-  payments           Payment[]
-  proposals          Proposal[]
-  reviews            Review[]
-  payment_schedules  PaymentSchedule[]
-  vendor_engagements VendorEngagement[]
-  vision_packs       VisionPack[]
+  client                 Profile                    @relation("ClientEvents", fields: [client_id], references: [id], onDelete: Cascade)
+  planner                PlannerProfile?            @relation("PlannerEvents", fields: [planner_id], references: [id])
+  vendors                EventVendor[]
+  messages               Message[]
+  designs                VenueDesign[]
+  payments               Payment[]
+  proposals              Proposal[]
+  reviews                Review[]
+  payment_schedules      PaymentSchedule[]
+  vendor_engagements     VendorEngagement[]
+  vision_packs           VisionPack[]
+  venue_recommendations  EventVenueRecommendation[]
 
   // Hot path: the marketplace teaser counts/fetches "open briefs"
   // (planner_id IS NULL). Without this we seq-scan `events` on every
@@ -975,10 +979,22 @@ model Notification {
 // `findPlanner` flow the existing marketplace funnel takes over without
 // any further changes.
 //
+// Two SKUs ship today (see `PACK_SKUS` in `src/lib/vision-pack.ts`):
+//   * `wedding_design_pack_v1` — design + microsite + PDF, no matching
+//   * `wedding_vision_pack_v1` — full pack + planner/venue matching
+// Quotas, capability flags, and the "find a planner / show venue recs"
+// gates are all derived from the SKU registry; the row stamps the SKU at
+// checkout time so an individual purchase keeps its tier even if the
+// registry changes later.
+//
 // Gifting columns are stubbed in v1 (no UI yet); shipping the redemption
 // flow later doesn't require a migration.
 model VisionPack {
   id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+
+  // SKU id from `PACK_SKUS`. Defaults to the full Vision Pack so legacy
+  // rows backfilled by the migration land on the right tier.
+  sku String @default("wedding_vision_pack_v1")
 
   // Buyer is who paid Stripe. Recipient is the couple who'll redeem and
   // use it. For self-purchase both equal the same Profile. For a gift,
@@ -998,15 +1014,19 @@ model VisionPack {
   gift_recipient_name  String?
   gift_message         String?
 
-  // Stripe linkage (mirrors the shape on Payment).
+  // Stripe linkage (mirrors the shape on Payment). `amount` is stored in
+  // **minor units** (e.g. 1999 for $19.99, 49900 for 499 EGP) so we can
+  // express fractional retail prices without a Decimal column. Display
+  // helpers in `src/lib/vision-pack-pricing.ts` divide by 100 (or use
+  // zero-decimal currencies as-is) when formatting.
   stripe_checkout_session_id String?  @unique
   stripe_payment_intent_id   String?
-  amount                     Decimal  @db.Decimal(10, 2)
+  amount                     Int
   currency                   String   @default("EGP")
   paid_at                    DateTime?
 
-  // Quotas. Hard-coded defaults for v1; move to a `pack_skus` table when
-  // we ship multiple tiers.
+  // Quotas. Stamped from the SKU registry at checkout time so an
+  // individual pack keeps its quotas even if the SKU defaults change.
   renders_quota Int @default(20)
   renders_used  Int @default(0)
   videos_quota  Int @default(2)
@@ -1046,20 +1066,104 @@ model VisionPack {
   @@map("vision_packs")
 }
 
-// Per-country price overrides for the Vision Pack. Read by the public
-// marketing/paywall surface; written by admins via the dashboard. Lookup
-// is country_code first, falling back to the seed table in
-// `src/lib/vision-pack-pricing.ts`. The special `country_code = "DEFAULT"`
-// row, when present, overrides the seed default.
+// Per-country price overrides for each Vision Pack SKU. Read by the
+// public marketing/paywall surface; written by admins via the dashboard.
+// Lookup is `(sku, country_code)` first, then `(sku, "DEFAULT")`,
+// falling back to the seed table in `src/lib/vision-pack-pricing.ts`.
+//
+// `amount` is stored in **minor units** (cents/piastres) — a $19.99
+// override is `1999`. Zero-decimal currencies (JPY, KRW, …) use the
+// raw figure. The display helpers in `src/lib/vision-pack-pricing.ts`
+// handle the divide-by-100 / passthrough.
 model VisionPackPricing {
-  country_code String   @id @db.VarChar(8)
+  sku          String   @default("wedding_vision_pack_v1")
+  country_code String   @db.VarChar(8)
   amount       Int
   currency     String   @db.Char(3)
   notes        String?
   updated_at   DateTime @updatedAt
   updated_by   String?  @db.Uuid
 
+  @@id([sku, country_code])
+  @@index([country_code])
   @@map("vision_pack_pricing")
+}
+
+// ----- Venue directory -----
+//
+// Admin-curated list of partner venues that Zaffa can recommend to
+// couples on the higher-tier Vision Pack. `user_id` is intentionally
+// nullable: v1 has no venue self-serve flow, but the column lets us
+// link a Profile later when we invite venues to manage their own
+// listings without a follow-up migration.
+//
+// Recommendations are scoped per-event via `EventVenueRecommendation`.
+// The couple sees them on their event page; their "I'm interested"
+// click sets `interested_at` and pings ops to facilitate the intro.
+model Venue {
+  id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id       String?  @unique @db.Uuid
+  name          String
+  slug          String   @unique
+  description   String?
+  country       String
+  city          String
+  address       String?
+  capacity_min  Int?
+  capacity_max  Int?
+  price_tier    String?
+  styles        Json     @default("[]")
+  amenities     Json     @default("[]")
+  contact_name  String?
+  contact_email String?
+  contact_phone String?
+  website       String?
+  cover_image   String?
+  published     Boolean  @default(true)
+  created_at    DateTime @default(now())
+  updated_at    DateTime @updatedAt
+
+  images          VenueImage[]
+  recommendations EventVenueRecommendation[]
+
+  @@index([country, city, published])
+  @@map("venues")
+}
+
+model VenueImage {
+  id       String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  venue_id String  @db.Uuid
+  url      String
+  alt      String?
+  position Int     @default(0)
+
+  venue Venue @relation(fields: [venue_id], references: [id], onDelete: Cascade)
+
+  @@index([venue_id, position])
+  @@map("venue_images")
+}
+
+model EventVenueRecommendation {
+  id            String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  event_id      String    @db.Uuid
+  venue_id      String    @db.Uuid
+  // Zaffa's note to the couple about why this venue fits.
+  note          String?
+  position      Int       @default(0)
+  // Profile.id of the admin who curated the recommendation.
+  created_by    String    @db.Uuid
+  created_at    DateTime  @default(now())
+  // Couple action surface — both timestamps stay null until the user
+  // explicitly engages with the card.
+  interested_at DateTime?
+  dismissed_at  DateTime?
+
+  event Event @relation(fields: [event_id], references: [id], onDelete: Cascade)
+  venue Venue @relation(fields: [venue_id], references: [id], onDelete: Cascade)
+
+  @@unique([event_id, venue_id])
+  @@index([event_id])
+  @@map("event_venue_recommendations")
 }
 
 // Status lifecycle for an admin-generated social post.

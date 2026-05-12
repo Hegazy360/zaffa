@@ -137,6 +137,16 @@ export const eventsRouter = router({
           payments: {
             orderBy: [{ due_date: "asc" }, { created_at: "asc" }],
           },
+          // Latest Vision Pack linked to this event (most-recent first).
+          // Used by the Overview tab to gate the "Recommended venues"
+          // card on the higher-tier SKU. We only need the `sku` and
+          // status to decide whether to render and to invalidate when
+          // the pack flips.
+          vision_packs: {
+            orderBy: { created_at: "desc" },
+            take: 1,
+            select: { id: true, sku: true, status: true },
+          },
         },
       });
       if (!event) {

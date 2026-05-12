@@ -26,6 +26,7 @@ import { vendorReleasesRouter } from "./vendor-releases";
 import { vendorReviewsRouter } from "./vendor-reviews";
 import { vendorsRouter } from "./vendors";
 import { venueDesignsRouter } from "./venue-designs";
+import { venuesRouter } from "./venues";
 import { visionPacksRouter } from "./vision-packs";
 
 export const appRouter = router({
@@ -56,6 +57,7 @@ export const appRouter = router({
   vendorReleases: vendorReleasesRouter,
   vendorReviews: vendorReviewsRouter,
   venueDesigns: venueDesignsRouter,
+  venues: venuesRouter,
   visionPacks: visionPacksRouter,
 });
 
