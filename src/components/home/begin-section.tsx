@@ -146,18 +146,28 @@ export function BeginSection() {
             transition={{ duration: reduce ? 0 : 0.7, delay: 0.25 }}
             className="flex flex-col gap-3 sm:flex-row sm:items-center"
           >
+            {/* Primary free CTA — symmetrical with the hero so the
+                conversion path is consistent top-to-bottom on the page. */}
             <Button
               size="lg"
-              render={<Link href="/venue-designer" />}
+              render={<Link href="/venue-designer/new" />}
               className="group h-12 w-full gap-2 bg-gradient-to-r from-rose-600 to-amber-500 px-6 text-base text-white shadow-lg shadow-rose-600/20 transition-all hover:opacity-90 hover:shadow-rose-600/30 sm:w-auto sm:px-8"
             >
-              {t("beginCta", { price: pricing.label })}
+              {t("heroCtaFree")}
               <ArrowRight className="h-4 w-4 transition-transform rtl:-scale-x-100 group-hover:translate-x-0.5 rtl:group-hover:-translate-x-0.5" />
             </Button>
-            <p className="text-xs text-muted-foreground sm:ms-2">
-              {t("beginCtaHint")}
-            </p>
+            <Button
+              size="lg"
+              variant="outline"
+              render={<Link href="/venue-designer" />}
+              className="h-12 w-full gap-2 border-rose-200/80 bg-white px-6 text-base text-rose-700 hover:bg-rose-50/70 hover:text-rose-700 sm:w-auto sm:px-8 dark:border-rose-900/40 dark:bg-card dark:text-rose-200 dark:hover:bg-rose-950/20 dark:hover:text-rose-200"
+            >
+              {t("beginCta", { price: pricing.label })}
+            </Button>
           </motion.div>
+          <p className="mt-3 text-xs text-muted-foreground">
+            {t("beginCtaHint")}
+          </p>
 
           {/* Press / trust line */}
           <motion.div

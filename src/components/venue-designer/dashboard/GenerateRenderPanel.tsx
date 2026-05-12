@@ -30,6 +30,10 @@ import {
   type ReferenceCategory,
 } from "@/types/venue-designer";
 import { usePackPaywall } from "@/components/vision-pack/VisionPackPaywallProvider";
+import { EmailGateOverlay } from "./EmailGateOverlay";
+import { Turnstile } from "@/components/security/Turnstile";
+import { useIsAnonymous } from "@/lib/use-is-anonymous";
+import { VisionPackUpgradeCta } from "@/components/vision-pack/VisionPackUpgradeCta";
 
 interface GenerateRenderPanelProps {
   designId?: string;
@@ -93,6 +97,15 @@ export function GenerateRenderPanel({ designId }: GenerateRenderPanelProps) {
     onSuccess: (created) => {
       if (created.type === "render") {
         lastRenderMediaIdRef.current = created.id;
+        // If the email gate is waiting on a renderId (free-tier first
+        // render that hasn't been persisted yet when the gate opened),
+        // patch it in now so the magic-link redirect lands on the
+        // correct reveal page.
+        setPendingEmailGate((prev) =>
+          prev && prev.renderId === null
+            ? { ...prev, renderId: created.id }
+            : prev,
+        );
       }
       if (designId) {
         utils.venueDesigns.getById.invalidate({ id: designId });
@@ -129,22 +142,62 @@ export function GenerateRenderPanel({ designId }: GenerateRenderPanelProps) {
 
   const totalRefs = flatRefs.length;
 
+  const [pendingEmailGate, setPendingEmailGate] = useState<{
+    renderId: string | null;
+    designId: string | null;
+  } | null>(null);
+
+  // Turnstile bot-check token, only collected from anonymous visitors.
+  // For paid users we don't render the widget — the server-side
+  // verifier also short-circuits on `is_anonymous=false` so they never
+  // see the captcha.
+  const isAnon = useIsAnonymous();
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
+  const [turnstileResetKey, setTurnstileResetKey] = useState(0);
+
   const renderMutation = trpc.ai.renderScene.useMutation({
     onSuccess: (data) => {
+      // The displayed URL is tier-aware: free tier sees the signed
+      // watermarked transformation; paid tiers see the clean asset.
       setResultImage(data.imageUrl);
       setView("image");
-      if (designId && data.imageUrl) {
+
+      // Persist the **clean** URL (server-side source of truth) so
+      // future paid views render directly without the watermark
+      // transformation, and the public_id so the URL stays derivable
+      // after a tier change.
+      if (designId && data.cleanImageUrl) {
         saveMediaMutation.mutate({
           design_id: designId,
           type: "render",
-          url: data.imageUrl,
+          url: data.cleanImageUrl,
+          cloudinary_public_id: data.publicId ?? null,
         });
       }
+
+      // When the render came back watermarked, the visitor is on the
+      // free tier — pop the email gate. The gate component overlays the
+      // blurred preview and stays until they enter an email (which
+      // sends the magic link + records the capture). When the
+      // saveMedia mutation resolves we patch in the renderId so the
+      // gate's submit can reference it.
+      if (data.watermarked) {
+        setPendingEmailGate({
+          renderId: null,
+          designId: designId ?? null,
+        });
+      }
+
       // Refetch the recipient's pack so the quota badge in the header
       // re-renders with the decremented count without a full reload.
       utils.visionPacks.current.invalidate();
     },
     onError: (err) => {
+      // Turnstile tokens are single-use — even when the failure was on
+      // a different layer, force a refresh so the next attempt has a
+      // fresh challenge ready.
+      setTurnstileToken(null);
+      setTurnstileResetKey((k) => k + 1);
       // Pack-paywall errors (PACK_REQUIRED / PACK_QUOTA_RENDERS /
       // PACK_WINDOW_EXPIRED) pop the modal instead of toast-ing. Anything
       // else falls through to the existing render-failed toast.
@@ -215,6 +268,7 @@ export function GenerateRenderPanel({ designId }: GenerateRenderPanelProps) {
       palette,
       references: flatRefs,
       styleNotes: styleNotes.trim() || undefined,
+      turnstileToken: turnstileToken ?? undefined,
     });
   }, [
     renderMutation,
@@ -227,6 +281,7 @@ export function GenerateRenderPanel({ designId }: GenerateRenderPanelProps) {
     styleNotes,
     totalRefs,
     t,
+    turnstileToken,
   ]);
 
   const handleMakeVideo = useCallback(() => {
@@ -380,6 +435,15 @@ export function GenerateRenderPanel({ designId }: GenerateRenderPanelProps) {
               </p>
             </div>
 
+            {isAnon ? (
+              <div className="flex justify-center">
+                <Turnstile
+                  onToken={setTurnstileToken}
+                  resetKey={turnstileResetKey}
+                />
+              </div>
+            ) : null}
+
             <Button
               size="lg"
               onClick={handleRender}
@@ -401,7 +465,14 @@ export function GenerateRenderPanel({ designId }: GenerateRenderPanelProps) {
           </>
         )}
 
-        {(view === "image" ||
+        {pendingEmailGate && resultImage ? (
+          <EmailGateOverlay
+            watermarkedImageUrl={resultImage}
+            renderId={pendingEmailGate.renderId}
+            designId={pendingEmailGate.designId}
+            onTryDifferentEmail={() => setPendingEmailGate(null)}
+          />
+        ) : (view === "image" ||
           view === "video-pending" ||
           view === "video") &&
           (resultImage || videoUrl) && (
@@ -449,6 +520,15 @@ export function GenerateRenderPanel({ designId }: GenerateRenderPanelProps) {
               {videoError && (
                 <p className="text-xs text-destructive">{videoError}</p>
               )}
+
+              {/* Upgrade nudge — only renders for callers on the lower
+                  paid tier with a higher tier available. Hidden by the
+                  CTA component when not applicable. */}
+              <VisionPackUpgradeCta
+                returnPath={
+                  designId ? `/venue-designer/${designId}` : "/venue-designer"
+                }
+              />
 
               <div className="flex flex-wrap items-center gap-2">
                 <Button

@@ -1,19 +1,28 @@
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import { Prisma } from "@/generated/prisma/client";
-import { router, protectedProcedure, publicProcedure } from "../trpc";
+import {
+  router,
+  protectedProcedure,
+  publicProcedure,
+  nonAnonymousProcedure,
+} from "../trpc";
 import { prisma } from "@/lib/prisma";
 import { getStripe } from "@/lib/stripe";
 import { paymentSuccessUrlBase, platformName } from "@/lib/payments";
 import {
   DEFAULT_PACK_SKU,
+  FREE_PACK_SKU_ID,
   PACK_SKUS,
   PACK_SKU_ORDER,
+  PURCHASABLE_PACK_SKUS,
   type PackSkuId,
   VISION_PACK_CHECKOUT_KIND,
+  VISION_PACK_UPGRADE_CHECKOUT_KIND,
   VISION_PACK_WINDOW_DAYS,
   generateMicrositeSlug,
   getPackSku,
+  isFreePack,
   isPackWindowExpired,
   packIncludesPlannerMatch,
   requirePackSku,
@@ -30,6 +39,15 @@ import { notifyEventInServiceArea } from "@/server/services/notifications/dispat
 
 const packSkuSchema = z.enum(
   Object.keys(PACK_SKUS) as [PackSkuId, ...PackSkuId[]],
+);
+
+/**
+ * Only the paid tiers are valid SKUs for `startCheckout`. The free SKU
+ * is granted server-side via `ensureFreePack` and never sold through
+ * Stripe.
+ */
+const purchasableSkuSchema = z.enum(
+  PURCHASABLE_PACK_SKUS as readonly PackSkuId[] as [PackSkuId, ...PackSkuId[]],
 );
 
 /**
@@ -131,15 +149,19 @@ export const visionPacksRouter = router({
    *
    * Gifting (buyer != recipient) is a v2 milestone; the column shape
    * supports it but we don't expose it through this mutation yet.
+   *
+   * Only purchasable SKUs (`wedding_design_pack_v1` and
+   * `wedding_vision_pack_v1`) are accepted here — the free SKU is
+   * granted server-side via `ensureFreePack` and never sold.
    */
-  startCheckout: protectedProcedure
+  startCheckout: nonAnonymousProcedure
     .input(
       z
         .object({
           // Which tier the user is buying. Defaults to the entry-tier
           // Design Pack so legacy CTAs that never passed a SKU still
           // resolve to a valid SKU.
-          sku: packSkuSchema.optional(),
+          sku: purchasableSkuSchema.optional(),
           // Optional: where to bounce back to after success/cancel — lets
           // the gallery, microsite, and marketing pages all share the
           // same checkout flow.
@@ -148,11 +170,18 @@ export const visionPacksRouter = router({
         .optional(),
     )
     .mutation(async ({ ctx, input }) => {
-      // Block stacking: if the user already has an active pack, send them
-      // there instead of charging twice. Window-expired packs don't
-      // count as active for this check (they get a new pack).
+      // Block stacking: if the user already has an active *paid* pack,
+      // send them there instead of charging twice. Free packs do not
+      // count as "active" for this check — buying a paid tier should
+      // always be available even when the free render hasn't been used
+      // yet (free pack stays as historical state once paid is granted).
+      // Window-expired packs also don't count.
       const existing = await loadPackForUser(ctx.user.id);
-      if (existing && !isPackWindowExpired(existing.expires_at)) {
+      if (
+        existing &&
+        !isFreePack(existing.sku) &&
+        !isPackWindowExpired(existing.expires_at)
+      ) {
         throw new TRPCError({
           code: "CONFLICT",
           message: "PACK_ALREADY_ACTIVE",
@@ -178,6 +207,10 @@ export const visionPacksRouter = router({
           // schema comment on VisionPack.amount.
           amount: pricing.amount,
           currency: pricing.currency,
+          // Stamp the original-market country so a later upgrade
+          // resolves the destination tier's price in the SAME market
+          // (USD → USD delta even if the buyer relocates).
+          purchase_country: pricing.country ?? null,
           renders_quota: skuMeta.quotas.renders,
           videos_quota: skuMeta.quotas.videos,
         },
@@ -266,6 +299,223 @@ export const visionPacksRouter = router({
       );
 
       return { url: session.url, id: session.id, packId: pack.id };
+    }),
+
+  /**
+   * Quote the delta-priced upgrade from the caller's currently-active
+   * paid pack to a higher tier. Returns the destination price, the
+   * already-paid origin price, and the difference — everything the
+   * UI needs to render an "Unlock the full Vision Pack for +X" CTA
+   * without a second round-trip when the visitor clicks `startUpgrade`.
+   *
+   * Resolved in the **original purchase country** (stamped at checkout
+   * on `vision_packs.purchase_country`) so the math stays in the same
+   * currency the user paid in — a US buyer who later moves to EG still
+   * pays the USD delta.
+   *
+   * Returns `null` when no upgrade is available (no active paid pack,
+   * already on the highest tier, etc.). The UI should hide the CTA in
+   * that case rather than surface a confusing button.
+   */
+  upgradeQuote: protectedProcedure.query(async ({ ctx }) => {
+    const pack = await loadPackForUser(ctx.user.id);
+    if (!pack) return null;
+    if (isFreePack(pack.sku)) return null;
+    if (isPackWindowExpired(pack.expires_at)) return null;
+    // Resolve the next-higher tier in PACK_SKU_ORDER. PACK_SKU_ORDER
+    // is the canonical lowest→highest ordering, so the next entry is
+    // always the upgrade target. Returns null when the user is
+    // already at the top.
+    const currentIdx = PACK_SKU_ORDER.indexOf(pack.sku as PackSkuId);
+    if (currentIdx === -1) return null;
+    const targetSku = PACK_SKU_ORDER[currentIdx + 1];
+    if (!targetSku) return null;
+    if (!PURCHASABLE_PACK_SKUS.includes(targetSku)) return null;
+
+    // Resolve both prices in the original purchase country so the
+    // delta is computed in the same currency the user paid in.
+    const country =
+      pack.purchase_country ?? resolveCountryFromRequest(ctx.req);
+    const [fromPricing, toPricing] = await Promise.all([
+      resolveVisionPackPricing(country, pack.sku as PackSkuId),
+      resolveVisionPackPricing(country, targetSku),
+    ]);
+    // Currency mismatch shouldn't happen in practice (both look up
+    // the same country) but guard anyway — refusing to quote is safer
+    // than charging an inconsistent delta.
+    if (fromPricing.currency !== toPricing.currency) return null;
+    const delta = Math.max(0, toPricing.amount - fromPricing.amount);
+    return {
+      packId: pack.id,
+      fromSku: pack.sku as PackSkuId,
+      toSku: targetSku,
+      currency: toPricing.currency,
+      country,
+      fromAmount: fromPricing.amount,
+      toAmount: toPricing.amount,
+      deltaAmount: delta,
+    };
+  }),
+
+  /**
+   * Self-upgrade checkout. Opens a Stripe Checkout for the delta
+   * between the caller's current paid pack and the next-higher tier.
+   * Creates a `VisionPackUpgrade` row in `pending_payment`; the
+   * webhook flips it to `active` on success and bumps the pack to the
+   * new SKU + adds the quota delta.
+   *
+   * Errors:
+   *   - PACK_NOT_FOUND      no active paid pack
+   *   - PACK_ALREADY_TOP    user is already on the highest tier
+   *   - PACK_FREE_NOT_UPGRADABLE   user is on the free tier (buy a
+   *                                paid pack via `startCheckout` instead)
+   */
+  startUpgrade: nonAnonymousProcedure
+    .input(
+      z
+        .object({
+          returnPath: z.string().max(500).optional(),
+        })
+        .optional(),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const pack = await loadPackForUser(ctx.user.id);
+      if (!pack) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "PACK_NOT_FOUND",
+        });
+      }
+      if (isFreePack(pack.sku)) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "PACK_FREE_NOT_UPGRADABLE",
+        });
+      }
+      if (isPackWindowExpired(pack.expires_at)) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "PACK_WINDOW_EXPIRED",
+        });
+      }
+
+      const currentIdx = PACK_SKU_ORDER.indexOf(pack.sku as PackSkuId);
+      const targetSku = currentIdx >= 0 ? PACK_SKU_ORDER[currentIdx + 1] : null;
+      if (!targetSku || !PURCHASABLE_PACK_SKUS.includes(targetSku)) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "PACK_ALREADY_TOP",
+        });
+      }
+      const targetMeta = requirePackSku(targetSku);
+
+      const country =
+        pack.purchase_country ?? resolveCountryFromRequest(ctx.req);
+      const [fromPricing, toPricing] = await Promise.all([
+        resolveVisionPackPricing(country, pack.sku as PackSkuId),
+        resolveVisionPackPricing(country, targetSku),
+      ]);
+      if (fromPricing.currency !== toPricing.currency) {
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "PACK_UPGRADE_CURRENCY_MISMATCH",
+        });
+      }
+      const deltaAmount = Math.max(0, toPricing.amount - fromPricing.amount);
+
+      const upgrade = await prisma.visionPackUpgrade.create({
+        data: {
+          pack_id: pack.id,
+          from_sku: pack.sku,
+          to_sku: targetSku,
+          amount_charged: deltaAmount,
+          currency: toPricing.currency,
+          status: "pending_payment",
+        },
+      });
+
+      const baseUrl = paymentSuccessUrlBase();
+      const returnPath = input?.returnPath ?? "/venue-designer";
+      const successUrl = `${baseUrl}/venue-designer/welcome?pack=${pack.id}&upgrade=${upgrade.id}&return=${encodeURIComponent(returnPath)}`;
+      const cancelUrl = `${baseUrl}${returnPath}?vp_upgrade_cancelled=1`;
+
+      let buyerEmail: string | null = null;
+      try {
+        const rows = await prisma.$queryRaw<Array<{ email: string | null }>>(
+          Prisma.sql`select email from auth.users where id = ${ctx.user.id}::uuid limit 1`,
+        );
+        buyerEmail = rows[0]?.email ?? null;
+      } catch (err) {
+        reportError("vision_packs.upgrade.lookupEmail", err, {
+          upgradeId: upgrade.id,
+        });
+      }
+
+      const stripe = getStripe();
+      const session = await stripe.checkout.sessions.create({
+        mode: "payment",
+        line_items: [
+          {
+            price_data: {
+              currency: toPricing.currency.toLowerCase(),
+              product_data: {
+                name: `${platformName()} — Upgrade to ${targetMeta.name}`,
+                description: `Upgrade your pack to ${targetMeta.name}: ${targetMeta.quotas.renders} renders, ${targetMeta.quotas.videos} videos, lookbook & microsite. ${targetMeta.durationDays}-day window resets on upgrade.`,
+              },
+              unit_amount: deltaAmount,
+            },
+            quantity: 1,
+          },
+        ],
+        ...(buyerEmail ? { customer_email: buyerEmail } : {}),
+        metadata: {
+          kind: VISION_PACK_UPGRADE_CHECKOUT_KIND,
+          packId: pack.id,
+          upgradeId: upgrade.id,
+          fromSku: pack.sku,
+          toSku: targetSku,
+          buyerId: ctx.user.id,
+          country: country ?? "",
+        },
+        payment_intent_data: {
+          metadata: {
+            kind: VISION_PACK_UPGRADE_CHECKOUT_KIND,
+            packId: pack.id,
+            upgradeId: upgrade.id,
+          },
+          ...(buyerEmail ? { receipt_email: buyerEmail } : {}),
+        },
+        success_url: successUrl,
+        cancel_url: cancelUrl,
+      });
+
+      await prisma.visionPackUpgrade.update({
+        where: { id: upgrade.id },
+        data: { stripe_checkout_session_id: session.id },
+      });
+
+      await trackServer(
+        ctx.user.id,
+        ANALYTICS_EVENTS.VISION_PACK_CHECKOUT_STARTED,
+        {
+          pack_id: pack.id,
+          upgrade_id: upgrade.id,
+          from_sku: pack.sku,
+          to_sku: targetSku,
+          amount: deltaAmount,
+          currency: toPricing.currency,
+          country,
+          flow: "upgrade",
+        },
+      );
+
+      return {
+        url: session.url,
+        id: session.id,
+        upgradeId: upgrade.id,
+        deltaAmount,
+        currency: toPricing.currency,
+      };
     }),
 
   /**
@@ -602,12 +852,17 @@ export const visionPacksRouter = router({
 
 /**
  * Server-side helper used by `ai.renderScene` and `ai.startVideo` to
- * gate the cost-incurring AI surfaces behind a paid pack.
+ * gate the cost-incurring AI surfaces behind a paid (or free) pack.
  *
  * Returns the loaded pack on success. Throws `FORBIDDEN PACK_REQUIRED`
  * when no usable pack exists. The atomic decrement happens AFTER the
  * AI call succeeds (see `consumeQuota`) — gating here, billing on the
  * way out.
+ *
+ * The free email-gated tier (`wedding_free_taste_v1`) participates in
+ * the same quota plumbing — `requireActivePack` doesn't distinguish
+ * tiers. Callers that want tier-specific behaviour (e.g. videos blocked
+ * on free) inspect `pack.sku` on the returned row.
  */
 export async function requireActivePack(
   userId: string,
@@ -650,6 +905,55 @@ export async function requireActivePack(
     });
   }
   return pack;
+}
+
+/**
+ * Grant the free `wedding_free_taste_v1` pack to a user who doesn't
+ * have any active pack yet. Idempotent: if the user already has any
+ * active pack (free or paid), this is a no-op and returns the existing
+ * row. Otherwise creates a new free pack with renders_quota=1 and a
+ * 7-day window.
+ *
+ * Called at the top of `ai.renderScene` so anonymous + not-yet-paid
+ * users can run exactly one render. The email-uniqueness check in
+ * `auth.requestEmailUpgrade` ensures a single email can't burn through
+ * multiple free renders across browsers.
+ */
+export async function ensureFreePack(userId: string) {
+  const existing = await prisma.visionPack.findFirst({
+    where: {
+      recipient_user_id: userId,
+      status: { in: ["active", "fulfilled"] },
+    },
+    orderBy: { paid_at: "desc" },
+  });
+  if (existing) return existing;
+
+  const skuMeta = requirePackSku(FREE_PACK_SKU_ID);
+  const now = new Date();
+  const expiresAt = new Date(
+    now.getTime() + skuMeta.durationDays * 24 * 60 * 60 * 1000,
+  );
+  return prisma.visionPack.create({
+    data: {
+      sku: FREE_PACK_SKU_ID,
+      buyer_user_id: userId,
+      recipient_user_id: userId,
+      status: "active",
+      // No Stripe linkage — amount in minor units is zero and the
+      // currency column stays at its schema default (EGP). Display
+      // helpers never format the free pack price; `amount === 0` is
+      // the canonical signal.
+      amount: 0,
+      paid_at: now,
+      expires_at: expiresAt,
+      renders_quota: skuMeta.quotas.renders,
+      videos_quota: skuMeta.quotas.videos,
+      // Self-purchase shape so `findPlanner` + microsite paths behave
+      // even though those features are blocked at the SKU layer.
+      redeemed_at: now,
+    },
+  });
 }
 
 /**
@@ -762,6 +1066,89 @@ export async function activatePackFromCheckout(args: {
 export async function expirePendingCheckout(packId: string): Promise<void> {
   await prisma.visionPack.deleteMany({
     where: { id: packId, status: "pending_payment" },
+  });
+}
+
+/**
+ * Webhook side-effect for `checkout.session.completed` when the
+ * `kind` metadata is `vision_pack_upgrade`. Atomically:
+ *   - flips the `VisionPackUpgrade` row to `active` with a `paid_at`
+ *   - bumps the pack's `sku` to the destination tier
+ *   - **adds** (not replaces) the destination tier's quota delta to
+ *     the pack's `renders_quota` / `videos_quota` so already-used
+ *     renders aren't double-counted
+ *   - resets `paid_at` + `expires_at` so the refund window and
+ *     generation window both start from the most recent payment
+ *   - re-activates a `fulfilled` pack (quota delta is fresh capacity)
+ *
+ * Idempotent — short-circuits if the upgrade row is already `active`
+ * so webhook retries are safe.
+ */
+export async function activateUpgradeFromCheckout(args: {
+  upgradeId: string;
+  paymentIntentId: string | null;
+}): Promise<void> {
+  const upgrade = await prisma.visionPackUpgrade.findUnique({
+    where: { id: args.upgradeId },
+    select: {
+      id: true,
+      pack_id: true,
+      from_sku: true,
+      to_sku: true,
+      status: true,
+    },
+  });
+  if (!upgrade) return;
+  if (upgrade.status === "active") return;
+
+  const fromMeta = getPackSku(upgrade.from_sku);
+  const toMeta = getPackSku(upgrade.to_sku);
+  if (!fromMeta || !toMeta) {
+    // Unknown SKUs — fail loudly into the webhook logger but don't
+    // throw so Stripe doesn't retry endlessly. An ops alert in
+    // `cron.upgrade.unknown_sku` can be wired up separately.
+    return;
+  }
+
+  const rendersDelta = Math.max(
+    0,
+    toMeta.quotas.renders - fromMeta.quotas.renders,
+  );
+  const videosDelta = Math.max(
+    0,
+    toMeta.quotas.videos - fromMeta.quotas.videos,
+  );
+
+  const now = new Date();
+  const expiresAt = new Date(
+    now.getTime() + toMeta.durationDays * 24 * 60 * 60 * 1000,
+  );
+
+  await prisma.$transaction(async (tx) => {
+    await tx.visionPackUpgrade.update({
+      where: { id: upgrade.id },
+      data: {
+        status: "active",
+        paid_at: now,
+        stripe_payment_intent_id: args.paymentIntentId,
+      },
+    });
+    await tx.visionPack.update({
+      where: { id: upgrade.pack_id },
+      data: {
+        sku: upgrade.to_sku,
+        renders_quota: { increment: rendersDelta },
+        videos_quota: { increment: videosDelta },
+        // Refund window + generation window now start from the latest
+        // payment. The original `paid_at` is preserved on the upgrade
+        // row for audit.
+        paid_at: now,
+        expires_at: expiresAt,
+        // A `fulfilled` pack regains capacity from the upgrade —
+        // re-activate so the user can keep generating.
+        status: "active",
+      },
+    });
   });
 }
 

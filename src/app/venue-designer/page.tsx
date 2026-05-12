@@ -168,18 +168,23 @@ export default function VenueDesignerGalleryPage() {
             {pack ? (
               <VisionPackQuotaBadge />
             ) : null}
-            {pack ? (
-              <Button
-                size="lg"
-                onClick={() => router.push("/venue-designer/new")}
-                className="h-11 gap-2 bg-gradient-to-r from-rose-600 to-amber-500 px-5 text-white shadow-lg shadow-rose-500/20 hover:opacity-90 hover:shadow-rose-500/30"
-              >
-                <Plus className="size-4" />
-                {t("newDesign")}
-              </Button>
-            ) : (
+            {/* The "New design" CTA is always available now — anonymous
+                visitors get a free render via the auto-granted free pack,
+                and authenticated users without a pack either get the same
+                free entitlement or hit the email gate after the render
+                completes. The buy CTA still surfaces below for users who
+                already exhausted their free render. */}
+            <Button
+              size="lg"
+              onClick={() => router.push("/venue-designer/new")}
+              className="h-11 gap-2 bg-gradient-to-r from-rose-600 to-amber-500 px-5 text-white shadow-lg shadow-rose-500/20 hover:opacity-90 hover:shadow-rose-500/30"
+            >
+              <Plus className="size-4" />
+              {t("newDesign")}
+            </Button>
+            {!pack ? (
               <VisionPackBuyCta returnPath="/venue-designer/new" />
-            )}
+            ) : null}
           </div>
         </motion.header>
 

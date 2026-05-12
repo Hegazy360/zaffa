@@ -40,6 +40,7 @@ export default async function NotificationsLayout({
           email: user.email,
           fullName: profile?.full_name ?? user.fullName,
           avatarUrl: profile?.avatar_url ?? user.avatarUrl,
+          isAnonymous: false,
         }}
       />
       <div className="flex flex-1">

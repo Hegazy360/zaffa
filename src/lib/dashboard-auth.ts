@@ -80,6 +80,11 @@ export function navUserFromProfile(profile: DashboardProfile): NavUser {
     email: profile.email,
     fullName: profile.full_name,
     avatarUrl: profile.avatar_url,
+    // `requireRole` rejects anonymous users via the role check (anon
+    // users default to `client` but have no email — and the dashboards
+    // are gated by middleware anyway), so this is always false in
+    // practice. Set explicitly so the type contract stays honest.
+    isAnonymous: false,
   };
 }
 

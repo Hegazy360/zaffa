@@ -24,7 +24,10 @@ import { PACK_SKUS, type PackSkuId } from "@/lib/vision-pack";
 // `trpc.visionPacks.pricing` once and shares the cache), so this block
 // adds zero extra round-trips when the paywall opens later.
 
-const TIER_TO_LABEL_KEY: Record<PackSkuId, string> = {
+// The free-tier SKU never surfaces on the marketing page — it's only
+// reachable via the email gate after generation — so the CTA label
+// table only covers the purchasable tiers.
+const TIER_TO_LABEL_KEY: Partial<Record<PackSkuId, string>> = {
   wedding_design_pack_v1: "tierCtaDesign",
   wedding_vision_pack_v1: "tierCtaVision",
 };
@@ -184,7 +187,7 @@ export function TierComparisonSection() {
                         : "border-rose-200/80 bg-white text-rose-700 hover:bg-rose-50/70 hover:text-rose-700 dark:border-rose-900/40 dark:bg-card dark:text-rose-200 dark:hover:bg-rose-950/20 dark:hover:text-rose-200",
                     )}
                   >
-                    {t(ctaKey, { price: tier.label })}
+                    {t(ctaKey ?? "tierCtaDesign", { price: tier.label })}
                     <ArrowRight className="h-4 w-4 transition-transform rtl:-scale-x-100 group-hover:translate-x-0.5 rtl:group-hover:-translate-x-0.5" />
                   </Button>
                 </div>

@@ -101,18 +101,40 @@ export function HeroEditorial() {
             transition={{ duration: reduce ? 0 : 0.7, delay: 0.25 }}
             className="flex flex-col gap-3 sm:flex-row sm:items-center"
           >
+            {/* Primary CTA — the free path. Cold visitors land in the
+                designer at `/venue-designer/new`, where the middleware
+                mints an anonymous session and the email gate kicks in
+                after the first generation. No payment surface in front
+                of the wow. */}
             <Button
               size="lg"
-              render={<Link href="/venue-designer" />}
+              render={<Link href="/venue-designer/new" />}
               className="group h-12 w-full gap-2 bg-gradient-to-r from-rose-600 to-amber-500 px-6 text-base text-white shadow-lg shadow-rose-600/20 transition-all hover:opacity-90 hover:shadow-rose-600/30 sm:w-auto sm:px-8"
             >
-              {t("heroCta", { price: pricing.label })}
+              {t("heroCtaFree")}
               <ArrowRight className="h-4 w-4 transition-transform rtl:-scale-x-100 group-hover:translate-x-0.5 rtl:group-hover:-translate-x-0.5" />
             </Button>
-            <p className="text-xs text-muted-foreground sm:ms-2">
-              {t("heroCtaHint")}
-            </p>
+            {/* Secondary CTA — the buy path. Still surfaced inline so
+                returning visitors / paid-intent traffic don't have to
+                scroll to the tier comparison. */}
+            <Button
+              size="lg"
+              variant="outline"
+              render={<Link href="/venue-designer" />}
+              className="h-12 w-full gap-2 border-rose-200/80 bg-white px-6 text-base text-rose-700 hover:bg-rose-50/70 hover:text-rose-700 sm:w-auto sm:px-8 dark:border-rose-900/40 dark:bg-card dark:text-rose-200 dark:hover:bg-rose-950/20 dark:hover:text-rose-200"
+            >
+              {t("heroCta", { price: pricing.label })}
+            </Button>
           </motion.div>
+
+          <motion.p
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: reduce ? 0 : 0.7, delay: 0.3 }}
+            className="mt-3 text-xs text-muted-foreground"
+          >
+            {t("heroCtaHint")}
+          </motion.p>
 
           <motion.div
             initial={{ opacity: 0 }}

@@ -26,10 +26,12 @@ import { trpc } from "@/lib/trpc";
 import {
   DEFAULT_PACK_SKU,
   PACK_SKUS,
+  PURCHASABLE_PACK_SKUS,
   VISION_PACK_DEFAULT_PLATFORM_FEE_PCT,
   type PackSkuId,
 } from "@/lib/vision-pack";
 import { useTierPricing } from "./use-pricing";
+import { VisionPackUpgradeCta } from "./VisionPackUpgradeCta";
 import { formatPriceLabel } from "@/lib/vision-pack-pricing";
 import type { PackErrorReason } from "./pack-error";
 
@@ -128,10 +130,18 @@ export function VisionPackPaywall({
             actually shrink below its content's intrinsic height — without
             it `overflow-y-auto` is a no-op. */}
         <div className="min-h-0 overflow-y-auto overscroll-contain">
+          {/* Upgrade CTA — only renders when the caller already owns the
+              lower paid tier and a higher tier is available. Surfaces
+              before the tier picker so the delta-priced path takes
+              precedence over a fresh purchase the server would reject
+              anyway. */}
+          <div className="px-6 pt-5 empty:hidden">
+            <VisionPackUpgradeCta returnPath={returnPath} />
+          </div>
           {/* Tier picker — two cards, click to select. Order matches
               `PACK_SKU_ORDER` so the lower tier reads first. */}
           <div className="grid grid-cols-2 gap-2 px-6 pt-5">
-            {(Object.keys(PACK_SKUS) as PackSkuId[]).map((id) => {
+            {PURCHASABLE_PACK_SKUS.map((id) => {
               const meta = PACK_SKUS[id];
               const price = tierPricing.bySku[id];
               const active = id === selectedSku;

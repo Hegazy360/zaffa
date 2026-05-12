@@ -4,6 +4,7 @@ import { adminRouter } from "./admin";
 import { adminOverviewRouter } from "./admin-overview";
 import { adminPostsRouter } from "./admin-posts";
 import { aiRouter } from "./ai";
+import { authRouter } from "./auth";
 import { availabilityRouter } from "./availability";
 import { contactRouter } from "./contact";
 import { discoveryRouter } from "./discovery";
@@ -35,6 +36,7 @@ export const appRouter = router({
   adminOverview: adminOverviewRouter,
   adminPosts: adminPostsRouter,
   ai: aiRouter,
+  auth: authRouter,
   availability: availabilityRouter,
   contact: contactRouter,
   discovery: discoveryRouter,

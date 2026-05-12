@@ -7,6 +7,14 @@
     {
       "path": "/api/cron/hard-delete-accounts",
       "schedule": "0 2 * * *"
+    },
+    {
+      "path": "/api/cron/cleanup-anon-users",
+      "schedule": "0 3 * * *"
+    },
+    {
+      "path": "/api/cron/resend-audience-reconcile",
+      "schedule": "0 * * * *"
     }
   ]
 }

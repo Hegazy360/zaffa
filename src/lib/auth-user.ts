@@ -10,6 +10,13 @@ export type NavUser = {
   email: string | null;
   fullName: string | null;
   avatarUrl: string | null;
+  /**
+   * True for Supabase anonymous users (created via `signInAnonymously`).
+   * These are first-touch venue-designer visitors who haven't entered an
+   * email yet. The navbar should treat them as logged-out for marketing
+   * affordances, even though they technically have a JWT.
+   */
+  isAnonymous: boolean;
 };
 
 /**
@@ -35,6 +42,7 @@ export async function getNavUser(): Promise<NavUser | null> {
   const claims = data.claims as Record<string, unknown> & {
     sub?: string;
     email?: string;
+    is_anonymous?: boolean;
     user_metadata?: Record<string, unknown>;
   };
   if (!claims.sub) return null;
@@ -48,5 +56,6 @@ export async function getNavUser(): Promise<NavUser | null> {
     email: typeof claims.email === "string" ? claims.email : null,
     fullName: typeof meta.full_name === "string" ? meta.full_name : null,
     avatarUrl: typeof meta.avatar_url === "string" ? meta.avatar_url : null,
+    isAnonymous: claims.is_anonymous === true,
   };
 }

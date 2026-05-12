@@ -1,7 +1,8 @@
 import { z } from "zod";
 import { router, protectedProcedure } from "../trpc";
 import { prisma } from "@/lib/prisma";
-import { cloudinary } from "@/lib/cloudinary";
+import { cloudinary, watermarkedUrl } from "@/lib/cloudinary";
+import { isFreePack } from "@/lib/vision-pack";
 import { trackServer } from "@/lib/posthog";
 import { ANALYTICS_EVENTS } from "@/lib/analytics-events";
 
@@ -51,44 +52,150 @@ function deriveSize(count: number | null | undefined): "intimate" | "medium" | "
   return "large";
 }
 
+/**
+ * Resolve the user's most recent active/fulfilled pack so we know
+ * whether to serve clean or watermarked URLs for their media. Cached
+ * once per call (not memoized across requests — pack state mutates).
+ */
+async function loadActivePackForUser(userId: string) {
+  return prisma.visionPack.findFirst({
+    where: {
+      recipient_user_id: userId,
+      status: { in: ["active", "fulfilled"] },
+    },
+    orderBy: { paid_at: "desc" },
+    select: { id: true, sku: true },
+  });
+}
+
+/**
+ * Pick the URL to serve for a given media row given the user's current
+ * pack tier. Free tier sees the watermarked Cloudinary transformation;
+ * paid tiers see the clean asset. Rows without a `cloudinary_public_id`
+ * (legacy + provider-hosted) always serve the stored URL — we can't
+ * derive a watermark without the public id.
+ */
+function urlForTier(
+  row: { url: string; cloudinary_public_id: string | null; type: string },
+  isFreeTier: boolean,
+): string {
+  if (!isFreeTier) return row.url;
+  if (row.type !== "render") return row.url; // Videos aren't watermarked yet.
+  if (!row.cloudinary_public_id) return row.url;
+  return watermarkedUrl(row.cloudinary_public_id);
+}
+
 export const venueDesignsRouter = router({
   list: protectedProcedure.query(async ({ ctx }) => {
-    return prisma.venueDesign.findMany({
-      where: { user_id: ctx.user.id },
-      orderBy: { updated_at: "desc" },
-      select: {
-        id: true,
-        name: true,
-        event_type: true,
-        setting: true,
-        size: true,
-        guest_count: true,
-        palette: true,
-        thumbnail: true,
-        updated_at: true,
-        event_id: true,
-        approved_at: true,
-        _count: { select: { media: true } },
-        // Latest generated render for this design — used as the card hero
-        // thumbnail. We filter to "render" because videos can't be cheaply
-        // poster-extracted on the server.
-        media: {
-          where: { type: "render" },
-          orderBy: { created_at: "desc" },
-          take: 1,
-          select: { url: true },
+    const [designs, pack] = await Promise.all([
+      prisma.venueDesign.findMany({
+        where: { user_id: ctx.user.id },
+        orderBy: { updated_at: "desc" },
+        select: {
+          id: true,
+          name: true,
+          event_type: true,
+          setting: true,
+          size: true,
+          guest_count: true,
+          palette: true,
+          thumbnail: true,
+          updated_at: true,
+          event_id: true,
+          approved_at: true,
+          _count: { select: { media: true } },
+          // Latest generated render for this design — used as the card hero
+          // thumbnail. We filter to "render" because videos can't be cheaply
+          // poster-extracted on the server.
+          media: {
+            where: { type: "render" },
+            orderBy: { created_at: "desc" },
+            take: 1,
+            select: { url: true, cloudinary_public_id: true, type: true },
+          },
         },
-      },
-    });
+      }),
+      loadActivePackForUser(ctx.user.id),
+    ]);
+
+    const isFreeTier = isFreePack(pack?.sku);
+    return designs.map((d) => ({
+      ...d,
+      media: d.media.map((m) => ({
+        url: urlForTier(m, isFreeTier),
+      })),
+    }));
   }),
 
   getById: protectedProcedure
     .input(z.object({ id: z.string().uuid() }))
     .query(async ({ ctx, input }) => {
-      return prisma.venueDesign.findFirst({
-        where: { id: input.id, user_id: ctx.user.id },
-        include: { media: { orderBy: { created_at: "desc" } } },
-      });
+      const [design, pack] = await Promise.all([
+        prisma.venueDesign.findFirst({
+          where: { id: input.id, user_id: ctx.user.id },
+          include: { media: { orderBy: { created_at: "desc" } } },
+        }),
+        loadActivePackForUser(ctx.user.id),
+      ]);
+      if (!design) return null;
+      const isFreeTier = isFreePack(pack?.sku);
+      return {
+        ...design,
+        media: design.media.map((m) => ({
+          ...m,
+          url: urlForTier(m, isFreeTier),
+        })),
+      };
+    }),
+
+  /**
+   * Fetch a single render media row by id. Used by the magic-link
+   * reveal page `/r/[renderId]` after the email-gate flow. Returns the
+   * tier-appropriate URL (watermarked for free tier, clean for paid).
+   * Scoped to the caller's own designs so a leaked render id can't
+   * expose someone else's preview.
+   */
+  getRenderById: protectedProcedure
+    .input(z.object({ id: z.string().uuid() }))
+    .query(async ({ ctx, input }) => {
+      const [media, pack] = await Promise.all([
+        prisma.venueDesignMedia.findFirst({
+          where: {
+            id: input.id,
+            type: "render",
+            design: { user_id: ctx.user.id },
+          },
+          select: {
+            id: true,
+            type: true,
+            url: true,
+            cloudinary_public_id: true,
+            created_at: true,
+            design: {
+              select: {
+                id: true,
+                name: true,
+                event_type: true,
+                setting: true,
+                size: true,
+                guest_count: true,
+                palette: true,
+              },
+            },
+          },
+        }),
+        loadActivePackForUser(ctx.user.id),
+      ]);
+      if (!media) return null;
+      const isFreeTier = isFreePack(pack?.sku);
+      return {
+        id: media.id,
+        url: urlForTier(media, isFreeTier),
+        watermarked: isFreeTier,
+        created_at: media.created_at,
+        design: media.design,
+        packSku: pack?.sku ?? null,
+      };
     }),
 
   save: protectedProcedure
@@ -170,12 +277,21 @@ export const venueDesignsRouter = router({
         // bloats every downstream read (marketing teaser, message previews,
         // dashboards). Both the AI scene generator and the video generator
         // upload to Cloudinary before this point and pass the secure URL.
+        //
+        // Important: callers pass the **clean** (un-watermarked) URL. The
+        // free-tier watermark is derived on read via `cloudinary_public_id`
+        // so an upgrade flips every existing render to clean without
+        // touching media rows.
         url: z
           .string()
           .min(1)
           .refine((u) => !u.startsWith("data:"), {
             message: "media url must be a CDN URL, not an inline data URI",
           }),
+        // Cloudinary public_id used to derive watermarked / optimized
+        // URLs at read time. Nullable for provider-hosted assets that
+        // bypass our Cloudinary pipeline.
+        cloudinary_public_id: z.string().nullish(),
         // Optional: id of the source render this video was generated from.
         // Lets us scope videos to a specific render when displaying.
         parent_id: z.string().uuid().nullish(),
@@ -193,6 +309,7 @@ export const venueDesignsRouter = router({
           design_id: input.design_id,
           type: input.type,
           url: input.url,
+          cloudinary_public_id: input.cloudinary_public_id ?? null,
           parent_id: input.parent_id ?? null,
         },
       });

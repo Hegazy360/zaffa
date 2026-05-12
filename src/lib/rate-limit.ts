@@ -40,6 +40,14 @@ export const limiters = {
   aiRenderDaily: makeLimiter("rl:ai:render:d", 60, "1 d"),
   aiVideo: makeLimiter("rl:ai:video", 5, "1 h"),
   aiVideoDaily: makeLimiter("rl:ai:video:d", 10, "1 d"),
+  // Free-tier-only IP limiter. The per-user free quota (1 render via
+  // `wedding_free_taste_v1.renders_quota`) catches a single visitor;
+  // this catches anyone spinning up fresh anonymous Supabase users to
+  // dodge the per-user cap by clearing cookies. 3 free renders / IP /
+  // day is a balance between aggressive abuse protection and not
+  // burning legitimate same-household visitors (parents + couple
+  // sharing a router).
+  aiRenderFreePerIp: makeLimiter("rl:ai:render:free:ip", 3, "1 d"),
   // Admin-triggered discovery / outreach. Per-user (admin) limits keep a
   // single rogue admin from blowing budgets.
   discoveryRun: makeLimiter("rl:discovery:run", 30, "1 h"),

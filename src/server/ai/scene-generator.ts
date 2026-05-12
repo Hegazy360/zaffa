@@ -169,6 +169,9 @@ export async function renderScene(input: RenderSceneInput) {
 
   const prompt = buildPrompt(input, ordered);
 
+  // Returns `{ imageUrl, publicId, text }` — the caller (`ai.renderScene`
+  // procedure) uses `publicId` to derive the tier-aware response URL
+  // (watermarked for free tier, clean for paid tiers).
   return generateImage({
     prompt,
     references: ordered.map((ref) => ({ url: ref.url })),

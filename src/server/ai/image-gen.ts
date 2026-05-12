@@ -32,24 +32,40 @@ export interface GenerateImageInput {
 
 export interface GenerateImageResult {
   imageUrl: string;
+  /**
+   * Cloudinary `public_id` when the image was mirrored through Cloudinary.
+   * Null when the model returned a remote URL we passed through verbatim
+   * (no opportunity to derive transformations like the watermark overlay).
+   */
+  publicId: string | null;
   text: string | null;
+}
+
+interface MirrorResult {
+  secureUrl: string;
+  publicId: string | null;
 }
 
 /**
  * OpenRouter returns inline `data:` URLs. Mirror to Cloudinary so the
- * DB stores stable CDN URLs rather than megabyte-sized blobs.
+ * DB stores stable CDN URLs rather than megabyte-sized blobs. We also
+ * return the public_id so callers can build signed transformation URLs
+ * (e.g. the watermark overlay applied to free-tier renders) without
+ * keeping a parser around `secure_url`.
  */
 async function mirrorToCloudinary(
   dataUrlOrUrl: string,
   folder: string,
-): Promise<string> {
-  if (!dataUrlOrUrl.startsWith("data:")) return dataUrlOrUrl;
+): Promise<MirrorResult> {
+  if (!dataUrlOrUrl.startsWith("data:")) {
+    return { secureUrl: dataUrlOrUrl, publicId: null };
+  }
   const result = await cloudinary.uploader.upload(dataUrlOrUrl, {
     folder,
     resource_type: "image",
     type: "upload",
   });
-  return result.secure_url;
+  return { secureUrl: result.secure_url, publicId: result.public_id };
 }
 
 export async function generateImage({
@@ -101,10 +117,14 @@ export async function generateImage({
   }
 
   const rawUrl = message.images[0].image_url.url as string;
-  const imageUrl = await mirrorToCloudinary(rawUrl, cloudinaryFolder);
+  const { secureUrl, publicId } = await mirrorToCloudinary(
+    rawUrl,
+    cloudinaryFolder,
+  );
 
   return {
-    imageUrl,
+    imageUrl: secureUrl,
+    publicId,
     text: (message.content as string | null) ?? null,
   };
 }

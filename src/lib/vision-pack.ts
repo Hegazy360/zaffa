@@ -39,7 +39,12 @@ export interface PackSku {
 }
 
 /**
- * Two SKUs ship today:
+ * Three SKUs ship today:
+ *   - **Free Taste** (`wedding_free_taste_v1`): the email-gated free
+ *     render. 1 render, watermarked, no videos / planner / venue. Granted
+ *     server-side on first `ai.renderScene` call by anonymous (or
+ *     not-yet-paid) users via `ensureFreePack`. Never sold through
+ *     Stripe; `amount=0`.
  *   - **Design Pack** (`wedding_design_pack_v1`): the $19.99 starter
  *     tier — design + microsite + PDF, no planner/venue matching.
  *   - **Vision Pack** (`wedding_vision_pack_v1`): the original $99
@@ -50,6 +55,17 @@ export interface PackSku {
  * purchases keep their tier even if the registry changes later.
  */
 export const PACK_SKUS = {
+  wedding_free_taste_v1: {
+    id: "wedding_free_taste_v1",
+    name: "Free Taste",
+    quotas: { renders: 1, styles: 1, videos: 0 },
+    includesPlannerMatch: false,
+    includesVenueRecs: false,
+    // Free taste has a tight window: 7 days. Long enough for the magic-link
+    // confirmation + sharing the result, short enough that anonymous user
+    // GC + abuse cleanup don't accumulate.
+    durationDays: 7,
+  },
   wedding_design_pack_v1: {
     id: "wedding_design_pack_v1",
     name: "Design Pack",
@@ -70,11 +86,20 @@ export const PACK_SKUS = {
 
 export type PackSkuId = keyof typeof PACK_SKUS;
 
+/** SKU id of the free email-gated tier. Granted server-side; never sold. */
+export const FREE_PACK_SKU_ID: PackSkuId = "wedding_free_taste_v1";
+
 /** Default SKU for the home/marketing surface and any legacy code path. */
 export const DEFAULT_PACK_SKU: PackSkuId = "wedding_design_pack_v1";
 
 /** SKU id of the higher-tier pack (planner + venue matching). */
 export const VISION_PACK_SKU_ID: PackSkuId = "wedding_vision_pack_v1";
+
+/** Tiers that can be sold through Stripe checkout. Excludes the free SKU. */
+export const PURCHASABLE_PACK_SKUS: readonly PackSkuId[] = [
+  "wedding_design_pack_v1",
+  "wedding_vision_pack_v1",
+];
 
 /** Order in which tiers should appear on marketing/comparison surfaces. */
 export const PACK_SKU_ORDER: readonly PackSkuId[] = [
@@ -108,6 +133,21 @@ export function packIncludesPlannerMatch(skuId: string | null | undefined): bool
 /** Convenience: does this row's SKU surface Zaffa-curated venue recs? */
 export function packIncludesVenueRecs(skuId: string | null | undefined): boolean {
   return getPackSku(skuId)?.includesVenueRecs ?? false;
+}
+
+/**
+ * Convenience: does this row's SKU allow generating videos? Free Taste
+ * explicitly does not. Paid tiers have non-zero `videos` quota; we still
+ * gate on the SKU directly so a UI ceiling check ("you can upgrade for
+ * videos") returns a stable answer independent of `videos_used`.
+ */
+export function packAllowsVideo(skuId: string | null | undefined): boolean {
+  return (getPackSku(skuId)?.quotas.videos ?? 0) > 0;
+}
+
+/** True when this pack is the free email-gated tier. */
+export function isFreePack(skuId: string | null | undefined): boolean {
+  return skuId === FREE_PACK_SKU_ID;
 }
 
 /**
@@ -151,14 +191,30 @@ export interface RefundEligibilityInputs {
   microsite_published_at: Date | null;
   lookbook_downloaded_at: Date | null;
   status: string;
+  /**
+   * Minor-units paid amount on the pack row. Used to short-circuit
+   * refunds for the free tier — there's nothing to refund.
+   */
+  amount: number;
+  /**
+   * Most recent payment timestamp across the original purchase and any
+   * upgrade. If null/undefined, falls back to `paid_at`. The refund
+   * window resets on every successful payment so upgrades extend the
+   * window from the upgrade date, not the original purchase.
+   */
+  latest_paid_at?: Date | null;
 }
 
 export function isPackRefundable(p: RefundEligibilityInputs): boolean {
   if (p.status !== "active" && p.status !== "fulfilled") return false;
-  if (!p.paid_at) return false;
+  // The free email-gated tier is never refundable — `amount === 0` means
+  // we never charged anything to refund.
+  if (p.amount === 0) return false;
+  const effectivePaidAt = p.latest_paid_at ?? p.paid_at;
+  if (!effectivePaidAt) return false;
   if (p.microsite_published_at) return false;
   if (p.lookbook_downloaded_at) return false;
-  const elapsedMs = Date.now() - p.paid_at.getTime();
+  const elapsedMs = Date.now() - effectivePaidAt.getTime();
   const cutoffMs = VISION_PACK_REFUND_HOURS * 60 * 60 * 1000;
   return elapsedMs < cutoffMs;
 }
@@ -175,3 +231,11 @@ export function isPackWindowExpired(expires_at: Date | null): boolean {
  * or the vision-pack handler.
  */
 export const VISION_PACK_CHECKOUT_KIND = "vision_pack";
+/**
+ * Discriminator on Stripe Checkout sessions that upgrade an existing
+ * pack from a lower tier to a higher tier (delta-priced). Separate
+ * from the regular pack-purchase kind so the webhook handler can
+ * apply quota math + record the audit-trail row without confusing
+ * the new-pack happy path.
+ */
+export const VISION_PACK_UPGRADE_CHECKOUT_KIND = "vision_pack_upgrade";

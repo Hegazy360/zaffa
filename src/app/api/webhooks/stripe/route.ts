@@ -18,10 +18,12 @@ import {
 } from "@/server/services/notifications/dispatchers";
 import {
   activatePackFromCheckout,
+  activateUpgradeFromCheckout,
   expirePendingCheckout,
 } from "@/server/routers/vision-packs";
 import {
   VISION_PACK_CHECKOUT_KIND,
+  VISION_PACK_UPGRADE_CHECKOUT_KIND,
   VISION_PACK_WINDOW_DAYS,
 } from "@/lib/vision-pack";
 import { minorToMajor } from "@/lib/vision-pack-pricing";
@@ -63,6 +65,10 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
   const kind = session.metadata?.kind;
   if (kind === VISION_PACK_CHECKOUT_KIND) {
     await handleVisionPackCheckoutCompleted(session);
+    return;
+  }
+  if (kind === VISION_PACK_UPGRADE_CHECKOUT_KIND) {
+    await handleVisionPackUpgradeCompleted(session);
     return;
   }
   const installmentId = session.metadata?.installmentId;
@@ -209,6 +215,19 @@ async function handleCheckoutExpired(session: Stripe.Checkout.Session) {
     if (packId) await expirePendingCheckout(packId);
     return;
   }
+  // Upgrade expirations: mark the pending upgrade row failed so a
+  // retry from the UI can mint a fresh one. The underlying pack
+  // stays untouched on the original tier.
+  if (session.metadata?.kind === VISION_PACK_UPGRADE_CHECKOUT_KIND) {
+    const upgradeId = session.metadata?.upgradeId;
+    if (upgradeId) {
+      await prisma.visionPackUpgrade.updateMany({
+        where: { id: upgradeId, status: "pending_payment" },
+        data: { status: "failed" },
+      });
+    }
+    return;
+  }
   const installmentId = session.metadata?.installmentId;
   if (!installmentId) return;
   await prisma.payment.updateMany({
@@ -287,6 +306,77 @@ async function handleVisionPackCheckoutCompleted(
         amount: amountMajor,
         amount_minor: Number(pack.amount) || 0,
         currency: pack.currency,
+      },
+    );
+  }
+}
+
+// Vision Pack upgrade checkout success:
+//  - flip the `VisionPackUpgrade` row to `active`
+//  - bump pack SKU + add quota delta (`activateUpgradeFromCheckout`)
+//  - refund + generation windows reset to the new `paid_at`
+//
+// Idempotent — replaying this event after the first success is a
+// no-op because `activateUpgradeFromCheckout` short-circuits on a
+// row that's already `active`.
+async function handleVisionPackUpgradeCompleted(
+  session: Stripe.Checkout.Session,
+) {
+  const upgradeId = session.metadata?.upgradeId;
+  if (!upgradeId) {
+    logger.warn("stripe.webhook.vision_pack_upgrade.missing_upgrade_id", {
+      sessionId: session.id,
+    });
+    return;
+  }
+  const paymentIntentId =
+    typeof session.payment_intent === "string"
+      ? session.payment_intent
+      : session.payment_intent?.id ?? null;
+
+  await activateUpgradeFromCheckout({ upgradeId, paymentIntentId });
+
+  // Send the same "your pack is ready" notification so the user gets
+  // a confirmation. The notification is idempotent at the dispatch
+  // layer; replays don't fan out duplicate email/push.
+  const upgrade = await prisma.visionPackUpgrade.findUnique({
+    where: { id: upgradeId },
+    select: {
+      id: true,
+      pack_id: true,
+      amount_charged: true,
+      currency: true,
+      from_sku: true,
+      to_sku: true,
+      pack: { select: { recipient_user_id: true, buyer_user_id: true } },
+    },
+  });
+  if (upgrade?.pack?.recipient_user_id) {
+    await notifyVisionPackReady({
+      recipientUserId: upgrade.pack.recipient_user_id,
+      packId: upgrade.pack_id,
+      windowDays: VISION_PACK_WINDOW_DAYS,
+    });
+  }
+
+  // Funnel signal — separate event property so we can tell upgrades
+  // apart from first-purchases in the analytics view.
+  if (upgrade?.pack) {
+    const amountMajor = upgrade.amount_charged
+      ? minorToMajor(Number(upgrade.amount_charged), upgrade.currency)
+      : 0;
+    await captureServer(
+      upgrade.pack.buyer_user_id,
+      ANALYTICS_EVENTS.VISION_PACK_PURCHASED,
+      {
+        pack_id: upgrade.pack_id,
+        upgrade_id: upgrade.id,
+        from_sku: upgrade.from_sku,
+        to_sku: upgrade.to_sku,
+        amount: amountMajor,
+        amount_minor: Number(upgrade.amount_charged) || 0,
+        currency: upgrade.currency,
+        flow: "upgrade",
       },
     );
   }
@@ -493,6 +583,18 @@ async function handleAsyncPaymentFailed(session: Stripe.Checkout.Session) {
   if (session.metadata?.kind === VISION_PACK_CHECKOUT_KIND) {
     const packId = session.metadata?.packId;
     if (packId) await expirePendingCheckout(packId);
+    return;
+  }
+  // Upgrade async failure — flag the pending upgrade row so the UI
+  // can offer a retry.
+  if (session.metadata?.kind === VISION_PACK_UPGRADE_CHECKOUT_KIND) {
+    const upgradeId = session.metadata?.upgradeId;
+    if (upgradeId) {
+      await prisma.visionPackUpgrade.updateMany({
+        where: { id: upgradeId, status: "pending_payment" },
+        data: { status: "failed" },
+      });
+    }
     return;
   }
   const installmentId = session.metadata?.installmentId;

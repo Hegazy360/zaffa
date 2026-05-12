@@ -74,7 +74,12 @@ type PerCountrySeed = Record<string, VisionPackPrice>;
  * we don't want to encode into a public-pricing seed. Admins can still
  * override per country via the dashboard if needed.
  */
-const SEED_AUTHORED: Record<PackSkuId, Record<string, { amount: number; currency: string }>> = {
+// The free email-gated tier is intentionally absent from this seed —
+// it's never sold through Stripe and `seedPricingFor` falls through to
+// the Design Pack as the default when an unknown SKU is requested.
+// `Partial<Record<PackSkuId, ...>>` lets the type system catch any
+// caller that does try to price the free tier.
+const SEED_AUTHORED: Partial<Record<PackSkuId, Record<string, { amount: number; currency: string }>>> = {
   // ----- Design Pack — $19.99 USD default -----
   // Lower-tier "design + microsite + PDF" pack. No planner/venue
   // matching included. Local equivalents are roughly 5× cheaper than
@@ -110,17 +115,17 @@ const SEED_AUTHORED: Record<PackSkuId, Record<string, { amount: number; currency
  * Resolved seed price matrix in **minor units**. `SEED_PRICING[sku][country]`
  * gives the floor when no DB override exists.
  */
-export const SEED_PRICING: Record<PackSkuId, PerCountrySeed> = Object.fromEntries(
+export const SEED_PRICING: Partial<Record<PackSkuId, PerCountrySeed>> = Object.fromEntries(
   Object.entries(SEED_AUTHORED).map(([sku, perCountry]) => [
     sku,
     Object.fromEntries(
-      Object.entries(perCountry).map(([code, p]) => [
+      Object.entries(perCountry as Record<string, { amount: number; currency: string }>).map(([code, p]) => [
         code,
         { amount: majorToMinor(p.amount, p.currency), currency: p.currency },
       ]),
     ),
   ]),
-) as Record<PackSkuId, PerCountrySeed>;
+) as Partial<Record<PackSkuId, PerCountrySeed>>;
 
 /**
  * EU member states (27). When the visitor's country is one of these and
@@ -161,6 +166,9 @@ export function seedPricingFor(
   countryCode: string | null | undefined,
   sku: PackSkuId = DEFAULT_PACK_SKU,
 ): VisionPackPrice {
+  // The free tier deliberately has no seed entry; an unknown SKU falls
+  // through to the Design Pack (the lowest non-free tier) so callers
+  // that accidentally pass a free SKU don't blow up the home page.
   const bucket = SEED_PRICING[sku] ?? SEED_PRICING[DEFAULT_PACK_SKU];
   return pickFromBucket(bucket, countryCode);
 }
@@ -236,6 +244,7 @@ export function listSeedPrices(): Array<{
   }> = [];
   for (const sku of Object.keys(SEED_PRICING) as PackSkuId[]) {
     const bucket = SEED_PRICING[sku];
+    if (!bucket) continue;
     for (const [country_code, p] of Object.entries(bucket)) {
       out.push({ sku, country_code, amount: p.amount, currency: p.currency });
     }

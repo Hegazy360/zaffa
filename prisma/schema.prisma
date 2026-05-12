@@ -176,6 +176,17 @@ model Profile {
   // follows the user across devices. Middleware seeds the cookie from
   // Accept-Language for anonymous visitors.
   locale                 String    @default("en")
+  // Mirrors `auth.users.is_anonymous`. True for Supabase anonymous users
+  // — first-touch venue-designer visitors who haven't entered an email
+  // yet. Flipped to false by the `on_auth_user_upgraded` trigger when
+  // the user confirms their email via `auth.requestEmailUpgrade`.
+  is_anonymous           Boolean   @default(false)
+  // Lowercased email used for the free render gate. Stored separately
+  // from `auth.users.email` because we lock the free-render entitlement
+  // to this address from the moment we send the magic link — even
+  // before Supabase upgrades the user. Partial unique index in the
+  // migration enforces one free render per email globally.
+  free_render_email      String?
   // Set to a timestamp when the user clicks the unsubscribe link in any
   // transactional email. In-app notifications are unaffected; we just stop
   // emailing them for everything.
@@ -201,7 +212,9 @@ model Profile {
   notifications       Notification[]
   bought_vision_packs VisionPack[]       @relation("PackBuyer")
   received_vision_packs VisionPack[]     @relation("PackRecipient")
+  email_capture_events EmailCaptureEvent[]
 
+  @@index([is_anonymous, created_at])
   @@map("profiles")
 }
 
@@ -585,12 +598,21 @@ model VenueDesignMedia {
   // before this column existed.
   parent_id  String?  @db.Uuid
   type       String
+  // CDN URL of the clean (un-watermarked) asset. For free-tier renders
+  // the list/getById endpoints rewrite this on read into the signed
+  // watermarked URL derived from `cloudinary_public_id` (see
+  // `watermarkedUrl` in `src/lib/cloudinary.ts`).
   url        String
+  // Cloudinary `public_id` for media uploaded through our pipeline.
+  // Nullable for legacy rows + provider URLs that bypass Cloudinary.
+  // Required to derive the watermarked transformation URL on the fly.
+  cloudinary_public_id String?
   created_at DateTime @default(now())
 
   design   VenueDesign        @relation(fields: [design_id], references: [id], onDelete: Cascade)
   parent   VenueDesignMedia?  @relation("MediaParent", fields: [parent_id], references: [id], onDelete: SetNull)
   children VenueDesignMedia[] @relation("MediaParent")
+  email_capture_events EmailCaptureEvent[]
 
   @@map("venue_design_media")
 }
@@ -1019,11 +1041,20 @@ model VisionPack {
   // express fractional retail prices without a Decimal column. Display
   // helpers in `src/lib/vision-pack-pricing.ts` divide by 100 (or use
   // zero-decimal currencies as-is) when formatting.
+  //
+  // The free email-gated tier (`wedding_free_taste_v1`) is stored with
+  // `amount = 0`. Refund eligibility (`isPackRefundable`) short-circuits
+  // on amount === 0 so the free tier is never refundable.
   stripe_checkout_session_id String?  @unique
   stripe_payment_intent_id   String?
   amount                     Int
   currency                   String   @default("EGP")
   paid_at                    DateTime?
+  // 2-letter ISO country resolved from the geo cookie/header at
+  // checkout time. Stamped immutably so the delta-priced upgrade flow
+  // can resolve the destination tier price in the same market the
+  // original purchase used. Null on legacy rows + the free tier.
+  purchase_country           String?  @db.VarChar(8)
 
   // Quotas. Stamped from the SKU registry at checkout time so an
   // individual pack keeps its quotas even if the SKU defaults change.
@@ -1058,12 +1089,75 @@ model VisionPack {
   buyer     Profile  @relation("PackBuyer", fields: [buyer_user_id], references: [id], onDelete: Cascade)
   recipient Profile? @relation("PackRecipient", fields: [recipient_user_id], references: [id], onDelete: SetNull)
   event     Event?   @relation(fields: [event_id], references: [id], onDelete: SetNull)
+  upgrades  VisionPackUpgrade[]
 
   @@index([recipient_user_id, status])
   @@index([buyer_user_id, status])
   @@index([gift_code])
   @@index([microsite_published_at, microsite_public])
   @@map("vision_packs")
+}
+
+// ----- Vision Pack tier upgrades (Design Pack → Vision Pack) -----
+//
+// A user on the entry-tier Design Pack ($19.99) can pay the price
+// difference to upgrade to the full Vision Pack ($99). One row per
+// upgrade attempt; the `pack_id`'s `sku` flips to `to_sku` on webhook
+// success. Keeping the audit trail separate from the pack row gives us
+// a clean ledger for refunds, customer support, and reporting.
+//
+// Always charged in the pack's original currency (`vision_packs.currency`)
+// using the destination tier's price for the pack's `purchase_country` —
+// never the visitor's current geo. This stays consistent with the
+// original purchase regardless of where the user later moves.
+model VisionPackUpgrade {
+  id                         String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  pack_id                    String    @db.Uuid
+  from_sku                   String
+  to_sku                     String
+  // Minor units in `currency` — e.g. 8001 = $80.01 for an upgrade from
+  // $19.99 → $99. Always >= 0; zero means a free upgrade (admin grant).
+  amount_charged             Int
+  currency                   String    @db.Char(3)
+  stripe_checkout_session_id String?   @unique
+  stripe_payment_intent_id   String?
+  // pending_payment | active | failed
+  status                     String    @default("pending_payment")
+  paid_at                    DateTime?
+  created_at                 DateTime  @default(now())
+
+  pack VisionPack @relation(fields: [pack_id], references: [id], onDelete: Cascade)
+
+  @@index([pack_id, created_at(sort: Desc)])
+  @@map("vision_pack_upgrades")
+}
+
+// ----- Email capture events -----
+//
+// One row per email-gate submission. Captures the original anonymous
+// user id even after the upgrade flow runs (so we can stitch together
+// the visit → render → email → upgrade funnel in analytics). Also
+// drives the reconciliation cron that retries pushes to Resend
+// Audiences for captures that failed first time.
+model EmailCaptureEvent {
+  id              String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  anon_user_id    String    @db.Uuid
+  email           String
+  ip              String?
+  country         String?
+  design_id       String?   @db.Uuid
+  render_id       String?   @db.Uuid
+  // pending | sent | confirmed | failed
+  status          String    @default("pending")
+  resend_synced_at DateTime?
+  created_at      DateTime  @default(now())
+
+  anon_user Profile           @relation(fields: [anon_user_id], references: [id], onDelete: Cascade)
+  render    VenueDesignMedia? @relation(fields: [render_id], references: [id], onDelete: SetNull)
+
+  @@index([anon_user_id, created_at(sort: Desc)])
+  @@index([status, created_at])
+  @@map("email_capture_events")
 }
 
 // Per-country price overrides for each Vision Pack SKU. Read by the

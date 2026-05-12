@@ -21,10 +21,32 @@ describe("isPackRefundable (refund tripwire)", () => {
     microsite_published_at: null,
     lookbook_downloaded_at: null,
     status: "active",
+    amount: 1999, // $19.99 in minor units — paid tier
   };
 
   it("returns true within the refund window when no tripwires fired", () => {
     expect(isPackRefundable(baseRefundable)).toBe(true);
+  });
+
+  it("returns false for free-tier packs (amount === 0)", () => {
+    expect(
+      isPackRefundable({ ...baseRefundable, amount: 0 }),
+    ).toBe(false);
+  });
+
+  it("uses latest_paid_at over paid_at when both are set (upgrade flow)", () => {
+    // Original purchase was 30 hours ago — past the 24h window from
+    // paid_at alone — but the upgrade happened 2 hours ago, so the
+    // refund window is open.
+    const oldPaidAt = new Date(Date.now() - 30 * 60 * 60 * 1000);
+    const recentUpgradeAt = new Date(Date.now() - 2 * 60 * 60 * 1000);
+    expect(
+      isPackRefundable({
+        ...baseRefundable,
+        paid_at: oldPaidAt,
+        latest_paid_at: recentUpgradeAt,
+      }),
+    ).toBe(true);
   });
 
   it("returns false once the microsite is published (tripwire)", () => {

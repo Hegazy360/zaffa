@@ -90,6 +90,7 @@ export function Navbar({ initialUser }: NavbarProps = {}) {
               typeof meta.full_name === "string" ? meta.full_name : null,
             avatarUrl:
               typeof meta.avatar_url === "string" ? meta.avatar_url : null,
+            isAnonymous: claims.is_anonymous === true,
           });
         }
         setLoading(false);
@@ -116,6 +117,7 @@ export function Navbar({ initialUser }: NavbarProps = {}) {
             typeof meta.full_name === "string" ? meta.full_name : null,
           avatarUrl:
             typeof meta.avatar_url === "string" ? meta.avatar_url : null,
+          isAnonymous: u.is_anonymous === true,
         });
       }
       setLoading(false);
@@ -134,11 +136,18 @@ export function Navbar({ initialUser }: NavbarProps = {}) {
     router.refresh();
   };
 
-  const userInitial = user?.fullName
-    ? user.fullName.charAt(0).toUpperCase()
-    : user?.email?.charAt(0).toUpperCase() ?? "?";
+  // Anonymous Supabase users (first-touch venue-designer visitors who
+  // haven't entered an email yet) are treated as logged-out for the
+  // navbar's marketing affordances. They still have a valid JWT and
+  // their designer state is persisted, but surfacing an avatar +
+  // dashboard menu would be misleading and clutter the cold-traffic
+  // experience.
+  const visibleUser = user && !user.isAnonymous ? user : null;
+  const userInitial = visibleUser?.fullName
+    ? visibleUser.fullName.charAt(0).toUpperCase()
+    : visibleUser?.email?.charAt(0).toUpperCase() ?? "?";
 
-  const displayName = user?.fullName ?? user?.email ?? "";
+  const displayName = visibleUser?.fullName ?? visibleUser?.email ?? "";
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/60 bg-background/70 backdrop-blur-xl supports-[backdrop-filter]:bg-background/55">
@@ -172,9 +181,9 @@ export function Navbar({ initialUser }: NavbarProps = {}) {
 
           {loading ? (
             <div className="h-10 w-10 animate-pulse rounded-full bg-muted" />
-          ) : user ? (
+          ) : visibleUser ? (
             <>
-              <NotificationBell userId={user.id} />
+              <NotificationBell userId={visibleUser.id} />
               <DropdownMenu>
               <DropdownMenuTrigger
                 aria-label={t("accountMenu")}
@@ -193,9 +202,9 @@ export function Navbar({ initialUser }: NavbarProps = {}) {
                     <p className="text-sm leading-tight font-medium">
                       {displayName || t("yourAccount")}
                     </p>
-                    {user.email && displayName !== user.email && (
+                    {visibleUser.email && displayName !== visibleUser.email && (
                       <p className="mt-0.5 truncate text-xs text-muted-foreground">
-                        {user.email}
+                        {visibleUser.email}
                       </p>
                     )}
                   </DropdownMenuLabel>
@@ -250,7 +259,7 @@ export function Navbar({ initialUser }: NavbarProps = {}) {
                 aria-hidden
                 className="pointer-events-none absolute inset-0 grain-bg opacity-40"
               />
-              {user ? (
+              {visibleUser ? (
                 <div className="relative flex items-center gap-3">
                   <div className="flex h-11 w-11 items-center justify-center rounded-full bg-gradient-to-br from-rose-600 to-amber-500 text-sm font-semibold text-white shadow-md shadow-rose-600/20">
                     {userInitial}
@@ -260,7 +269,7 @@ export function Navbar({ initialUser }: NavbarProps = {}) {
                       {displayName}
                     </p>
                     <p className="truncate text-xs text-muted-foreground">
-                      {user.email}
+                      {visibleUser.email}
                     </p>
                   </div>
                 </div>
@@ -302,7 +311,7 @@ export function Navbar({ initialUser }: NavbarProps = {}) {
                 <ArrowRight className="h-4 w-4 transition-transform rtl:-scale-x-100 group-hover:translate-x-0.5 rtl:group-hover:-translate-x-0.5" />
               </Button>
 
-              {user && (
+              {visibleUser && (
                 <>
                   <MobileNotificationsLink
                     pathname={pathname}
@@ -331,7 +340,7 @@ export function Navbar({ initialUser }: NavbarProps = {}) {
               <div className="mb-2 flex justify-center">
                 <LocaleSwitcher variant="outline" align="end" />
               </div>
-              {user ? (
+              {visibleUser ? (
                 <Button
                   variant="outline"
                   size="lg"
