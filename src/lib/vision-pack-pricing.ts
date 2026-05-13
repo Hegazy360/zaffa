@@ -93,7 +93,7 @@ const SEED_AUTHORED: Partial<Record<PackSkuId, Record<string, { amount: number; 
     AE: { amount: 99, currency: "AED" },
     QA: { amount: 99, currency: "QAR" },
     GB: { amount: 15, currency: "GBP" },
-    EU: { amount: 17, currency: "EUR" },
+    EU: { amount: 19, currency: "EUR" },
     US: { amount: 19, currency: "USD" },
     CA: { amount: 19, currency: "USD" },
     DEFAULT: { amount: 19, currency: "USD" },
