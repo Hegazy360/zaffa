@@ -491,7 +491,7 @@ export function GenerateRenderPanel({ designId }: GenerateRenderPanelProps) {
               size="lg"
               onClick={handleRender}
               disabled={renderMutation.isPending || totalRefs === 0}
-              className="w-full gap-2 bg-rose-500 text-white hover:bg-rose-600"
+              className="h-12 w-full gap-2 bg-rose-500 text-base text-white hover:bg-rose-600 sm:h-11 sm:text-sm"
             >
               {renderMutation.isPending ? (
                 <>
@@ -594,7 +594,19 @@ export function GenerateRenderPanel({ designId }: GenerateRenderPanelProps) {
                 </p>
               )}
 
-              <div className="flex flex-wrap items-center gap-2">
+              {/*
+                Action cluster after a render. We render the DOM in
+                desktop-preferred order (Generate-again → Make-alive →
+                Download). On phones we flip the container to
+                `flex-col-reverse` so the primary CTA (Download) ends
+                up at the top — closest to the thumb after scrolling
+                in to look at the render — followed by Make-alive
+                and finally the destructive "Generate again". This
+                avoids any reliance on per-item `order-X` (which
+                wouldn't make it through LockableAction's conditional
+                wrapper when the action is locked).
+              */}
+              <div className="flex flex-col-reverse gap-2 sm:flex-row sm:flex-wrap sm:items-center">
                 <LockableAction
                   locked={onFreeTier}
                   hint={t("generateAgainLockedHint")}
@@ -607,66 +619,64 @@ export function GenerateRenderPanel({ designId }: GenerateRenderPanelProps) {
                     aria-label={
                       onFreeTier ? t("generateAgainLockedHint") : undefined
                     }
-                    className="gap-2"
+                    className="h-11 w-full gap-2 sm:h-9 sm:w-auto sm:me-auto"
                   >
                     <RotateCcw className="size-4" />
                     {view === "video" ? t("startOver") : t("generateAgain")}
                   </Button>
                 </LockableAction>
 
-                <div className="ms-auto flex flex-wrap gap-2">
-                  {view !== "video" && (
-                    <LockableAction
-                      locked={!videoAllowed}
-                      hint={t("makeAliveLockedHint")}
-                      align="end"
+                {view !== "video" && (
+                  <LockableAction
+                    locked={!videoAllowed}
+                    hint={t("makeAliveLockedHint")}
+                    align="end"
+                  >
+                    <Button
+                      variant="outline"
+                      onClick={handleMakeVideo}
+                      disabled={
+                        videoMutation.isPending ||
+                        view === "video-pending" ||
+                        !videoAllowed
+                      }
+                      aria-label={
+                        !videoAllowed ? t("makeAliveLockedHint") : undefined
+                      }
+                      className="h-11 w-full gap-2 sm:h-9 sm:w-auto"
                     >
-                      <Button
-                        variant="outline"
-                        onClick={handleMakeVideo}
-                        disabled={
-                          videoMutation.isPending ||
-                          view === "video-pending" ||
-                          !videoAllowed
-                        }
-                        aria-label={
-                          !videoAllowed ? t("makeAliveLockedHint") : undefined
-                        }
-                        className="gap-2"
-                      >
-                        {view === "video-pending" ? (
-                          <>
-                            <Loader2 className="size-4 animate-spin" />
-                            {t("generatingDots")}
-                          </>
-                        ) : (
-                          <>
-                            <Video className="size-4" />
-                            {t("makeAlive")}
-                          </>
-                        )}
-                      </Button>
-                    </LockableAction>
-                  )}
+                      {view === "video-pending" ? (
+                        <>
+                          <Loader2 className="size-4 animate-spin" />
+                          {t("generatingDots")}
+                        </>
+                      ) : (
+                        <>
+                          <Video className="size-4" />
+                          {t("makeAlive")}
+                        </>
+                      )}
+                    </Button>
+                  </LockableAction>
+                )}
 
-                  {view === "video" && videoUrl ? (
-                    <Button
-                      onClick={handleDownloadVideo}
-                      className="gap-2 bg-rose-500 text-white hover:bg-rose-600"
-                    >
-                      <Download className="size-4" />
-                      {t("downloadVideo")}
-                    </Button>
-                  ) : resultImage ? (
-                    <Button
-                      onClick={handleDownloadImage}
-                      className="gap-2 bg-rose-500 text-white hover:bg-rose-600"
-                    >
-                      <Download className="size-4" />
-                      {t("downloadShort")}
-                    </Button>
-                  ) : null}
-                </div>
+                {view === "video" && videoUrl ? (
+                  <Button
+                    onClick={handleDownloadVideo}
+                    className="h-11 w-full gap-2 bg-rose-500 text-white hover:bg-rose-600 sm:h-9 sm:w-auto"
+                  >
+                    <Download className="size-4" />
+                    {t("downloadVideo")}
+                  </Button>
+                ) : resultImage ? (
+                  <Button
+                    onClick={handleDownloadImage}
+                    className="h-11 w-full gap-2 bg-rose-500 text-white hover:bg-rose-600 sm:h-9 sm:w-auto"
+                  >
+                    <Download className="size-4" />
+                    {t("downloadShort")}
+                  </Button>
+                ) : null}
               </div>
             </div>
           )}

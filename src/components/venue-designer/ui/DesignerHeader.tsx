@@ -89,21 +89,22 @@ export function DesignerHeader({
 
   return (
     <div className="flex flex-col gap-2 rounded-xl border bg-background/90 px-3 py-2 shadow-sm backdrop-blur-sm md:flex-row md:items-center md:gap-3 md:py-1.5">
-      {/* Row A on mobile: back + title input + save status; same row on desktop.
-          The "My Designs" gallery is a permanent-account feature — anon
-          visitors only ever work on the one in-progress design we minted
-          for their session, so the back button is hidden to keep the
-          flow linear. */}
-      <div className="flex min-w-0 flex-1 items-center gap-3">
+      {/* Row A on mobile: back + title input + inline save status pill;
+          same row on desktop. The "My Designs" gallery is a permanent-
+          account feature — anon visitors only ever work on the one
+          in-progress design we minted for their session, so the back
+          button is hidden to keep the flow linear. */}
+      <div className="flex min-w-0 flex-1 items-center gap-2 md:gap-3">
         {!isAnon && (
           <>
             <Button
               variant="ghost"
               size="sm"
-              className="h-8 shrink-0 gap-1.5 text-xs md:h-7"
+              className="h-9 shrink-0 gap-1.5 px-2 text-xs md:h-7 md:px-3"
               onClick={() => router.push("/venue-designer")}
+              aria-label={t("myDesigns")}
             >
-              <LayoutGrid className="h-3 w-3" />
+              <LayoutGrid className="h-4 w-4 md:h-3 md:w-3" />
               <span className="hidden sm:inline">{t("myDesigns")}</span>
             </Button>
             <div className="hidden h-4 w-px bg-border md:block" />
@@ -118,21 +119,34 @@ export function DesignerHeader({
           placeholder={t("designNamePlaceholder")}
         />
 
-        <div className="hidden items-center gap-1 text-xs text-muted-foreground md:flex">
+        {/* Save status. Now visible on mobile too — collapsed to a
+            single icon (no text) so it doesn't fight the title input
+            for space; widens to icon + label from `md` onward. */}
+        <div
+          className="flex shrink-0 items-center gap-1 text-xs text-muted-foreground"
+          aria-live="polite"
+          aria-label={
+            saveStatus === "saving"
+              ? t("saving")
+              : saveStatus === "saved"
+                ? t("saved")
+                : t("unsaved")
+          }
+        >
           {saveStatus === "saving" ? (
             <>
-              <Loader2 className="h-3 w-3 animate-spin" />
-              <span>{t("saving")}</span>
+              <Loader2 className="h-3.5 w-3.5 animate-spin md:h-3 md:w-3" />
+              <span className="hidden md:inline">{t("saving")}</span>
             </>
           ) : saveStatus === "saved" ? (
             <>
-              <Check className="h-3 w-3 text-green-500" />
-              <span>{t("saved")}</span>
+              <Check className="h-3.5 w-3.5 text-green-500 md:h-3 md:w-3" />
+              <span className="hidden md:inline">{t("saved")}</span>
             </>
           ) : (
             <>
               <Circle className="h-2.5 w-2.5 fill-amber-400 text-amber-400" />
-              <span>{t("unsaved")}</span>
+              <span className="hidden md:inline">{t("unsaved")}</span>
             </>
           )}
         </div>
@@ -141,8 +155,14 @@ export function DesignerHeader({
       {/* Row B on mobile: actions wrap; right-aligned cluster on desktop.
           The Vision Pack quota pill gets its own lane on the far end so
           it can't be squeezed into a wrapping line that overlaps the
-          name input or the Approve button on mid widths. */}
-      <div className="flex flex-wrap items-center justify-end gap-2 md:ms-auto md:gap-1.5">
+          name input or the Approve button on mid widths.
+
+          On mobile we bump every button to a 36px (h-9) tap target,
+          make the explicit Save button icon-only so it doesn't compete
+          with the inline save indicator above, and let the Approve
+          CTA stretch to fill any leftover space on its row so it
+          remains the obvious primary action. */}
+      <div className="flex flex-wrap items-center justify-end gap-1.5 md:ms-auto md:gap-1.5">
         <VisionPackQuotaBadge />
 
         <div
@@ -155,11 +175,11 @@ export function DesignerHeader({
             <Button
               variant="ghost"
               size="sm"
-              className="h-8 gap-1.5 text-xs md:h-7"
+              className="h-9 gap-1.5 px-2.5 text-xs md:h-7 md:px-3"
               onClick={() => setMediaGalleryOpen(true)}
             >
-              <ImageIcon className="h-3 w-3" />
-              {t("gallery")}
+              <ImageIcon className="h-4 w-4 md:h-3 md:w-3" />
+              <span className="hidden sm:inline">{t("gallery")}</span>
             </Button>
             <MediaGalleryDialog
               open={mediaGalleryOpen}
@@ -172,12 +192,13 @@ export function DesignerHeader({
         <Button
           variant="ghost"
           size="sm"
-          className="h-8 gap-1.5 text-xs md:h-7"
+          className="h-9 gap-1.5 px-2.5 text-xs md:h-7 md:px-3"
           onClick={onSave}
           disabled={saving || saveStatus === "saved"}
+          aria-label={t("save")}
         >
-          <Save className="h-3 w-3" />
-          {t("save")}
+          <Save className="h-4 w-4 md:h-3 md:w-3" />
+          <span className="hidden md:inline">{t("save")}</span>
         </Button>
 
         {designId && showApproveCluster &&
@@ -185,25 +206,25 @@ export function DesignerHeader({
             <Button
               size="sm"
               variant="outline"
-              className="h-8 gap-1.5 border-rose-200 bg-rose-50/60 text-xs text-rose-700 hover:bg-rose-100/70 md:h-7"
+              className="h-9 flex-1 gap-1.5 border-rose-200 bg-rose-50/60 text-xs text-rose-700 hover:bg-rose-100/70 md:h-7 md:flex-none"
               onClick={() =>
                 router.push(`/dashboard/client/event/${linkedEventId}`)
               }
             >
-              <ExternalLink className="h-3 w-3" />
+              <ExternalLink className="h-3.5 w-3.5 md:h-3 md:w-3" />
               {t("openEvent")}
             </Button>
           ) : canApprove ? (
             <Button
               size="sm"
-              className="h-8 gap-1.5 bg-gradient-to-r from-rose-600 to-amber-500 text-xs text-white hover:opacity-90 md:h-7"
+              className="h-9 flex-1 gap-1.5 bg-gradient-to-r from-rose-600 to-amber-500 text-xs text-white hover:opacity-90 md:h-7 md:flex-none"
               disabled={createFromDesign.isPending}
               onClick={() => createFromDesign.mutate({ designId })}
             >
               {createFromDesign.isPending ? (
-                <Loader2 className="h-3 w-3 animate-spin" />
+                <Loader2 className="h-3.5 w-3.5 animate-spin md:h-3 md:w-3" />
               ) : (
-                <CheckCircle2 className="h-3 w-3" />
+                <CheckCircle2 className="h-3.5 w-3.5 md:h-3 md:w-3" />
               )}
               {t("approveCreateEvent")}
             </Button>
@@ -215,11 +236,11 @@ export function DesignerHeader({
             <Button
               size="sm"
               variant="outline"
-              className="h-8 gap-1.5 border-rose-200/70 bg-background text-xs text-rose-700 hover:bg-rose-50 md:h-7 dark:border-rose-900/40 dark:text-rose-200 dark:hover:bg-rose-950/30"
+              className="h-9 flex-1 gap-1.5 border-rose-200/70 bg-background text-xs text-rose-700 hover:bg-rose-50 md:h-7 md:flex-none dark:border-rose-900/40 dark:text-rose-200 dark:hover:bg-rose-950/30"
               onClick={() => setUpgradeOpen(true)}
               aria-label={tVp("upgradeApproveTitle")}
             >
-              <Lock className="h-3 w-3" />
+              <Lock className="h-3.5 w-3.5 md:h-3 md:w-3" />
               {t("approveCreateEvent")}
             </Button>
           ))}

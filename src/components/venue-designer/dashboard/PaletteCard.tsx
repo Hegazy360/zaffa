@@ -101,13 +101,18 @@ export function PaletteCard() {
                   style={{ backgroundColor: color }}
                 />
                 <span className="font-mono text-xs">{color}</span>
+                {/*
+                  Bumped to a 28px hit target so the X is comfortable
+                  on touch — the previous 0.5 padding around a 12px
+                  icon landed under 20px effective hit area.
+                */}
                 <button
                   type="button"
                   onClick={() => removeColor(i)}
-                  className="rounded-full p-0.5 text-muted-foreground opacity-70 hover:bg-muted hover:text-foreground"
+                  className="grid size-7 place-items-center rounded-full text-muted-foreground hover:bg-muted hover:text-foreground"
                   aria-label={t("removeColorAria", { color })}
                 >
-                  <X className="size-3" />
+                  <X className="size-3.5" />
                 </button>
               </div>
             ))}
@@ -117,7 +122,12 @@ export function PaletteCard() {
               </span>
             )}
           </div>
-          <div className="flex items-center gap-2">
+          {/*
+            Custom-hex row. On phones the input stretches to full width
+            and the Add/Clear pair drops to its own row; otherwise the
+            three controls line up inline like before.
+          */}
+          <div className="flex flex-wrap items-center gap-2">
             <Input
               value={draft}
               onChange={(e) => setDraft(e.target.value)}
@@ -128,30 +138,30 @@ export function PaletteCard() {
                 }
               }}
               placeholder="#A1B2C3"
-              className="max-w-[160px] font-mono"
+              className="h-11 w-full font-mono sm:h-9 sm:max-w-[160px]"
             />
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={addColor}
-              disabled={!HEX_RE.test(draft.trim()) || palette.colors.length >= 8}
-              className="gap-1.5"
-            >
-              <Plus className="size-3.5" />
-              {t("addColor")}
-            </Button>
-            {palette.colors.length > 0 && (
+            <div className="flex flex-1 items-center gap-2 sm:flex-none">
               <Button
                 type="button"
-                variant="ghost"
-                size="sm"
-                onClick={() => setPalette({ colors: [] })}
-                className="text-muted-foreground"
+                variant="outline"
+                onClick={addColor}
+                disabled={!HEX_RE.test(draft.trim()) || palette.colors.length >= 8}
+                className="h-10 flex-1 gap-1.5 sm:h-9 sm:flex-none"
               >
-                {t("clearColors")}
+                <Plus className="size-4" />
+                {t("addColor")}
               </Button>
-            )}
+              {palette.colors.length > 0 && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  onClick={() => setPalette({ colors: [] })}
+                  className="h-10 text-muted-foreground sm:h-9"
+                >
+                  {t("clearColors")}
+                </Button>
+              )}
+            </div>
           </div>
         </div>
       </CardContent>

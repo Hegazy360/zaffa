@@ -19,6 +19,7 @@ import {
   Check,
   Search,
   ExternalLink,
+  X,
 } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { useVenueDesignerStore } from "@/stores/venue-designer-store";
@@ -302,18 +303,32 @@ export function ReferencePickerDialog({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       {/*
-        Mobile-friendly layout. We override the base `grid` with a flex
-        column and cap the dialog at `100dvh-2rem` so the whole modal
-        stays inside the viewport on phones. The header is a fixed-size
-        first row, the Tabs region takes the remaining height and owns
-        the inner scrolling, so nothing overflows the rounded box.
+        Mobile-first sizing. On phones (<sm) we go full-bleed — the
+        dialog occupies the entire dynamic viewport, drops its rounded
+        corners and ring, and behaves like a native sheet so users get
+        the maximum tap area for the inspiration grid and don't fight
+        the on-screen keyboard for vertical space. From `sm` upward we
+        revert to the centered card with the original max-width and
+        2rem viewport gutter.
       */}
-      <DialogContent className="sm:max-w-3xl p-0 gap-0 flex flex-col max-h-[calc(100dvh-2rem)] overflow-hidden">
-        <DialogHeader className="shrink-0 px-4 pt-5 pb-3 sm:px-6 sm:pt-6">
-          <DialogTitle>
+      <DialogContent
+        className={cn(
+          "p-0 gap-0 flex flex-col overflow-hidden",
+          // Mobile: full-screen sheet. `inset-0` + `translate-none`
+          // overrides the base dialog's `top-1/2 start-1/2 -translate-*`
+          // centering so the popup snaps to the viewport edges without
+          // sub-pixel offsets. We also strip the rounded corners and
+          // ring so it reads as a native sheet on small screens.
+          "inset-0 max-w-full w-screen h-[100dvh] max-h-[100dvh] translate-x-0 translate-y-0 rounded-none ring-0",
+          // Desktop: back to the centered card.
+          "sm:inset-auto sm:top-1/2 sm:start-1/2 sm:-translate-x-1/2 sm:-translate-y-1/2 sm:max-w-3xl sm:w-full sm:h-auto sm:max-h-[calc(100dvh-2rem)] sm:rounded-xl sm:ring-1 sm:ring-foreground/10",
+        )}
+      >
+        <DialogHeader className="shrink-0 border-b border-border/60 px-4 pt-4 pb-3 pe-12 sm:border-b-0 sm:px-6 sm:pt-6 sm:pe-6">
+          <DialogTitle className="text-base sm:text-base">
             {t("categoryReferencesTitle", { category: categoryLabel })}
           </DialogTitle>
-          <DialogDescription>
+          <DialogDescription className="text-xs sm:text-sm">
             {t("referencesPickerDesc", {
               perCategory: MAX_REFERENCES_PER_CATEGORY,
               total: MAX_TOTAL_REFERENCES,
@@ -327,21 +342,26 @@ export function ReferencePickerDialog({
 
         <Tabs
           defaultValue="pinterest"
-          className="flex flex-1 min-h-0 min-w-0 flex-col gap-0 px-4 pb-4 sm:px-6 sm:pb-6"
+          className="flex flex-1 min-h-0 min-w-0 flex-col gap-0 px-4 pb-[max(env(safe-area-inset-bottom),1rem)] sm:px-6 sm:pb-6"
         >
           {/*
             `w-full` overrides the default `w-fit` so the list never
             tries to size to content (which is what was bleeding past
-            the dialog on narrow viewports). `overflow-x-auto` keeps the
-            list scrollable horizontally as a fallback when translated
-            labels are wider than 1/3 of the dialog. `shrink-0` keeps
-            the list out of the flex row's height calc so it doesn't
-            compete with the scrolling body below.
+            the dialog on narrow viewports). On mobile we also stick
+            the tab list to the top of the scroll area so it stays
+            reachable while the user browses long grids. `h-10` on
+            phones bumps each tab past the 44px tap-target floor.
           */}
-          <TabsList className="w-full max-w-full shrink-0 overflow-x-auto">
-            <TabsTrigger value="pinterest">{t("tabPinterest")}</TabsTrigger>
-            <TabsTrigger value="browse">{t("tabBrowse")}</TabsTrigger>
-            <TabsTrigger value="upload">{t("tabUpload")}</TabsTrigger>
+          <TabsList className="sticky top-0 z-10 mt-3 h-11 w-full max-w-full shrink-0 overflow-x-auto bg-background sm:static sm:h-9">
+            <TabsTrigger value="pinterest" className="h-9 px-3 text-xs sm:h-7 sm:text-sm">
+              {t("tabPinterest")}
+            </TabsTrigger>
+            <TabsTrigger value="browse" className="h-9 px-3 text-xs sm:h-7 sm:text-sm">
+              {t("tabBrowse")}
+            </TabsTrigger>
+            <TabsTrigger value="upload" className="h-9 px-3 text-xs sm:h-7 sm:text-sm">
+              {t("tabUpload")}
+            </TabsTrigger>
           </TabsList>
 
           {/*
@@ -355,21 +375,31 @@ export function ReferencePickerDialog({
             value="pinterest"
             className="mt-3 min-h-0 flex-1 space-y-3 overflow-y-auto"
           >
-            <form onSubmit={handleSearchSubmit} className="flex gap-2">
+            {/*
+              Sticky search row so the query stays reachable while
+              browsing long Pinterest result grids on a phone. We
+              intentionally don't `autoFocus` the input — on mobile
+              that would slam the soft keyboard up before the user has
+              even seen the pre-filled query, which is the most useful
+              thing about this surface.
+            */}
+            <form
+              onSubmit={handleSearchSubmit}
+              className="sticky top-0 z-[5] -mx-0.5 flex gap-2 bg-background pb-2 pt-1"
+            >
               <div className="relative min-w-0 flex-1">
                 <Search className="pointer-events-none absolute start-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
                 <Input
                   value={searchInput}
                   onChange={(e) => setSearchInput(e.target.value)}
                   placeholder={t("pinterestPlaceholder")}
-                  className="ps-9"
-                  autoFocus
+                  className="h-11 ps-9 sm:h-9"
                 />
               </div>
               <Button
                 type="submit"
                 disabled={searchInput.trim().length < 2}
-                className="shrink-0 bg-rose-500 text-white hover:bg-rose-600"
+                className="h-11 shrink-0 bg-rose-500 text-white hover:bg-rose-600 sm:h-9"
               >
                 {t("searchAction")}
               </Button>
@@ -417,18 +447,19 @@ export function ReferencePickerDialog({
                   const disabled = !selected && remaining <= 0;
                   const rehosting = pinterestRehostingId === pin.id;
                   return (
-                    <div key={pin.id} className="relative">
+                    <div key={pin.id} className="group relative">
                       <button
                         type="button"
                         onClick={() => handlePinterestPick(pin)}
                         disabled={disabled || rehosting}
                         className={cn(
-                          "group relative aspect-square w-full overflow-hidden rounded-lg border ring-offset-background transition-all",
+                          "relative block aspect-square w-full overflow-hidden rounded-lg border ring-offset-background transition-all",
                           selected
                             ? "border-rose-500 ring-2 ring-rose-400"
                             : "border-input hover:border-foreground/30",
                           (disabled || rehosting) && "opacity-50"
                         )}
+                        aria-pressed={selected}
                       >
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img
@@ -438,8 +469,8 @@ export function ReferencePickerDialog({
                           className="h-full w-full object-cover transition-transform group-hover:scale-[1.02]"
                         />
                         {selected && (
-                          <div className="absolute end-1.5 top-1.5 grid size-6 place-items-center rounded-full bg-rose-500 text-white shadow">
-                            <Check className="size-3.5" />
+                          <div className="absolute end-1.5 top-1.5 grid size-7 place-items-center rounded-full bg-rose-500 text-white shadow sm:size-6">
+                            <Check className="size-4 sm:size-3.5" />
                           </div>
                         )}
                         {rehosting && (
@@ -448,14 +479,29 @@ export function ReferencePickerDialog({
                           </div>
                         )}
                       </button>
+                      {/*
+                        "Open on Pinterest" affordance. On desktop it's
+                        still a hover-only mini badge; on touch devices
+                        we can't rely on hover, so we render a larger
+                        always-visible tap target in the bottom corner
+                        (44px square, with a transparent pad behind the
+                        glyph) that sits on top of the select button so
+                        it remains clickable.
+                      */}
                       <a
                         href={pin.pinUrl}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="absolute bottom-1 end-1 inline-flex items-center gap-0.5 rounded bg-black/60 px-1.5 py-0.5 text-[10px] text-white opacity-0 transition-opacity hover:bg-black/80 group-hover:opacity-100"
+                        onClick={(e) => e.stopPropagation()}
+                        className={cn(
+                          "absolute bottom-1 end-1 inline-flex items-center gap-0.5 rounded bg-black/65 text-white",
+                          "size-8 justify-center sm:size-auto sm:px-1.5 sm:py-0.5",
+                          "sm:opacity-0 sm:transition-opacity sm:hover:bg-black/80 sm:group-hover:opacity-100",
+                        )}
                         title={t("openOnPinterest")}
+                        aria-label={t("openOnPinterest")}
                       >
-                        <ExternalLink className="size-2.5" />
+                        <ExternalLink className="size-3.5 sm:size-2.5" />
                       </a>
                     </div>
                   );
@@ -494,6 +540,7 @@ export function ReferencePickerDialog({
                       type="button"
                       onClick={() => toggleInspiration(item)}
                       disabled={disabled}
+                      aria-pressed={selected}
                       className={cn(
                         "group relative aspect-square overflow-hidden rounded-lg border ring-offset-background transition-all",
                         selected
@@ -509,8 +556,8 @@ export function ReferencePickerDialog({
                         className="h-full w-full object-cover transition-transform group-hover:scale-[1.02]"
                       />
                       {selected && (
-                        <div className="absolute end-1.5 top-1.5 grid size-6 place-items-center rounded-full bg-rose-500 text-white shadow">
-                          <Check className="size-3.5" />
+                        <div className="absolute end-1.5 top-1.5 grid size-7 place-items-center rounded-full bg-rose-500 text-white shadow sm:size-6">
+                          <Check className="size-4 sm:size-3.5" />
                         </div>
                       )}
                       {item.subcategory && (
@@ -529,7 +576,7 @@ export function ReferencePickerDialog({
             value="upload"
             className="mt-3 min-h-0 flex-1 overflow-y-auto"
           >
-            <div className="rounded-lg border border-dashed p-6 text-center">
+            <div className="rounded-lg border border-dashed p-5 text-center sm:p-6">
               <Upload className="mx-auto mb-3 size-8 text-muted-foreground" />
               <p className="text-sm font-medium">{t("uploadInspirationTitle")}</p>
               <p className="mt-1 text-xs text-muted-foreground">
@@ -545,18 +592,19 @@ export function ReferencePickerDialog({
               <Button
                 type="button"
                 variant="outline"
-                className="mt-4 gap-1.5"
+                size="lg"
+                className="mt-4 h-11 w-full gap-1.5 sm:h-9 sm:w-auto"
                 disabled={uploading || remaining <= 0}
                 onClick={() => fileInputRef.current?.click()}
               >
                 {uploading ? (
                   <>
-                    <Loader2 className="size-3.5 animate-spin" />
+                    <Loader2 className="size-4 animate-spin" />
                     {t("uploadingDots")}
                   </>
                 ) : (
                   <>
-                    <Upload className="size-3.5" />
+                    <Upload className="size-4" />
                     {t("chooseImage")}
                   </>
                 )}
@@ -587,12 +635,19 @@ export function ReferencePickerDialog({
                           alt={t("uploadedRefAlt")}
                           className="h-full w-full object-cover"
                         />
+                        {/*
+                          Always-visible remove control sized to the
+                          ~32px minimum touch target (44px hit area via
+                          padding). The previous "hover to reveal" text
+                          pill was unreachable on touch devices.
+                        */}
                         <button
                           type="button"
                           onClick={() => removeReference(category, r.id)}
-                          className="absolute end-1.5 top-1.5 rounded-full bg-black/60 px-2 py-0.5 text-[10px] text-white"
+                          aria-label={t("removeReferenceAria")}
+                          className="absolute end-1 top-1 grid size-8 place-items-center rounded-full bg-black/65 text-white shadow-sm hover:bg-black/80"
                         >
-                          {t("removeShort")}
+                          <X className="size-4" />
                         </button>
                       </div>
                     ))}

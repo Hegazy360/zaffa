@@ -309,7 +309,7 @@ export function StepNavFooter({ step, onStepChange }: StepNavFooterProps) {
         variant="ghost"
         onClick={() => prev && onStepChange(prev)}
         disabled={!prev}
-        className="gap-1.5 text-sm text-muted-foreground hover:text-foreground disabled:opacity-40"
+        className="h-11 gap-1.5 text-sm text-muted-foreground hover:text-foreground disabled:opacity-40 sm:h-10"
       >
         <ChevronLeft className="size-4 rtl:-scale-x-100" />
         <span className="hidden sm:inline">{prevTitle}</span>
@@ -321,7 +321,7 @@ export function StepNavFooter({ step, onStepChange }: StepNavFooterProps) {
           onClick={() => onStepChange(next)}
           size="lg"
           className={cn(
-            "h-11 gap-2 px-5 text-sm",
+            "h-12 flex-1 gap-2 px-5 text-base sm:h-11 sm:flex-none sm:text-sm",
             next === "generate"
               ? "bg-gradient-to-r from-rose-600 to-amber-500 text-white shadow-lg shadow-rose-500/20 hover:opacity-90 hover:shadow-rose-500/30"
               : "bg-foreground text-background hover:bg-foreground/90"

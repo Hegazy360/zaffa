@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { useFormatters } from "@/lib/use-formatters";
+import { cn } from "@/lib/utils";
 
 interface MediaGalleryDialogProps {
   open: boolean;
@@ -87,8 +88,14 @@ export function MediaGalleryDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-3xl max-h-[85vh] flex flex-col">
-        <DialogHeader>
+      <DialogContent
+        className={cn(
+          "p-4 gap-3 flex flex-col overflow-hidden",
+          "inset-0 max-w-full w-screen h-[100dvh] max-h-[100dvh] translate-x-0 translate-y-0 rounded-none ring-0",
+          "sm:inset-auto sm:top-1/2 sm:start-1/2 sm:-translate-x-1/2 sm:-translate-y-1/2 sm:max-w-3xl sm:w-full sm:h-auto sm:max-h-[85vh] sm:rounded-xl sm:ring-1 sm:ring-foreground/10",
+        )}
+      >
+        <DialogHeader className="pe-10 sm:pe-0">
           <DialogTitle className="flex items-center gap-2">
             <ImageIcon className="h-5 w-5 text-rose-500" />
             {t("mediaGalleryTitle")}
@@ -98,13 +105,13 @@ export function MediaGalleryDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="flex gap-1.5 mb-2">
+        <div className="-mx-1 flex gap-1.5 overflow-x-auto px-1">
           {(["all", "render", "video"] as const).map((fv) => (
             <Button
               key={fv}
               variant={filter === fv ? "default" : "outline"}
               size="sm"
-              className={`h-7 text-xs ${filter === fv ? "bg-rose-500 hover:bg-rose-600 text-white" : ""}`}
+              className={`h-9 shrink-0 text-xs sm:h-7 ${filter === fv ? "bg-rose-500 hover:bg-rose-600 text-white" : ""}`}
               onClick={() => setFilter(fv)}
             >
               {fv === "render" && <ImageIcon className="h-3 w-3 me-1" />}
@@ -116,37 +123,43 @@ export function MediaGalleryDialog({
 
         {selected ? (
           <div className="flex-1 min-h-0 flex flex-col">
-            <div className="flex items-center justify-between mb-2">
+            {/*
+              Action row. On mobile we let the row wrap so the Back
+              button takes its own line if the download/delete pair
+              would otherwise overflow, and we bump every button to a
+              ~44px tap target.
+            */}
+            <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
               <Button
                 variant="ghost"
                 size="sm"
-                className="h-7 text-xs gap-1"
+                className="h-9 gap-1 text-xs sm:h-7"
                 onClick={() => setSelected(null)}
               >
-                <X className="h-3 w-3" />
+                <X className="h-3.5 w-3.5 sm:h-3 sm:w-3" />
                 {t("backToGallery")}
               </Button>
               <div className="flex gap-1.5">
                 <Button
                   variant="outline"
                   size="sm"
-                  className="h-7 text-xs gap-1"
+                  className="h-9 gap-1 text-xs sm:h-7"
                   onClick={() => handleDownload(selected)}
                 >
-                  <Download className="h-3 w-3" />
+                  <Download className="h-3.5 w-3.5 sm:h-3 sm:w-3" />
                   {t("downloadAction")}
                 </Button>
                 <Button
                   variant="outline"
                   size="sm"
-                  className="h-7 text-xs gap-1 text-destructive hover:text-destructive hover:bg-destructive/10"
+                  className="h-9 gap-1 text-xs text-destructive hover:text-destructive hover:bg-destructive/10 sm:h-7"
                   onClick={() => handleDelete(selected.id)}
                   disabled={deleteMutation.isPending}
                 >
                   {deleteMutation.isPending ? (
-                    <Loader2 className="h-3 w-3 animate-spin" />
+                    <Loader2 className="h-3.5 w-3.5 animate-spin sm:h-3 sm:w-3" />
                   ) : (
-                    <Trash2 className="h-3 w-3" />
+                    <Trash2 className="h-3.5 w-3.5 sm:h-3 sm:w-3" />
                   )}
                   {t("deleteAction")}
                 </Button>
@@ -159,18 +172,19 @@ export function MediaGalleryDialog({
                   controls
                   autoPlay
                   loop
-                  className="max-w-full max-h-[55vh] object-contain"
+                  playsInline
+                  className="max-h-full max-w-full object-contain sm:max-h-[55vh]"
                 />
               ) : (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
                   src={selected.url}
                   alt={t("renderedVenueAlt")}
-                  className="max-w-full max-h-[55vh] object-contain"
+                  className="max-h-full max-w-full object-contain sm:max-h-[55vh]"
                 />
               )}
             </div>
-            <p className="text-xs text-muted-foreground mt-2 text-center">
+            <p className="mt-2 text-center text-xs text-muted-foreground">
               {selected.type === "render"
                 ? t("imageGenerated", {
                     when: f.relativeTime(new Date(selected.created_at)),

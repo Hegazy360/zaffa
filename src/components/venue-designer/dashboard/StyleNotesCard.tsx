@@ -27,7 +27,7 @@ export function StyleNotesCard() {
           value={styleNotes}
           onChange={(e) => setStyleNotes(e.target.value)}
           placeholder={t("styleNotesPlaceholder")}
-          className="min-h-24 resize-none"
+          className="min-h-32 resize-none text-base sm:min-h-24 sm:text-sm"
           maxLength={2000}
         />
         <div className="mt-1 text-end text-xs text-muted-foreground">

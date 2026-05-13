@@ -97,7 +97,7 @@ export function EventBasicsCard() {
             value={eventType}
             onValueChange={(v) => v && setEventType(v as EventType)}
           >
-            <SelectTrigger id="event-type" className="w-full">
+            <SelectTrigger id="event-type" className="h-11 w-full sm:h-9">
               <SelectValue placeholder={t("chooseEventType")} />
             </SelectTrigger>
             <SelectContent>
@@ -112,14 +112,20 @@ export function EventBasicsCard() {
 
         <div className="space-y-1.5">
           <Label>{t("settingLabel")}</Label>
-          <div className="grid grid-cols-3 gap-2">
+          {/*
+            On phones we stack the three settings as full-width cards so
+            the hint text doesn't get squeezed into 2-3 word ribbons.
+            From `sm` upward we keep the original side-by-side trio.
+          */}
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
             {SETTINGS.map((opt) => (
               <button
                 key={opt.value}
                 type="button"
                 onClick={() => setSetting(opt.value)}
+                aria-pressed={setting === opt.value}
                 className={cn(
-                  "rounded-lg border px-3 py-2.5 text-start text-sm transition-colors hover:bg-accent",
+                  "rounded-lg border px-3 py-3 text-start text-sm transition-colors hover:bg-accent sm:py-2.5",
                   setting === opt.value
                     ? "border-rose-400 bg-rose-50/60 ring-1 ring-rose-300"
                     : "border-input"
@@ -144,7 +150,7 @@ export function EventBasicsCard() {
             )}
           </div>
           <div className="relative">
-            <Users className="pointer-events-none absolute start-2.5 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
+            <Users className="pointer-events-none absolute start-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
             <Input
               id="guest-count"
               type="number"
@@ -155,7 +161,7 @@ export function EventBasicsCard() {
               value={guestCount ?? ""}
               onChange={(e) => handleGuestCountChange(e.target.value)}
               placeholder={t("guestCountPlaceholder")}
-              className="h-10 ps-8 pe-16 text-base"
+              className="h-11 ps-9 pe-16 text-base sm:h-10"
             />
             <span className="pointer-events-none absolute end-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">
               {t("guestCountUnit")}
@@ -164,14 +170,21 @@ export function EventBasicsCard() {
           <p className="text-xs text-muted-foreground">
             {t("guestCountHelp")}
           </p>
-          <div className="flex flex-wrap gap-1.5 pt-0.5">
+          {/*
+            Larger preset chips so they're comfortable to tap on a
+            phone (>=32px high). The grid lets four chips fit cleanly
+            across a 360px viewport instead of wrapping into uneven
+            rows.
+          */}
+          <div className="grid grid-cols-4 gap-1.5 pt-1 sm:flex sm:flex-wrap">
             {GUEST_COUNT_PRESETS.map((n) => (
               <button
                 key={n}
                 type="button"
                 onClick={() => setGuestCount(n)}
+                aria-pressed={guestCount === n}
                 className={cn(
-                  "rounded-full border px-2.5 py-1 text-xs transition-colors hover:bg-accent",
+                  "h-9 rounded-full border text-sm transition-colors hover:bg-accent sm:h-auto sm:px-2.5 sm:py-1 sm:text-xs",
                   guestCount === n
                     ? "border-rose-400 bg-rose-50/60 text-rose-700 ring-1 ring-rose-300"
                     : "border-input text-muted-foreground"
