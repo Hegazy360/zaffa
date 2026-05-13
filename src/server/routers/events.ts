@@ -5,6 +5,10 @@ import { prisma } from "@/lib/prisma";
 import { notifyEventInServiceArea } from "@/server/services/notifications/dispatchers";
 import { trackServer } from "@/lib/posthog";
 import { ANALYTICS_EVENTS } from "@/lib/analytics-events";
+import {
+  isPackWindowExpired,
+  packIncludesPlannerMatch,
+} from "@/lib/vision-pack";
 
 const eventTypeSchema = z.enum([
   "wedding",
@@ -241,6 +245,32 @@ export const eventsRouter = router({
       // there — no surprise duplicate events.
       if (design.event_id) {
         return { id: design.event_id };
+      }
+
+      // Planner-marketplace gate. "Approve & create event" opens the
+      // planner workspace, so it should only be reachable from a SKU
+      // that actually unlocks planner matching (Vision Pack today).
+      // Design Pack users land on this via a locked CTA in the header
+      // that's supposed to open the upgrade modal instead — this
+      // server check makes that gate non-bypassable from devtools or
+      // an unprotected mutation replay.
+      const pack = await prisma.visionPack.findFirst({
+        where: {
+          recipient_user_id: ctx.user.id,
+          status: { in: ["active", "fulfilled"] },
+        },
+        orderBy: { paid_at: "desc" },
+        select: { sku: true, expires_at: true },
+      });
+      const plannerOk =
+        !!pack &&
+        !isPackWindowExpired(pack.expires_at) &&
+        packIncludesPlannerMatch(pack.sku);
+      if (!plannerOk) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "PACK_TIER_NO_PLANNER_MATCH",
+        });
       }
 
       // Map loose `event_type` string on VenueDesign to the strict EventType

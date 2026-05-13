@@ -95,19 +95,20 @@ const SEED_AUTHORED: Partial<Record<PackSkuId, Record<string, { amount: number; 
     CA: { amount: 19.99, currency: "USD" },
     DEFAULT: { amount: 19.99, currency: "USD" },
   },
-  // ----- Vision Pack — original $99 USD default -----
-  // Unchanged from the single-SKU world; carries forward the same
-  // regional matrix so existing customers see the same prices.
+  // ----- Vision Pack — $99.99 USD default -----
+  // Retail-style charm pricing across the USD/GBP/EUR markets to
+  // match the Design Pack convention; round numbers stay on the
+  // regional currencies where customers expect them.
   wedding_vision_pack_v1: {
     EG: { amount: 499, currency: "EGP" },
     SA: { amount: 499, currency: "SAR" },
     AE: { amount: 499, currency: "AED" },
     QA: { amount: 499, currency: "QAR" },
-    GB: { amount: 79, currency: "GBP" },
-    EU: { amount: 89, currency: "EUR" },
-    US: { amount: 99, currency: "USD" },
-    CA: { amount: 99, currency: "USD" },
-    DEFAULT: { amount: 99, currency: "USD" },
+    GB: { amount: 79.99, currency: "GBP" },
+    EU: { amount: 89.99, currency: "EUR" },
+    US: { amount: 99.99, currency: "USD" },
+    CA: { amount: 99.99, currency: "USD" },
+    DEFAULT: { amount: 99.99, currency: "USD" },
   },
 };
 
@@ -181,7 +182,7 @@ export function seedPricingFor(
  * Two display modes drive `fractionDigits`:
  *  - 2-decimal currencies (USD, EGP, …) show `.99` only when the price
  *    is non-round in major units (e.g. `$19.99`); round prices like
- *    `$99` print without trailing `.00` to keep retail copy clean.
+ *    `EGP 499` print without trailing `.00` to keep retail copy clean.
  *  - Zero-decimal currencies (JPY, KRW, …) always print without
  *    fractions — `Intl` would honor that automatically but we pin the
  *    digits explicitly so the output stays stable across runtimes.

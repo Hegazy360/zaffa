@@ -1101,7 +1101,7 @@ model VisionPack {
 // ----- Vision Pack tier upgrades (Design Pack → Vision Pack) -----
 //
 // A user on the entry-tier Design Pack ($19.99) can pay the price
-// difference to upgrade to the full Vision Pack ($99). One row per
+// difference to upgrade to the full Vision Pack ($99.99). One row per
 // upgrade attempt; the `pack_id`'s `sku` flips to `to_sku` on webhook
 // success. Keeping the audit trail separate from the pack row gives us
 // a clean ledger for refunds, customer support, and reporting.
@@ -1116,7 +1116,7 @@ model VisionPackUpgrade {
   from_sku                   String
   to_sku                     String
   // Minor units in `currency` — e.g. 8001 = $80.01 for an upgrade from
-  // $19.99 → $99. Always >= 0; zero means a free upgrade (admin grant).
+  // $19.99 → $99.99. Always >= 0; zero means a free upgrade (admin grant).
   amount_charged             Int
   currency                   String    @db.Char(3)
   stripe_checkout_session_id String?   @unique

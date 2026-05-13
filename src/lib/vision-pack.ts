@@ -47,8 +47,8 @@ export interface PackSku {
  *     Stripe; `amount=0`.
  *   - **Design Pack** (`wedding_design_pack_v1`): the $19.99 starter
  *     tier — design + microsite + PDF, no planner/venue matching.
- *   - **Vision Pack** (`wedding_vision_pack_v1`): the original $99
- *     full pack — bigger quotas, planner marketplace, plus
+ *   - **Vision Pack** (`wedding_vision_pack_v1`): the $99.99 full
+ *     pack — bigger quotas, planner marketplace, plus
  *     Zaffa-curated venue recommendations on the couple's event page.
  *
  * Stamped onto every `VisionPack` row at checkout time so individual
