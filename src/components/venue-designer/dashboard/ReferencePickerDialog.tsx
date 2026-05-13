@@ -383,9 +383,16 @@ export function ReferencePickerDialog({
               even seen the pre-filled query, which is the most useful
               thing about this surface.
             */}
+            {/*
+              On phones the input + submit don't fit comfortably side by
+              side once the placeholder grows past a few words, so we
+              stack them: full-width input on top, full-width button
+              underneath. From `sm` upward we go back to the original
+              inline row.
+            */}
             <form
               onSubmit={handleSearchSubmit}
-              className="sticky top-0 z-[5] -mx-0.5 flex gap-2 bg-background pb-2 pt-1"
+              className="sticky top-0 z-[5] -mx-0.5 flex flex-col gap-2 bg-background pb-2 pt-1 sm:flex-row"
             >
               <div className="relative min-w-0 flex-1">
                 <Search className="pointer-events-none absolute start-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
@@ -399,7 +406,7 @@ export function ReferencePickerDialog({
               <Button
                 type="submit"
                 disabled={searchInput.trim().length < 2}
-                className="h-11 shrink-0 bg-rose-500 text-white hover:bg-rose-600 sm:h-9"
+                className="h-11 w-full shrink-0 bg-rose-500 text-white hover:bg-rose-600 sm:h-9 sm:w-auto"
               >
                 {t("searchAction")}
               </Button>

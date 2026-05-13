@@ -505,6 +505,17 @@ export function GenerateRenderPanel({ designId }: GenerateRenderPanelProps) {
                 </>
               )}
             </Button>
+            {/*
+              Timing hint sits beneath the CTA rather than inside the
+              button label. Keeping it outside means the button stays
+              short and tappable on phones (no two-line wrap), while the
+              expectation-setting copy stays visible the whole time —
+              before, during, and after the request — instead of only
+              flashing in the loading state.
+            */}
+            <p className="-mt-2 text-center text-xs text-muted-foreground">
+              {t("renderTimeHint")}
+            </p>
           </>
         )}
 
