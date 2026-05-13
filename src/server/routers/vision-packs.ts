@@ -115,6 +115,81 @@ export const visionPacksRouter = router({
   }),
 
   /**
+   * Targeted post-checkout poll. The success page lands at
+   * `/venue-designer/welcome?pack=<id>[&upgrade=<id>]` and needs to
+   * watch *that specific* pack/upgrade row flip from `pending_payment`
+   * to `active`, not "the user's currently-active pack" — otherwise a
+   * pre-existing free `wedding_free_taste_v1` (or a previously active
+   * paid pack on the upgrade path) makes `current` return `active`
+   * immediately and the success page bounces the user to the return
+   * URL before the webhook has actually credited the purchase.
+   *
+   * Scoped to the recipient so users can't poll a stranger's pack;
+   * returns null when the id doesn't belong to them so the caller
+   * stays on the spinner / stalled state instead of crashing.
+   */
+  checkoutStatus: protectedProcedure
+    .input(
+      z.object({
+        packId: z.string().min(1).optional(),
+        upgradeId: z.string().min(1).optional(),
+      }),
+    )
+    .query(async ({ ctx, input }) => {
+      if (!input.packId && !input.upgradeId) return null;
+
+      // Upgrade flow takes precedence: during an upgrade, the parent
+      // pack row is already `active`, only the upgrade row carries
+      // the pending-payment state we're waiting on. Once it flips,
+      // `activateUpgradeFromCheckout` has already bumped pack.sku +
+      // quotas, so it's safe to bounce the user back.
+      if (input.upgradeId) {
+        const upgrade = await prisma.visionPackUpgrade.findUnique({
+          where: { id: input.upgradeId },
+          select: {
+            id: true,
+            status: true,
+            to_sku: true,
+            pack: {
+              select: {
+                id: true,
+                recipient_user_id: true,
+              },
+            },
+          },
+        });
+        if (!upgrade || upgrade.pack.recipient_user_id !== ctx.user.id) {
+          return null;
+        }
+        return {
+          kind: "upgrade" as const,
+          status: upgrade.status,
+          packId: upgrade.pack.id,
+          sku: upgrade.to_sku,
+          ready: upgrade.status === "active",
+        };
+      }
+
+      const pack = await prisma.visionPack.findUnique({
+        where: { id: input.packId! },
+        select: {
+          id: true,
+          sku: true,
+          status: true,
+          recipient_user_id: true,
+        },
+      });
+      if (!pack || pack.recipient_user_id !== ctx.user.id) return null;
+      return {
+        kind: "pack" as const,
+        status: pack.status,
+        packId: pack.id,
+        sku: pack.sku,
+        ready: pack.status === "active" || pack.status === "fulfilled",
+      };
+    }),
+
+  /**
    * Resolve the visitor's country and the effective price/currency for
    * that market. Public so the marketing surface, paywall, and
    * post-checkout pages can all consume the same source of truth.

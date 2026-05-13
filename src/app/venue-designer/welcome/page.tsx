@@ -19,13 +19,24 @@ const POLL_TIMEOUT_MS = 30_000;
 const POLL_INTERVAL_MS = 1_500;
 
 /**
- * Post-checkout success page. Stripe redirects here with `?pack=<id>` and
- * an optional `?return=<path>`. We poll `visionPacks.current` until the
- * webhook lands, then either auto-bounce to the return path or render the
- * editorial "you're in" panel. After POLL_TIMEOUT_MS without a flip to
- * `active` we stop polling and surface a manual-refresh / contact-support
- * fallback so the page never hangs forever (e.g. webhook listener down,
- * Stripe outage, or async payment method).
+ * Post-checkout success page. Stripe redirects here with `?pack=<id>`
+ * (plus `?upgrade=<id>` on a tier upgrade) and an optional
+ * `?return=<path>`. We poll `visionPacks.checkoutStatus` against that
+ * *specific* row until the webhook lands, then either auto-bounce to
+ * the return path or render the editorial "you're in" panel.
+ *
+ * We deliberately do NOT use `visionPacks.current` here — most users
+ * already have an `active` free `wedding_free_taste_v1` pack from the
+ * email-gate flow, so "the user's currently-active pack" returns
+ * truthy the moment Stripe redirects back and would race the
+ * pending-payment webhook, sending users on before they've actually
+ * been credited. Same for upgrades, where the parent pack row is
+ * already `active` before the upgrade webhook fires.
+ *
+ * After POLL_TIMEOUT_MS without a flip we stop polling and surface a
+ * manual-refresh / contact-support fallback so the page never hangs
+ * forever (webhook listener down, Stripe outage, async payment
+ * method, etc.).
  */
 export default function VenueDesignerWelcomePage() {
   const t = useTranslations("visionPack");
@@ -33,31 +44,45 @@ export default function VenueDesignerWelcomePage() {
   // live in the marketing namespace so the home page and this success
   // panel speak the same language about each SKU. We resolve them
   // lazily so the page can fall back to a generic "your pack" title
-  // during the brief window before `visionPacks.current` returns.
+  // during the brief window before `checkoutStatus` returns.
   const tTier = useTranslations("marketing.tier");
   const router = useRouter();
   const searchParams = useSearchParams();
   const reduceMotion = useReducedMotion();
   const returnPath = searchParams.get("return") ?? "/venue-designer";
+  const packId = searchParams.get("pack") ?? undefined;
+  const upgradeId = searchParams.get("upgrade") ?? undefined;
   const [stalled, setStalled] = useState(false);
 
-  const { data: pack, refetch } = trpc.visionPacks.current.useQuery(undefined, {
-    refetchInterval: (query) => {
-      if (query.state.data?.status === "active") return false;
-      if (stalled) return false;
-      return POLL_INTERVAL_MS;
-    },
-  });
+  // No pack/upgrade id in the URL → we can't poll a specific row. This
+  // shouldn't happen via Stripe's success URL but guard so a hand-typed
+  // /welcome doesn't hammer the API forever.
+  const hasTarget = Boolean(packId || upgradeId);
 
-  // Resolve the localized tier label off the pack's SKU. `pack.sku` is
-  // typed as `string`, so we only call into the marketing namespace
-  // when it actually matches a known tier key; anything else (or
-  // pre-load) falls back to the generic title so we don't crash on a
-  // missing-message error if the registry diverges from the i18n file.
+  const { data: status, refetch } = trpc.visionPacks.checkoutStatus.useQuery(
+    { packId, upgradeId },
+    {
+      enabled: hasTarget,
+      refetchInterval: (query) => {
+        if (query.state.data?.ready) return false;
+        if (stalled) return false;
+        return POLL_INTERVAL_MS;
+      },
+    },
+  );
+
+  const ready = status?.ready === true;
+
+  // Resolve the localized tier label off the pack's SKU. `status.sku`
+  // is typed as `string`, so we only call into the marketing
+  // namespace when it actually matches a known tier key; anything
+  // else (or pre-load) falls back to the generic title so we don't
+  // crash on a missing-message error if the registry diverges from
+  // the i18n file.
   const packLabel: string | null = (() => {
-    if (!pack?.sku) return null;
+    if (!status?.sku) return null;
     try {
-      return tTier(`${pack.sku}.eyebrow` as Parameters<typeof tTier>[0]);
+      return tTier(`${status.sku}.eyebrow` as Parameters<typeof tTier>[0]);
     } catch {
       return null;
     }
@@ -67,21 +92,19 @@ export default function VenueDesignerWelcomePage() {
   // the query) because it survives polling-interval changes and gives us
   // one place to flip the stalled flag.
   useEffect(() => {
-    if (pack?.status === "active" || stalled) return;
+    if (ready || stalled || !hasTarget) return;
     const timer = setTimeout(() => setStalled(true), POLL_TIMEOUT_MS);
     return () => clearTimeout(timer);
-  }, [pack?.status, stalled]);
+  }, [ready, stalled, hasTarget]);
 
   useEffect(() => {
-    if (pack?.status === "active") {
+    if (ready) {
       const t = setTimeout(() => {
         router.push(returnPath);
       }, 2400);
       return () => clearTimeout(t);
     }
-  }, [pack?.status, returnPath, router]);
-
-  const ready = pack?.status === "active";
+  }, [ready, returnPath, router]);
 
   const onManualRefresh = () => {
     setStalled(false);
