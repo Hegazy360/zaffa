@@ -14,6 +14,12 @@ interface Props {
   fullWidth?: boolean;
   /** Hide the helper line (used in compact contexts). */
   hideHint?: boolean;
+  /**
+   * Caller-driven disable. Used by the share panel to grey the button
+   * out for free-tier packs (mirrors the "Publish microsite" gating —
+   * the artefact is a paid-pack feature).
+   */
+  disabled?: boolean;
 }
 
 /**
@@ -28,6 +34,7 @@ export function LookbookDownloadButton({
   size = "default",
   fullWidth = false,
   hideHint = false,
+  disabled = false,
 }: Props) {
   const t = useTranslations("visionPack");
   const utils = trpc.useUtils();
@@ -70,7 +77,7 @@ export function LookbookDownloadButton({
         type="button"
         size={size}
         variant={variant === "outline" ? "outline" : "default"}
-        disabled={pending}
+        disabled={pending || disabled}
         onClick={handleClick}
         className={`gap-2 ${fullWidth ? "w-full" : ""}`}
       >

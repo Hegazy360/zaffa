@@ -13,9 +13,9 @@ import {
 import { Navbar } from "@/components/layout/navbar";
 import { Button } from "@/components/ui/button";
 import { trpc } from "@/lib/trpc";
-import { VisionPackPaywallProvider, usePackPaywall } from "@/components/vision-pack/VisionPackPaywallProvider";
-import { useTierPricing } from "@/components/vision-pack/use-pricing";
-import { PURCHASABLE_PACK_SKUS, PACK_SKUS } from "@/lib/vision-pack";
+import { VisionPackPaywallProvider } from "@/components/vision-pack/VisionPackPaywallProvider";
+import { PackCheckoutCard } from "@/components/vision-pack/PackCheckoutCard";
+import { PURCHASABLE_PACK_SKUS } from "@/lib/vision-pack";
 
 interface PageProps {
   params: Promise<{ renderId: string }>;
@@ -31,8 +31,13 @@ interface PageProps {
  * Two halves:
  *   - The render itself (watermarked for free-tier users, clean for
  *     paid).
- *   - A side-by-side $19.99 vs $99.99 upsell. Both share the existing
- *     `VisionPackPaywall` checkout pipeline.
+ *   - An inline `PackCheckoutPanel` upsell — the same tier picker /
+ *     includes list / Stripe CTA that powers the modal paywall, but
+ *     rendered flush on the page so the visitor doesn't have to
+ *     bounce through a second selector to commit. The
+ *     `VisionPackPaywallProvider` is still mounted because
+ *     `VisionPackUpgradeCta` (rendered inside the panel) reaches for
+ *     paywall context; the modal itself just won't open in this flow.
  */
 export default function RenderRevealPage({ params }: PageProps) {
   const { renderId } = use(params);
@@ -47,8 +52,6 @@ function RevealInner({ renderId }: { renderId: string }) {
   const t = useTranslations("renderReveal");
   const tEmail = useTranslations("emailGate");
   const router = useRouter();
-  const paywall = usePackPaywall();
-  const pricing = useTierPricing();
 
   const { data: render, isLoading } =
     trpc.venueDesigns.getRenderById.useQuery({ id: renderId });
@@ -157,61 +160,37 @@ function RevealInner({ renderId }: { renderId: string }) {
             </div>
           </div>
 
-          {/* Side-by-side tier comparison */}
-          <div className="mt-12 space-y-4">
+          {/* Side-by-side checkout cards — full price + includes +
+              its own CTA per tier. Each CTA fires `startCheckout`
+              (permanent users) or routes through `/auth/signup`
+              (anonymous), preserving `/r/{renderId}` as the
+              `returnPath` so they land back here after Stripe. The
+              higher-value tier is featured so the visitor sees a
+              clear default without locking them out of the entry
+              tier — one click commits, no modal in between. The
+              second card (Vision Pack) is featured by sort order. */}
+          <div className="mt-12 space-y-6">
             <div className="text-center">
               <div className="text-[10px] font-semibold tracking-[0.2em] text-rose-700 uppercase dark:text-rose-300">
                 {t("comparePlansEyebrow")}
               </div>
-              <p className="mt-2 text-sm text-muted-foreground">
+              <h2 className="font-display mt-2 text-3xl font-light tracking-tight sm:text-4xl">
+                {t("comparePlansTitle")}
+              </h2>
+              <p className="mx-auto mt-2 max-w-xl text-sm text-muted-foreground">
                 {t("comparePlansBody")}
               </p>
             </div>
 
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              {PURCHASABLE_PACK_SKUS.map((sku) => {
-                const meta = PACK_SKUS[sku];
-                const price = pricing.bySku[sku];
-                return (
-                  <button
-                    key={sku}
-                    type="button"
-                    onClick={() =>
-                      paywall.open({
-                        returnPath: `/r/${renderId}`,
-                      })
-                    }
-                    className="group rounded-2xl border border-rose-200/70 bg-card p-5 text-start transition-all hover:border-rose-400 hover:shadow-lg dark:border-rose-900/40 dark:hover:border-rose-700"
-                  >
-                    <div className="text-[10px] font-semibold tracking-[0.2em] text-rose-700 uppercase dark:text-rose-300">
-                      {meta.name}
-                    </div>
-                    <div className="mt-2 font-display text-3xl font-light tracking-tight">
-                      {price.label}
-                    </div>
-                    <ul className="mt-4 space-y-1.5 text-sm text-muted-foreground">
-                      <li>
-                        {meta.quotas.renders} renders · {meta.quotas.styles}{" "}
-                        styles
-                      </li>
-                      {meta.quotas.videos > 0 ? (
-                        <li>{meta.quotas.videos} short videos</li>
-                      ) : null}
-                      <li>Lookbook PDF + microsite</li>
-                      {meta.includesVenueRecs ? (
-                        <li>Curated venue recommendations</li>
-                      ) : null}
-                      {meta.includesPlannerMatch ? (
-                        <li>Match with a verified planner</li>
-                      ) : null}
-                    </ul>
-                    <div className="mt-4 inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-rose-600 to-amber-500 px-4 py-2 text-xs font-semibold text-white shadow-sm">
-                      Get this — {price.label}
-                      <ArrowRight className="size-3.5 rtl:-scale-x-100" />
-                    </div>
-                  </button>
-                );
-              })}
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5">
+              {PURCHASABLE_PACK_SKUS.map((sku, index) => (
+                <PackCheckoutCard
+                  key={sku}
+                  sku={sku}
+                  returnPath={`/r/${renderId}`}
+                  featured={index === PURCHASABLE_PACK_SKUS.length - 1}
+                />
+              ))}
             </div>
           </div>
         </div>

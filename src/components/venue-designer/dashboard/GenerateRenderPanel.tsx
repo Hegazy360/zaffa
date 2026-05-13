@@ -33,7 +33,9 @@ import { usePackPaywall } from "@/components/vision-pack/VisionPackPaywallProvid
 import { EmailGateOverlay } from "./EmailGateOverlay";
 import { Turnstile } from "@/components/security/Turnstile";
 import { useIsAnonymous } from "@/lib/use-is-anonymous";
+import { isFreePack, packAllowsVideo } from "@/lib/vision-pack";
 import { VisionPackUpgradeCta } from "@/components/vision-pack/VisionPackUpgradeCta";
+import { LockableAction } from "@/components/ui/lockable-action";
 
 interface GenerateRenderPanelProps {
   designId?: string;
@@ -154,6 +156,47 @@ export function GenerateRenderPanel({ designId }: GenerateRenderPanelProps) {
   const isAnon = useIsAnonymous();
   const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
   const [turnstileResetKey, setTurnstileResetKey] = useState(0);
+
+  // Pack-tier gating for the "Make it alive" video CTA. Free pack
+  // doesn't include video (server enforces via `packAllowsVideo` in
+  // `ai.startVideo`); we mirror that on the button so users see a
+  // disabled state instead of clicking through to a server error.
+  // Anonymous visitors are implicitly on the free pack too.
+  const { data: currentPack } = trpc.visionPacks.current.useQuery(undefined, {
+    enabled: isAnon === false,
+  });
+  const onFreeTier = isAnon !== false || !currentPack || isFreePack(currentPack.sku);
+  const videoAllowed = !onFreeTier && packAllowsVideo(currentPack?.sku ?? undefined);
+
+  // Re-mount the email gate on refresh for anonymous visitors.
+  //
+  // When an anon user generates a render and refreshes (or follows the
+  // URL back), local state is lost: `resultImage` resets to null and
+  // `view` to "form", so the gate's mount condition
+  // `(pendingEmailGate || (isAnon && resultImage)) && resultImage`
+  // can't fire. The past-renders gallery, meanwhile, is hydrated from
+  // `design.media` and would expose the (watermarked but still
+  // viewable) thumbnails directly.
+  //
+  // Fix: as soon as we know the visitor is anonymous AND the design
+  // has at least one render row, seed `resultImage` from the most
+  // recent render and switch to the "image" view. The gate then
+  // auto-overlays the watermarked preview, restoring the same shape
+  // they saw before the refresh. Permanent users (paid or post-gate
+  // free) skip this entirely.
+  const latestRender = useMemo(
+    () => allMedia.find((m) => m.type === "render") ?? null,
+    [allMedia],
+  );
+  useEffect(() => {
+    if (isAnon !== true) return;
+    if (resultImage !== null) return;
+    if (view !== "form") return;
+    if (!latestRender) return;
+    setResultImage(latestRender.url);
+    setView("image");
+    lastRenderMediaIdRef.current = latestRender.id;
+  }, [isAnon, latestRender, resultImage, view]);
 
   const renderMutation = trpc.ai.renderScene.useMutation({
     onSuccess: (data) => {
@@ -465,11 +508,20 @@ export function GenerateRenderPanel({ designId }: GenerateRenderPanelProps) {
           </>
         )}
 
-        {pendingEmailGate && resultImage ? (
+        {/* Email gate enforcement:
+            1. Fresh render → `renderMutation.onSuccess` sets `pendingEmailGate`.
+            2. Anonymous visitor revisits the design (re-mount, back nav, or
+               clicking a past render in the gallery) → `isAnon` is still true
+               and `resultImage` is the watermarked URL, so we re-mount the
+               gate. This is what stops the "approve & create event → back"
+               bypass from leaking a render past the gate.
+            For paid (and confirmed) users, neither flag fires, so the
+            normal result card renders below. */}
+        {(pendingEmailGate || (isAnon && resultImage)) && resultImage ? (
           <EmailGateOverlay
             watermarkedImageUrl={resultImage}
-            renderId={pendingEmailGate.renderId}
-            designId={pendingEmailGate.designId}
+            renderId={pendingEmailGate?.renderId ?? lastRenderMediaIdRef.current}
+            designId={pendingEmailGate?.designId ?? designId ?? null}
             onTryDifferentEmail={() => setPendingEmailGate(null)}
           />
         ) : (view === "image" ||
@@ -530,39 +582,71 @@ export function GenerateRenderPanel({ designId }: GenerateRenderPanelProps) {
                 }
               />
 
+              {/* Free-tier limits explainer. Sits above the action row so
+                  the disabled "Generate again" / "Make it alive" buttons
+                  read as intentional rather than broken. We can't rely on
+                  `title` tooltips here — browsers swallow hover events on
+                  disabled controls, and titles don't surface on touch
+                  devices at all. */}
+              {onFreeTier && (
+                <p className="rounded-md border border-rose-200/70 bg-rose-50/60 px-3 py-2 text-[11px] leading-relaxed text-rose-800 dark:border-rose-900/40 dark:bg-rose-950/30 dark:text-rose-200">
+                  {t("freeTierActionsHint")}
+                </p>
+              )}
+
               <div className="flex flex-wrap items-center gap-2">
-                <Button
-                  variant="outline"
-                  onClick={handleReset}
-                  disabled={view === "video-pending"}
-                  className="gap-2"
+                <LockableAction
+                  locked={onFreeTier}
+                  hint={t("generateAgainLockedHint")}
+                  align="start"
                 >
-                  <RotateCcw className="size-4" />
-                  {view === "video" ? t("startOver") : t("generateAgain")}
-                </Button>
+                  <Button
+                    variant="outline"
+                    onClick={handleReset}
+                    disabled={view === "video-pending" || onFreeTier}
+                    aria-label={
+                      onFreeTier ? t("generateAgainLockedHint") : undefined
+                    }
+                    className="gap-2"
+                  >
+                    <RotateCcw className="size-4" />
+                    {view === "video" ? t("startOver") : t("generateAgain")}
+                  </Button>
+                </LockableAction>
 
                 <div className="ms-auto flex flex-wrap gap-2">
                   {view !== "video" && (
-                    <Button
-                      variant="outline"
-                      onClick={handleMakeVideo}
-                      disabled={
-                        videoMutation.isPending || view === "video-pending"
-                      }
-                      className="gap-2"
+                    <LockableAction
+                      locked={!videoAllowed}
+                      hint={t("makeAliveLockedHint")}
+                      align="end"
                     >
-                      {view === "video-pending" ? (
-                        <>
-                          <Loader2 className="size-4 animate-spin" />
-                          {t("generatingDots")}
-                        </>
-                      ) : (
-                        <>
-                          <Video className="size-4" />
-                          {t("makeAlive")}
-                        </>
-                      )}
-                    </Button>
+                      <Button
+                        variant="outline"
+                        onClick={handleMakeVideo}
+                        disabled={
+                          videoMutation.isPending ||
+                          view === "video-pending" ||
+                          !videoAllowed
+                        }
+                        aria-label={
+                          !videoAllowed ? t("makeAliveLockedHint") : undefined
+                        }
+                        className="gap-2"
+                      >
+                        {view === "video-pending" ? (
+                          <>
+                            <Loader2 className="size-4 animate-spin" />
+                            {t("generatingDots")}
+                          </>
+                        ) : (
+                          <>
+                            <Video className="size-4" />
+                            {t("makeAlive")}
+                          </>
+                        )}
+                      </Button>
+                    </LockableAction>
                   )}
 
                   {view === "video" && videoUrl ? (
@@ -587,7 +671,12 @@ export function GenerateRenderPanel({ designId }: GenerateRenderPanelProps) {
             </div>
           )}
 
-        {designId && previousMedia.length > 0 && (
+        {/* Past-renders gallery is permanent-account chrome. Anonymous
+            (email-gated) visitors don't get to browse — exposing
+            thumbnails here would let them skip the gate by clicking
+            an old render after a refresh. The auto-hydration effect
+            above re-establishes the gate for them instead. */}
+        {!isAnon && designId && previousMedia.length > 0 && (
           <section className="space-y-3 border-t border-border/60 pt-5">
             <div className="flex items-center justify-between">
               <h3 className="text-[11px] font-medium uppercase tracking-[0.18em] text-muted-foreground">
@@ -669,3 +758,4 @@ export function GenerateRenderPanel({ designId }: GenerateRenderPanelProps) {
     </Card>
   );
 }
+

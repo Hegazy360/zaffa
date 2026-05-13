@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import Link from "next/link";
 import { ArrowRight, Sparkles } from "lucide-react";
 import { getTranslations } from "next-intl/server";
@@ -29,7 +30,9 @@ export default async function SignUpPage() {
         </p>
       </div>
 
-      <ClientSignUpForm />
+      <Suspense fallback={null}>
+        <ClientSignUpForm />
+      </Suspense>
 
       {/* Quiet detour for planners and vendors. We deliberately keep it muted
           so the client journey stays the obvious default. */}

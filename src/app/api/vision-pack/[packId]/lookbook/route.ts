@@ -6,6 +6,7 @@ import { LookbookDocument } from "@/components/vision-pack/lookbook-pdf";
 import { reportError } from "@/lib/logger";
 import { trackServer } from "@/lib/posthog";
 import { ANALYTICS_EVENTS } from "@/lib/analytics-events";
+import { isFreePack } from "@/lib/vision-pack";
 
 interface RouteParams {
   params: Promise<{ packId: string }>;
@@ -89,6 +90,7 @@ export async function GET(_req: Request, { params }: RouteParams) {
     where: { id: packId, recipient_user_id: userId },
     select: {
       id: true,
+      sku: true,
       status: true,
       recipient: {
         select: { id: true, full_name: true },
@@ -102,6 +104,12 @@ export async function GET(_req: Request, { params }: RouteParams) {
   }
   if (pack.status !== "active" && pack.status !== "fulfilled") {
     return NextResponse.json({ error: "pack_inactive" }, { status: 409 });
+  }
+  // Free-tier packs only entitle the email-gated render — the lookbook
+  // PDF is a paid-pack feature. The share panel disables the button
+  // client-side; this guard catches anyone hand-crafting a request.
+  if (isFreePack(pack.sku)) {
+    return NextResponse.json({ error: "free_tier_not_allowed" }, { status: 403 });
   }
 
   // Latest design — same heuristic the microsite uses.

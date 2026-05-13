@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { ArrowRight, Eye, EyeOff } from "lucide-react";
@@ -15,11 +15,21 @@ interface SignInFormProps {
   initialError?: string | null;
 }
 
+// See `client-signup-form.tsx` — only same-origin paths are honored.
+function sanitizeNext(raw: string | null): string {
+  if (!raw) return "/dashboard";
+  if (!raw.startsWith("/")) return "/dashboard";
+  if (raw.startsWith("//")) return "/dashboard";
+  return raw;
+}
+
 export function SignInForm({ initialError = null }: SignInFormProps) {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const supabase = createClient();
   const t = useTranslations("auth");
   const emailRef = useRef<HTMLInputElement>(null);
+  const nextPath = sanitizeNext(searchParams.get("next"));
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -49,7 +59,7 @@ export function SignInForm({ initialError = null }: SignInFormProps) {
       return;
     }
 
-    router.push("/dashboard");
+    router.push(nextPath);
     router.refresh();
   };
 
@@ -149,7 +159,11 @@ export function SignInForm({ initialError = null }: SignInFormProps) {
       <p className="text-center text-sm text-muted-foreground">
         {t("noAccount")}{" "}
         <Link
-          href="/auth/signup"
+          href={
+            nextPath === "/dashboard"
+              ? "/auth/signup"
+              : `/auth/signup?next=${encodeURIComponent(nextPath)}`
+          }
           className="font-medium text-rose-700 underline-offset-4 hover:underline dark:text-rose-300"
         >
           {t("signUp")}

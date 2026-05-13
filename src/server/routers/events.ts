@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
-import { router, protectedProcedure } from "../trpc";
+import { router, protectedProcedure, nonAnonymousProcedure } from "../trpc";
 import { prisma } from "@/lib/prisma";
 import { notifyEventInServiceArea } from "@/server/services/notifications/dispatchers";
 import { trackServer } from "@/lib/posthog";
@@ -220,7 +220,13 @@ export const eventsRouter = router({
   // Prefills title from the design name, event_type from the design, then
   // links the design back to the new event so the dashboard can render the
   // approved design at the top of the event detail page.
-  createFromDesign: protectedProcedure
+  // Approving a design into an event requires a permanent account — an
+  // anonymous (email-gated) visitor needs to confirm an email first so
+  // the event isn't orphaned under a throwaway uid. The button is also
+  // hidden client-side, but defense-in-depth here matters because this
+  // is the moment we'd otherwise leak a "view product without signup"
+  // bypass past the email gate.
+  createFromDesign: nonAnonymousProcedure
     .input(z.object({ designId: z.string().uuid() }))
     .mutation(async ({ ctx, input }) => {
       const design = await prisma.venueDesign.findFirst({

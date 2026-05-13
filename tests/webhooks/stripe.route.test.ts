@@ -240,6 +240,7 @@ describe("POST /api/webhooks/stripe", () => {
     // to major units for the `amount` field and also emits `amount_minor`.
     prismaMock.visionPack.findUnique.mockResolvedValue({
       id: packId,
+      sku: "wedding_design_pack_v1",
       recipient_user_id: recipientId,
       buyer_user_id: buyerId,
       amount: 49900,

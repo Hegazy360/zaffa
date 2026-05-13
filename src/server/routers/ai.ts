@@ -109,13 +109,15 @@ export const aiRouter = router({
       // spinning up fresh anonymous Supabase users to dodge the per-user
       // quota. Doesn't apply to paid packs — those users have already
       // committed.
+      //
+      // Throws the stable `FREE_RENDER_RATE_LIMITED` reason code (not a
+      // user-facing string) so `paywall.handleError` on the client can
+      // route this through the same modal as `PACK_REQUIRED` etc. The
+      // modal renders a dedicated headline for this reason that
+      // explains the limit and surfaces the buy CTAs inline.
       if (isFreePack(pack.sku)) {
         const ip = ctx.req ? ipFromRequest(ctx.req) : "unknown";
-        await enforceTrpc(
-          "aiRenderFreePerIp",
-          ip,
-          "Too many free renders from this network. Sign in or buy a pack to continue.",
-        );
+        await enforceTrpc("aiRenderFreePerIp", ip, "FREE_RENDER_RATE_LIMITED");
       }
 
       const result = await renderScene(input);

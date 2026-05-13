@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useState } from "react";
+import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { Loader2, Lock, Mail, Sparkles, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
@@ -51,6 +52,7 @@ export function EmailGateOverlay({
   onTryDifferentEmail,
 }: EmailGateOverlayProps) {
   const t = useTranslations("emailGate");
+  const router = useRouter();
   const [email, setEmail] = useState("");
   const [stage, setStage] = useState<Stage>("form");
   const [submittedEmail, setSubmittedEmail] = useState("");
@@ -97,16 +99,21 @@ export function EmailGateOverlay({
         return;
       }
 
-      // Server-side lock + Resend Audience push succeeded. Now ask
-      // Supabase to send the confirmation email via its auth transport.
-      // The link in the email points at `/auth/confirm?...&next=/r/{renderId}`
-      // — Supabase passes our `emailRedirectTo` through as `redirect_to`
-      // and the auth-confirm route honors it.
+      // Server-side lock + Resend Audience push succeeded. Now upgrade
+      // the anonymous user in Supabase. Two branches downstream:
+      //   - "Confirm email" ON  → Supabase sends a confirmation email
+      //     with a magic link. The user stays `is_anonymous: true` and
+      //     we show the "check your inbox" success state.
+      //   - "Confirm email" OFF → Supabase immediately flips the user
+      //     to permanent (`is_anonymous: false`), no email goes out.
+      //     We can't pretend we sent one in that case, so we redirect
+      //     directly to the reveal page where the upgraded session
+      //     unlocks `getRenderById` and the upsell.
       const supabase = createClient();
       const origin =
         typeof window !== "undefined" ? window.location.origin : "";
       const nextPath = renderId ? `/r/${renderId}` : "/venue-designer";
-      const { error: supabaseError } = await supabase.auth.updateUser(
+      const { data, error: supabaseError } = await supabase.auth.updateUser(
         { email: trimmed },
         { emailRedirectTo: `${origin}/auth/confirm?next=${encodeURIComponent(nextPath)}` },
       );
@@ -119,10 +126,19 @@ export function EmailGateOverlay({
         return;
       }
 
+      // "Confirm email" disabled in the Supabase project: the user is
+      // already permanent. Skip the inbox-check ceremony and reveal
+      // the (still watermarked, free-tier) render directly.
+      if (data?.user && data.user.is_anonymous === false) {
+        router.push(nextPath);
+        router.refresh();
+        return;
+      }
+
       setSubmittedEmail(trimmed);
       setStage("sent");
     },
-    [email, requestUpgrade, designId, renderId, t, turnstileToken],
+    [email, requestUpgrade, designId, renderId, router, t, turnstileToken],
   );
 
   const handleReset = useCallback(() => {
@@ -134,41 +150,43 @@ export function EmailGateOverlay({
 
   return (
     <div className="relative overflow-hidden rounded-2xl border border-rose-200/70 bg-card shadow-xl">
-      {/* Blurred preview backdrop */}
-      <div className="relative aspect-[16/9] w-full overflow-hidden">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src={watermarkedImageUrl}
-          alt={t("lockedPreviewLabel")}
-          className="absolute inset-0 h-full w-full scale-105 object-cover blur-lg"
-          aria-hidden
-        />
+      {/* Blurred preview backdrop — fills whatever final height the
+          container ends up at. The form below determines that height,
+          so the card is never clipped on short viewports. */}
+      <div
+        className="absolute inset-0 bg-cover bg-center"
+        style={{ backgroundImage: `url(${watermarkedImageUrl})` }}
+        aria-hidden
+      >
+        <div className="absolute inset-0 scale-105 backdrop-blur-lg" />
         <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/55 to-black/65" />
-        <div className="absolute inset-0 grid place-items-center px-4">
-          <div className="w-full max-w-md rounded-2xl border border-white/15 bg-background/95 p-6 shadow-2xl backdrop-blur-sm sm:p-8">
-            {stage === "sent" ? (
-              <SentState
-                email={submittedEmail}
-                onTryDifferent={handleReset}
-              />
-            ) : stage === "already_used" ? (
-              <AlreadyUsedState onTryDifferent={handleReset} />
-            ) : (
-              <FormState
-                email={email}
-                setEmail={setEmail}
-                onSubmit={handleSubmit}
-                submitting={stage === "submitting"}
-                turnstileResetKey={turnstileResetKey}
-                onTurnstileToken={setTurnstileToken}
-              />
-            )}
-          </div>
+      </div>
+
+      <div className="relative grid min-h-[min(60vh,420px)] place-items-center p-6 sm:p-10">
+        <div className="w-full max-w-md rounded-2xl border border-white/15 bg-background/95 p-7 shadow-2xl backdrop-blur-sm sm:p-9">
+          {stage === "sent" ? (
+            <SentState
+              email={submittedEmail}
+              onTryDifferent={handleReset}
+            />
+          ) : stage === "already_used" ? (
+            <AlreadyUsedState onTryDifferent={handleReset} />
+          ) : (
+            <FormState
+              email={email}
+              setEmail={setEmail}
+              onSubmit={handleSubmit}
+              submitting={stage === "submitting"}
+              turnstileResetKey={turnstileResetKey}
+              onTurnstileToken={setTurnstileToken}
+            />
+          )}
         </div>
-        <div className="pointer-events-none absolute bottom-3 end-3 inline-flex items-center gap-1.5 rounded-full bg-black/65 px-3 py-1 text-[10px] font-medium tracking-wide text-white backdrop-blur">
-          <Lock className="size-3" />
-          {t("watermarkBadge")}
-        </div>
+      </div>
+
+      <div className="pointer-events-none absolute bottom-3 end-3 inline-flex items-center gap-1.5 rounded-full bg-black/65 px-3 py-1 text-[10px] font-medium tracking-wide text-white backdrop-blur">
+        <Lock className="size-3" />
+        {t("watermarkBadge")}
       </div>
     </div>
   );

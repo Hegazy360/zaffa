@@ -26,7 +26,12 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { VISION_PACK_DEFAULT_PLATFORM_FEE_PCT } from "@/lib/vision-pack";
+import {
+  VISION_PACK_DEFAULT_PLATFORM_FEE_PCT,
+  isFreePack,
+  packIncludesPlannerMatch,
+} from "@/lib/vision-pack";
+import { LockableAction } from "@/components/ui/lockable-action";
 import { LookbookDownloadButton } from "./lookbook-download-button";
 
 interface Props {
@@ -95,6 +100,11 @@ export function ShareAndFinishPanel({ designId }: Props) {
 
   const isPublished = Boolean(pack.microsite_published_at);
   const slug = pack.microsite_slug;
+  // Free-tier packs grant the email-gated render only — the lookbook
+  // PDF and microsite stay paid-pack features. Microsite is already
+  // implicitly gated because `ensureFreePack` doesn't allocate a slug;
+  // the lookbook needs an explicit flag.
+  const onFreeTier = isFreePack(pack.sku);
   // Resolve origin client-side only — typical SSR safety dance.
   const origin =
     typeof window !== "undefined" ? window.location.origin : "https://zaffa.ai";
@@ -188,43 +198,80 @@ export function ShareAndFinishPanel({ designId }: Props) {
           ) : (
             <div className="space-y-2">
               <p className="text-[11px] text-muted-foreground/85">
-                {t("micrositeUnpublishedHint")}
+                {onFreeTier
+                  ? t("micrositeFreeTierHint")
+                  : t("micrositeUnpublishedHint")}
               </p>
-              <Button
-                type="button"
-                size="sm"
-                disabled={setPublic.isPending || !slug}
-                onClick={() =>
-                  setPublic.mutate({ packId: pack.id, isPublic: true })
-                }
-                className="h-8 gap-1.5 bg-gradient-to-r from-rose-600 to-amber-500 text-xs text-white hover:opacity-90"
+              <LockableAction
+                locked={onFreeTier}
+                hint={t("micrositeFreeTierHint")}
+                align="start"
               >
-                {setPublic.isPending ? (
-                  <Loader2 className="size-3 animate-spin" />
-                ) : (
-                  <Globe className="size-3" />
-                )}
-                {t("micrositePublishCta")}
-              </Button>
+                <Button
+                  type="button"
+                  size="sm"
+                  disabled={setPublic.isPending || !slug}
+                  onClick={() =>
+                    setPublic.mutate({ packId: pack.id, isPublic: true })
+                  }
+                  aria-label={
+                    onFreeTier ? t("micrositeFreeTierHint") : undefined
+                  }
+                  className="h-8 gap-1.5 bg-gradient-to-r from-rose-600 to-amber-500 text-xs text-white hover:opacity-90"
+                >
+                  {setPublic.isPending ? (
+                    <Loader2 className="size-3 animate-spin" />
+                  ) : (
+                    <Globe className="size-3" />
+                  )}
+                  {t("micrositePublishCta")}
+                </Button>
+              </LockableAction>
             </div>
           )}
         </Section>
 
-        {/* Lookbook */}
+        {/* Lookbook — paid-pack feature. Free-tier packs see a disabled
+            button + upgrade hint, mirroring how the microsite section
+            handles the missing slug. */}
         <Section
           icon={<FileDown className="size-4" />}
           title={t("shareSectionLookbookTitle")}
           description={t("shareSectionLookbookBody")}
         >
-          <LookbookDownloadButton
-            packId={pack.id}
-            size="sm"
-            variant="outline"
-            hideHint
-          />
+          {onFreeTier ? (
+            <div className="space-y-2">
+              <p className="text-[11px] text-muted-foreground/85">
+                {t("lookbookFreeTierHint")}
+              </p>
+              <LockableAction
+                locked
+                hint={t("lookbookFreeTierHint")}
+                align="start"
+              >
+                <LookbookDownloadButton
+                  packId={pack.id}
+                  size="sm"
+                  variant="outline"
+                  hideHint
+                  disabled
+                />
+              </LockableAction>
+            </div>
+          ) : (
+            <LookbookDownloadButton
+              packId={pack.id}
+              size="sm"
+              variant="outline"
+              hideHint
+            />
+          )}
         </Section>
 
-        {/* Find a planner */}
+        {/* Find a planner — only surfaced for tiers that actually
+            include the marketplace handoff. Lower tiers would otherwise
+            hit a PACK_TIER_NO_PLANNER_MATCH server error. */}
+        {packIncludesPlannerMatch(pack.sku) && (
         <Section
           icon={<Users className="size-4" />}
           title={t("shareSectionPlannerTitle")}
@@ -264,6 +311,7 @@ export function ShareAndFinishPanel({ designId }: Props) {
             </Button>
           )}
         </Section>
+        )}
       </CardContent>
     </Card>
   );

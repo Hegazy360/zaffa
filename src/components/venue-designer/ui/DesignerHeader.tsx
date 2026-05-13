@@ -17,6 +17,8 @@ import {
 import { trpc } from "@/lib/trpc";
 import { MediaGalleryDialog } from "./MediaGalleryDialog";
 import { VisionPackQuotaBadge } from "@/components/vision-pack/VisionPackQuotaBadge";
+import { useIsAnonymous } from "@/lib/use-is-anonymous";
+import { isFreePack } from "@/lib/vision-pack";
 
 interface DesignerHeaderProps {
   name: string;
@@ -38,6 +40,16 @@ export function DesignerHeader({
   const router = useRouter();
   const t = useTranslations("designer");
   const [mediaGalleryOpen, setMediaGalleryOpen] = useState(false);
+  // Anonymous (email-gated) visitors can't approve a design into an event
+  // yet — they need to confirm an email first. We hide the CTA entirely
+  // to avoid them creating an empty event under their throwaway uid.
+  // Free-tier (paid pack not purchased) users are gated the same way:
+  // the "Approve & create event" handoff is a paid-pack feature, so it
+  // shouldn't appear in the header until they upgrade.
+  const isAnon = useIsAnonymous();
+  const { data: currentPack } = trpc.visionPacks.current.useQuery();
+  const onFreeTier = !currentPack || isFreePack(currentPack.sku);
+  const canApprove = !isAnon && !onFreeTier;
 
   // Look up which event (if any) this design is already attached to so we
   // can show "Open event" instead of "Approve & create event".
@@ -61,19 +73,26 @@ export function DesignerHeader({
 
   return (
     <div className="flex flex-col gap-2 rounded-xl border bg-background/90 px-3 py-2 shadow-sm backdrop-blur-sm md:flex-row md:items-center md:gap-3 md:py-1.5">
-      {/* Row A on mobile: back + title input + save status; same row on desktop */}
+      {/* Row A on mobile: back + title input + save status; same row on desktop.
+          The "My Designs" gallery is a permanent-account feature — anon
+          visitors only ever work on the one in-progress design we minted
+          for their session, so the back button is hidden to keep the
+          flow linear. */}
       <div className="flex min-w-0 flex-1 items-center gap-3">
-        <Button
-          variant="ghost"
-          size="sm"
-          className="h-8 shrink-0 gap-1.5 text-xs md:h-7"
-          onClick={() => router.push("/venue-designer")}
-        >
-          <LayoutGrid className="h-3 w-3" />
-          <span className="hidden sm:inline">{t("myDesigns")}</span>
-        </Button>
-
-        <div className="hidden h-4 w-px bg-border md:block" />
+        {!isAnon && (
+          <>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-8 shrink-0 gap-1.5 text-xs md:h-7"
+              onClick={() => router.push("/venue-designer")}
+            >
+              <LayoutGrid className="h-3 w-3" />
+              <span className="hidden sm:inline">{t("myDesigns")}</span>
+            </Button>
+            <div className="hidden h-4 w-px bg-border md:block" />
+          </>
+        )}
 
         <input
           type="text"
@@ -145,7 +164,7 @@ export function DesignerHeader({
           {t("save")}
         </Button>
 
-        {designId &&
+        {designId && canApprove &&
           (linkedEventId ? (
             <Button
               size="sm"

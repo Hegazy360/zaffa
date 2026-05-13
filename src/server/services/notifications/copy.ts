@@ -406,16 +406,16 @@ const CATALOG: Record<
   // ----- Vision Pack -----
   vision_pack_ready: {
     en: {
-      title: "Your Wedding Vision Pack is ready",
+      title: "Your {packName} is ready",
       body: "Your pack is unlocked. Head to the designer and start generating — every render, video, and the lookbook are all included. Your generation window is open for the next {days} days.",
       ctaLabel: "Open the designer",
-      eyebrow: "Vision Pack",
+      eyebrow: "{packName}",
     },
     ar: {
-      title: "باقة رؤية الزفاف جاهزة",
+      title: "{packName} جاهزة لكم",
       body: "تمّ فتح باقتك. ادخل المصمّم وابدأ التوليد — كل الصور والفيديوهات والكتيّب متضمَّنة. نافذتك مفتوحة لمدة {days} يومًا.",
       ctaLabel: "افتح المصمّم",
-      eyebrow: "باقة الرؤية",
+      eyebrow: "{packName}",
     },
   },
 

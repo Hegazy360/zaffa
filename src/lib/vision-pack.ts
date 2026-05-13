@@ -151,6 +151,32 @@ export function isFreePack(skuId: string | null | undefined): boolean {
 }
 
 /**
+ * Localized display name for a pack tier, used by server-side
+ * surfaces (Stripe webhook → notification emails, bell copy) that
+ * can't go through `next-intl` because they run outside of a
+ * request locale context.
+ *
+ * Kept here next to the SKU registry so adding a new tier only
+ * touches one file. Mirrors `marketing.tier.<sku>.eyebrow` in
+ * `messages/*.json` — keep them in sync if you change either side.
+ */
+const PACK_DISPLAY_NAMES: Record<PackSkuId, { en: string; ar: string }> = {
+  wedding_free_taste_v1: { en: "Free Taste", ar: "التجربة المجانية" },
+  wedding_design_pack_v1: { en: "Design Pack", ar: "حزمة التصميم" },
+  wedding_vision_pack_v1: { en: "Vision Pack", ar: "حزمة الرؤية" },
+};
+
+export function localizedPackName(
+  skuId: string | null | undefined,
+  locale: "en" | "ar",
+): string {
+  if (skuId && skuId in PACK_DISPLAY_NAMES) {
+    return PACK_DISPLAY_NAMES[skuId as PackSkuId][locale];
+  }
+  return locale === "ar" ? "الحزمة" : "Pack";
+}
+
+/**
  * Generate a URL-safe slug for the public microsite. Combined with the
  * `microsite_slug @unique` constraint at the DB level, collision risk is
  * negligible for v1 traffic levels — but we still retry a few times on

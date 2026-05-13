@@ -274,6 +274,7 @@ async function handleVisionPackCheckoutCompleted(
     where: { id: packId },
     select: {
       id: true,
+      sku: true,
       recipient_user_id: true,
       buyer_user_id: true,
       amount: true,
@@ -284,6 +285,7 @@ async function handleVisionPackCheckoutCompleted(
     await notifyVisionPackReady({
       recipientUserId: pack.recipient_user_id,
       packId: pack.id,
+      skuId: pack.sku,
       windowDays: VISION_PACK_WINDOW_DAYS,
     });
   }
@@ -355,6 +357,10 @@ async function handleVisionPackUpgradeCompleted(
     await notifyVisionPackReady({
       recipientUserId: upgrade.pack.recipient_user_id,
       packId: upgrade.pack_id,
+      // After an upgrade `to_sku` is the pack's new tier — that's
+      // the one the customer just paid for and the one the email
+      // should call out.
+      skuId: upgrade.to_sku,
       windowDays: VISION_PACK_WINDOW_DAYS,
     });
   }

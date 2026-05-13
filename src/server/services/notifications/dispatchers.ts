@@ -1,5 +1,6 @@
 import { Prisma } from "@/generated/prisma/client";
 import { prisma } from "@/lib/prisma";
+import { localizedPackName } from "@/lib/vision-pack";
 import { notify, notifyMany } from "./notify";
 
 /**
@@ -476,14 +477,26 @@ export function notifyEngagementCancelledToVendor(args: {
 export function notifyVisionPackReady(args: {
   recipientUserId: string;
   packId: string;
+  skuId: string;
   windowDays: number;
 }): Promise<void> {
   return notify({
     userId: args.recipientUserId,
     type: "vision_pack_ready",
     link: `/venue-designer`,
-    vars: { days: args.windowDays },
-    data: { packId: args.packId, windowDays: args.windowDays },
+    // Title/body include `{packName}`, which must be in the
+    // recipient's locale — resolved per-recipient via the function
+    // form of `vars`. `localizedPackName` mirrors the pack tier
+    // labels used on the marketing surfaces.
+    vars: (locale) => ({
+      days: args.windowDays,
+      packName: localizedPackName(args.skuId, locale),
+    }),
+    data: {
+      packId: args.packId,
+      skuId: args.skuId,
+      windowDays: args.windowDays,
+    },
   });
 }
 

@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { ArrowRight } from "lucide-react";
@@ -18,16 +18,29 @@ import { AuthCheckEmail } from "./auth-check-email";
 
 const MIN_PASSWORD_LENGTH = 6;
 
+// Only same-origin redirects survive the funnel; anything else falls back
+// to /dashboard so a tampered `?next=https://evil` can't be used as an
+// open redirect after sign-up confirmation.
+function sanitizeNext(raw: string | null): string {
+  if (!raw) return "/dashboard";
+  if (!raw.startsWith("/")) return "/dashboard";
+  if (raw.startsWith("//")) return "/dashboard";
+  return raw;
+}
+
 // Default sign-up surface for couples / clients planning an event. Role is
 // hard-coded to "client" — professional planners and vendors live on a
 // dedicated route (/auth/signup/professional) so the headline and copy can
 // speak directly to them without a generic role-picker step in the middle.
 export function ClientSignUpForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const supabase = createClient();
   const t = useTranslations("auth");
   // Best-effort: link any matching Prospect row (warm lead) to this account.
   const claimProspect = trpc.profile.claimProspect.useMutation();
+
+  const nextPath = sanitizeNext(searchParams.get("next"));
 
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
@@ -36,6 +49,37 @@ export function ClientSignUpForm() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
+  // When the caller is currently an anonymous Supabase user (e.g. they
+  // came in through the venue designer's free-render flow), we upgrade
+  // their existing session in-place via `updateUser({ email, password })`
+  // so their saved designs + free render history transfer to the new
+  // permanent identity. Falling back to `signUp` would create a fresh
+  // user and orphan their data.
+  const [isAnon, setIsAnon] = useState(false);
+
+  useEffect(() => {
+    let mounted = true;
+    // Force a session refresh before reading claims. `getClaims()` only
+    // decodes the locally cached access-token JWT, which Supabase
+    // doesn't always rotate after an anon→permanent `updateUser`. If
+    // the user just upgraded (e.g. via the EmailGateOverlay or a prior
+    // submit on this form) the cached token can still claim
+    // `is_anonymous: true`, dragging us back into the anon-upgrade
+    // branch and producing confusing errors like "same password" when
+    // we try to `updateUser` a user who is already permanent.
+    void supabase.auth
+      .refreshSession()
+      .catch(() => undefined)
+      .then(() => supabase.auth.getClaims())
+      .then(({ data }) => {
+        if (!mounted) return;
+        const claims = data?.claims as { is_anonymous?: boolean } | undefined;
+        setIsAnon(claims?.is_anonymous === true);
+      });
+    return () => {
+      mounted = false;
+    };
+  }, [supabase]);
 
   const canSubmit =
     fullName.trim().length > 0 &&
@@ -47,33 +91,69 @@ export function ClientSignUpForm() {
     setError(null);
     setLoading(true);
 
-    const { data: authData, error: signUpError } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: { full_name: fullName, role: "client" },
-      },
-    });
+    // Where Supabase should land the user after they verify the email.
+    // We aim them at the same `next` the page was opened with, so the
+    // confirm-link round trip ends on /checkout (or wherever the caller
+    // wanted) instead of the generic dashboard.
+    const origin =
+      typeof window !== "undefined" ? window.location.origin : "";
+    const emailRedirectTo = `${origin}/auth/confirm?next=${encodeURIComponent(nextPath)}`;
 
-    if (signUpError) {
-      setError(signUpError.message);
+    const result = isAnon
+      ? await supabase.auth.updateUser(
+          { email, password, data: { full_name: fullName } },
+          { emailRedirectTo },
+        )
+      : await supabase.auth.signUp({
+          email,
+          password,
+          options: {
+            data: { full_name: fullName, role: "client" },
+            emailRedirectTo,
+          },
+        });
+
+    if (result.error) {
+      // Idempotency net for stale-cache races: if our cached
+      // `isAnon` told us to call `updateUser` but the user is already
+      // permanent and already has this exact email + password set,
+      // Supabase rejects with `same_password`. From the visitor's POV
+      // they're already signed up with these credentials — refresh
+      // the session and send them on instead of dead-ending them with
+      // a "New password should be different from the old password"
+      // error they can't reasonably resolve.
+      const errCode = (
+        result.error as { code?: string; message: string }
+      ).code;
+      if (isAnon && errCode === "same_password") {
+        await supabase.auth.refreshSession().catch(() => undefined);
+        claimProspect.mutate(undefined, {
+          onError: () => {
+            /* swallow: best-effort lead linking */
+          },
+        });
+        router.push(nextPath);
+        router.refresh();
+        return;
+      }
+      setError(result.error.message);
       setLoading(false);
       return;
     }
 
-    // Activation funnel — fired client-side because this is the moment
-    // the user perceives "I just signed up". The server-side onboarding
-    // events fire later when the role-specific profile is filled in.
     track(ANALYTICS_EVENTS.AUTH_SIGNED_UP, {
       role: "client",
-      via: "email_password",
+      via: isAnon ? "anon_upgrade" : "email_password",
     });
 
-    if (authData.user) {
+    // The anon-upgrade path keeps the same user row; only the role and
+    // full_name need a refresh on the existing profile.
+    const userId = result.data.user?.id;
+    if (userId) {
       const { error: profileError } = await supabase
         .from("profiles")
         .update({ role: "client", full_name: fullName })
-        .eq("id", authData.user.id);
+        .eq("id", userId);
 
       if (profileError) {
         setError(profileError.message);
@@ -82,13 +162,43 @@ export function ClientSignUpForm() {
       }
     }
 
-    if (authData.session) {
+    // Both code paths above are gated by Supabase's "Confirm email"
+    // setting:
+    //   - Confirm email OFF → `signUp` returns a session, and an
+    //     `updateUser` from an anon user flips `is_anonymous` to false
+    //     in place. We can send the visitor straight to `nextPath`.
+    //   - Confirm email ON  → no session yet (signUp) / still
+    //     anonymous (updateUser); we drop into the "check your email"
+    //     branch and wait for the link to land on /auth/confirm.
+    let canProceed = false;
+    if (isAnon) {
+      // Server-authoritative check. Supabase doesn't always rotate the
+      // local access-token JWT immediately after a successful
+      // anon→permanent `updateUser`, so `getClaims()` can still report
+      // `is_anonymous: true` for a beat even though the user record on
+      // the server is already permanent. That stale claim used to dump
+      // us into the "check your inbox" branch even with Confirm email
+      // OFF. Trust `result.data.user.is_anonymous` instead — it comes
+      // straight from the response — and force a session refresh so
+      // downstream middleware + tRPC calls see the new claims.
+      const upgraded = result.data.user?.is_anonymous === false;
+      canProceed = upgraded;
+      if (upgraded) {
+        await supabase.auth.refreshSession().catch(() => undefined);
+      }
+    } else {
+      canProceed = Boolean(
+        "session" in result.data ? result.data.session : null,
+      );
+    }
+
+    if (canProceed) {
       claimProspect.mutate(undefined, {
         onError: () => {
           /* swallow: best-effort lead linking */
         },
       });
-      router.push("/dashboard");
+      router.push(nextPath);
       router.refresh();
       return;
     }
@@ -187,7 +297,11 @@ export function ClientSignUpForm() {
       <p className="text-center text-sm text-muted-foreground">
         {t("hasAccount")}{" "}
         <Link
-          href="/auth/signin"
+          href={
+            nextPath === "/dashboard"
+              ? "/auth/signin"
+              : `/auth/signin?next=${encodeURIComponent(nextPath)}`
+          }
           className="font-medium text-rose-700 underline-offset-4 hover:underline dark:text-rose-300"
         >
           {t("signIn")}

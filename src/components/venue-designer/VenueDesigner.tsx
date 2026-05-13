@@ -16,6 +16,8 @@ import {
   type Size,
 } from "@/types/venue-designer";
 import { DesignerHeader } from "./ui/DesignerHeader";
+import { useIsAnonymous } from "@/lib/use-is-anonymous";
+import { isFreePack } from "@/lib/vision-pack";
 import { EventBasicsCard } from "./dashboard/EventBasicsCard";
 import { PaletteCard } from "./dashboard/PaletteCard";
 import { ReferenceCategoryCard } from "./dashboard/ReferenceCategoryCard";
@@ -257,6 +259,19 @@ function DesignerLayout({
   const stepIndex = STEP_IDS.indexOf(activeStep);
   const reduceMotion = useReducedMotion();
 
+  // Free-tier visitors (anonymous, or permanent on the free pack) get a
+  // chrome-less designer — no header, no "My Designs" exit, no save
+  // controls. The whole shell should feel like a one-shot try-out so
+  // they aren't tempted to navigate away mid-flow. Treat
+  // `useIsAnonymous() === null` (claims still resolving) as anonymous
+  // to avoid a brief flash of the chrome on first paint.
+  const anonClaim = useIsAnonymous();
+  const isAnon = anonClaim !== false;
+  const { data: currentPack } = trpc.visionPacks.current.useQuery(undefined, {
+    enabled: !isAnon,
+  });
+  const onFreeTier = isAnon || !currentPack || isFreePack(currentPack.sku);
+
   return (
     <div className="relative isolate min-h-screen w-full overflow-x-hidden bg-gradient-to-b from-rose-50/50 via-background to-background dark:from-rose-950/15">
       <div
@@ -268,19 +283,25 @@ function DesignerLayout({
         className="pointer-events-none absolute -top-40 start-1/2 -z-10 h-[28rem] w-[28rem] -translate-x-1/2 rounded-full bg-gradient-to-br from-rose-200/30 to-amber-200/20 blur-3xl dark:from-rose-900/15 dark:to-amber-900/10"
       />
 
-      {/* Sticky compact header */}
-      <div className="sticky top-0 z-30 border-b border-border/60 bg-background/70 backdrop-blur-md">
-        <div className="mx-auto max-w-5xl px-4 py-2">
-          <DesignerHeader
-            name={name}
-            onNameChange={onNameChange}
-            onSave={onSave}
-            saving={saving}
-            saveStatus={saveStatus}
-            designId={designId}
-          />
+      {/* Sticky compact header — paid-pack chrome only. Free-tier
+          users (anon or permanent on the free pack) see a chrome-less
+          one-shot designer; the email gate + reveal page own their
+          navigation surface, so the My-Designs / Save / Approve cluster
+          isn't useful and would only tempt them off-flow. */}
+      {!onFreeTier && (
+        <div className="sticky top-0 z-30 border-b border-border/60 bg-background/70 backdrop-blur-md">
+          <div className="mx-auto max-w-5xl px-4 py-2">
+            <DesignerHeader
+              name={name}
+              onNameChange={onNameChange}
+              onSave={onSave}
+              saving={saving}
+              saveStatus={saveStatus}
+              designId={designId}
+            />
+          </div>
         </div>
-      </div>
+      )}
 
       <DesignerStepper activeStep={activeStep} onStepChange={goToStep} />
 

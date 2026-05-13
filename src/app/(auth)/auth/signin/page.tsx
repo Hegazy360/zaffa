@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { Sparkles } from "lucide-react";
 import { getTranslations } from "next-intl/server";
 import { SignInForm } from "@/components/features/auth/signin-form";
@@ -43,7 +44,9 @@ export default async function SignInPage({ searchParams }: PageProps) {
         </p>
       </div>
 
-      <SignInForm initialError={initialError} />
+      <Suspense fallback={null}>
+        <SignInForm initialError={initialError} />
+      </Suspense>
     </div>
   );
 }

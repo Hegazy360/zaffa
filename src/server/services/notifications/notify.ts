@@ -10,8 +10,15 @@ export interface NotifyArgs {
   type: NotificationType;
   /** Relative dashboard path to deep-link the user to (e.g. `/dashboard/...`). */
   link?: string;
-  /** Template placeholders for title + body. See copy.ts. */
-  vars: CopyVars;
+  /**
+   * Template placeholders for title + body. See copy.ts.
+   *
+   * Pass an object for locale-independent vars, or a function for
+   * vars that need to be localized (e.g. a pack name resolved from
+   * a SKU into the recipient's preferred locale). Mirrors the
+   * `varsFor` pattern on `notifyMany`.
+   */
+  vars: CopyVars | ((locale: Locale) => CopyVars);
   /** Arbitrary structured metadata persisted with the row. */
   data?: Prisma.InputJsonValue;
   /**
@@ -49,7 +56,9 @@ export async function notify(args: NotifyArgs): Promise<void> {
     if (!recipient) return;
 
     const locale: Locale = recipient.locale === "ar" ? "ar" : "en";
-    const copy = getCopy(args.type, locale, args.vars);
+    const resolvedVars =
+      typeof args.vars === "function" ? args.vars(locale) : args.vars;
+    const copy = getCopy(args.type, locale, resolvedVars);
 
     const notification = await prisma.notification.create({
       data: {

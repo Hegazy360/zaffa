@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { motion, useReducedMotion } from "framer-motion";
 import {
@@ -23,6 +24,8 @@ import {
 } from "@/components/vision-pack/VisionPackQuotaBadge";
 import { usePackPaywall } from "@/components/vision-pack/VisionPackPaywallProvider";
 import { useVisionPackPricing } from "@/components/vision-pack/use-pricing";
+import { useIsAnonymous } from "@/lib/use-is-anonymous";
+import { isFreePack } from "@/lib/vision-pack";
 
 interface NormalizedPalette {
   colors: string[];
@@ -50,6 +53,17 @@ export default function VenueDesignerGalleryPage() {
   const paywall = usePackPaywall();
   const pricing = useVisionPackPricing();
   const utils = trpc.useUtils();
+  // The gallery is a permanent-account feature. Anon visitors are
+  // bounced straight into the designer so they can't browse / approve
+  // designs they haven't earned the right to act on yet.
+  const isAnon = useIsAnonymous() === true;
+  useEffect(() => {
+    if (isAnon) router.replace("/venue-designer/new");
+  }, [isAnon, router]);
+  // The "Approve & create event" handoff is a paid-pack feature — free
+  // pack users can save and revisit designs but the approval flow stays
+  // gated until they upgrade.
+  const onFreeTier = !pack || isFreePack(pack.sku);
 
   const deleteMutation = trpc.venueDesigns.delete.useMutation({
     onSuccess: () => utils.venueDesigns.list.invalidate(),
@@ -134,7 +148,10 @@ export default function VenueDesignerGalleryPage() {
 
   return (
     <>
-    <Navbar />
+    {/* Navbar is part of the paid-pack chrome. Anon users are already
+        bounced to /new (effect above); permanent users on the free pack
+        keep the chrome-less feel they had during the try-it-free flow. */}
+    {!onFreeTier && <Navbar />}
     <div className="relative isolate min-h-screen w-full overflow-x-hidden bg-gradient-to-b from-rose-50/50 via-background to-background dark:from-rose-950/15">
       <div
         aria-hidden
@@ -372,6 +389,10 @@ export default function VenueDesignerGalleryPage() {
                       )}
                     </div>
 
+                    {/* Approve/Open-event handoff is paid-pack only. We
+                        still surface "Open event" if the design is
+                        somehow already linked (e.g. legacy data) so
+                        free-tier users aren't stranded mid-flow. */}
                     {design.event_id ? (
                       <button
                         type="button"
@@ -384,7 +405,7 @@ export default function VenueDesignerGalleryPage() {
                         {t("approvedOpenEvent")}
                         <ArrowRight className="size-3 rtl:-scale-x-100" />
                       </button>
-                    ) : (
+                    ) : onFreeTier ? null : (
                       <button
                         type="button"
                         disabled={

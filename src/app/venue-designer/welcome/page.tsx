@@ -29,6 +29,12 @@ const POLL_INTERVAL_MS = 1_500;
  */
 export default function VenueDesignerWelcomePage() {
   const t = useTranslations("visionPack");
+  // Tier eyebrows ("Design Pack" / "Vision Pack" and Arabic equivalents)
+  // live in the marketing namespace so the home page and this success
+  // panel speak the same language about each SKU. We resolve them
+  // lazily so the page can fall back to a generic "your pack" title
+  // during the brief window before `visionPacks.current` returns.
+  const tTier = useTranslations("marketing.tier");
   const router = useRouter();
   const searchParams = useSearchParams();
   const reduceMotion = useReducedMotion();
@@ -42,6 +48,20 @@ export default function VenueDesignerWelcomePage() {
       return POLL_INTERVAL_MS;
     },
   });
+
+  // Resolve the localized tier label off the pack's SKU. `pack.sku` is
+  // typed as `string`, so we only call into the marketing namespace
+  // when it actually matches a known tier key; anything else (or
+  // pre-load) falls back to the generic title so we don't crash on a
+  // missing-message error if the registry diverges from the i18n file.
+  const packLabel: string | null = (() => {
+    if (!pack?.sku) return null;
+    try {
+      return tTier(`${pack.sku}.eyebrow` as Parameters<typeof tTier>[0]);
+    } catch {
+      return null;
+    }
+  })();
 
   // Cap the polling loop. A timer is the right fit here (vs. a counter on
   // the query) because it survives polling-interval changes and gives us
@@ -104,7 +124,11 @@ export default function VenueDesignerWelcomePage() {
             transition={{ duration: 0.5, delay: 0.1 }}
             className="font-display mt-4 text-balance text-3xl font-light tracking-tight sm:text-4xl"
           >
-            {ready || !stalled ? t("successTitle") : t("stalledTitle")}
+            {stalled && !ready
+              ? t("stalledTitle")
+              : packLabel
+                ? t("successTitle", { pack: packLabel })
+                : t("successTitleGeneric")}
           </motion.h1>
           <p className="mt-4 max-w-md text-pretty text-sm text-muted-foreground sm:text-base leading-relaxed">
             {ready || !stalled
