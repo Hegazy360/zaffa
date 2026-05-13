@@ -80,35 +80,37 @@ type PerCountrySeed = Record<string, VisionPackPrice>;
 // `Partial<Record<PackSkuId, ...>>` lets the type system catch any
 // caller that does try to price the free tier.
 const SEED_AUTHORED: Partial<Record<PackSkuId, Record<string, { amount: number; currency: string }>>> = {
-  // ----- Design Pack — $19.99 USD default -----
+  // ----- Design Pack — $19 USD default -----
   // Lower-tier "design + microsite + PDF" pack. No planner/venue
-  // matching included. Local equivalents are roughly 5× cheaper than
-  // the full Vision Pack to communicate it as the entry point.
+  // matching included. Round whole-number retail across all markets
+  // so the copy stays clean ("from $19" reads tighter than "from
+  // $19.99" on the home page hero). Local equivalents are roughly 5×
+  // cheaper than the full Vision Pack to communicate it as the
+  // entry point.
   wedding_design_pack_v1: {
     EG: { amount: 99, currency: "EGP" },
     SA: { amount: 99, currency: "SAR" },
     AE: { amount: 99, currency: "AED" },
     QA: { amount: 99, currency: "QAR" },
-    GB: { amount: 15.99, currency: "GBP" },
-    EU: { amount: 17.99, currency: "EUR" },
-    US: { amount: 19.99, currency: "USD" },
-    CA: { amount: 19.99, currency: "USD" },
-    DEFAULT: { amount: 19.99, currency: "USD" },
+    GB: { amount: 15, currency: "GBP" },
+    EU: { amount: 17, currency: "EUR" },
+    US: { amount: 19, currency: "USD" },
+    CA: { amount: 19, currency: "USD" },
+    DEFAULT: { amount: 19, currency: "USD" },
   },
-  // ----- Vision Pack — $99.99 USD default -----
-  // Retail-style charm pricing across the USD/GBP/EUR markets to
-  // match the Design Pack convention; round numbers stay on the
-  // regional currencies where customers expect them.
+  // ----- Vision Pack — $99 USD default -----
+  // Full pack with planner/venue matching. Same round-retail
+  // convention as Design Pack.
   wedding_vision_pack_v1: {
     EG: { amount: 499, currency: "EGP" },
     SA: { amount: 499, currency: "SAR" },
     AE: { amount: 499, currency: "AED" },
     QA: { amount: 499, currency: "QAR" },
-    GB: { amount: 79.99, currency: "GBP" },
-    EU: { amount: 89.99, currency: "EUR" },
-    US: { amount: 99.99, currency: "USD" },
-    CA: { amount: 99.99, currency: "USD" },
-    DEFAULT: { amount: 99.99, currency: "USD" },
+    GB: { amount: 79, currency: "GBP" },
+    EU: { amount: 89, currency: "EUR" },
+    US: { amount: 99, currency: "USD" },
+    CA: { amount: 99, currency: "USD" },
+    DEFAULT: { amount: 99, currency: "USD" },
   },
 };
 
@@ -181,8 +183,9 @@ export function seedPricingFor(
  *
  * Two display modes drive `fractionDigits`:
  *  - 2-decimal currencies (USD, EGP, …) show `.99` only when the price
- *    is non-round in major units (e.g. `$19.99`); round prices like
- *    `EGP 499` print without trailing `.00` to keep retail copy clean.
+ *    is non-round in major units (kept as a worked example below);
+ *    round prices like `$19` and `EGP 499` print without trailing
+ *    `.00` to keep retail copy clean.
  *  - Zero-decimal currencies (JPY, KRW, …) always print without
  *    fractions — `Intl` would honor that automatically but we pin the
  *    digits explicitly so the output stays stable across runtimes.

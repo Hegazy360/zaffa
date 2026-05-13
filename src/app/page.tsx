@@ -19,7 +19,7 @@ import { DEFAULT_PACK_SKU } from "@/lib/vision-pack";
 import { TierComparisonSection } from "@/components/home/tier-comparison-section";
 
 // The OG card / search snippet uses the default seed price for the
-// **lower** tier ("from $19.99" framing) rather than per-country
+// **lower** tier ("from $19" framing) rather than per-country
 // dynamic pricing — keeping the home page statically cacheable matters
 // more than perfect price-tag fidelity in the social card. The on-page
 // hero + CTA localize per-visitor via the client `useVisionPackPricing`

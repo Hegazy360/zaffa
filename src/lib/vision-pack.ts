@@ -45,9 +45,9 @@ export interface PackSku {
  *     server-side on first `ai.renderScene` call by anonymous (or
  *     not-yet-paid) users via `ensureFreePack`. Never sold through
  *     Stripe; `amount=0`.
- *   - **Design Pack** (`wedding_design_pack_v1`): the $19.99 starter
+ *   - **Design Pack** (`wedding_design_pack_v1`): the $19 starter
  *     tier — design + microsite + PDF, no planner/venue matching.
- *   - **Vision Pack** (`wedding_vision_pack_v1`): the $99.99 full
+ *   - **Vision Pack** (`wedding_vision_pack_v1`): the $99 full
  *     pack — bigger quotas, planner marketplace, plus
  *     Zaffa-curated venue recommendations on the couple's event page.
  *

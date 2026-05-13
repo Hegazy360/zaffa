@@ -17,14 +17,14 @@ import {
 export interface TierPrice {
   amount: number;
   currency: string;
-  /** Pre-formatted display string (e.g. "EGP 499", "$19.99", "€89"). */
+  /** Pre-formatted display string (e.g. "EGP 499", "$19", "€89"). */
   label: string;
 }
 
 /**
  * Client-side hook returning the visitor's resolved Vision Pack price
  * for the **lower-tier Design Pack** (the entry tier quoted on the
- * marketing surface). Falls back to the seed default ($19.99 USD) while
+ * marketing surface). Falls back to the seed default ($19 USD) while
  * the tRPC query is loading so the UI never flashes a naked "{price}"
  * placeholder.
  *
@@ -37,7 +37,7 @@ export function useVisionPackPricing(): {
   currency: string;
   /** Two-letter ISO code from geo signal, or null when unknown. */
   country: string | null;
-  /** Pre-formatted display string (e.g. "EGP 99", "$19.99"). */
+  /** Pre-formatted display string (e.g. "EGP 99", "$19"). */
   label: string;
   isLoading: boolean;
 } {
