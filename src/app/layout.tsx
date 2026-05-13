@@ -7,6 +7,7 @@ import { SpeedInsights } from "@vercel/speed-insights/next";
 import "./globals.css";
 import { Providers } from "./providers";
 import { Toaster } from "@/components/ui/sonner";
+import { TikTokPixel } from "@/components/analytics/tiktok-pixel";
 import { isRtlLocale } from "@/i18n/config";
 
 const cairo = Cairo({
@@ -112,6 +113,7 @@ export default async function RootLayout({
         </NextIntlClientProvider>
         <Analytics />
         <SpeedInsights />
+        <TikTokPixel />
       </body>
     </html>
   );

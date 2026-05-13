@@ -48,13 +48,24 @@ function PageviewTracker() {
   const search = useSearchParams();
 
   useEffect(() => {
-    if (!process.env.NEXT_PUBLIC_POSTHOG_KEY) return;
     if (typeof window === "undefined") return;
+
     const url = window.location.origin + (pathname ?? "");
     const qs = search?.toString();
-    posthog.capture("$pageview", {
-      $current_url: qs ? `${url}?${qs}` : url,
-    });
+    const fullUrl = qs ? `${url}?${qs}` : url;
+
+    if (process.env.NEXT_PUBLIC_POSTHOG_KEY) {
+      posthog.capture("$pageview", { $current_url: fullUrl });
+    }
+
+    // TikTok Pixel only fires `page` on hard load via the inline snippet
+    // in `tiktok-pixel.tsx`; mirror PostHog and fire it on every App
+    // Router navigation so SPA route changes are tracked too. `ttq` is
+    // queue-aware so calls before the script finishes loading are buffered.
+    if (process.env.NEXT_PUBLIC_TIKTOK_PIXEL_ID) {
+      const ttq = (window as unknown as { ttq?: { page: () => void } }).ttq;
+      ttq?.page();
+    }
   }, [pathname, search]);
 
   return null;
