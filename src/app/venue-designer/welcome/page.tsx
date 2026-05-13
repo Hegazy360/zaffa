@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
@@ -9,7 +9,14 @@ import { motion, useReducedMotion } from "framer-motion";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { Navbar } from "@/components/layout/navbar";
-import { VISION_PACK_WINDOW_DAYS } from "@/lib/vision-pack";
+import {
+  PURCHASABLE_PACK_SKUS,
+  VISION_PACK_WINDOW_DAYS,
+  type PackSkuId,
+} from "@/lib/vision-pack";
+import { useTierPricing } from "@/components/vision-pack/use-pricing";
+import { ttTrack, TIKTOK_EVENTS } from "@/lib/tiktok";
+import { minorToMajor } from "@/lib/vision-pack-pricing";
 
 // How long we wait on the webhook before we surface the "still processing"
 // fallback UI. Webhooks usually land in <1s; ~30s is a generous ceiling
@@ -105,6 +112,58 @@ export default function VenueDesignerWelcomePage() {
       return () => clearTimeout(t);
     }
   }, [ready, returnPath, router]);
+
+  // Funnel signal — fire TikTok CompletePayment exactly once per
+  // mount, the moment the webhook confirmation lands. We use the
+  // packId/upgradeId from the URL as the TikTok event_id so a future
+  // server-side fire from the Stripe webhook (Events API) can dedupe
+  // against the same conversion.
+  //
+  // Revenue is resolved from the same pricing query the rest of the
+  // app uses; matches what the buyer was charged in normal cases
+  // (pricing rarely changes mid-flow). If we can't resolve the
+  // tier price for any reason we still fire the event without
+  // value/currency so the funnel coverage stays intact — TikTok counts
+  // the conversion either way.
+  const tiers = useTierPricing();
+  const ttFiredRef = useRef(false);
+  useEffect(() => {
+    if (ttFiredRef.current) return;
+    if (!ready || !status) return;
+    const conversionId = upgradeId ?? status.packId;
+    const sku = status.sku as PackSkuId | undefined;
+    const isPurchasable =
+      !!sku && (PURCHASABLE_PACK_SKUS as readonly string[]).includes(sku);
+    const tier = isPurchasable ? tiers.bySku[sku] : undefined;
+    ttFiredRef.current = true;
+    if (tier) {
+      const major = minorToMajor(tier.amount, tier.currency);
+      ttTrack(
+        TIKTOK_EVENTS.COMPLETE_PAYMENT,
+        {
+          contents: [
+            {
+              content_id: sku!,
+              content_type: "product",
+              quantity: 1,
+              price: major,
+            },
+          ],
+          value: major,
+          currency: tier.currency.toUpperCase(),
+        },
+        conversionId,
+      );
+    } else {
+      ttTrack(
+        TIKTOK_EVENTS.COMPLETE_PAYMENT,
+        sku
+          ? { contents: [{ content_id: sku, content_type: "product" }] }
+          : undefined,
+        conversionId,
+      );
+    }
+  }, [ready, status, upgradeId, tiers]);
 
   const onManualRefresh = () => {
     setStalled(false);

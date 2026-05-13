@@ -10,6 +10,9 @@ import {
   PURCHASABLE_PACK_SKUS,
   type PackSkuId,
 } from "@/lib/vision-pack";
+import { useTierPricing } from "@/components/vision-pack/use-pricing";
+import { ttTrack, TIKTOK_EVENTS } from "@/lib/tiktok";
+import { minorToMajor } from "@/lib/vision-pack-pricing";
 
 /**
  * Auto-checkout landing page. Visitors arrive here from the classic
@@ -46,10 +49,40 @@ function CheckoutInner() {
       : null;
 
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  // Same source the rest of the app uses; deduped by react-query
+  // staleTime so this is free if the surface that linked here already
+  // rendered priced tiers.
+  const tiers = useTierPricing();
 
   const checkout = trpc.visionPacks.startCheckout.useMutation({
-    onSuccess: ({ url }) => {
+    onSuccess: ({ url, packId }) => {
       if (url) {
+        // Funnel signal: fire BEFORE the redirect so the pixel can
+        // flush. `packId` becomes the TikTok event_id so a future
+        // server-side CompletePayment from the Stripe webhook can
+        // dedupe against the same conversion.
+        if (sku) {
+          const tier = tiers.bySku[sku];
+          if (tier) {
+            const major = minorToMajor(tier.amount, tier.currency);
+            ttTrack(
+              TIKTOK_EVENTS.INITIATE_CHECKOUT,
+              {
+                contents: [
+                  {
+                    content_id: sku,
+                    content_type: "product",
+                    quantity: 1,
+                    price: major,
+                  },
+                ],
+                value: major,
+                currency: tier.currency.toUpperCase(),
+              },
+              packId,
+            );
+          }
+        }
         window.location.replace(url);
         return;
       }

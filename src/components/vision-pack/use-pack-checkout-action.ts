@@ -6,6 +6,9 @@ import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
 import { useIsAnonymous } from "@/lib/use-is-anonymous";
 import { type PackSkuId } from "@/lib/vision-pack";
+import { useTierPricing } from "@/components/vision-pack/use-pricing";
+import { ttTrack, TIKTOK_EVENTS } from "@/lib/tiktok";
+import { minorToMajor } from "@/lib/vision-pack-pricing";
 
 interface Args {
   /** Optional path to bounce back to after Stripe success/cancel. */
@@ -52,6 +55,33 @@ export function usePackCheckoutAction({
   const t = useTranslations("visionPack");
   const anonClaim = useIsAnonymous();
   const isAnon = anonClaim !== false;
+  // Reads from the same tRPC pricing query as the rest of the app
+  // (deduped by react-query's 5-min staleTime), so this hook adds no
+  // extra round-trip in surfaces that already render priced tiers.
+  // Used to attach value/currency/contents to the TikTok funnel events.
+  const tiers = useTierPricing();
+
+  // Resolve a TikTok-shaped contents/value/currency payload for `sku`.
+  // Returns null when the tier price isn't in `bySku` yet (extremely
+  // rare — `useTierPricing` falls back to seed prices immediately) so
+  // callers can skip firing rather than send a malformed event.
+  const ttPayloadFor = (sku: PackSkuId) => {
+    const tier = tiers.bySku[sku];
+    if (!tier) return null;
+    const major = minorToMajor(tier.amount, tier.currency);
+    return {
+      contents: [
+        {
+          content_id: sku,
+          content_type: "product" as const,
+          quantity: 1,
+          price: major,
+        },
+      ],
+      value: major,
+      currency: tier.currency.toUpperCase(),
+    };
+  };
 
   const routeToSignup = (sku: PackSkuId) => {
     const params = new URLSearchParams({ sku });
@@ -61,7 +91,17 @@ export function usePackCheckoutAction({
   };
 
   const checkout = trpc.visionPacks.startCheckout.useMutation({
-    onSuccess: ({ url }) => {
+    onSuccess: ({ url, packId }, variables) => {
+      // Funnel signal — fire BEFORE the redirect so the pixel has time
+      // to flush. `packId` is used as the TikTok event_id so a future
+      // server-side CompletePayment from the Stripe webhook can dedupe
+      // against the same conversion.
+      if (variables?.sku) {
+        const payload = ttPayloadFor(variables.sku);
+        if (payload) {
+          ttTrack(TIKTOK_EVENTS.INITIATE_CHECKOUT, payload, packId);
+        }
+      }
       if (url) window.location.href = url;
     },
     onError: (err, variables) => {
@@ -81,6 +121,12 @@ export function usePackCheckoutAction({
   });
 
   const buy = (sku: PackSkuId) => {
+    // Funnel signal — TikTok requires AddToCart for vertical funnel
+    // optimization. We don't have a literal cart, so we fire it on the
+    // buy-intent click (same moment as routing the user toward
+    // signup-or-Stripe).
+    const payload = ttPayloadFor(sku);
+    if (payload) ttTrack(TIKTOK_EVENTS.ADD_TO_CART, payload);
     if (isAnon) {
       routeToSignup(sku);
       return;
