@@ -5,7 +5,7 @@ import { logger, reportError } from "@/lib/logger";
 import { addToAudience } from "@/lib/resend";
 
 /**
- * Hourly reconcile sweep for `email_capture_events` that didn't make
+ * Daily reconcile sweep for `email_capture_events` that didn't make
  * it into the Resend Audience on the inline `auth.requestEmailUpgrade`
  * call. The inline push can fail for a handful of reasons that don't
  * matter to the visitor (Resend API outage, transient rate-limit,
@@ -25,7 +25,13 @@ import { addToAudience } from "@/lib/resend";
  *   confirmed → user upgraded; permanent account exists
  *
  * Configure in `vercel.json`:
- *   { "path": "/api/cron/resend-audience-reconcile", "schedule": "0 * * * *" }
+ *   { "path": "/api/cron/resend-audience-reconcile", "schedule": "0 4 * * *" }
+ *
+ * Scheduled once a day because Vercel Hobby plans cap cron frequency
+ * at daily. Inline push at capture time is still the primary path —
+ * this cron is the retry safety net, so a 24-hour worst-case lag from
+ * capture to Resend is fine. If we move to Pro/Enterprise the
+ * schedule can be tightened to hourly (`0 * * * *`).
  */
 
 export const dynamic = "force-dynamic";

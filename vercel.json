@@ -14,7 +14,7 @@
     },
     {
       "path": "/api/cron/resend-audience-reconcile",
-      "schedule": "0 * * * *"
+      "schedule": "0 4 * * *"
     }
   ]
 }
