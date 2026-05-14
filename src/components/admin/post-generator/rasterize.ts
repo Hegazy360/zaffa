@@ -121,43 +121,92 @@ async function inlineImagesAsDataUrls(root: HTMLElement): Promise<void> {
   );
 }
 
+// Cloudinary's free tier rejects uploads larger than 10 MB ("File size
+// too large, upgrade plan..."). We stay a comfortable margin under that
+// cap — multipart envelope adds ~1 KB and we'd rather degrade gracefully
+// than fail outright on a single slide.
+const MAX_UPLOAD_BYTES = 9.5 * 1024 * 1024;
+
+// JPEG quality tiers tried in order when the PNG exceeds the size cap.
+// Each step is roughly a 25% size reduction in practice; 0.72 is the
+// floor before posterization shows up on smooth gradients (palette
+// swatches, sky in renders).
+const JPEG_QUALITY_TIERS = [0.92, 0.85, 0.78, 0.72] as const;
+
+// pixelRatio 2 → 2160x2700 output (2x the 1080x1350 layout). Instagram
+// crunches anything above ~1440px wide on upload, so 2x is the sweet
+// spot: sharper than 1x on retina phones, within sensible upload limits,
+// no risk of html-to-image OOM on the iPad workflow we use for triage.
+const PIXEL_RATIO = 2;
+
+const BASE_RASTER_OPTIONS = {
+  width: SLIDE_DIMENSIONS.width,
+  height: SLIDE_DIMENSIONS.height,
+  pixelRatio: PIXEL_RATIO,
+  // `cacheBust: true` would append `?t=...` to image URLs, which a) is
+  // pointless now that we've inlined every image as a data URL, and b)
+  // used to break Cloudinary CORS preflight in older versions.
+  cacheBust: false,
+  style: {
+    // html-to-image inlines computed styles; lock these so the output
+    // matches the slide regardless of the parent's transform-scale.
+    transform: "none",
+    transformOrigin: "0 0",
+  },
+} as const;
+
 /**
- * Rasterize the given element to PNG and upload to Cloudinary. Returns
- * the public Cloudinary URL.
+ * Rasterize the given element and upload to Cloudinary.
+ *
+ * Strategy: try PNG first (highest fidelity, lossless palette swatches).
+ * If the PNG exceeds Cloudinary's 10 MB free-tier cap — typical for
+ * photo-heavy slides like FinalRenderSlide — fall back to progressively
+ * lower-quality JPEG until something fits. PNG is preferred for
+ * slides dominated by flat color (PaletteSlide, CTASlide) where JPEG
+ * banding would show up; JPEG is fine for photo slides where the source
+ * is already a Cloudinary-hosted JPEG anyway.
+ *
+ * We deliberately avoid `toPng`/`toJpeg` (which return data URLs) so
+ * we never round-trip through `fetch(dataUrl)` — the app's CSP forbids
+ * `connect-src data:`.
  */
 export async function rasterizeAndUpload(
   element: HTMLElement,
 ): Promise<RasterizeResult> {
   await inlineImagesAsDataUrls(element);
 
-  // `toBlob` returns a Blob directly. We deliberately avoid `toPng`
-  // (which returns a `data:` URL string and forces us to fetch it back
-  // to get a Blob): the app's CSP forbids `connect-src data:`, so any
-  // round-trip through a data URL hits a CSP violation.
-  // pixelRatio 2 → final PNG is 2160x2700 (2x the layout 1080x1350).
-  // Instagram crunches anything above ~1440px wide on upload, so 2x is
-  // the sweet spot: sharper than 1x on retina phones, well within
-  // Cloudinary upload limits, no risk of html-to-image OOM on the iPad
-  // workflow we use for triage.
-  const blob = await toBlob(element, {
+  let blob = await toBlob(element, {
+    ...BASE_RASTER_OPTIONS,
     type: "image/png",
-    width: SLIDE_DIMENSIONS.width,
-    height: SLIDE_DIMENSIONS.height,
-    pixelRatio: 2,
-    // `cacheBust: true` would append `?t=...` to image URLs, which a)
-    // is pointless now that we've inlined every image as a data URL,
-    // and b) used to break Cloudinary CORS preflight in older versions.
-    cacheBust: false,
-    style: {
-      // html-to-image inlines computed styles; lock these so the output
-      // matches the slide regardless of the parent's transform-scale.
-      transform: "none",
-      transformOrigin: "0 0",
-    },
   });
 
   if (!blob) {
     throw new Error("Rasterization produced an empty blob");
+  }
+
+  if (blob.size > MAX_UPLOAD_BYTES) {
+    // PNG too large — walk down the JPEG quality ladder until it fits.
+    let lastSize = blob.size;
+    let fitted = false;
+    for (const quality of JPEG_QUALITY_TIERS) {
+      const candidate = await toBlob(element, {
+        ...BASE_RASTER_OPTIONS,
+        type: "image/jpeg",
+        quality,
+      });
+      if (!candidate) continue;
+      lastSize = candidate.size;
+      if (candidate.size <= MAX_UPLOAD_BYTES) {
+        blob = candidate;
+        fitted = true;
+        break;
+      }
+    }
+    if (!fitted) {
+      throw new Error(
+        `Slide too large to upload (${(lastSize / 1024 / 1024).toFixed(1)} MB > ${(MAX_UPLOAD_BYTES / 1024 / 1024).toFixed(1)} MB) even at JPEG q=${JPEG_QUALITY_TIERS[JPEG_QUALITY_TIERS.length - 1]}`,
+      );
+    }
   }
 
   const sig = await fetchSignature();
