@@ -125,24 +125,46 @@ async function inlineImagesAsDataUrls(root: HTMLElement): Promise<void> {
 // too large, upgrade plan..."). We stay a comfortable margin under that
 // cap — multipart envelope adds ~1 KB and we'd rather degrade gracefully
 // than fail outright on a single slide.
-const MAX_UPLOAD_BYTES = 9.5 * 1024 * 1024;
+const MAX_UPLOAD_BYTES = 9 * 1024 * 1024;
 
-// JPEG quality tiers tried in order when the PNG exceeds the size cap.
-// Each step is roughly a 25% size reduction in practice; 0.72 is the
-// floor before posterization shows up on smooth gradients (palette
-// swatches, sky in renders).
-const JPEG_QUALITY_TIERS = [0.92, 0.85, 0.78, 0.72] as const;
+interface RasterTier {
+  /** `2` → 2160x2700 output, `1.5` → 1620x2025, `1` → native 1080x1350. */
+  pixelRatio: number;
+  /** PNG is lossless; JPEG is much smaller for photo content. */
+  type: "image/png" | "image/jpeg";
+  /** Only used for JPEG. */
+  quality?: number;
+  /** Human label used when every tier fails — kept short for the error. */
+  label: string;
+}
 
-// pixelRatio 2 → 2160x2700 output (2x the 1080x1350 layout). Instagram
-// crunches anything above ~1440px wide on upload, so 2x is the sweet
-// spot: sharper than 1x on retina phones, within sensible upload limits,
-// no risk of html-to-image OOM on the iPad workflow we use for triage.
-const PIXEL_RATIO = 2;
+/**
+ * Ordered fallback ladder. We try PNG at 2x first (highest fidelity,
+ * keeps palette-slide swatches lossless), then walk down JPEG quality
+ * at 2x, then drop pixel ratio to 1.5x and 1x with progressively lower
+ * JPEG quality. The 1x JPEG@0.7 floor is essentially guaranteed to fit
+ * under 10 MB even for the busiest photo-heavy slide (typical size:
+ * 250–600 KB).
+ *
+ * Why not start lower? PNG@2x is sharper than anything else on retina
+ * phones, and most slides (palette / CTA / lookbook) do fit. Only
+ * photo-heavy slides cascade past the first few tiers.
+ */
+const TIER_LADDER: readonly RasterTier[] = [
+  { pixelRatio: 2, type: "image/png", label: "png@2x" },
+  { pixelRatio: 2, type: "image/jpeg", quality: 0.92, label: "jpeg@2x q=0.92" },
+  { pixelRatio: 2, type: "image/jpeg", quality: 0.85, label: "jpeg@2x q=0.85" },
+  { pixelRatio: 2, type: "image/jpeg", quality: 0.78, label: "jpeg@2x q=0.78" },
+  { pixelRatio: 2, type: "image/jpeg", quality: 0.7, label: "jpeg@2x q=0.7" },
+  { pixelRatio: 1.5, type: "image/jpeg", quality: 0.85, label: "jpeg@1.5x q=0.85" },
+  { pixelRatio: 1.5, type: "image/jpeg", quality: 0.72, label: "jpeg@1.5x q=0.72" },
+  { pixelRatio: 1, type: "image/jpeg", quality: 0.85, label: "jpeg@1x q=0.85" },
+  { pixelRatio: 1, type: "image/jpeg", quality: 0.7, label: "jpeg@1x q=0.7" },
+] as const;
 
 const BASE_RASTER_OPTIONS = {
   width: SLIDE_DIMENSIONS.width,
   height: SLIDE_DIMENSIONS.height,
-  pixelRatio: PIXEL_RATIO,
   // `cacheBust: true` would append `?t=...` to image URLs, which a) is
   // pointless now that we've inlined every image as a data URL, and b)
   // used to break Cloudinary CORS preflight in older versions.
@@ -158,13 +180,14 @@ const BASE_RASTER_OPTIONS = {
 /**
  * Rasterize the given element and upload to Cloudinary.
  *
- * Strategy: try PNG first (highest fidelity, lossless palette swatches).
- * If the PNG exceeds Cloudinary's 10 MB free-tier cap — typical for
- * photo-heavy slides like FinalRenderSlide — fall back to progressively
- * lower-quality JPEG until something fits. PNG is preferred for
- * slides dominated by flat color (PaletteSlide, CTASlide) where JPEG
- * banding would show up; JPEG is fine for photo slides where the source
- * is already a Cloudinary-hosted JPEG anyway.
+ * Strategy: walk the TIER_LADDER from best to worst (PNG@2x →
+ * JPEG@2x @0.92…0.7 → JPEG@1.5x @0.85…0.72 → JPEG@1x @0.85…0.7) and
+ * upload the first candidate that fits under the 9 MB cap (which keeps
+ * comfortable headroom under Cloudinary's 10 MB free-tier limit
+ * including multipart overhead). PNG is preferred for slides dominated
+ * by flat color (PaletteSlide, CTASlide) where JPEG banding would
+ * show up; JPEG is fine for photo slides where the source is already
+ * a Cloudinary-hosted JPEG anyway.
  *
  * We deliberately avoid `toPng`/`toJpeg` (which return data URLs) so
  * we never round-trip through `fetch(dataUrl)` — the app's CSP forbids
@@ -175,41 +198,33 @@ export async function rasterizeAndUpload(
 ): Promise<RasterizeResult> {
   await inlineImagesAsDataUrls(element);
 
-  let blob = await toBlob(element, {
-    ...BASE_RASTER_OPTIONS,
-    type: "image/png",
-  });
+  let chosen: Blob | null = null;
+  let lastSize = 0;
+  let lastLabel = "";
 
-  if (!blob) {
-    throw new Error("Rasterization produced an empty blob");
+  for (const tier of TIER_LADDER) {
+    const candidate = await toBlob(element, {
+      ...BASE_RASTER_OPTIONS,
+      type: tier.type,
+      pixelRatio: tier.pixelRatio,
+      ...(tier.quality !== undefined && { quality: tier.quality }),
+    });
+    if (!candidate) continue;
+    lastSize = candidate.size;
+    lastLabel = tier.label;
+    if (candidate.size <= MAX_UPLOAD_BYTES) {
+      chosen = candidate;
+      break;
+    }
   }
 
-  if (blob.size > MAX_UPLOAD_BYTES) {
-    // PNG too large — walk down the JPEG quality ladder until it fits.
-    let lastSize = blob.size;
-    let fitted = false;
-    for (const quality of JPEG_QUALITY_TIERS) {
-      const candidate = await toBlob(element, {
-        ...BASE_RASTER_OPTIONS,
-        type: "image/jpeg",
-        quality,
-      });
-      if (!candidate) continue;
-      lastSize = candidate.size;
-      if (candidate.size <= MAX_UPLOAD_BYTES) {
-        blob = candidate;
-        fitted = true;
-        break;
-      }
-    }
-    if (!fitted) {
-      throw new Error(
-        `Slide too large to upload (${(lastSize / 1024 / 1024).toFixed(1)} MB > ${(MAX_UPLOAD_BYTES / 1024 / 1024).toFixed(1)} MB) even at JPEG q=${JPEG_QUALITY_TIERS[JPEG_QUALITY_TIERS.length - 1]}`,
-      );
-    }
+  if (!chosen) {
+    throw new Error(
+      `Slide too large to upload (${(lastSize / 1024 / 1024).toFixed(1)} MB > ${(MAX_UPLOAD_BYTES / 1024 / 1024).toFixed(1)} MB) even at ${lastLabel || "lowest tier"}`,
+    );
   }
 
   const sig = await fetchSignature();
-  const pngUrl = await uploadBlobToCloudinary(blob, sig);
+  const pngUrl = await uploadBlobToCloudinary(chosen, sig);
   return { pngUrl };
 }
