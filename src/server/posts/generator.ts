@@ -17,7 +17,6 @@ import {
   pickFormat,
   FORMAT_RENDER_COUNT,
 } from "@/lib/post-generator/formats";
-import { pickVibe } from "@/lib/post-generator/vibes";
 import type {
   CoupleNames,
   HydratedPost,
@@ -32,6 +31,7 @@ import { renderPostImage } from "./render";
 import {
   generateCaptionAndTags,
   generateThreeWords,
+  generateVibe,
   namePalette,
 } from "./llm";
 import { composeSlides } from "./compose-slides";
@@ -56,7 +56,7 @@ export async function generatePost(
   input: GeneratePostInput,
 ): Promise<HydratedPost> {
   const format: PostFormatId = input.format ?? pickFormat();
-  const vibe = (input.vibe ?? pickVibe().name).toLowerCase().trim();
+  const vibe = (input.vibe ?? (await pickFreshVibe())).toLowerCase().trim();
   const coupleNames = input.coupleNames ?? pickCoupleNames();
 
   // Palette: caller-supplied wins; otherwise we ask the LLM to name one
@@ -134,6 +134,48 @@ export async function generatePost(
 }
 
 // ---------- helpers ----------
+
+/**
+ * Ask the LLM for a fresh vibe, biased to avoid the last ~30 posts'
+ * vibes so the feed doesn't repeat itself. Falls back to a small
+ * baked-in fallback list only if the LLM call throws (network outage,
+ * key missing in local dev, etc.) — the goal is to never block
+ * generation on the vibe step.
+ */
+async function pickFreshVibe(): Promise<string> {
+  let recentVibes: string[] = [];
+  try {
+    const recent = await prisma.post.findMany({
+      select: { vibe: true },
+      orderBy: { created_at: "desc" },
+      take: 30,
+    });
+    recentVibes = recent.map((r) => r.vibe).filter(Boolean);
+  } catch {
+    // Non-fatal — empty list is fine, the LLM just won't dedupe.
+  }
+  try {
+    const out = await generateVibe({ recentVibes });
+    return out.vibe;
+  } catch (err) {
+    console.warn("[posts] vibe LLM failed, using fallback:", err);
+    return FALLBACK_VIBES[
+      Math.floor(Math.random() * FALLBACK_VIBES.length)
+    ];
+  }
+}
+
+/**
+ * Last-ditch vibe pool. Only used when the LLM call fails — keep it
+ * short on purpose so we lean on the LLM for variety.
+ */
+const FALLBACK_VIBES = [
+  "cairo rooftop",
+  "riad courtyard",
+  "tuscan garden",
+  "beirut garden",
+  "pampas grass dusk",
+];
 
 /**
  * Cast the JSON columns into their TypeScript shapes on the read

@@ -9,18 +9,43 @@ export interface PaletteSlideProps {
 
 export function PaletteSlide({ palette, vibe }: PaletteSlideProps) {
   return (
-    <Slide className="bg-stone-50">
+    <Slide className="bg-gradient-to-br from-[#FAF6EE] via-stone-50 to-[#F1E9DD]">
+      {/* Soft cream wash so swatches read warm regardless of palette. */}
+      <div
+        aria-hidden
+        className="absolute inset-0"
+        style={{
+          background:
+            "radial-gradient(ellipse at 50% 10%, rgba(255,255,255,0.6), transparent 60%)",
+        }}
+      />
       <div className="absolute inset-0 flex flex-col px-16 py-20">
-        <div>
-          <p className="text-[0.7rem] font-medium uppercase tracking-[0.4em] text-rose-700/85">
+        <div className="flex items-baseline justify-between gap-4">
+          <p className="text-[0.7rem] font-semibold uppercase tracking-[0.4em] text-rose-700">
             palette
           </p>
-          <h2 className="mt-3 font-display text-[56px] font-light lowercase leading-tight tracking-tight">
+          <p className="text-[0.65rem] font-medium uppercase tracking-[0.32em] text-stone-500">
+            zaffa.ai
+          </p>
+        </div>
+
+        <div className="mt-6">
+          <h2 className="font-display text-[60px] font-normal lowercase leading-[1.02] tracking-tight text-stone-900">
             {palette.name}
           </h2>
-          <p className="mt-2 text-2xl lowercase tracking-wide text-stone-600">
+          <p className="mt-3 text-2xl lowercase tracking-wide text-stone-700">
             {vibe}
           </p>
+          <div className="mt-6 h-px w-24 bg-rose-700/40" />
+        </div>
+
+        {/* preview stripes — gives a quick "how the palette flows" read */}
+        <div className="mt-12">
+          <PaletteSwatchRow
+            palette={palette}
+            layout="stripes"
+            scale="xl"
+          />
         </div>
 
         <div className="mt-auto">

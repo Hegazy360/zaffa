@@ -1,4 +1,4 @@
-import { Slide } from "./Slide";
+import { Slide, OVERLAY_TEXT_SHADOW, OVERLAY_SUBTEXT_SHADOW } from "./Slide";
 import { InspirationCollage } from "@/components/design-system/InspirationCollage";
 import { RenderFrame } from "@/components/design-system/RenderFrame";
 import { cn } from "@/lib/utils";
@@ -32,6 +32,17 @@ export function HookSlide(props: HookSlideProps) {
   return <DefaultHook {...props} />;
 }
 
+function BrandTag() {
+  return (
+    <span
+      className="inline-flex items-center gap-2 rounded-full bg-white/90 px-4 py-1.5 text-[0.7rem] font-semibold uppercase tracking-[0.32em] text-rose-700 ring-1 ring-rose-200/70 backdrop-blur-sm"
+    >
+      <span className="size-1.5 rounded-full bg-rose-500" />
+      zaffa.ai
+    </span>
+  );
+}
+
 function DefaultHook({ renderUrl, headline, subline }: HookSlideProps) {
   return (
     <Slide>
@@ -40,15 +51,32 @@ function DefaultHook({ renderUrl, headline, subline }: HookSlideProps) {
       ) : (
         <div className="absolute inset-0 bg-gradient-to-br from-rose-100 via-amber-50 to-stone-100" />
       )}
-      <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent p-16">
-        <h1 className="text-balance font-display text-[64px] font-light leading-[1.05] lowercase tracking-tight text-white">
-          {headline}
-        </h1>
-        {subline && (
-          <p className="mt-4 text-balance text-2xl lowercase tracking-wide text-white/85">
-            {subline}
-          </p>
-        )}
+      {/* top brand tag */}
+      <div className="absolute inset-x-0 top-0 px-16 pt-16">
+        <BrandTag />
+      </div>
+      {/* bottom scrim + headline */}
+      <div className="absolute inset-x-0 bottom-0 px-16 pb-20 pt-40">
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/85 via-black/55 to-transparent"
+        />
+        <div className="relative">
+          <h1
+            className="text-balance font-display text-[68px] font-normal leading-[1.02] lowercase tracking-tight text-white"
+            style={OVERLAY_TEXT_SHADOW}
+          >
+            {headline}
+          </h1>
+          {subline && (
+            <p
+              className="mt-5 text-balance text-[26px] font-light lowercase leading-snug tracking-wide text-white/90"
+              style={OVERLAY_SUBTEXT_SHADOW}
+            >
+              {subline}
+            </p>
+          )}
+        </div>
       </div>
     </Slide>
   );
@@ -58,27 +86,38 @@ function FourUpHook({ fourUpUrls = [], headline, subline }: HookSlideProps) {
   const slots = fourUpUrls.slice(0, 4);
   while (slots.length < 4) slots.push(slots[0] ?? "");
   return (
-    <Slide className="bg-stone-100">
-      <div className="absolute inset-0 grid grid-cols-2 gap-4 p-12">
+    <Slide className="bg-gradient-to-br from-[#F5EFE6] via-[#F1E9DD] to-[#E8DFD2]">
+      <div className="absolute inset-x-0 top-0 z-10 flex items-center justify-between px-16 pt-14">
+        <span className="rounded-full bg-white/85 px-3.5 py-1.5 text-[0.65rem] font-semibold uppercase tracking-[0.32em] text-rose-700 ring-1 ring-rose-200/70">
+          one palette
+        </span>
+        <span className="rounded-full bg-stone-900/90 px-3.5 py-1.5 text-[0.65rem] font-semibold uppercase tracking-[0.32em] text-white">
+          four ways
+        </span>
+      </div>
+      <div className="absolute inset-x-0 top-40 bottom-72 grid grid-cols-2 gap-5 px-12">
         {slots.map((url, i) => (
           <div
             key={`${url}-${i}`}
-            className="relative overflow-hidden rounded-2xl shadow-md ring-1 ring-foreground/10"
+            className="relative overflow-hidden rounded-2xl shadow-xl ring-1 ring-stone-900/10"
           >
             {url ? (
               <RenderFrame src={url} className="absolute inset-0" />
             ) : (
               <div className="h-full w-full bg-stone-200" />
             )}
+            <span className="absolute left-3 top-3 grid size-7 place-items-center rounded-full bg-white/95 text-[10px] font-semibold text-stone-900 shadow-md">
+              {i + 1}
+            </span>
           </div>
         ))}
       </div>
       <div className="absolute inset-x-0 bottom-12 px-16 text-center">
-        <h1 className="text-balance font-display text-[52px] font-light lowercase leading-tight tracking-tight">
+        <h1 className="text-balance font-display text-[56px] font-normal lowercase leading-tight tracking-tight text-stone-900">
           {headline}
         </h1>
         {subline && (
-          <p className="mt-3 text-xl lowercase tracking-wide text-stone-600">
+          <p className="mt-3 text-xl lowercase tracking-wide text-stone-700">
             {subline}
           </p>
         )}
@@ -105,7 +144,10 @@ function ChaosToClarityHook({
           ) : (
             <div className="h-full w-full bg-stone-200" />
           )}
-          <span className="pointer-events-none absolute left-8 top-8 rounded-full bg-white/85 px-4 py-1.5 text-xs font-medium uppercase tracking-[0.2em]">
+          <div className="absolute inset-0 bg-gradient-to-b from-black/35 via-transparent to-black/30" />
+          <span
+            className="pointer-events-none absolute left-8 top-8 rounded-full bg-white/95 px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.32em] text-stone-900 shadow-md ring-1 ring-stone-200"
+          >
             before
           </span>
         </div>
@@ -115,20 +157,39 @@ function ChaosToClarityHook({
           ) : (
             <div className="h-full w-full bg-stone-100" />
           )}
-          <span className="pointer-events-none absolute right-8 top-8 rounded-full bg-rose-600/90 px-4 py-1.5 text-xs font-medium uppercase tracking-[0.2em] text-white">
+          <span
+            className="pointer-events-none absolute right-8 top-8 rounded-full bg-rose-600 px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.32em] text-white shadow-md"
+          >
             after
           </span>
         </div>
       </div>
-      <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/75 via-black/30 to-transparent p-16">
-        <h1 className="text-balance font-display text-[60px] font-light lowercase leading-[1.05] tracking-tight text-white">
-          {headline}
-        </h1>
-        {subline && (
-          <p className="mt-4 text-2xl lowercase tracking-wide text-white/85">
-            {subline}
-          </p>
-        )}
+      {/* divider line */}
+      <div
+        aria-hidden
+        className="absolute inset-y-0 left-1/2 w-px -translate-x-1/2 bg-white/70 shadow"
+      />
+      <div className="absolute inset-x-0 bottom-0 px-16 pb-16 pt-44">
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/90 via-black/60 to-transparent"
+        />
+        <div className="relative">
+          <h1
+            className="text-balance font-display text-[62px] font-normal lowercase leading-[1.02] tracking-tight text-white"
+            style={OVERLAY_TEXT_SHADOW}
+          >
+            {headline}
+          </h1>
+          {subline && (
+            <p
+              className="mt-4 text-[24px] font-light lowercase tracking-wide text-white/90"
+              style={OVERLAY_SUBTEXT_SHADOW}
+            >
+              {subline}
+            </p>
+          )}
+        </div>
       </div>
     </Slide>
   );

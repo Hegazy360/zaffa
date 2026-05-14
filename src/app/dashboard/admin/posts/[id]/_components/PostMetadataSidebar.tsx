@@ -192,8 +192,8 @@ export function PostMetadataSidebar({
   ).length;
 
   return (
-    <aside className="space-y-6">
-      <section className="rounded-2xl border border-rose-100/70 bg-white/80 p-4 shadow-sm backdrop-blur-sm dark:border-rose-900/30 dark:bg-card/80">
+    <aside className="space-y-4 sm:space-y-6">
+      <section className="rounded-2xl border border-rose-100/70 bg-white/80 p-3 shadow-sm backdrop-blur-sm sm:p-4 dark:border-rose-900/30 dark:bg-card/80">
         <div className="space-y-4">
           <div className="flex flex-wrap items-center gap-2">
             <span className="rounded-full bg-stone-100 px-2.5 py-0.5 text-[10px] font-medium uppercase tracking-[0.18em] text-stone-700 ring-1 ring-stone-200">
@@ -372,10 +372,9 @@ export function PostMetadataSidebar({
           </div>
 
           <Button
-            size="sm"
             onClick={handleSaveMeta}
             disabled={updateMeta.isPending}
-            className="w-full gap-1.5 bg-rose-500 text-white hover:bg-rose-600"
+            className="h-10 w-full gap-1.5 bg-rose-500 text-white hover:bg-rose-600"
           >
             {updateMeta.isPending ? (
               <Loader2 className="size-3.5 animate-spin" />
@@ -385,16 +384,15 @@ export function PostMetadataSidebar({
         </div>
       </section>
 
-      <section className="rounded-2xl border border-rose-100/70 bg-white/80 p-4 shadow-sm backdrop-blur-sm dark:border-rose-900/30 dark:bg-card/80">
+      <section className="rounded-2xl border border-rose-100/70 bg-white/80 p-3 shadow-sm backdrop-blur-sm sm:p-4 dark:border-rose-900/30 dark:bg-card/80">
         <p className="mb-3 text-[10px] font-medium uppercase tracking-[0.3em] text-rose-700/85">
           Actions
         </p>
         <div className="space-y-2">
           <Button
-            size="sm"
             onClick={onRasterizeAll}
             disabled={isRasterizing}
-            className="w-full gap-1.5 bg-gradient-to-r from-rose-600 to-amber-500 text-white hover:opacity-90"
+            className="h-10 w-full gap-1.5 bg-gradient-to-r from-rose-600 to-amber-500 text-white hover:opacity-90"
           >
             {isRasterizing ? (
               <Loader2 className="size-3.5 animate-spin" />
@@ -404,29 +402,26 @@ export function PostMetadataSidebar({
             Render to HD
           </Button>
           <Button
-            size="sm"
             variant="outline"
             onClick={handleDownloadZip}
             disabled={rasterizedCount === 0 || isRasterizing}
-            className="w-full gap-1.5"
+            className="h-10 w-full gap-1.5"
           >
             <Download className="size-3.5" />
             Download {rasterizedCount}/{post.slides.length} PNGs (.zip)
           </Button>
           <Button
-            size="sm"
             variant="outline"
             onClick={() =>
               updateStatus.mutate({ id: post.id, status: "published" })
             }
             disabled={updateStatus.isPending || post.status === "published"}
-            className="w-full gap-1.5 border-emerald-300 text-emerald-700 hover:bg-emerald-50"
+            className="h-10 w-full gap-1.5 border-emerald-300 text-emerald-700 hover:bg-emerald-50"
           >
             <CheckCircle2 className="size-3.5" />
             Publish
           </Button>
           <Button
-            size="sm"
             variant="ghost"
             onClick={() => {
               if (
@@ -438,7 +433,7 @@ export function PostMetadataSidebar({
               }
             }}
             disabled={updateStatus.isPending || post.status === "discarded"}
-            className="w-full gap-1.5 text-destructive hover:bg-destructive/10 hover:text-destructive"
+            className="h-10 w-full gap-1.5 text-destructive hover:bg-destructive/10 hover:text-destructive"
           >
             <Trash2 className="size-3.5" />
             Discard

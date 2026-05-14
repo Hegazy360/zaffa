@@ -111,7 +111,7 @@ export default function AdminPostDetailPage({ params }: PageProps) {
         className="pointer-events-none absolute inset-0 grain-bg opacity-30"
       />
 
-      <div className="relative mx-auto max-w-6xl px-6 py-8 sm:py-10">
+      <div className="relative mx-auto max-w-6xl px-4 py-6 sm:px-6 sm:py-10">
         <div className="mb-4">
           <Link
             href="/dashboard/admin/posts"
@@ -122,7 +122,7 @@ export default function AdminPostDetailPage({ params }: PageProps) {
           </Link>
         </div>
 
-        <div className="grid gap-8 lg:grid-cols-[1fr_22rem]">
+        <div className="grid gap-6 sm:gap-8 lg:grid-cols-[1fr_22rem]">
           <div className="flex flex-col items-center">
             <IGCarouselPreview
               slides={post.slides}

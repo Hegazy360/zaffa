@@ -45,16 +45,16 @@ export default function AdminPostsPage() {
         aria-hidden
         className="pointer-events-none absolute inset-0 grain-bg opacity-30"
       />
-      <div className="relative mx-auto max-w-5xl px-6 py-12 sm:py-16">
-        <header className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-          <div className="space-y-3">
+      <div className="relative mx-auto max-w-5xl px-4 py-8 sm:px-6 sm:py-16">
+        <header className="mb-6 flex flex-col gap-4 sm:mb-8 sm:flex-row sm:items-end sm:justify-between">
+          <div className="space-y-2 sm:space-y-3">
             <p className="text-[0.65rem] font-medium uppercase tracking-[0.3em] text-rose-700/80">
               Social
             </p>
-            <h1 className="font-display text-balance text-4xl font-light leading-tight tracking-tight">
+            <h1 className="font-display text-balance text-3xl font-light leading-tight tracking-tight sm:text-4xl">
               Posts
             </h1>
-            <p className="max-w-xl text-sm text-muted-foreground">
+            <p className="max-w-xl text-xs text-muted-foreground sm:text-sm">
               Generated Instagram / TikTok carousels, awaiting triage.
               Publishing here is a status flip — actual posting still
               happens manually from a phone.
@@ -63,7 +63,7 @@ export default function AdminPostsPage() {
           <Button
             size="sm"
             onClick={() => setGenerateOpen(true)}
-            className="h-9 gap-1.5 bg-gradient-to-r from-rose-600 to-amber-500 text-white hover:opacity-90"
+            className="h-10 w-full gap-1.5 bg-gradient-to-r from-rose-600 to-amber-500 text-white hover:opacity-90 sm:h-9 sm:w-auto"
           >
             <Wand2 className="size-3.5" />
             Generate new post
@@ -84,7 +84,7 @@ export default function AdminPostsPage() {
           </TabsList>
         </Tabs>
 
-        <section className="rounded-2xl border border-rose-100/70 bg-white/80 p-2 backdrop-blur-sm dark:border-rose-900/30 dark:bg-card/80">
+        <section className="rounded-2xl border border-rose-100/70 bg-white/80 p-1.5 backdrop-blur-sm sm:p-2 dark:border-rose-900/30 dark:bg-card/80">
           {isLoading ? (
             <div className="flex items-center justify-center py-16">
               <Loader2 className="size-5 animate-spin text-rose-500" />
@@ -133,9 +133,9 @@ function PostRow({ post }: { post: HydratedPost }) {
   return (
     <Link
       href={`/dashboard/admin/posts/${post.id}`}
-      className="flex items-center gap-4 px-3 py-3 text-sm transition-colors hover:bg-rose-50/40 dark:hover:bg-rose-950/20"
+      className="flex items-center gap-3 px-2.5 py-2.5 text-sm transition-colors hover:bg-rose-50/40 sm:gap-4 sm:px-3 sm:py-3 dark:hover:bg-rose-950/20"
     >
-      <div className="relative grid h-20 w-16 shrink-0 place-items-center overflow-hidden rounded-md bg-stone-100 ring-1 ring-foreground/[0.04]">
+      <div className="relative grid h-16 w-[3.2rem] shrink-0 place-items-center overflow-hidden rounded-md bg-stone-100 ring-1 ring-foreground/[0.04] sm:h-20 sm:w-16">
         {firstSlideThumb ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
@@ -155,22 +155,22 @@ function PostRow({ post }: { post: HydratedPost }) {
         )}
       </div>
       <div className="min-w-0 flex-1">
-        <div className="flex flex-wrap items-center gap-2">
-          <span className="rounded-full bg-stone-100 px-2 py-0.5 text-[10px] font-medium uppercase tracking-[0.18em] text-stone-700 ring-1 ring-stone-200">
+        <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+          <span className="rounded-full bg-stone-100 px-2 py-0.5 text-[9px] font-medium uppercase tracking-[0.18em] text-stone-700 ring-1 ring-stone-200 sm:text-[10px]">
             {FORMAT_LABELS[post.format]}
           </span>
           <span className="font-display text-sm lowercase tracking-wide">
             {post.vibe}
           </span>
         </div>
-        <p className="mt-1 truncate text-xs text-muted-foreground">
+        <p className="mt-1 line-clamp-2 text-xs text-muted-foreground sm:truncate sm:line-clamp-none">
           {post.caption.split("\n")[0]}
         </p>
       </div>
       <div className="flex shrink-0 flex-col items-end gap-1">
         <span
           className={cn(
-            "rounded-full px-2 py-0.5 text-[10px] font-medium uppercase tracking-[0.18em] ring-1",
+            "rounded-full px-2 py-0.5 text-[9px] font-medium uppercase tracking-[0.18em] ring-1 sm:text-[10px]",
             STATUS_PILL[post.status],
           )}
         >

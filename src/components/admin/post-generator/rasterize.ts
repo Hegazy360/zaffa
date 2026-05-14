@@ -134,11 +134,16 @@ export async function rasterizeAndUpload(
   // (which returns a `data:` URL string and forces us to fetch it back
   // to get a Blob): the app's CSP forbids `connect-src data:`, so any
   // round-trip through a data URL hits a CSP violation.
+  // pixelRatio 2 → final PNG is 2160x2700 (2x the layout 1080x1350).
+  // Instagram crunches anything above ~1440px wide on upload, so 2x is
+  // the sweet spot: sharper than 1x on retina phones, well within
+  // Cloudinary upload limits, no risk of html-to-image OOM on the iPad
+  // workflow we use for triage.
   const blob = await toBlob(element, {
     type: "image/png",
     width: SLIDE_DIMENSIONS.width,
     height: SLIDE_DIMENSIONS.height,
-    pixelRatio: 1,
+    pixelRatio: 2,
     // `cacheBust: true` would append `?t=...` to image URLs, which a)
     // is pointless now that we've inlined every image as a data URL,
     // and b) used to break Cloudinary CORS preflight in older versions.

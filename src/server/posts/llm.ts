@@ -65,6 +65,89 @@ async function callJson<T>(
   return JSON.parse(content) as T;
 }
 
+// ---------- Vibe generation ----------
+
+const VIBE_SYSTEM = `You invent fresh "vibes" for a wedding-design carousel
+generator at Zaffa. A vibe is a short 2-3-word lowercase descriptor that
+doubles as (a) a Pinterest search query and (b) a token interpolated
+into image-gen prompts.
+
+Region mix you should roughly follow across many calls:
+  ~50% MENA (egypt, lebanon, jordan, morocco, gulf, andalusia)
+  ~20% Europe (italy, france, greece, spain, portugal, uk)
+  ~10% Asia (india, japan, indonesia, korea)
+  ~10% Latin America (mexico, colombia, brazil)
+  ~10% Global / abstract (textures, time-of-day moods, season, fabric)
+
+Output strictly JSON:
+{
+  "vibe": string,        // 2-3 lowercase words, no punctuation
+  "region": string,      // one of: mena | europe | asia | latam | global
+  "reasoning": string    // 1 short sentence (you'll see this in logs)
+}
+
+Rules:
+- LOWERCASE only. No punctuation. No emoji.
+- 2-3 words. Concrete enough to Pinterest-search ("cairo rooftop",
+  "tuscan garden", "wadi rum tent"), evocative enough to inspire
+  image-gen ("pampas grass dusk", "neutral linen minimalism").
+- AVOID anything in the "recent_vibes" list provided by the user — pick
+  something visually distinct from those, not a synonym.
+- Don't translate or use Arabic script — romanized place names are fine.
+- Skip generic words ("wedding", "romantic", "elegant") on their own;
+  the vibe should imply a setting, era, or material.`;
+
+export interface GenerateVibeInput {
+  /**
+   * Recently-used vibes the generator should avoid repeating (e.g. the
+   * last 20 posts from the DB). Pass an empty array on a cold start.
+   */
+  recentVibes?: string[];
+}
+
+export interface GeneratedVibe {
+  vibe: string;
+  region: "mena" | "europe" | "asia" | "latam" | "global";
+  reasoning: string;
+}
+
+export async function generateVibe(
+  input: GenerateVibeInput = {},
+): Promise<GeneratedVibe> {
+  const out = await callJson<{
+    vibe?: string;
+    region?: string;
+    reasoning?: string;
+  }>(
+    [
+      { role: "system", content: VIBE_SYSTEM },
+      {
+        role: "user",
+        content: JSON.stringify({
+          recent_vibes: (input.recentVibes ?? []).slice(0, 30),
+        }),
+      },
+    ],
+    // High temperature — variety is the whole point.
+    1.05,
+  );
+
+  const vibe = (out.vibe ?? "")
+    .toLowerCase()
+    .trim()
+    .replace(/[.,!?;:]+$/g, "")
+    .slice(0, 60);
+  const words = vibe.split(/\s+/).filter(Boolean);
+  if (words.length < 2 || words.length > 4) {
+    throw new Error(`Vibe LLM returned an invalid phrase: "${vibe}"`);
+  }
+  const allowedRegions = ["mena", "europe", "asia", "latam", "global"] as const;
+  const region = (allowedRegions as readonly string[]).includes(out.region ?? "")
+    ? (out.region as GeneratedVibe["region"])
+    : "global";
+  return { vibe, region, reasoning: (out.reasoning ?? "").slice(0, 200) };
+}
+
 // ---------- Palette naming ----------
 
 const PALETTE_SYSTEM = `You are a color stylist for a wedding planning brand

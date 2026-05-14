@@ -69,6 +69,22 @@ const NAMED_SWATCH = {
   xl: "size-40",
 } as const;
 
+const NAMED_NAME_TEXT = {
+  sm: "text-[0.6rem]",
+  md: "text-xs",
+  lg: "text-sm",
+  // 18px label + uppercase tracking reads cleanly at 1080px slide width;
+  // anything smaller looks blurry once the carousel auto-scales on IG.
+  xl: "text-[18px]",
+} as const;
+
+const NAMED_HEX_TEXT = {
+  sm: "text-[0.55rem]",
+  md: "text-[0.65rem]",
+  lg: "text-[0.7rem]",
+  xl: "text-[14px]",
+} as const;
+
 export function PaletteSwatchRow({
   palette,
   layout = "stripes",
@@ -142,12 +158,22 @@ export function PaletteSwatchRow({
             style={{ backgroundColor: c.hex }}
           />
           {c.name && (
-            <span className="mt-2 text-[0.65rem] font-medium uppercase tracking-[0.18em]">
+            <span
+              className={cn(
+                "mt-3 font-medium uppercase tracking-[0.22em] text-stone-900",
+                NAMED_NAME_TEXT[scale],
+              )}
+            >
               {c.name}
             </span>
           )}
           {showHex && (
-            <span className="font-mono text-[0.6rem] text-muted-foreground">
+            <span
+              className={cn(
+                "mt-1 font-mono text-stone-500",
+                NAMED_HEX_TEXT[scale],
+              )}
+            >
               {c.hex}
             </span>
           )}

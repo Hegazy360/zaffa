@@ -42,13 +42,15 @@ function buildPostPrompt(input: RenderPostImageInput): string {
     : "";
 
   return [
-    `Generate one photorealistic editorial wedding photograph in 4:5 portrait orientation.`,
+    `Generate one ultra-high-resolution photorealistic editorial wedding photograph in 4:5 portrait orientation. Output the highest quality available — fine textile texture, individual petal detail, crisp candle highlights, no compression artifacts.`,
 
-    `Subject: a fully decorated and styled wedding reception, empty of people, evoking the vibe "${input.vibe}".`,
+    `Subject: a fully decorated and styled wedding reception, empty of people, evoking the vibe "${input.vibe}". Frame as a single hero composition with a clear focal point (sweetheart table, ceremony arch, tablescape, or installation) and intentional negative space.`,
 
     `Color palette (apply across linens, florals, candles, lighting tone, and decor accents — every surface should feel coordinated, not arbitrary): ${colorList}.`,
 
-    `Style: editorial magazine quality, photoreal, golden-hour light, soft natural depth of field, balanced composition, slight film grain, no oversaturation.`,
+    `Style: shot like a Vogue Weddings or Martha Stewart editorial spread — medium-format camera look, sharp foreground subject with shallow but tasteful depth of field, golden-hour or candlelit ambient warmth, true-to-life skin-tone-neutral white balance, subtle natural film grain, no oversaturation, no HDR halos.`,
+
+    `Quality bar: tack-sharp focus on hero details, accurate floral species and textile drape, realistic shadow falloff, no plastic-looking AI artifacts on fabric or glassware.`,
 
     `Important constraints: no people, no faces, no guests, no waitstaff, no text, no captions, no watermarks, no logos. The composition must showcase the design itself in a single unified photograph — no collages, no side-by-side panels.${variantHint}`,
   ].join("\n\n");

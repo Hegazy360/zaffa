@@ -32,3 +32,21 @@ export function Slide({ children, className }: SlideProps) {
     </div>
   );
 }
+
+/**
+ * Style block applied to white-on-image headlines so they stay readable
+ * regardless of what the underlying render looks like. Used by every
+ * slide that overlays text on a photograph.
+ */
+export const OVERLAY_TEXT_SHADOW = {
+  textShadow:
+    "0 2px 8px rgba(0,0,0,0.55), 0 1px 2px rgba(0,0,0,0.4)",
+} as const;
+
+/**
+ * Slightly lighter shadow used for sublines and small caps labels —
+ * preserves crispness without making the type feel chunky.
+ */
+export const OVERLAY_SUBTEXT_SHADOW = {
+  textShadow: "0 1px 4px rgba(0,0,0,0.5)",
+} as const;

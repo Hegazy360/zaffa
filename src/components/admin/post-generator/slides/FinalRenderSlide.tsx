@@ -1,4 +1,4 @@
-import { Slide } from "./Slide";
+import { Slide, OVERLAY_TEXT_SHADOW, OVERLAY_SUBTEXT_SHADOW } from "./Slide";
 import { RenderFrame } from "@/components/design-system/RenderFrame";
 import { PaletteSwatchRow } from "@/components/design-system/PaletteSwatchRow";
 import type { NamedPalette } from "@/types/posts";
@@ -32,39 +32,60 @@ export function FinalRenderSlide({
       />
 
       {threeWordCaption && (
-        <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent p-16">
-          <div className="space-y-1">
-            {threeWordCaption.split(/\s+/).slice(0, 3).map((word, i) => (
-              <p
-                key={`${word}-${i}`}
-                className="font-display text-[72px] font-light lowercase leading-[0.95] tracking-tight text-white"
-              >
-                {word}
-              </p>
-            ))}
+        <div className="absolute inset-x-0 bottom-0 px-16 pb-20 pt-44">
+          <div
+            aria-hidden
+            className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent"
+          />
+          <div className="relative space-y-2">
+            {threeWordCaption
+              .split(/\s+/)
+              .slice(0, 3)
+              .map((word, i) => (
+                <p
+                  key={`${word}-${i}`}
+                  className="font-display text-[80px] font-normal lowercase leading-[0.95] tracking-tight text-white"
+                  style={OVERLAY_TEXT_SHADOW}
+                >
+                  {word}
+                </p>
+              ))}
           </div>
         </div>
       )}
 
       {!threeWordCaption && caption && (
-        <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/65 via-black/15 to-transparent p-12">
-          <p className="text-balance font-display text-2xl lowercase tracking-wide text-white">
+        <div className="absolute inset-x-0 bottom-0 px-12 pb-12 pt-32">
+          <div
+            aria-hidden
+            className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/80 via-black/35 to-transparent"
+          />
+          <p
+            className="relative text-balance font-display text-[28px] font-normal lowercase leading-snug tracking-wide text-white"
+            style={OVERLAY_SUBTEXT_SHADOW}
+          >
             {caption}
           </p>
         </div>
       )}
 
       {paletteOverlay && (
-        <div className="absolute inset-x-12 bottom-12 rounded-2xl bg-white/85 p-5 shadow-lg backdrop-blur-sm">
-          <p className="mb-3 text-[0.65rem] font-medium uppercase tracking-[0.3em] text-rose-700/85">
-            {paletteOverlay.name}
-          </p>
-          <PaletteSwatchRow
-            palette={paletteOverlay}
-            layout="named"
-            scale="md"
-            showHex={false}
-          />
+        <div className="absolute inset-x-10 bottom-10 rounded-2xl bg-white/95 p-6 shadow-2xl ring-1 ring-stone-900/10 backdrop-blur-sm">
+          <div className="flex items-baseline justify-between gap-3">
+            <p className="text-[0.7rem] font-semibold uppercase tracking-[0.36em] text-rose-700">
+              {paletteOverlay.name}
+            </p>
+            <p className="text-[0.6rem] font-medium uppercase tracking-[0.3em] text-stone-500">
+              palette
+            </p>
+          </div>
+          <div className="mt-4">
+            <PaletteSwatchRow
+              palette={paletteOverlay}
+              layout="stripes"
+              scale="lg"
+            />
+          </div>
         </div>
       )}
     </Slide>

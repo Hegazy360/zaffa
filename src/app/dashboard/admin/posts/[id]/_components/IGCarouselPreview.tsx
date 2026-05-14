@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   ChevronLeft,
   ChevronRight,
@@ -25,7 +25,10 @@ interface IGCarouselPreviewProps {
   regeneratingIndices?: Set<number>;
 }
 
-const PREVIEW_WIDTH = 480; // displayed width in px; scale derived from this
+// Caps the preview chrome at IG-ish proportions on desktop, while
+// shrinking to fit narrow phones so the post never overflows.
+const MAX_PREVIEW_WIDTH = 480;
+const MIN_PREVIEW_WIDTH = 280;
 
 /**
  * Live React preview of the carousel, wrapped in faux Instagram chrome.
@@ -42,8 +45,31 @@ export function IGCarouselPreview({
 }: IGCarouselPreviewProps) {
   const [rawIndex, setIndex] = useState(0);
   const trackRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [previewWidth, setPreviewWidth] = useState(MAX_PREVIEW_WIDTH);
 
-  const scale = PREVIEW_WIDTH / SLIDE_DIMENSIONS.width;
+  // ResizeObserver on the wrapper measures available horizontal space
+  // and snaps the preview width into the [MIN, MAX] range. Keeps the
+  // carousel readable on a 320-wide phone without ballooning on a wide
+  // monitor.
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    const update = (w: number) => {
+      const safe = Math.max(MIN_PREVIEW_WIDTH, Math.min(MAX_PREVIEW_WIDTH, w));
+      setPreviewWidth(safe);
+    };
+    update(el.clientWidth);
+    const ro = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        update(entry.contentRect.width);
+      }
+    });
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+
+  const scale = previewWidth / SLIDE_DIMENSIONS.width;
   const displayHeight = SLIDE_DIMENSIONS.height * scale;
 
   // Clamp during render rather than via a setState-in-effect (which
@@ -59,7 +85,11 @@ export function IGCarouselPreview({
   }
 
   return (
-    <div className="mx-auto" style={{ width: PREVIEW_WIDTH }}>
+    <div
+      ref={containerRef}
+      className="mx-auto w-full"
+      style={{ maxWidth: MAX_PREVIEW_WIDTH }}
+    >
       {/* IG-post chrome: header */}
       <div className="flex items-center gap-3 rounded-t-2xl border border-stone-200 bg-white px-3 py-2">
         <div className="size-8 rounded-full bg-gradient-to-br from-rose-400 via-amber-300 to-orange-300 ring-2 ring-white">
@@ -76,15 +106,31 @@ export function IGCarouselPreview({
 
       {/* Carousel viewport */}
       <div
-        className="relative overflow-hidden border-x border-stone-200 bg-stone-50"
+        className="relative overflow-hidden border-x border-stone-200 bg-stone-50 touch-pan-y"
         style={{ height: displayHeight }}
+        onTouchStart={(e) => {
+          (e.currentTarget as HTMLDivElement).dataset.startX = String(
+            e.touches[0].clientX,
+          );
+        }}
+        onTouchEnd={(e) => {
+          const startX = Number(
+            (e.currentTarget as HTMLDivElement).dataset.startX ?? "0",
+          );
+          const endX = e.changedTouches[0]?.clientX ?? startX;
+          const dx = endX - startX;
+          if (Math.abs(dx) < 40) return;
+          setIndex((i) =>
+            Math.max(0, Math.min(slides.length - 1, i + (dx < 0 ? 1 : -1))),
+          );
+        }}
       >
         <div
           ref={trackRef}
           className="absolute inset-0 flex transition-transform duration-300 ease-out"
           style={{
-            width: SLIDE_DIMENSIONS.width * scale * slides.length,
-            transform: `translateX(${-index * PREVIEW_WIDTH}px)`,
+            width: previewWidth * slides.length,
+            transform: `translateX(${-index * previewWidth}px)`,
           }}
         >
           {slides.map((slide, i) => (
@@ -92,7 +138,7 @@ export function IGCarouselPreview({
               key={i}
               className="shrink-0"
               style={{
-                width: PREVIEW_WIDTH,
+                width: previewWidth,
                 height: displayHeight,
               }}
             >

@@ -17,24 +17,36 @@ export function CTASlide({
   subline = "zaffa.ai",
 }: CTASlideProps) {
   return (
-    <Slide className="bg-gradient-to-br from-rose-50 via-amber-50/60 to-stone-50">
+    <Slide className="bg-gradient-to-br from-[#FFF1F0] via-[#FAF6EE] to-[#F3E9D7]">
       <div
         aria-hidden
         className="absolute inset-0"
         style={{
           background:
-            "radial-gradient(ellipse at 70% 30%, rgba(244, 194, 200, 0.4), transparent 65%)",
+            "radial-gradient(ellipse at 70% 30%, rgba(244, 194, 200, 0.45), transparent 65%)",
+        }}
+      />
+      <div
+        aria-hidden
+        className="absolute inset-0"
+        style={{
+          background:
+            "radial-gradient(ellipse at 25% 80%, rgba(225, 195, 145, 0.35), transparent 60%)",
         }}
       />
       <div className="absolute inset-0 flex flex-col items-center justify-center px-20 text-center">
-        <p className="text-[0.7rem] font-medium uppercase tracking-[0.4em] text-rose-700/85">
+        <p className="text-[0.7rem] font-semibold uppercase tracking-[0.4em] text-rose-700">
           start with a vibe
         </p>
-        <h1 className="mt-8 whitespace-pre-line font-display text-[88px] font-light lowercase leading-[0.95] tracking-tight">
+        <div className="mt-6 h-px w-16 bg-rose-700/40" />
+        <h1 className="mt-10 whitespace-pre-line font-display text-[88px] font-normal lowercase leading-[0.98] tracking-tight text-stone-900">
           {headline}
         </h1>
-        <p className="mt-12 font-display text-3xl lowercase tracking-wide text-stone-700">
+        <p className="mt-14 font-display text-3xl lowercase tracking-[0.04em] text-stone-700">
           {subline}
+        </p>
+        <p className="mt-3 text-[0.7rem] font-semibold uppercase tracking-[0.4em] text-rose-700">
+          designed with zaffa
         </p>
       </div>
     </Slide>

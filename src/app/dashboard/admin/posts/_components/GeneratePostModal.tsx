@@ -102,7 +102,8 @@ export function GeneratePostModal({
               placeholder="e.g. tuscan garden, cairo rooftop"
             />
             <p className="text-[11px] text-muted-foreground">
-              Leave blank to auto-pick (MENA-weighted).
+              Leave blank to let the LLM invent one (MENA-weighted,
+              avoids the last ~30 vibes).
             </p>
           </div>
         </div>
@@ -110,10 +111,9 @@ export function GeneratePostModal({
         <div className="flex flex-col gap-2 pt-2 sm:flex-row sm:justify-between">
           <Button
             variant="outline"
-            size="sm"
             onClick={() => submit({ surprise: true })}
             disabled={generate.isPending}
-            className="gap-1.5"
+            className="h-10 gap-1.5 sm:h-9 sm:text-sm"
           >
             <Sparkles className="size-3.5" />
             Surprise me
@@ -121,17 +121,16 @@ export function GeneratePostModal({
           <div className="flex gap-2">
             <Button
               variant="ghost"
-              size="sm"
               onClick={() => onOpenChange(false)}
               disabled={generate.isPending}
+              className="h-10 sm:h-9 sm:text-sm"
             >
               Cancel
             </Button>
             <Button
-              size="sm"
               onClick={() => submit()}
               disabled={generate.isPending}
-              className="gap-1.5 bg-gradient-to-r from-rose-600 to-amber-500 text-white hover:opacity-90"
+              className="h-10 flex-1 gap-1.5 bg-gradient-to-r from-rose-600 to-amber-500 text-white hover:opacity-90 sm:h-9 sm:flex-none sm:text-sm"
             >
               {generate.isPending ? (
                 <Loader2 className="size-3.5 animate-spin" />
