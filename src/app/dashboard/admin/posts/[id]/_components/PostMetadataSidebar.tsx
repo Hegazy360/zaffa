@@ -219,7 +219,7 @@ export function PostMetadataSidebar({
               id="vibe"
               value={vibe}
               onChange={(e) => setVibe(e.target.value)}
-              placeholder="tuscan garden"
+              placeholder="Tuscan Garden"
             />
           </div>
 

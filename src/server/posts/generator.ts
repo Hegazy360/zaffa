@@ -56,7 +56,9 @@ export async function generatePost(
   input: GeneratePostInput,
 ): Promise<HydratedPost> {
   const format: PostFormatId = input.format ?? pickFormat();
-  const vibe = (input.vibe ?? (await pickFreshVibe())).toLowerCase().trim();
+  // Preserve case so headlines render as "Tuscan Garden" not
+  // "tuscan garden". The LLM is prompted for Title Case directly.
+  const vibe = (input.vibe ?? (await pickFreshVibe())).trim();
   const coupleNames = input.coupleNames ?? pickCoupleNames();
 
   // Palette: caller-supplied wins; otherwise we ask the LLM to name one
@@ -96,12 +98,12 @@ export async function generatePost(
   // dedicated LLM call if we want format-specific hook variants.
   const hookHeadline =
     format === "palette_test"
-      ? "one palette, four ways."
+      ? "One Palette,\nFour Ways."
       : format === "three_words"
-        ? `${vibe}.`
+        ? vibe
         : format === "planner_pov"
-          ? "from chaos to clarity."
-          : `${vibe} wedding,\nfully designed.`;
+          ? "From Chaos\nto Clarity."
+          : `${vibe} Wedding,\nFully Designed.`;
 
   const slides: SlideRecord[] = composeSlides({
     format,
@@ -170,11 +172,11 @@ async function pickFreshVibe(): Promise<string> {
  * short on purpose so we lean on the LLM for variety.
  */
 const FALLBACK_VIBES = [
-  "cairo rooftop",
-  "riad courtyard",
-  "tuscan garden",
-  "beirut garden",
-  "pampas grass dusk",
+  "Cairo Rooftop",
+  "Riad Courtyard",
+  "Tuscan Garden",
+  "Beirut Garden",
+  "Pampas Grass Dusk",
 ];
 
 /**

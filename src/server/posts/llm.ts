@@ -68,34 +68,35 @@ async function callJson<T>(
 // ---------- Vibe generation ----------
 
 const VIBE_SYSTEM = `You invent fresh "vibes" for a wedding-design carousel
-generator at Zaffa. A vibe is a short 2-3-word lowercase descriptor that
+generator at Zaffa. A vibe is a short 2-3-word Title-Case descriptor that
 doubles as (a) a Pinterest search query and (b) a token interpolated
-into image-gen prompts.
+into image-gen prompts and editorial slide headlines.
 
 Region mix you should roughly follow across many calls:
-  ~50% MENA (egypt, lebanon, jordan, morocco, gulf, andalusia)
-  ~20% Europe (italy, france, greece, spain, portugal, uk)
-  ~10% Asia (india, japan, indonesia, korea)
-  ~10% Latin America (mexico, colombia, brazil)
+  ~50% MENA (Egypt, Lebanon, Jordan, Morocco, Gulf, Andalusia)
+  ~20% Europe (Italy, France, Greece, Spain, Portugal, UK)
+  ~10% Asia (India, Japan, Indonesia, Korea)
+  ~10% Latin America (Mexico, Colombia, Brazil)
   ~10% Global / abstract (textures, time-of-day moods, season, fabric)
 
 Output strictly JSON:
 {
-  "vibe": string,        // 2-3 lowercase words, no punctuation
+  "vibe": string,        // 2-3 Title-Case words, no punctuation
   "region": string,      // one of: mena | europe | asia | latam | global
   "reasoning": string    // 1 short sentence (you'll see this in logs)
 }
 
 Rules:
-- LOWERCASE only. No punctuation. No emoji.
-- 2-3 words. Concrete enough to Pinterest-search ("cairo rooftop",
-  "tuscan garden", "wadi rum tent"), evocative enough to inspire
-  image-gen ("pampas grass dusk", "neutral linen minimalism").
+- Title Case (capitalize each significant word). No punctuation. No emoji.
+  Examples: "Cairo Rooftop", "Tuscan Garden", "Wadi Rum Tent",
+  "Pampas Grass Dusk", "Neutral Linen Minimalism".
+- 2-3 words. Concrete enough to Pinterest-search, evocative enough to
+  inspire image-gen.
 - AVOID anything in the "recent_vibes" list provided by the user — pick
   something visually distinct from those, not a synonym.
 - Don't translate or use Arabic script — romanized place names are fine.
-- Skip generic words ("wedding", "romantic", "elegant") on their own;
-  the vibe should imply a setting, era, or material.`;
+- Skip generic single words ("Wedding", "Romantic", "Elegant"); the vibe
+  should imply a setting, era, fabric, or atmosphere.`;
 
 export interface GenerateVibeInput {
   /**
@@ -132,8 +133,9 @@ export async function generateVibe(
     1.05,
   );
 
+  // Preserve case so headlines and Pinterest searches both work — strip
+  // trailing punctuation only.
   const vibe = (out.vibe ?? "")
-    .toLowerCase()
     .trim()
     .replace(/[.,!?;:]+$/g, "")
     .slice(0, 60);
@@ -151,13 +153,13 @@ export async function generateVibe(
 // ---------- Palette naming ----------
 
 const PALETTE_SYSTEM = `You are a color stylist for a wedding planning brand
-called Zaffa. Given a "vibe" (a short evocative descriptor like "tuscan
-garden" or "cairo rooftop"), produce a named 5-color palette suited to
+called Zaffa. Given a "vibe" (a short evocative descriptor like "Tuscan
+Garden" or "Cairo Rooftop"), produce a named 5-color palette suited to
 editorial wedding photography.
 
 Output strictly JSON in this shape:
 {
-  "name": string,                                 // palette name, lowercase, 2-4 words (e.g. "tuscan dusk")
+  "name": string,                                 // palette name, Title Case, 2-4 words (e.g. "Tuscan Dusk")
   "colors": [
     { "name": string, "hex": string },             // exactly 5 entries
     ...
@@ -165,15 +167,28 @@ Output strictly JSON in this shape:
 }
 
 Rules:
-- "name" is lowercase, no quotes, no punctuation.
-- Each color "name" is 1-3 lowercase words evocative but tasteful (e.g.
-  "rose dust", "verdigris", "champagne", "umber", "smoked olive"). Avoid
-  cliches ("blush pink", "navy blue") — surprise the eye.
+- "name" is Title Case, no quotes, no punctuation. 2-4 words.
+- Each color "name" is 1-3 Title-Case words, evocative but tasteful
+  (e.g. "Rose Dust", "Verdigris", "Champagne", "Umber", "Smoked Olive").
+  Avoid cliches ("Blush Pink", "Navy Blue") — surprise the eye.
 - "hex" is a 6-digit hex with leading "#".
 - The 5 colors must work together: 1 dominant, 2 supporting, 2 accents.
 - The palette as a whole should evoke the vibe — not literal colors of
   the place but the feeling of it.
 - Output ONLY the JSON object, no prose.`;
+
+/**
+ * Light Title-Case normalizer for LLM output that occasionally slips
+ * back into lowercase. Capitalizes the first letter of every word
+ * separated by whitespace; leaves anything already uppercase alone.
+ */
+function toTitleCase(s: string): string {
+  return s
+    .split(/\s+/)
+    .filter(Boolean)
+    .map((w) => (w[0] ? w[0].toUpperCase() + w.slice(1) : w))
+    .join(" ");
+}
 
 export async function namePalette(input: { vibe: string }): Promise<NamedPalette> {
   const out = await callJson<{
@@ -184,12 +199,13 @@ export async function namePalette(input: { vibe: string }): Promise<NamedPalette
     { role: "user", content: JSON.stringify({ vibe: input.vibe }) },
   ]);
 
-  const name = (out.name ?? "").trim().toLowerCase().slice(0, 60) || input.vibe;
+  const rawName = (out.name ?? "").trim().slice(0, 60);
+  const name = (rawName ? toTitleCase(rawName) : input.vibe) || input.vibe;
   const colors = (out.colors ?? [])
     .filter((c) => typeof c?.hex === "string" && /^#[0-9a-f]{6}$/i.test(c.hex))
     .slice(0, 5)
     .map((c) => ({
-      name: (c.name ?? "").toLowerCase().slice(0, 30) || c.hex,
+      name: toTitleCase((c.name ?? "").trim().slice(0, 30)) || c.hex,
       hex: c.hex.toUpperCase(),
     }));
 
@@ -202,28 +218,37 @@ export async function namePalette(input: { vibe: string }): Promise<NamedPalette
 // ---------- Caption + hashtags ----------
 
 const CAPTION_SYSTEM = `You are the in-house copywriter for Zaffa, a wedding
-planning brand. The voice is lowercase, intimate, confident — "pinterest
-board to a brief no one can misread". Sentences run short. No emoji. No
-exclamation marks. No hype.
+planning brand. The voice is editorial, intimate, confident — like a
+Cereal Magazine spread crossed with a stylist's voice note. Use proper
+sentence case and real punctuation: periods, commas, em-dashes (—),
+colons. Short sentences, then one long one for rhythm. No hype words
+("stunning", "obsessed", "OMG"). No exclamation marks. No emoji.
 
-You write Instagram captions for editorial wedding-design carousels. Each
-post has a vibe (e.g. "tuscan garden", "cairo rooftop"), a synthetic
-couple, a 5-color palette, and a chosen format.
+You write Instagram captions for editorial wedding-design carousels.
+Each post has a vibe (e.g. "Tuscan Garden", "Cairo Rooftop"), a couple
+(one girl + one boy by convention), a 5-color palette, and a format.
 
 Output strictly JSON:
 {
-  "caption":  string,           // 280-700 chars, lowercase, 2-4 short paragraphs
+  "caption":  string,           // 320-720 chars, sentence case, 3-4 short paragraphs
   "hashtags": string[]          // EXACTLY 5 entries, each WITHOUT the leading '#'
 }
 
 Caption rules:
-- All lowercase. No emoji. No exclamation marks.
-- 2-4 short paragraphs separated by a single blank line ("\\n\\n").
-- Mention the vibe in passing — don't explain it. Don't translate it.
-- Mention the couple by first names at most once, casually.
-- Don't list the colors literally. You can name one, max.
-- Close with a soft call to action that fits the format (e.g. "save this
-  one" / "we're booking these next" / "this is what we mean by a brief").
+- Sentence case. Real punctuation. NO exclamation marks. NO emoji.
+- 3-4 short paragraphs separated by a single blank line ("\\n\\n").
+- Paragraph 1: hook — a single concrete image or sensory line that lands
+  the vibe (e.g. "Olive trees, slow shadows, a long linen runner.").
+- Paragraph 2: the design intent — what the couple cares about, what
+  the palette does, what the format proves. Treat the couple's first
+  names as a once-mentioned detail, not the subject.
+- Paragraph 3: a soft brand line about Zaffa designing weddings around
+  a vibe rather than a checklist.
+- Final line: a quiet call to action that matches the format. Examples:
+  "Save this one." / "We're designing more of these — DM 'lookbook'." /
+  "This is what we mean by a brief." / "Three weeks from vibe to plan."
+- Don't list every color literally. Name one or two if it adds rhythm.
+- Don't translate the vibe phrase. Don't define jargon.
 
 Hashtag rules — EXACTLY 5 entries, in this order:
   1. broad        — wedding/event-design at large (e.g. "weddinginspo",
@@ -294,11 +319,13 @@ Output strictly JSON:
 
 Rules:
 - EXACTLY 3 entries.
-- Each is EXACTLY 3 lowercase words separated by single spaces. No
-  punctuation. No emoji.
+- Each is EXACTLY 3 Title-Case words separated by single spaces. No
+  punctuation. No emoji. (e.g. "Olive, Linen, Light", "Slow Morning
+  Ritual" — but render as Title Case without commas: "Olive Linen Light",
+  "Slow Morning Ritual".)
 - Together they read as a triptych — one feeling per slide, escalating
   toward the closing CTA slide.
-- Lean editorial, not literal.`;
+- Lean editorial and sensory, not literal.`;
 
 export async function generateThreeWords(input: {
   vibe: string;
@@ -316,7 +343,8 @@ export async function generateThreeWords(input: {
   ]);
 
   const captions = (out.captions ?? [])
-    .map((s) => String(s).trim().toLowerCase())
+    .map((s) => String(s).trim().replace(/[.,!?;:]+$/g, ""))
+    .map(toTitleCase)
     .filter((s) => s.split(/\s+/).length === 3)
     .slice(0, 3);
 

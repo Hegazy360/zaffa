@@ -99,7 +99,7 @@ export function GeneratePostModal({
               id="gen-vibe"
               value={vibe}
               onChange={(e) => setVibe(e.target.value)}
-              placeholder="e.g. tuscan garden, cairo rooftop"
+              placeholder="e.g. Tuscan Garden, Cairo Rooftop"
             />
             <p className="text-[11px] text-muted-foreground">
               Leave blank to let the LLM invent one (MENA-weighted,

@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils";
 /**
  * The scroll-stopper. First slide of every carousel.
  *
- *  - default          full-bleed render + a lowercase overlay headline
+ *  - default          full-bleed render + an editorial overlay headline
  *  - fourUp           2x2 of mini renders for `palette_test`
  *  - chaosToClarity   split before/after for `planner_pov`
  */
@@ -38,7 +38,7 @@ function BrandTag() {
       className="inline-flex items-center gap-2 rounded-full bg-white/90 px-4 py-1.5 text-[0.7rem] font-semibold uppercase tracking-[0.32em] text-rose-700 ring-1 ring-rose-200/70 backdrop-blur-sm"
     >
       <span className="size-1.5 rounded-full bg-rose-500" />
-      zaffa.ai
+      ZAFFA.AI
     </span>
   );
 }
@@ -62,15 +62,22 @@ function DefaultHook({ renderUrl, headline, subline }: HookSlideProps) {
           className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/85 via-black/55 to-transparent"
         />
         <div className="relative">
+          {/* small italic eyebrow above the title — adds editorial rhythm */}
+          <p
+            className="mb-4 font-display text-[18px] font-light italic leading-none tracking-[0.04em] text-rose-200/90"
+            style={OVERLAY_SUBTEXT_SHADOW}
+          >
+            an editorial brief by zaffa
+          </p>
           <h1
-            className="text-balance font-display text-[68px] font-normal leading-[1.02] lowercase tracking-tight text-white"
+            className="text-balance font-display text-[72px] font-medium leading-[1.02] tracking-[-0.01em] text-white"
             style={OVERLAY_TEXT_SHADOW}
           >
             {headline}
           </h1>
           {subline && (
             <p
-              className="mt-5 text-balance text-[26px] font-light lowercase leading-snug tracking-wide text-white/90"
+              className="mt-5 text-balance font-display text-[26px] font-light italic leading-snug tracking-[0.01em] text-white/95"
               style={OVERLAY_SUBTEXT_SHADOW}
             >
               {subline}
@@ -89,10 +96,10 @@ function FourUpHook({ fourUpUrls = [], headline, subline }: HookSlideProps) {
     <Slide className="bg-gradient-to-br from-[#F5EFE6] via-[#F1E9DD] to-[#E8DFD2]">
       <div className="absolute inset-x-0 top-0 z-10 flex items-center justify-between px-16 pt-14">
         <span className="rounded-full bg-white/85 px-3.5 py-1.5 text-[0.65rem] font-semibold uppercase tracking-[0.32em] text-rose-700 ring-1 ring-rose-200/70">
-          one palette
+          ONE PALETTE
         </span>
         <span className="rounded-full bg-stone-900/90 px-3.5 py-1.5 text-[0.65rem] font-semibold uppercase tracking-[0.32em] text-white">
-          four ways
+          FOUR WAYS
         </span>
       </div>
       <div className="absolute inset-x-0 top-40 bottom-72 grid grid-cols-2 gap-5 px-12">
@@ -113,11 +120,11 @@ function FourUpHook({ fourUpUrls = [], headline, subline }: HookSlideProps) {
         ))}
       </div>
       <div className="absolute inset-x-0 bottom-12 px-16 text-center">
-        <h1 className="text-balance font-display text-[56px] font-normal lowercase leading-tight tracking-tight text-stone-900">
+        <h1 className="text-balance font-display text-[56px] font-medium leading-tight tracking-[-0.01em] text-stone-900">
           {headline}
         </h1>
         {subline && (
-          <p className="mt-3 text-xl lowercase tracking-wide text-stone-700">
+          <p className="mt-3 font-display text-xl italic tracking-wide text-stone-700">
             {subline}
           </p>
         )}
@@ -148,7 +155,7 @@ function ChaosToClarityHook({
           <span
             className="pointer-events-none absolute left-8 top-8 rounded-full bg-white/95 px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.32em] text-stone-900 shadow-md ring-1 ring-stone-200"
           >
-            before
+            BEFORE
           </span>
         </div>
         <div className="relative overflow-hidden">
@@ -160,7 +167,7 @@ function ChaosToClarityHook({
           <span
             className="pointer-events-none absolute right-8 top-8 rounded-full bg-rose-600 px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.32em] text-white shadow-md"
           >
-            after
+            AFTER
           </span>
         </div>
       </div>
@@ -175,15 +182,21 @@ function ChaosToClarityHook({
           className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/90 via-black/60 to-transparent"
         />
         <div className="relative">
+          <p
+            className="mb-3 font-display text-[18px] font-light italic leading-none tracking-[0.04em] text-rose-200/90"
+            style={OVERLAY_SUBTEXT_SHADOW}
+          >
+            a planner&apos;s pov
+          </p>
           <h1
-            className="text-balance font-display text-[62px] font-normal lowercase leading-[1.02] tracking-tight text-white"
+            className="text-balance font-display text-[62px] font-medium leading-[1.02] tracking-[-0.01em] text-white"
             style={OVERLAY_TEXT_SHADOW}
           >
             {headline}
           </h1>
           {subline && (
             <p
-              className="mt-4 text-[24px] font-light lowercase tracking-wide text-white/90"
+              className="mt-4 font-display text-[24px] font-light italic tracking-wide text-white/95"
               style={OVERLAY_SUBTEXT_SHADOW}
             >
               {subline}

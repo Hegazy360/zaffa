@@ -22,19 +22,19 @@ export function PaletteSlide({ palette, vibe }: PaletteSlideProps) {
       <div className="absolute inset-0 flex flex-col px-16 py-20">
         <div className="flex items-baseline justify-between gap-4">
           <p className="text-[0.7rem] font-semibold uppercase tracking-[0.4em] text-rose-700">
-            palette
+            THE PALETTE
           </p>
           <p className="text-[0.65rem] font-medium uppercase tracking-[0.32em] text-stone-500">
-            zaffa.ai
+            ZAFFA.AI
           </p>
         </div>
 
         <div className="mt-6">
-          <h2 className="font-display text-[60px] font-normal lowercase leading-[1.02] tracking-tight text-stone-900">
+          <h2 className="font-display text-[64px] font-medium leading-[1.02] tracking-[-0.01em] text-stone-900">
             {palette.name}
           </h2>
-          <p className="mt-3 text-2xl lowercase tracking-wide text-stone-700">
-            {vibe}
+          <p className="mt-3 font-display text-[24px] font-light italic tracking-wide text-stone-700">
+            for {vibe}
           </p>
           <div className="mt-6 h-px w-24 bg-rose-700/40" />
         </div>

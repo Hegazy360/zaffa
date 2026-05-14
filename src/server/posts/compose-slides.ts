@@ -104,7 +104,7 @@ function buildProps(
       return {
         component: "CTASlide",
         props: {
-          headline: "your lookbook,\nthree weeks out.",
+          headline: "Your Lookbook,\nThree Weeks Out.",
           subline: "zaffa.ai",
         },
       };

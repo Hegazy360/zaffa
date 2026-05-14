@@ -9,11 +9,11 @@ export interface CTASlideProps {
 
 /**
  * Closing slide for the `three_words` format (and anywhere else the
- * carousel needs a clean handoff). Minimal lowercase invitation copy +
+ * carousel needs a clean handoff). Minimal editorial invitation copy +
  * the zaffa.ai mark.
  */
 export function CTASlide({
-  headline = "your lookbook,\nthree weeks out.",
+  headline = "Your Lookbook,\nThree Weeks Out.",
   subline = "zaffa.ai",
 }: CTASlideProps) {
   return (
@@ -36,17 +36,20 @@ export function CTASlide({
       />
       <div className="absolute inset-0 flex flex-col items-center justify-center px-20 text-center">
         <p className="text-[0.7rem] font-semibold uppercase tracking-[0.4em] text-rose-700">
-          start with a vibe
+          START WITH A VIBE
         </p>
         <div className="mt-6 h-px w-16 bg-rose-700/40" />
-        <h1 className="mt-10 whitespace-pre-line font-display text-[88px] font-normal lowercase leading-[0.98] tracking-tight text-stone-900">
+        <h1 className="mt-10 whitespace-pre-line font-display text-[88px] font-medium leading-[0.98] tracking-[-0.015em] text-stone-900">
           {headline}
         </h1>
-        <p className="mt-14 font-display text-3xl lowercase tracking-[0.04em] text-stone-700">
+        <p className="mt-12 font-display text-[28px] font-light italic tracking-wide text-stone-700">
+          We design weddings around a feeling — not a checklist.
+        </p>
+        <p className="mt-10 font-display text-3xl font-medium tracking-[0.02em] text-rose-700">
           {subline}
         </p>
-        <p className="mt-3 text-[0.7rem] font-semibold uppercase tracking-[0.4em] text-rose-700">
-          designed with zaffa
+        <p className="mt-3 text-[0.7rem] font-semibold uppercase tracking-[0.4em] text-stone-500">
+          DESIGNED WITH ZAFFA
         </p>
       </div>
     </Slide>

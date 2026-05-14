@@ -44,7 +44,7 @@ export function FinalRenderSlide({
               .map((word, i) => (
                 <p
                   key={`${word}-${i}`}
-                  className="font-display text-[80px] font-normal lowercase leading-[0.95] tracking-tight text-white"
+                  className="font-display text-[84px] font-medium leading-[0.95] tracking-[-0.015em] text-white"
                   style={OVERLAY_TEXT_SHADOW}
                 >
                   {word}
@@ -61,7 +61,7 @@ export function FinalRenderSlide({
             className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/80 via-black/35 to-transparent"
           />
           <p
-            className="relative text-balance font-display text-[28px] font-normal lowercase leading-snug tracking-wide text-white"
+            className="relative text-balance font-display text-[30px] font-normal italic leading-snug tracking-wide text-white"
             style={OVERLAY_SUBTEXT_SHADOW}
           >
             {caption}
@@ -72,11 +72,11 @@ export function FinalRenderSlide({
       {paletteOverlay && (
         <div className="absolute inset-x-10 bottom-10 rounded-2xl bg-white/95 p-6 shadow-2xl ring-1 ring-stone-900/10 backdrop-blur-sm">
           <div className="flex items-baseline justify-between gap-3">
-            <p className="text-[0.7rem] font-semibold uppercase tracking-[0.36em] text-rose-700">
+            <p className="font-display text-[22px] font-medium tracking-[-0.005em] text-stone-900">
               {paletteOverlay.name}
             </p>
-            <p className="text-[0.6rem] font-medium uppercase tracking-[0.3em] text-stone-500">
-              palette
+            <p className="text-[0.6rem] font-semibold uppercase tracking-[0.32em] text-rose-700">
+              PALETTE
             </p>
           </div>
           <div className="mt-4">
