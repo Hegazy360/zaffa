@@ -30,12 +30,18 @@ interface PackCheckoutAction {
    */
   isPending: boolean;
   /**
-   * Whether we're treating the caller as anonymous for routing. Useful
-   * for adapting CTA labels ("Sign up to continue" vs "Buy now").
-   * `useIsAnonymous` returns `null` while resolving JWT claims; we
-   * treat that as anonymous to avoid firing `startCheckout` before the
-   * claims fetch resolves and getting an `ANONYMOUS_NOT_ALLOWED`
-   * rejection.
+   * Whether we *know* the caller is anonymous. Useful for adapting CTA
+   * labels ("Sign up to continue" vs "Buy now"). `useIsAnonymous`
+   * returns `null` while resolving JWT claims; we treat that loading
+   * window as "not yet known" (false) rather than "anonymous" so the
+   * label doesn't briefly read "Sign up…" for a permanent user who
+   * just hasn't had their claims resolved client-side yet. The
+   * server-side `ANONYMOUS_NOT_ALLOWED` fallback in `checkout.onError`
+   * still catches the rare case where a truly-anon visitor clicks
+   * inside that initial loading window — they pay one extra server
+   * round-trip before being routed to signup, which is worth it to
+   * avoid the "sign up redirect on first click, payment on second"
+   * confusion that hits every permanent user otherwise.
    */
   isAnon: boolean;
 }
@@ -54,7 +60,12 @@ export function usePackCheckoutAction({
   const router = useRouter();
   const t = useTranslations("visionPack");
   const anonClaim = useIsAnonymous();
-  const isAnon = anonClaim !== false;
+  // Only treat the caller as anonymous when we've actually resolved
+  // their JWT claims and they came back `is_anonymous: true`. The
+  // null (loading) state is treated as "unknown — try the buy path,
+  // let the server be the source of truth". See `isAnon` jsdoc above
+  // for why this beats the previous "null → anon" treatment.
+  const isAnon = anonClaim === true;
   // Reads from the same tRPC pricing query as the rest of the app
   // (deduped by react-query's 5-min staleTime), so this hook adds no
   // extra round-trip in surfaces that already render priced tiers.
@@ -105,14 +116,24 @@ export function usePackCheckoutAction({
       if (url) window.location.href = url;
     },
     onError: (err, variables) => {
-      // Server-side safety net for the claims race: if the hook said
-      // `false` but the cookie still carried an anon JWT (or the
-      // session flipped between renders), bounce to signup with the
-      // selected sku instead of toasting a raw error code. Both the
-      // mutation input and its `sku` field are optional in the tRPC
-      // schema, so we only re-route if we actually know which tier
-      // they were trying to buy.
-      if (err.message === "ANONYMOUS_NOT_ALLOWED" && variables?.sku) {
+      // Server-side safety net for the auth race. Two flavours we
+      // route to signup instead of toasting:
+      //   - `ANONYMOUS_NOT_ALLOWED` — caller has an anon Supabase
+      //     session (e.g. they ran a free try) and the client hook
+      //     hadn't resolved that yet when they clicked.
+      //   - `UNAUTHORIZED` (no message) — caller has no session at
+      //     all (fresh visitor, cleared cookies). Mirrors the same
+      //     branch in `/checkout/page.tsx`'s onError.
+      // Both happen when a visitor clicks a buy CTA inside the
+      // ~100ms window before `useIsAnonymous` resolves; the fallback
+      // makes that loading state invisible to the user.
+      // We only re-route when we actually know which sku they were
+      // trying to buy — the input shape is optional in the tRPC
+      // schema so this guard is load-bearing.
+      const needsAuth =
+        err.message === "ANONYMOUS_NOT_ALLOWED" ||
+        err.data?.code === "UNAUTHORIZED";
+      if (needsAuth && variables?.sku) {
         routeToSignup(variables.sku);
         return;
       }
