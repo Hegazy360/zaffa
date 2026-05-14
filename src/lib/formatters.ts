@@ -13,6 +13,8 @@ import type { Locale } from "@/i18n/config";
 const LOCALE_TAG: Record<Locale, string> = {
   en: "en-EG",
   ar: "ar-EG",
+  fr: "fr-FR",
+  de: "de-DE",
 };
 
 function tagFor(locale: string | Locale | undefined): string {

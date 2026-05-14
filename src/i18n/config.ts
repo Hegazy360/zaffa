@@ -1,7 +1,7 @@
 // Single source of truth for the platform's locales. Anywhere we need to
 // fall back, validate, or iterate locales we go through this module.
 
-export const locales = ["en", "ar"] as const;
+export const locales = ["en", "ar", "fr", "de"] as const;
 export type Locale = (typeof locales)[number];
 
 export const defaultLocale: Locale = "en";
@@ -28,4 +28,55 @@ export const LOCALE_COOKIE_MAX_AGE = 60 * 60 * 24 * 365;
 export const localeLabels: Record<Locale, string> = {
   en: "English",
   ar: "العربية",
+  fr: "Français",
+  de: "Deutsch",
 };
+
+// ISO-3166-1 alpha-2 country → preferred Locale. Used by the middleware
+// to pick an initial language when a visitor hits the site without a
+// `zaffa_locale` cookie. The country signal is preferred over the
+// browser's Accept-Language because it matches user intuition ("I'm in
+// France, the site should be in French") and is the explicit ask in
+// the product spec.
+//
+// Only countries with a non-default mapping are listed; anything missing
+// falls through to `defaultLocale`. The user can always override via
+// the navbar switcher — that path writes the cookie, which is then
+// preserved on every subsequent request.
+//
+// Maghreb countries (DZ, MA, TN, LY) have both Arabic and French as
+// widely-spoken languages but Arabic is the official language; routing
+// them to `ar` matches the product's Arab-world positioning.
+export const COUNTRY_TO_LOCALE: Readonly<Record<string, Locale>> = {
+  // Arabic-speaking countries (Arab League + Arabic-official states)
+  AE: "ar", BH: "ar", DJ: "ar", DZ: "ar", EG: "ar", EH: "ar",
+  IQ: "ar", JO: "ar", KM: "ar", KW: "ar", LB: "ar", LY: "ar",
+  MA: "ar", MR: "ar", OM: "ar", PS: "ar", QA: "ar", SA: "ar",
+  SD: "ar", SO: "ar", SY: "ar", TN: "ar", YE: "ar",
+  // French-speaking countries + French overseas territories. We
+  // include BE and LU here because Dutch and Luxembourgish aren't
+  // shipped — French is the best of the supported options for those
+  // visitors. Switzerland (CH) is mapped to German below (the majority
+  // language, ~62%) rather than French.
+  FR: "fr", MC: "fr", LU: "fr", BE: "fr",
+  BF: "fr", BI: "fr", BJ: "fr", CD: "fr", CF: "fr", CG: "fr",
+  CI: "fr", CM: "fr", GA: "fr", GN: "fr", HT: "fr", MG: "fr",
+  ML: "fr", MU: "fr", NE: "fr", RW: "fr", SC: "fr", SN: "fr",
+  TD: "fr", TG: "fr", VU: "fr",
+  GP: "fr", GF: "fr", MQ: "fr", YT: "fr", RE: "fr", NC: "fr",
+  PF: "fr", PM: "fr", MF: "fr", BL: "fr", WF: "fr",
+  // German-speaking countries.
+  DE: "de", AT: "de", CH: "de", LI: "de",
+};
+
+/**
+ * Resolve the preferred locale for a given ISO-3166-1 alpha-2 country
+ * code, or `null` if the country isn't mapped (caller falls back to
+ * Accept-Language / default). Case-insensitive.
+ */
+export function localeForCountry(
+  countryCode: string | null | undefined,
+): Locale | null {
+  if (!countryCode) return null;
+  return COUNTRY_TO_LOCALE[countryCode.toUpperCase()] ?? null;
+}

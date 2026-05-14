@@ -7,6 +7,7 @@ import {
   defaultLocale,
   isLocale,
   locales,
+  localeForCountry,
 } from "@/i18n/config";
 import { isFlagEnabled } from "@/lib/flags";
 import {
@@ -140,23 +141,57 @@ export async function middleware(request: NextRequest) {
     ? await updateSession(request)
     : NextResponse.next({ request });
 
+  // Resolve the visitor's country from the upstream geo signal. Read
+  // order:
+  //   - Vercel: `request.geo.country` (production), `x-vercel-ip-country`
+  //   - Cloudflare: `cf-ipcountry`
+  //   - Cookie set on a previous hit (handles requests that skip past
+  //     the edge geo enrichment, e.g. local dev with a manually-seeded
+  //     cookie).
+  // We compute this once here because both locale seeding (below) and
+  // the Vision Pack pricing cookie (further below) need it.
+  const existingCountry = normalizeCountryCode(
+    request.cookies.get(VISION_PACK_COUNTRY_COOKIE)?.value,
+  );
+  const detectedCountry =
+    normalizeCountryCode(
+      // request.geo is Vercel-specific; tolerate environments without it.
+      (request as NextRequest & { geo?: { country?: string } }).geo?.country ??
+        request.headers.get("x-vercel-ip-country") ??
+        request.headers.get("cf-ipcountry"),
+    ) ?? existingCountry;
+
   // Seed the locale cookie on first hit so server renders + the request
-  // config helper always have a concrete locale to read. We negotiate from
-  // Accept-Language so the user lands in their preferred language out of
-  // the box.
+  // config helper always have a concrete locale to read. Priority:
+  //   1. Country signal → mapped locale (FR → fr, EG/SA/AE/… → ar, …)
+  //      This is the explicit product behaviour: a visitor in France
+  //      sees French by default, a visitor in an Arab country sees
+  //      Arabic, everyone else falls through.
+  //   2. Accept-Language match → handles cross-border travellers and
+  //      countries we don't map (an Arabic speaker in Germany still
+  //      gets Arabic).
+  //   3. Default locale (English).
+  // The user can override at any time via the navbar switcher, which
+  // writes a valid locale into the cookie; this block only runs when
+  // the cookie is missing or unrecognised, so the switch is sticky.
   const existing = request.cookies.get(LOCALE_COOKIE)?.value;
   if (!isLocale(existing)) {
-    const acceptLanguage = request.headers.get("accept-language") ?? "";
-    const requested = parseAcceptLanguage(acceptLanguage);
-    let chosen: string = defaultLocale;
-    try {
-      chosen = match(
-        requested.length > 0 ? requested : [defaultLocale],
-        locales as unknown as string[],
-        defaultLocale,
-      );
-    } catch {
-      chosen = defaultLocale;
+    const countryLocale = localeForCountry(detectedCountry);
+    let chosen: string;
+    if (countryLocale) {
+      chosen = countryLocale;
+    } else {
+      const acceptLanguage = request.headers.get("accept-language") ?? "";
+      const requested = parseAcceptLanguage(acceptLanguage);
+      try {
+        chosen = match(
+          requested.length > 0 ? requested : [defaultLocale],
+          locales as unknown as string[],
+          defaultLocale,
+        );
+      } catch {
+        chosen = defaultLocale;
+      }
     }
     response.cookies.set(LOCALE_COOKIE, chosen, {
       path: "/",
@@ -165,24 +200,10 @@ export async function middleware(request: NextRequest) {
     });
   }
 
-  // Seed the country cookie from the upstream geo signal so server
-  // components + tRPC procedures resolve Vision Pack pricing for the
-  // visitor's market. Read order:
-  //   - Vercel: `request.geo.country` (production), `x-vercel-ip-country`
-  //   - Cloudflare: `cf-ipcountry`
-  //   - Local dev: nothing — fall through to DEFAULT seed.
-  // Always re-write when the upstream signal disagrees with the cookie
-  // (e.g. user moved networks), but skip the write when nothing changed
-  // to avoid a cache-bust on every hit.
-  const detectedCountry = normalizeCountryCode(
-    // request.geo is Vercel-specific; tolerate environments without it.
-    (request as NextRequest & { geo?: { country?: string } }).geo?.country ??
-      request.headers.get("x-vercel-ip-country") ??
-      request.headers.get("cf-ipcountry"),
-  );
-  const existingCountry = normalizeCountryCode(
-    request.cookies.get(VISION_PACK_COUNTRY_COOKIE)?.value,
-  );
+  // Persist the country cookie when the upstream signal disagrees with
+  // what's stored (e.g. user moved networks). Skip the write when
+  // nothing changed to avoid a cache-bust on every hit. Vision Pack
+  // pricing reads this cookie server-side per request.
   if (detectedCountry && detectedCountry !== existingCountry) {
     response.cookies.set(VISION_PACK_COUNTRY_COOKIE, detectedCountry, {
       path: "/",

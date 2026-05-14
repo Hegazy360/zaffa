@@ -160,7 +160,7 @@ describe("middleware: auth-aware routing", () => {
 });
 
 describe("middleware: locale cookie seeding", () => {
-  it("seeds the locale cookie from Accept-Language on first hit", async () => {
+  it("seeds the locale cookie from Accept-Language when no country signal", async () => {
     const res = await middleware(
       buildRequest("https://app.test/", {
         headers: { "accept-language": "ar-EG,ar;q=0.9,en;q=0.8" },
@@ -189,11 +189,117 @@ describe("middleware: locale cookie seeding", () => {
   it("re-seeds when the cookie value isn't a known locale", async () => {
     const res = await middleware(
       buildRequest("https://app.test/", {
-        headers: { "accept-language": "fr" },
+        headers: { "accept-language": "zh" },
         cookies: { zaffa_locale: "klingon" },
       })
     );
     expect(res.cookies.get("zaffa_locale")?.value).toBe("en"); // matched fallback
+  });
+});
+
+describe("middleware: country-based locale seeding", () => {
+  it("seeds `fr` for visitors from France regardless of Accept-Language", async () => {
+    const res = await middleware(
+      buildRequest("https://app.test/", {
+        headers: {
+          "accept-language": "en-US,en;q=0.9",
+          "x-vercel-ip-country": "FR",
+        },
+      })
+    );
+    expect(res.cookies.get("zaffa_locale")?.value).toBe("fr");
+    expect(res.cookies.get("zaffa_country")?.value).toBe("FR");
+  });
+
+  it("seeds `ar` for visitors from Arabic-speaking countries", async () => {
+    const res = await middleware(
+      buildRequest("https://app.test/", {
+        headers: {
+          "accept-language": "en-US",
+          "x-vercel-ip-country": "EG",
+        },
+      })
+    );
+    expect(res.cookies.get("zaffa_locale")?.value).toBe("ar");
+  });
+
+  it("uses cf-ipcountry when x-vercel-ip-country is absent", async () => {
+    const res = await middleware(
+      buildRequest("https://app.test/", {
+        headers: { "cf-ipcountry": "SA" },
+      })
+    );
+    expect(res.cookies.get("zaffa_locale")?.value).toBe("ar");
+  });
+
+  it("falls back to Accept-Language when the country doesn't map to a locale", async () => {
+    // GB has no entry in COUNTRY_TO_LOCALE — visitor's Accept-Language wins.
+    const res = await middleware(
+      buildRequest("https://app.test/", {
+        headers: {
+          "accept-language": "fr-FR,fr;q=0.9",
+          "x-vercel-ip-country": "GB",
+        },
+      })
+    );
+    expect(res.cookies.get("zaffa_locale")?.value).toBe("fr");
+  });
+
+  it("falls back to default locale when neither country nor Accept-Language map", async () => {
+    const res = await middleware(
+      buildRequest("https://app.test/", {
+        headers: {
+          "accept-language": "zh-CN,zh;q=0.9",
+          "x-vercel-ip-country": "GB",
+        },
+      })
+    );
+    expect(res.cookies.get("zaffa_locale")?.value).toBe("en");
+  });
+
+  it("seeds `de` for visitors from Germany", async () => {
+    const res = await middleware(
+      buildRequest("https://app.test/", {
+        headers: {
+          "accept-language": "en-US",
+          "x-vercel-ip-country": "DE",
+        },
+      })
+    );
+    expect(res.cookies.get("zaffa_locale")?.value).toBe("de");
+  });
+
+  it("respects an existing locale cookie even when the country would map differently", async () => {
+    // A French user who explicitly switched to English keeps English.
+    const res = await middleware(
+      buildRequest("https://app.test/", {
+        headers: { "x-vercel-ip-country": "FR" },
+        cookies: { zaffa_locale: "en" },
+      })
+    );
+    expect(res.cookies.get("zaffa_locale")).toBeUndefined();
+  });
+
+  it("uses an existing country cookie when no upstream geo header is present", async () => {
+    const res = await middleware(
+      buildRequest("https://app.test/", {
+        cookies: { zaffa_country: "FR" },
+      })
+    );
+    expect(res.cookies.get("zaffa_locale")?.value).toBe("fr");
+  });
+
+  it("ignores Cloudflare's `XX` (unknown) sentinel and falls through", async () => {
+    const res = await middleware(
+      buildRequest("https://app.test/", {
+        headers: {
+          "accept-language": "ar",
+          "cf-ipcountry": "XX",
+        },
+      })
+    );
+    // Country signal is dropped → Accept-Language wins.
+    expect(res.cookies.get("zaffa_locale")?.value).toBe("ar");
   });
 });
 
