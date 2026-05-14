@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { trpc } from "@/lib/trpc";
 import { createClient } from "@/lib/supabase/client";
 import { Turnstile } from "@/components/security/Turnstile";
+import { ttTrack, TIKTOK_EVENTS } from "@/lib/tiktok";
 
 interface EmailGateOverlayProps {
   /**
@@ -75,6 +76,17 @@ export function EmailGateOverlay({
           renderId: renderId ?? undefined,
           turnstileToken: turnstileToken ?? undefined,
         });
+        // TikTok lead funnel — fire `SubmitForm` the moment the
+        // server-side capture lands (lock acquired + Resend Audience
+        // push queued). This is the canonical "lead captured"
+        // moment in the funnel; the subsequent Supabase upgrade is
+        // the registration completion. Using `renderId` as the
+        // event_id lets a future server-side mirror dedupe.
+        ttTrack(
+          TIKTOK_EVENTS.SUBMIT_FORM,
+          { description: "email_gate" },
+          renderId ?? undefined,
+        );
       } catch (err) {
         // Single-use Turnstile tokens — reset for the next attempt.
         setTurnstileToken(null);
@@ -130,6 +142,17 @@ export function EmailGateOverlay({
       // already permanent. Skip the inbox-check ceremony and reveal
       // the (still watermarked, free-tier) render directly.
       if (data?.user && data.user.is_anonymous === false) {
+        // TikTok activation funnel — only fire `CompleteRegistration`
+        // when the user is actually permanent. With Confirm-email
+        // ON the upgrade only resolves after they click the magic
+        // link, so we leave the event unfired in that branch and
+        // rely on the in-app signup forms to fire it on
+        // permanent-account creation.
+        ttTrack(
+          TIKTOK_EVENTS.COMPLETE_REGISTRATION,
+          { description: "email_gate" },
+          data.user.id,
+        );
         router.push(nextPath);
         router.refresh();
         return;

@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { motion, useReducedMotion } from "framer-motion";
 import {
@@ -9,13 +8,15 @@ import {
   Check,
   FileDown,
   Globe,
+  Loader2,
   Sparkles,
   Users,
   X as XIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { useTierPricing } from "@/components/vision-pack/use-pricing";
+import { useTierPricing, type TierPrice } from "@/components/vision-pack/use-pricing";
+import { usePackCheckoutAction } from "@/components/vision-pack/use-pack-checkout-action";
 import { PACK_SKUS, type PackSkuId } from "@/lib/vision-pack";
 
 // Two-up tier comparison shown on the home page between the "How it
@@ -26,7 +27,8 @@ import { PACK_SKUS, type PackSkuId } from "@/lib/vision-pack";
 
 // The free-tier SKU never surfaces on the marketing page — it's only
 // reachable via the email gate after generation — so the CTA label
-// table only covers the purchasable tiers.
+// table only covers the purchasable tiers. The same key is reused as
+// the post-signup "Get the X Pack — $Y" CTA copy.
 const TIER_TO_LABEL_KEY: Partial<Record<PackSkuId, string>> = {
   wedding_design_pack_v1: "tierCtaDesign",
   wedding_vision_pack_v1: "tierCtaVision",
@@ -34,7 +36,6 @@ const TIER_TO_LABEL_KEY: Partial<Record<PackSkuId, string>> = {
 
 export function TierComparisonSection() {
   const t = useTranslations("marketing");
-  const tv = useTranslations("visionPack");
   const reduce = useReducedMotion();
   const { ordered } = useTierPricing();
 
@@ -65,138 +66,173 @@ export function TierComparisonSection() {
         </div>
 
         <div className="mt-12 grid gap-6 md:grid-cols-2">
-          {ordered.map((tier, idx) => {
-            const meta = PACK_SKUS[tier.sku];
-            const ctaKey = TIER_TO_LABEL_KEY[tier.sku];
-            const isVision = tier.sku === "wedding_vision_pack_v1";
-            return (
-              <motion.div
-                key={tier.sku}
-                initial={{ opacity: 0, y: 24 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: "-64px" }}
-                transition={{
-                  duration: reduce ? 0 : 0.6,
-                  delay: reduce ? 0 : idx * 0.1,
-                }}
-                className={cn(
-                  "relative flex flex-col overflow-hidden rounded-3xl border bg-white/90 p-7 dark:bg-card/80",
-                  isVision
-                    ? "border-rose-300 shadow-xl shadow-rose-600/10 ring-1 ring-rose-200/60 dark:border-rose-700"
-                    : "border-rose-100/70 dark:border-rose-900/30",
-                )}
-              >
-                {isVision ? (
-                  <span className="absolute end-6 top-6 rounded-full bg-gradient-to-r from-rose-600 to-amber-500 px-3 py-1 text-[10px] font-medium uppercase tracking-[0.18em] text-white">
-                    {t("tierBadgeMostPopular")}
-                  </span>
-                ) : null}
-
-                <div>
-                  <p className="text-[0.65rem] uppercase tracking-[0.22em] text-muted-foreground">
-                    {tv(
-                      tier.sku === "wedding_design_pack_v1"
-                        ? "tierDesignName"
-                        : "tierVisionName",
-                    )}
-                  </p>
-                  <p className="mt-1 text-sm text-muted-foreground">
-                    {tv(
-                      tier.sku === "wedding_design_pack_v1"
-                        ? "tierDesignTagline"
-                        : "tierVisionTagline",
-                    )}
-                  </p>
-                  <div className="mt-5 flex items-baseline gap-1.5">
-                    <span className="font-display text-4xl font-light tracking-tight">
-                      {tier.label}
-                    </span>
-                    <span className="text-xs text-muted-foreground">
-                      {tv("priceSubtitle")}
-                    </span>
-                  </div>
-                </div>
-
-                <ul className="mt-6 space-y-2.5 text-sm">
-                  <IncludedRow
-                    label={t("tierIncludedRenders", {
-                      count: meta.quotas.renders,
-                      styles: meta.quotas.styles,
-                    })}
-                    icon={<Sparkles className="h-3.5 w-3.5" />}
-                  />
-                  <IncludedRow
-                    label={
-                      meta.quotas.videos === 1
-                        ? t("tierIncludedVideos", { count: meta.quotas.videos })
-                        : t("tierIncludedVideosPlural", {
-                            count: meta.quotas.videos,
-                          })
-                    }
-                    icon={<Sparkles className="h-3.5 w-3.5" />}
-                  />
-                  <IncludedRow
-                    label={t("tierIncludedLookbook")}
-                    icon={<FileDown className="h-3.5 w-3.5" />}
-                  />
-                  <IncludedRow
-                    label={t("tierIncludedMicrosite")}
-                    icon={<Globe className="h-3.5 w-3.5" />}
-                  />
-                  {meta.includesVenueRecs ? (
-                    <IncludedRow
-                      label={t("tierIncludedVenueRecs")}
-                      icon={<Building2 className="h-3.5 w-3.5" />}
-                    />
-                  ) : (
-                    <ExcludedRow label={t("tierExcludedVenueRecs")} />
-                  )}
-                  {meta.includesPlannerMatch ? (
-                    <IncludedRow
-                      label={t("tierIncludedPlannerMatch")}
-                      icon={<Users className="h-3.5 w-3.5" />}
-                    />
-                  ) : (
-                    <ExcludedRow label={t("tierExcludedPlannerMatch")} />
-                  )}
-                </ul>
-
-                <div className="mt-7 pt-6 border-t border-rose-100/70 dark:border-rose-900/30">
-                  <Button
-                    size="lg"
-                    // Switch the lower-tier CTA to the `outline` variant
-                    // because the `default` variant ships an
-                    // `[a]:hover:bg-primary/80` rule (high specificity
-                    // via the attribute selector) that wins over a
-                    // utility `hover:bg-rose-50` and turns the button
-                    // primary-purple on hover when the render element
-                    // is a Link <a>. Outline has a vanilla
-                    // `hover:bg-muted` so our rose hover overrides
-                    // cleanly.
-                    variant={isVision ? "default" : "outline"}
-                    render={
-                      <Link
-                        href={`/venue-designer?sku=${tier.sku}`}
-                        prefetch={false}
-                      />
-                    }
-                    className={cn(
-                      "group h-11 w-full gap-2 text-sm",
-                      isVision
-                        ? "border-transparent bg-gradient-to-r from-rose-600 to-amber-500 text-white shadow-md shadow-rose-600/15 hover:opacity-90"
-                        : "border-rose-200/80 bg-white text-rose-700 hover:bg-rose-50/70 hover:text-rose-700 dark:border-rose-900/40 dark:bg-card dark:text-rose-200 dark:hover:bg-rose-950/20 dark:hover:text-rose-200",
-                    )}
-                  >
-                    {t(ctaKey ?? "tierCtaDesign", { price: tier.label })}
-                    <ArrowRight className="h-4 w-4 transition-transform rtl:-scale-x-100 group-hover:translate-x-0.5 rtl:group-hover:-translate-x-0.5" />
-                  </Button>
-                </div>
-              </motion.div>
-            );
-          })}
+          {ordered.map((tier, idx) => (
+            <TierCard key={tier.sku} tier={tier} idx={idx} reduce={reduce} />
+          ))}
         </div>
       </div>
     </section>
+  );
+}
+
+interface TierCardProps {
+  tier: { sku: PackSkuId } & TierPrice;
+  idx: number;
+  // `useReducedMotion()` returns `boolean | null` (null while the
+  // media query is resolving); accept that shape directly so callers
+  // can pass it through without a non-null assertion.
+  reduce: boolean | null;
+}
+
+/**
+ * One tier card. Owns its own `usePackCheckoutAction` instance so the
+ * pending state is scoped per card (clicking the Vision Pack CTA only
+ * spins that card, not the Design Pack one), mirroring the inline
+ * `PackCheckoutCard` used on `/r/[renderId]`.
+ *
+ * The CTA routes through the same buy pipeline as the paywall modal:
+ *   - Anonymous visitors → `/auth/signup?next=/checkout?sku=<sku>` and
+ *     `/checkout` auto-fires `startCheckout` once they're permanent.
+ *   - Authenticated visitors → Stripe Checkout URL directly.
+ * Previously this Button was a plain `<Link href="/venue-designer?sku=…">`
+ * which bounced anonymous visitors into `/venue-designer/new` (the
+ * gallery `useEffect` redirect drops the `sku` query along the way),
+ * so they never reached the paywall or signup.
+ */
+function TierCard({ tier, idx, reduce }: TierCardProps) {
+  const t = useTranslations("marketing");
+  const tv = useTranslations("visionPack");
+  const meta = PACK_SKUS[tier.sku];
+  const ctaKey = TIER_TO_LABEL_KEY[tier.sku] ?? "tierCtaDesign";
+  const isVision = tier.sku === "wedding_vision_pack_v1";
+  const { buy, isPending, isAnon } = usePackCheckoutAction();
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 24 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: "-64px" }}
+      transition={{
+        duration: reduce ? 0 : 0.6,
+        delay: reduce ? 0 : idx * 0.1,
+      }}
+      className={cn(
+        "relative flex flex-col overflow-hidden rounded-3xl border bg-white/90 p-7 dark:bg-card/80",
+        isVision
+          ? "border-rose-300 shadow-xl shadow-rose-600/10 ring-1 ring-rose-200/60 dark:border-rose-700"
+          : "border-rose-100/70 dark:border-rose-900/30",
+      )}
+    >
+      {isVision ? (
+        <span className="absolute end-6 top-6 rounded-full bg-gradient-to-r from-rose-600 to-amber-500 px-3 py-1 text-[10px] font-medium uppercase tracking-[0.18em] text-white">
+          {t("tierBadgeMostPopular")}
+        </span>
+      ) : null}
+
+      <div>
+        <p className="text-[0.65rem] uppercase tracking-[0.22em] text-muted-foreground">
+          {tv(
+            tier.sku === "wedding_design_pack_v1"
+              ? "tierDesignName"
+              : "tierVisionName",
+          )}
+        </p>
+        <p className="mt-1 text-sm text-muted-foreground">
+          {tv(
+            tier.sku === "wedding_design_pack_v1"
+              ? "tierDesignTagline"
+              : "tierVisionTagline",
+          )}
+        </p>
+        <div className="mt-5 flex items-baseline gap-1.5">
+          <span className="font-display text-4xl font-light tracking-tight">
+            {tier.label}
+          </span>
+          <span className="text-xs text-muted-foreground">
+            {tv("priceSubtitle")}
+          </span>
+        </div>
+      </div>
+
+      <ul className="mt-6 space-y-2.5 text-sm">
+        <IncludedRow
+          label={t("tierIncludedRenders", {
+            count: meta.quotas.renders,
+            styles: meta.quotas.styles,
+          })}
+          icon={<Sparkles className="h-3.5 w-3.5" />}
+        />
+        <IncludedRow
+          label={
+            meta.quotas.videos === 1
+              ? t("tierIncludedVideos", { count: meta.quotas.videos })
+              : t("tierIncludedVideosPlural", {
+                  count: meta.quotas.videos,
+                })
+          }
+          icon={<Sparkles className="h-3.5 w-3.5" />}
+        />
+        <IncludedRow
+          label={t("tierIncludedLookbook")}
+          icon={<FileDown className="h-3.5 w-3.5" />}
+        />
+        <IncludedRow
+          label={t("tierIncludedMicrosite")}
+          icon={<Globe className="h-3.5 w-3.5" />}
+        />
+        {meta.includesVenueRecs ? (
+          <IncludedRow
+            label={t("tierIncludedVenueRecs")}
+            icon={<Building2 className="h-3.5 w-3.5" />}
+          />
+        ) : (
+          <ExcludedRow label={t("tierExcludedVenueRecs")} />
+        )}
+        {meta.includesPlannerMatch ? (
+          <IncludedRow
+            label={t("tierIncludedPlannerMatch")}
+            icon={<Users className="h-3.5 w-3.5" />}
+          />
+        ) : (
+          <ExcludedRow label={t("tierExcludedPlannerMatch")} />
+        )}
+      </ul>
+
+      <div className="mt-7 pt-6 border-t border-rose-100/70 dark:border-rose-900/30">
+        <Button
+          type="button"
+          size="lg"
+          disabled={isPending}
+          onClick={() => buy(tier.sku)}
+          // Switch the lower-tier CTA to the `outline` variant so the
+          // rose hover utility overrides cleanly (the `default`
+          // variant's `[a]:hover:bg-primary/80` legacy rule no longer
+          // applies now that this isn't a Link, but we keep outline
+          // for visual hierarchy between the two tiers).
+          variant={isVision ? "default" : "outline"}
+          className={cn(
+            "group h-11 w-full gap-2 text-sm",
+            isVision
+              ? "border-transparent bg-gradient-to-r from-rose-600 to-amber-500 text-white shadow-md shadow-rose-600/15 hover:opacity-90"
+              : "border-rose-200/80 bg-white text-rose-700 hover:bg-rose-50/70 hover:text-rose-700 dark:border-rose-900/40 dark:bg-card dark:text-rose-200 dark:hover:bg-rose-950/20 dark:hover:text-rose-200",
+          )}
+        >
+          {isPending ? (
+            <>
+              <Loader2 className="h-4 w-4 animate-spin" />
+              {tv("checkoutLoading")}
+            </>
+          ) : (
+            <>
+              {isAnon
+                ? tv("paywallCtaSignupThenPay", { price: tier.label })
+                : t(ctaKey, { price: tier.label })}
+              <ArrowRight className="h-4 w-4 transition-transform rtl:-scale-x-100 group-hover:translate-x-0.5 rtl:group-hover:-translate-x-0.5" />
+            </>
+          )}
+        </Button>
+      </div>
+    </motion.div>
   );
 }
 

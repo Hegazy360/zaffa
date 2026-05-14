@@ -1,6 +1,6 @@
 "use client";
 
-import { use } from "react";
+import { use, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
@@ -15,7 +15,10 @@ import { Button } from "@/components/ui/button";
 import { trpc } from "@/lib/trpc";
 import { VisionPackPaywallProvider } from "@/components/vision-pack/VisionPackPaywallProvider";
 import { PackCheckoutCard } from "@/components/vision-pack/PackCheckoutCard";
-import { PURCHASABLE_PACK_SKUS } from "@/lib/vision-pack";
+import { useVisionPackPricing } from "@/components/vision-pack/use-pricing";
+import { DEFAULT_PACK_SKU, PURCHASABLE_PACK_SKUS } from "@/lib/vision-pack";
+import { minorToMajor } from "@/lib/vision-pack-pricing";
+import { ttTrack, TIKTOK_EVENTS } from "@/lib/tiktok";
 
 interface PageProps {
   params: Promise<{ renderId: string }>;
@@ -55,6 +58,41 @@ function RevealInner({ renderId }: { renderId: string }) {
 
   const { data: render, isLoading } =
     trpc.venueDesigns.getRenderById.useQuery({ id: renderId });
+
+  // TikTok purchase funnel — the reveal page is the canonical
+  // "product detail" surface for paid Vision Packs. It shows the
+  // user's render alongside the tier comparison cards (which trigger
+  // `AddToCart`/`InitiateCheckout` further down the funnel), so
+  // firing `ViewContent` here keeps the funnel intact for visitors
+  // who land via magic-link / shared URL and never see the home
+  // hero. Pricing matches the hero so TikTok sees a consistent
+  // content_id → value mapping across the funnel.
+  const pricing = useVisionPackPricing();
+  const ttFiredRef = useRef(false);
+  useEffect(() => {
+    if (ttFiredRef.current) return;
+    if (!render) return;
+    if (pricing.isLoading) return;
+    ttFiredRef.current = true;
+    const major = minorToMajor(pricing.amount, pricing.currency);
+    ttTrack(
+      TIKTOK_EVENTS.VIEW_CONTENT,
+      {
+        contents: [
+          {
+            content_id: DEFAULT_PACK_SKU,
+            content_type: "product",
+            content_name: "Wedding Design Pack",
+            quantity: 1,
+            price: major,
+          },
+        ],
+        value: major,
+        currency: pricing.currency.toUpperCase(),
+      },
+      renderId,
+    );
+  }, [render, pricing.isLoading, pricing.amount, pricing.currency, renderId]);
 
   if (isLoading) {
     return (

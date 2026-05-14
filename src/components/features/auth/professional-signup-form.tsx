@@ -12,6 +12,7 @@ import { Label } from "@/components/ui/label";
 import { trpc } from "@/lib/trpc";
 import { track } from "@/lib/analytics";
 import { ANALYTICS_EVENTS } from "@/lib/analytics-events";
+import { ttTrack, TIKTOK_EVENTS } from "@/lib/tiktok";
 import type { UserRole } from "@/types";
 import { RoleSelector } from "./role-selector";
 import { OAuthButtons } from "./oauth-buttons";
@@ -86,6 +87,13 @@ export function ProfessionalSignUpForm() {
     track(ANALYTICS_EVENTS.AUTH_SIGNED_UP, {
       role,
       via: "email_password",
+    });
+    // TikTok activation funnel — see commentary in
+    // `client-signup-form.tsx`. We fire the same standard event for
+    // pros (planner / vendor) so TikTok campaigns can optimize
+    // toward sign-ups regardless of role.
+    ttTrack(TIKTOK_EVENTS.COMPLETE_REGISTRATION, {
+      description: role,
     });
 
     if (authData.user) {

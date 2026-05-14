@@ -12,6 +12,7 @@ import { Label } from "@/components/ui/label";
 import { trpc } from "@/lib/trpc";
 import { track } from "@/lib/analytics";
 import { ANALYTICS_EVENTS } from "@/lib/analytics-events";
+import { ttTrack, TIKTOK_EVENTS } from "@/lib/tiktok";
 import { OAuthButtons } from "./oauth-buttons";
 import { PasswordField } from "./password-field";
 import { AuthCheckEmail } from "./auth-check-email";
@@ -144,6 +145,18 @@ export function ClientSignUpForm() {
     track(ANALYTICS_EVENTS.AUTH_SIGNED_UP, {
       role: "client",
       via: isAnon ? "anon_upgrade" : "email_password",
+    });
+    // TikTok activation funnel — `CompleteRegistration` is the
+    // standard event TikTok Ads Manager surfaces for Lead / Sign-up
+    // optimization objectives. Without firing a standard event here
+    // TikTok shows "Custom events and page view events cannot be
+    // used as optimization events" when the advertiser tries to
+    // build a campaign around signups. Fires regardless of whether
+    // the email-confirmation step is on or off — the user has
+    // submitted valid credentials, which matches TikTok's
+    // definition of the event.
+    ttTrack(TIKTOK_EVENTS.COMPLETE_REGISTRATION, {
+      description: isAnon ? "anon_upgrade" : "email_password",
     });
 
     // The anon-upgrade path keeps the same user row; only the role and
