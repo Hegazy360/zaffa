@@ -90,6 +90,21 @@ const nextConfig: NextConfig = {
         destination: "/auth/signup/professional",
         permanent: false,
       },
+      // Canonicalize the apex domain to www — done here, excluding
+      // `/api/*`, instead of as a platform-level Vercel domain redirect.
+      // Vercel Cron invokes cron paths directly and does not follow
+      // redirects (a redirected response doesn't even show up in the
+      // function invocation logs), so a domain-wide redirect on zaffa.ai
+      // was silently swallowing every cron invocation — the cleanup-anon-
+      // users cron hadn't run since the anon-render feature shipped.
+      // Requires disabling the automatic redirect on the zaffa.ai domain
+      // in Vercel's dashboard (Settings → Domains) so this one takes over.
+      {
+        source: "/:path((?!api/).*)",
+        has: [{ type: "host", value: "zaffa.ai" }],
+        destination: "https://www.zaffa.ai/:path",
+        permanent: false,
+      },
     ];
   },
 };
