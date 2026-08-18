@@ -44,12 +44,17 @@ function siteUrl(): string {
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl()),
+  // Site-wide fallback for pages that don't set their own title. Kept
+  // generic — it has to work above a vendor profile and a checkout page as
+  // well as the marketing pages — but aligned with the homepage positioning
+  // rather than contradicting it, which is what "Your Dream Event, Expertly
+  // Planned" was doing while the homepage sold something else entirely.
   title: {
-    default: "Zaffa — Your Dream Event, Expertly Planned",
+    default: "Zaffa — Your whole wedding, handled",
     template: "%s | Zaffa",
   },
   description:
-    "Connect with vetted wedding planners and vendors. AI-powered style matching, mood boards, and seamless event planning.",
+    "Zaffa handles the whole wedding — we find you the right planner, deal with the back-and-forth, and only send you venues and vendors we'd use ourselves.",
   keywords: [
     "wedding planner",
     "event planning",
@@ -62,17 +67,17 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     siteName: "Zaffa",
-    title: "Zaffa — Your Dream Event, Expertly Planned",
+    title: "Zaffa — Your whole wedding, handled",
     description:
-      "Connect with vetted wedding planners and vendors. AI-powered style matching, mood boards, and seamless event planning.",
+      "Zaffa handles the whole wedding — we find you the right planner, deal with the back-and-forth, and only send you venues and vendors we'd use ourselves.",
     url: siteUrl(),
     locale: "en_US",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Zaffa — Your Dream Event, Expertly Planned",
+    title: "Zaffa — Your whole wedding, handled",
     description:
-      "Connect with vetted wedding planners and vendors.",
+      "We find you the right planner, deal with the back-and-forth, and only send you vendors we'd use ourselves.",
   },
   robots: {
     index: true,

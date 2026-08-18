@@ -12,30 +12,23 @@ import {
   MarketplaceTeaserSkeleton,
 } from "@/components/home/marketplace-teaser-section";
 
-import {
-  formatPriceLabel,
-  seedPricingFor,
-} from "@/lib/vision-pack-pricing";
-import { DEFAULT_PACK_SKU } from "@/lib/vision-pack";
 import { TierComparisonSection } from "@/components/home/tier-comparison-section";
 
-// The OG card / search snippet uses the default seed price for the
-// **lower** tier ("from $19" framing) rather than per-country
-// dynamic pricing — keeping the home page statically cacheable matters
-// more than perfect price-tag fidelity in the social card. The on-page
-// hero + CTA localize per-visitor via the client `useVisionPackPricing`
-// hook.
-const META_PRICE_LABEL = formatPriceLabel(
-  seedPricingFor(null, DEFAULT_PACK_SKU),
-);
-
+// Metadata deliberately carries no price. It used to open with "from $19",
+// which was the first thing anyone saw in a search result or a shared link —
+// and it contradicted the page it was describing: the hero stopped leading
+// with the AI tool and the price tag on purpose, because asking for money
+// before the visitor knows what we do was losing them. The tier comparison
+// still shows real, per-country pricing further down the page.
 export const metadata: Metadata = {
-  title: `Zaffa — Your wedding, visualized from ${META_PRICE_LABEL}`,
-  description: `Zaffa's Design Pack starts at ${META_PRICE_LABEL} — photoreal renders, a printable lookbook PDF and a shareable microsite. Upgrade to the Vision Pack for venue and planner matching.`,
+  title: "Zaffa — Getting married? We've got all of it.",
+  description:
+    "The planner, the venue, the vendors — and the hundred things nobody warned you about. Zaffa handles the whole wedding. Start with a free look at your day.",
   alternates: { canonical: "/" },
   openGraph: {
-    title: `Zaffa — Your wedding, visualized from ${META_PRICE_LABEL}`,
-    description: `Two ways in: Design Pack from ${META_PRICE_LABEL} or the full Vision Pack with venue + planner matching. Mood board, renders, lookbook, microsite — yours forever.`,
+    title: "Zaffa — Getting married? We've got all of it.",
+    description:
+      "We find you the right planner, deal with the back-and-forth, and only send you vendors we'd use ourselves. See your day first — free, in about thirty seconds.",
     url: "/",
     type: "website",
   },

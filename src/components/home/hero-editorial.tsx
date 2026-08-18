@@ -3,7 +3,6 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useRef } from "react";
-import { motion, useReducedMotion } from "framer-motion";
 import { useTranslations } from "next-intl";
 import { ArrowRight, Sparkles, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -12,13 +11,19 @@ import { ttTrack, TIKTOK_EVENTS } from "@/lib/tiktok";
 import { DEFAULT_PACK_SKU } from "@/lib/vision-pack";
 import { minorToMajor } from "@/lib/vision-pack-pricing";
 
+// Entrance motion here is CSS (`.hero-rise` in globals.css), not
+// framer-motion. framer-motion server-renders `initial={{ opacity: 0 }}`
+// as an inline `opacity:0`, so the hero stayed invisible until the bundle
+// hydrated — the first paint of the marketing page was an empty box. Every
+// other section can keep using framer-motion; they animate on scroll, by
+// which point JS has long since loaded.
+
 // One AI-rendered example — a representative output of the kind of room our
 // platform helps couples design. Static (no parallax) so the hero reads as a
 // magazine spread, not an interactive toy.
 const HERO_IMAGE = "/home/examples/hero.jpeg";
 
 export function HeroEditorial() {
-  const reduce = useReducedMotion();
   const t = useTranslations("marketing");
   const pricing = useVisionPackPricing();
 
@@ -70,21 +75,16 @@ export function HeroEditorial() {
           identical to the original two-column layout. */}
       <div className="container relative mx-auto grid max-w-7xl gap-y-10 px-4 pt-20 pb-20 md:pt-28 md:pb-32 lg:grid-cols-12 lg:gap-x-16 lg:gap-y-10 lg:pb-32">
         <div className="lg:col-span-6 lg:row-start-1 lg:self-end">
-          <motion.div
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: reduce ? 0 : 0.6 }}
-            className="mb-5 inline-flex w-fit items-center gap-2 rounded-full border border-rose-200/60 bg-white/60 px-3 py-1.5 text-[0.65rem] uppercase tracking-[0.18em] text-rose-700 backdrop-blur-md sm:mb-6 sm:px-4 sm:text-xs dark:border-rose-900/40 dark:bg-rose-950/30 dark:text-rose-200"
+          <div
+            className="hero-rise mb-5 inline-flex w-fit items-center gap-2 rounded-full border border-rose-200/60 bg-white/60 px-3 py-1.5 text-[0.65rem] uppercase tracking-[0.18em] text-rose-700 backdrop-blur-md sm:mb-6 sm:px-4 sm:text-xs dark:border-rose-900/40 dark:bg-rose-950/30 dark:text-rose-200"
           >
             <Sparkles className="h-3.5 w-3.5" />
             {t("heroEyebrow")}
-          </motion.div>
+          </div>
 
-          <motion.h1
-            initial={{ opacity: 0, y: 24 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: reduce ? 0 : 0.9, delay: 0.05 }}
-            className="font-display text-balance text-[clamp(2.25rem,9vw,5.25rem)] font-light leading-[1.05] tracking-tight sm:text-[clamp(2.5rem,6.5vw,5.25rem)] sm:leading-[1]"
+          <h1
+            style={{ animationDelay: "0.05s" }}
+            className="hero-rise font-display text-balance text-[clamp(2.25rem,9vw,5.25rem)] font-light leading-[1.05] tracking-tight sm:text-[clamp(2.5rem,6.5vw,5.25rem)] sm:leading-[1]"
           >
             {t("heroTitlePart1")}{" "}
             <span className="italic">{t("heroTitleItalic")}</span>{" "}
@@ -94,23 +94,19 @@ export function HeroEditorial() {
             {/* No separator space before the tail — it holds the sentence's
                 terminal punctuation, so `{" "}` here renders "all of it ." */}
             {t("heroTitleTail")}
-          </motion.h1>
+          </h1>
 
-          <motion.p
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: reduce ? 0 : 0.7, delay: 0.15 }}
-            className="mt-5 max-w-xl text-pretty text-base text-muted-foreground sm:mt-6 md:text-lg lg:max-w-2xl"
+          <p
+            style={{ animationDelay: "0.15s" }}
+            className="hero-rise mt-5 max-w-xl text-pretty text-base text-muted-foreground sm:mt-6 md:text-lg lg:max-w-2xl"
           >
             {t("heroSubtitle")}
-          </motion.p>
+          </p>
         </div>
 
-        <motion.div
-          initial={{ opacity: 0, y: 24 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: reduce ? 0 : 0.9, delay: 0.2 }}
-          className="relative lg:col-span-6 lg:col-start-7 lg:row-span-2 lg:row-start-1 lg:flex lg:items-center"
+        <div
+          style={{ animationDelay: "0.2s" }}
+          className="hero-rise relative lg:col-span-6 lg:col-start-7 lg:row-span-2 lg:row-start-1 lg:flex lg:items-center"
         >
           {/* No aspect-ratio container: render the image at its natural shape
              (here 16:9 landscape) so it isn't cropped. */}
@@ -126,14 +122,12 @@ export function HeroEditorial() {
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent" />
           </div>
-        </motion.div>
+        </div>
 
         <div className="lg:col-span-6 lg:col-start-1 lg:row-start-2 lg:self-start">
-          <motion.div
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: reduce ? 0 : 0.7, delay: 0.25 }}
-            className="flex flex-col gap-3 sm:flex-row sm:items-center"
+          <div
+            style={{ animationDelay: "0.25s" }}
+            className="hero-rise flex flex-col gap-3 sm:flex-row sm:items-center"
           >
             {/* Primary CTA — the free path. Cold visitors land in the
                 designer at `/venue-designer/new`, where the middleware
@@ -162,22 +156,18 @@ export function HeroEditorial() {
             >
               {t("heroCtaSecondary")}
             </Button>
-          </motion.div>
+          </div>
 
-          <motion.p
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: reduce ? 0 : 0.7, delay: 0.3 }}
-            className="mt-3 text-xs text-muted-foreground"
+          <p
+            style={{ animationDelay: "0.3s" }}
+            className="hero-rise mt-3 text-xs text-muted-foreground"
           >
             {t("heroCtaHint")}
-          </motion.p>
+          </p>
 
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: reduce ? 0 : 0.8, delay: 0.4 }}
-            className="mt-12 flex flex-wrap items-center gap-x-5 gap-y-3 sm:gap-x-6"
+          <div
+            style={{ animationDelay: "0.4s" }}
+            className="hero-rise mt-12 flex flex-wrap items-center gap-x-5 gap-y-3 sm:gap-x-6"
           >
             <div className="flex -space-x-3">
               {[
@@ -217,7 +207,7 @@ export function HeroEditorial() {
                 {t("heroSocialProof")}
               </p>
             </div>
-          </motion.div>
+          </div>
         </div>
       </div>
     </section>

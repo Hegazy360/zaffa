@@ -213,6 +213,40 @@
   }
 }
 
+/* Hero entrance — deliberately CSS rather than framer-motion.
+   The hero used `initial={{ opacity: 0 }}`, which server-renders the
+   headline as `style="opacity:0"` and leaves it invisible until the JS
+   bundle loads, hydrates and runs the animation. The first paint of the
+   marketing page was an empty box where the promise should be — worst on
+   exactly the slow mobile connections we most need to convert. CSS
+   keyframes run off the stylesheet, so the copy is legible from first
+   paint and the motion is pure enhancement.
+
+   The global prefers-reduced-motion block above already collapses
+   animation-duration to 0.01ms, so `both` fill-mode settles these at their
+   final state immediately; the delay override below stops a staggered
+   element sitting invisible through its delay first. */
+@keyframes heroRise {
+  from {
+    opacity: 0;
+    transform: translateY(1.25rem);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.hero-rise {
+  animation: heroRise 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-rise {
+    animation-delay: 0s !important;
+  }
+}
+
 .grain-bg {
   background-image: radial-gradient(
       circle at 1px 1px,
