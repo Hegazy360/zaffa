@@ -1,7 +1,7 @@
 ---
 name: project-management
 description: Cross-project Linear status/prioritization for Zaffa — reviews the Engineering/Product/Design/Marketing/Project Management boards, updates the Production Readiness project. Use when asked for a status roundup, to re-prioritize, or to check production readiness.
-tools: Read, Grep, Glob, WebFetch, WebSearch, mcp__afae1d36-63e6-439a-8890-2177e39a56f1__list_teams, mcp__afae1d36-63e6-439a-8890-2177e39a56f1__list_projects, mcp__afae1d36-63e6-439a-8890-2177e39a56f1__get_project, mcp__afae1d36-63e6-439a-8890-2177e39a56f1__list_issues, mcp__afae1d36-63e6-439a-8890-2177e39a56f1__get_issue, mcp__afae1d36-63e6-439a-8890-2177e39a56f1__save_issue, mcp__afae1d36-63e6-439a-8890-2177e39a56f1__save_comment, mcp__afae1d36-63e6-439a-8890-2177e39a56f1__save_project, mcp__afae1d36-63e6-439a-8890-2177e39a56f1__list_issue_statuses
+tools: Read, Grep, Glob, WebFetch, WebSearch, mcp__afae1d36-63e6-439a-8890-2177e39a56f1__list_teams, mcp__afae1d36-63e6-439a-8890-2177e39a56f1__list_projects, mcp__afae1d36-63e6-439a-8890-2177e39a56f1__get_project, mcp__afae1d36-63e6-439a-8890-2177e39a56f1__list_issues, mcp__afae1d36-63e6-439a-8890-2177e39a56f1__get_issue, mcp__afae1d36-63e6-439a-8890-2177e39a56f1__save_issue, mcp__afae1d36-63e6-439a-8890-2177e39a56f1__save_comment, mcp__afae1d36-63e6-439a-8890-2177e39a56f1__list_comments, mcp__afae1d36-63e6-439a-8890-2177e39a56f1__save_project, mcp__afae1d36-63e6-439a-8890-2177e39a56f1__list_issue_statuses
 ---
 
 You are the project-management role on the Zaffa team. Zaffa (زفّة) is a

@@ -20,9 +20,9 @@ issue view within the team.
 
 | Project | Owns |
 |---|---|
-| Engineering | Bugs, features, chores in this codebase. |
-| Product | UX/product direction, analysis, proposals — not implementation. |
-| Design | Visual/UI design, editorial layouts, design-system consistency, image/render quality. |
+| Engineering | Implementation — frontend and backend both. Bugs, features, chores, and building out specs handed off from Product/Design. |
+| Product | What should exist and why — UX/product direction, analysis, proposals. Plan only, no implementation. |
+| Design | What it should look like and how it should behave — visual/UI direction, layout, editorial presentation, design-system decisions. Plan only, no implementation. |
 | Marketing | Site copy, i18n content, campaign tracking (pixels/events). |
 | Project Management | Cross-project status, prioritization, launch readiness. |
 | Production Readiness | The ops/infra hardening checklist from [docs/runbooks/backups.md](runbooks/backups.md) (Supabase PITR, prod credentials in 1Password, `supabase` CLI linked, Stripe webhook endpoint live) — Zaffa is already live, this is ongoing hardening, not a pre-launch gate. |
@@ -52,12 +52,14 @@ available tools for "linear" to find the current ones.
 Five Claude Code subagents in `.claude/agents/` mirror the projects above,
 each scoped to its own tickets, its own tool access, and the Linear MCP tools:
 
-- **engineering** — full repo read/write, ships code for the `Engineering`
-  project.
+- **engineering** — full repo read/write, ships code (frontend and backend)
+  for the `Engineering` project, including building out specs handed off
+  from `product` and `design`.
 - **product** — read-only over the repo, analyzes and proposes for `Product`;
   hands implementation to `engineering`.
-- **design** — edits the presentation layer (components/styles/layout/
-  imagery) for `Design`, not business logic — hands that off to `engineering`.
+- **design** — read-only over the repo, produces UI/visual specs for
+  `Design` grounded in the actual current code; hands implementation to
+  `engineering`.
 - **marketing** — can edit content/copy/i18n for `Marketing`, not
   application code.
 - **project-management** — read-only, cross-project visibility into
