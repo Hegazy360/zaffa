@@ -30,6 +30,60 @@ issue view within the team.
 The `Zaffa` team uses the default workflow states: Backlog → Todo →
 In Progress → In Review → Done → Canceled.
 
+**There is no reviewer role.** Nothing drains "In Review" — roles close their
+own work to Done. Treat In Review as a parking space you should not be
+using, not as a handoff.
+
+## Shipping is autonomous — and what that costs
+
+`master` auto-deploys to production on Vercel. No staging, no PR, no human
+between a push and real visitors on a live site.
+
+**engineering** and **marketing** may commit and push to `master` without
+asking. That's deliberate — the point of this setup is that work gets
+finished, not queued. The safety is a machine gate, not a human one:
+
+```
+npm run typecheck && npm run lint && npm run i18n:check
+```
+
+`.husky/pre-push` enforces it on every push. `--no-verify` exists but using
+it to get past a failure you caused is never the right call, and no role
+should weaken a check to make its own change pass.
+
+Roles must stop and ask before pushing changes to money (Stripe, pricing,
+checkout), auth, data deletion, or migrations — and before pushing anything
+they could not verify running.
+
+### Why the gate exists
+
+The first end-to-end run of this workflow (ZAF-18 → ZAF-19 → ZAF-20, the
+homepage concierge rebrand) shipped `[TODO i18n: translate "..."]` marker
+text to production across the hero, how-it-works step 4, the whole new
+pillars section and the final CTA — in Arabic, French and German. Arabic is
+the primary market locale for an Egyptian wedding marketplace.
+
+The failure is worth understanding, because it wasn't carelessness:
+
+1. Engineering **correctly identified** the problem and wrote it in the
+   handoff: "these need a real translation pass before this ships to
+   non-English visitors."
+2. It shipped anyway. **A flag in a ticket comment is not a gate** — nobody
+   was reading the comment before production traffic did.
+3. The chosen mitigation made it worse. Writing English placeholders *into*
+   `ar/fr/de.json` meant `scripts/translate-messages.mjs` — which only fills
+   keys that are missing or empty — saw them as already translated. The
+   named remedy (`npm run i18n:translate ar`) was a no-op on exactly those
+   keys. Leaving them absent would have been strictly better.
+4. Verification stopped at English. The agent did load a real browser and
+   caught a stale "three steps" string that way — good instinct, one locale
+   short.
+
+So: `npm run i18n:check` (`scripts/check-i18n.mjs`) now fails the push on
+missing keys, placeholder markers, dropped ICU arguments, and known brand
+misspellings. Handoffs also travel *backward* now — engineering hands i18n
+nuance to marketing rather than flagging into the void.
+
 ## Labels
 
 `Bug`, `Feature`, `Improvement` (Linear defaults) plus `Chore`, `i18n`, and
@@ -61,7 +115,9 @@ each scoped to its own tickets, its own tool access, and the Linear MCP tools:
   `Design` grounded in the actual current code; hands implementation to
   `engineering`.
 - **marketing** — can edit content/copy/i18n for `Marketing`, not
-  application code.
+  application code. Owns the `messages/*.json` catalogs end-to-end,
+  including running `i18n:translate` / `i18n:check`; has `Bash` so it can
+  actually do that and push.
 - **project-management** — read-only, cross-project visibility into
   `Engineering` / `Product` / `Design` / `Marketing` / `Project Management`,
   tracks `Production Readiness`.
@@ -71,6 +127,30 @@ strategic direction and cross-functional prioritization is what
 `project-management` already covers, and there isn't enough recurring
 finance-shaped ticket volume yet to justify its own board. Revisit if that
 changes.
+
+### Handoffs
+
+The main path is forward — **product** (what and why) → **design** (what it
+looks like) → **engineering** (build and ship) — carried in ticket comments,
+which is why specs need to be complete enough to build from without a
+clarifying round-trip.
+
+Handoffs also go sideways and backward, and this matters more than it
+sounds: the first run of this workflow failed precisely because a role hit
+something outside its lane, had nowhere to send it, and shipped past it with
+a note.
+
+| From | To | When |
+|---|---|---|
+| engineering | marketing | Copy or i18n needs judgment — translation nuance, tone, brand voice |
+| engineering | product | The ticket's premise turns out to be wrong once you're in the code |
+| engineering | design | A spec doesn't survive contact with the real layout |
+| any | project-management | Blocked, or the work is bigger than the ticket says |
+
+A handoff means: file or update the ticket on the **owning project**, say
+explicitly in your report that you handed off and to whom, and don't ship
+the part that depends on it. "Flagged in a comment and shipped anyway" is
+not a handoff.
 
 Invoke one the same way as any subagent, e.g. "use the engineering subagent
 to pick up the next Engineering ticket." They're user-triggered, one at a

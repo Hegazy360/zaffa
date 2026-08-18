@@ -1,0 +1,9 @@
+# Pushing master deploys straight to production on Vercel — there is no
+# staging step and no human review in between. These are the checks that
+# used to be "the agent promises it flagged anything risky".
+#
+# Skip with `git push --no-verify` when you genuinely need to.
+
+npm run typecheck
+npm run lint
+npm run i18n:check

@@ -29,17 +29,62 @@ that before starting, it's not just a title.
 3. Move it to "In Progress": `save_issue` with `id: "ZAF-12"`, `state: "In Progress"`.
 4. Do the actual engineering work in this repo — read the relevant code
    first, follow existing patterns, keep changes scoped to the ticket.
-   Run `npm run typecheck` / `npm run lint` / relevant `npm run test`
-   before considering it done.
-5. Update the ticket when finished: `save_comment` with the issue id and a
-   body describing what changed (files/commit), then `save_issue` to move
-   it to "In Review" (or "Done" if there's no separate review step here).
+5. **Verify it in the running app, not just in the type system.** Start the
+   dev server (`.claude/launch.json` has a `dev` config) and actually load
+   the surface you changed. Typecheck and lint both passed on a homepage
+   rebrand that shipped raw `[TODO i18n]` marker text to every Arabic
+   visitor — a clean typecheck proves nothing about what a user sees.
+   - If you touched **user-facing copy**, load the page in `en` *and* in
+     `ar` (set the `zaffa_locale` cookie). Arabic is the primary market
+     locale, not an afterthought, and it's RTL — layout breaks there that
+     don't break in English.
+6. Commit, then run the gate and push (see below).
+7. Update the ticket: `save_comment` with what changed (files + commit sha
+   and what you verified, not just what you wrote), then `save_issue` to
+   move it to "Done". There is no separate reviewer role — leaving tickets
+   in "In Review" just parks them where nothing drains.
+
+## Shipping
+
+**`master` deploys straight to production on Vercel.** There's no staging
+environment and no human review between your push and real visitors on a
+live site. You are cleared to commit and push to `master` without asking —
+autonomy is the point — but that clearance is what makes the rest of this
+section non-negotiable.
+
+Before you push:
+
+```
+npm run typecheck && npm run lint && npm run i18n:check
+```
+
+`.husky/pre-push` runs these automatically. **Never use `--no-verify` to get
+around a failure** — if the gate fires, fix the cause or stop and report.
+Never disable or weaken a check to make your own change pass.
+
+Stop and ask instead of pushing when the change touches money (Stripe,
+pricing, checkout), auth, data deletion or migrations, or when you're about
+to push something you could not verify running.
+
+If you push something that turns out to be broken, say so immediately and
+either fix forward or ask about rolling back — a bad deploy is live traffic,
+not a failing test.
 
 ## Boundaries
 
 - You have full read/write access to the codebase — this is the only role
   that ships code changes directly.
-- Do not push to remote, merge, or deploy without being asked — land the
-  change locally/in a branch and report back.
 - Don't invent scope beyond the ticket. If you find something else worth
   fixing while you're in there, flag it rather than folding it in.
+- **A flag is not a fix.** If you find a blocker you can't resolve in-lane,
+  do not ship past it with a note in the ticket and assume someone catches
+  it — nobody is reading the comment before it reaches production. Either
+  resolve it, hand it off (file a ticket on the owning project and say so
+  in your report), or don't ship that part.
+- **Translations**: never invent translated copy, and never park English
+  text in `messages/ar|fr|de.json` as a placeholder — a non-empty value
+  reads as "already translated" to `scripts/translate-messages.mjs`, so
+  placeholders silently make the string *unfixable* by the normal tooling.
+  Run `npm run i18n:translate <locale>` for each non-English locale, then
+  `npm run i18n:check`. For nuance beyond mechanical translation, hand off
+  to **marketing** (it owns i18n content and can edit `messages/`).

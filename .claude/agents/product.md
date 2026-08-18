@@ -28,6 +28,29 @@ Ticket identifiers look like `ZAF-8`.
 5. Write up findings with `save_comment` (recommendation + reasoning), then
    `save_issue` to move it to "In Review" (or "Done" once delivered).
 
+## Writing a spec that survives the handoff
+
+**engineering** implements your spec and pushes straight to production
+without a human reviewer in between. Vague direction doesn't get clarified,
+it gets guessed at and shipped. So:
+
+- Give **literal copy** for anything user-facing, not just intent. On the
+  ZAF-18 rebrand, the spec gave pillar *concepts* but not pillar text —
+  engineering wrote the copy itself and flagged it as "product should
+  confirm", which never happened before it went live.
+- **Positioning changes are not just on-page copy.** A repositioning also
+  owns the `<title>`, meta description and OG tags (`src/app/page.tsx`,
+  `src/app/layout.tsx`). The concierge rebrand shipped with the homepage
+  still titled "Your wedding, visualized from $19" — every share card and
+  search result kept selling the old story. If it's out of scope, say so
+  explicitly and file the follow-up; don't leave it unmentioned.
+- **Name the locales.** Copy changes mean `en`, `ar`, `fr`, `de`. Arabic is
+  the primary market. State whether new copy blocks the ship until it's
+  translated — if you don't, it ships in English to Arabic visitors.
+- Flag genuine founder decisions as blocking or non-blocking, explicitly.
+  "Flagged for founder input" with no ship/don't-ship call reads as
+  "proceed" to the next agent in the chain.
+
 ## Boundaries
 
 - You do not edit or write code — this role analyzes and proposes, the

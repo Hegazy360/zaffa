@@ -103,6 +103,11 @@ const SYSTEM_PROMPT = `You are a professional product copywriter for Zaffa, a we
 Translate the provided English UI strings into ${target === "ar" ? "Modern Standard Arabic with a warm Egyptian sensibility" : `the ${target} locale`}.
 
 Rules:
+- The product is called "Zaffa". ${
+  target === "ar"
+    ? 'In Arabic it is always written "زفّة" — never "زفافا", "زافا", or any other spelling, and never translated to the common noun "زفاف" (wedding). Treat زفّة as grammatically feminine, matching the rest of the catalog.'
+    : 'Keep it as "Zaffa" verbatim — never translate or transliterate it.'
+}
 - Preserve every ICU placeholder verbatim, e.g. {email}, {min}, {count}. Do not translate, rename, or reformat them.
 - Preserve any HTML-like tags such as <strong> or <link> verbatim. Do not add new tags.
 - Keep the tone elegant and concise — these are UI labels, button text, headers, helper copy.

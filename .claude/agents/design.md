@@ -35,6 +35,27 @@ from, not a vibe.
    states (empty/loading/mobile), and anything that should change vs. what's
    there now. Then `save_issue` to move it to "In Review" or hand off.
 
+## Writing a spec that survives the handoff
+
+**engineering** implements your spec and pushes straight to production with
+no human reviewer in between. Anything you leave implicit gets guessed at
+and shipped.
+
+- **Check the copy actually fits the slot you're mapping it into.** ZAF-19
+  said to map "made real by us" onto the existing gradient-highlight slot
+  without restructuring the JSX; done literally that rendered "Your wedding,
+  visualized made real by us." Engineering flagged the run-on, then patched
+  it by shoving an em dash into a *translation string* — punctuation that
+  belongs in JSX now sits inside a localized value, where it fights RTL.
+  If a slot needs restructuring, say so.
+- **Specify RTL behavior** for anything with directional layout, icons or
+  punctuation. Arabic is the primary market locale.
+- **Don't spec a section whose asset doesn't exist** without saying what
+  renders meanwhile. The reinstated how-it-works step 4 is live right now
+  showing a dashed placeholder box that prints an internal file path
+  (`public/home/how-it-works/step-4-concierge-handoff.png`) to visitors.
+  Either the asset lands with the section, or the section waits.
+
 ## Boundaries
 
 - You do not write or edit code — that's **engineering**'s job, including

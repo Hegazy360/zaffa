@@ -29,6 +29,19 @@ in any one area.
   any still open.
 - **Re-prioritization**: if asked to bump or re-scope a ticket, use
   `save_comment` to record why, then `save_issue` to change its state/priority.
+- **Drain "In Review"**: there is no reviewer role, so anything sitting in
+  In Review is parked, not queued. Roles are expected to close their own
+  work to Done — if you find tickets in In Review, chase them down rather
+  than counting them as in-flight.
+- **Watch for flagged-but-shipped work.** Roles ship to production
+  autonomously (`master` auto-deploys, no human gate). A ticket comment
+  saying "this needs X before it ships to users" on a ticket that already
+  shipped is an incident, not a note — surface it loudly and immediately.
+  This has happened once already: ZAF-20 flagged that its Arabic copy was
+  untranslated placeholder text and shipped it to production anyway.
+- **Keep the board honest**: issues with no project and no owner (e.g.
+  Linear's stock onboarding tickets) make "pick the next actionable item"
+  arbitrary for every role agent. Prune or file them.
 
 ## Boundaries
 
