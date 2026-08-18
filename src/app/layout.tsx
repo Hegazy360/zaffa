@@ -8,7 +8,7 @@ import "./globals.css";
 import { Providers } from "./providers";
 import { Toaster } from "@/components/ui/sonner";
 import { TikTokPixel } from "@/components/analytics/tiktok-pixel";
-import { isRtlLocale } from "@/i18n/config";
+import { isRtlLocale, openGraphLocaleFields } from "@/i18n/config";
 
 const cairo = Cairo({
   variable: "--font-cairo",
@@ -42,49 +42,59 @@ function siteUrl(): string {
   );
 }
 
-export const metadata: Metadata = {
-  metadataBase: new URL(siteUrl()),
-  // Site-wide fallback for pages that don't set their own title. Kept
-  // generic — it has to work above a vendor profile and a checkout page as
-  // well as the marketing pages — but aligned with the homepage positioning
-  // rather than contradicting it, which is what "Your Dream Event, Expertly
-  // Planned" was doing while the homepage sold something else entirely.
-  title: {
-    default: "Zaffa — Your whole wedding, handled",
-    template: "%s | Zaffa",
-  },
-  description:
-    "Zaffa handles the whole wedding — we find you the right planner, deal with the back-and-forth, and only send you venues and vendors we'd use ourselves.",
-  keywords: [
-    "wedding planner",
-    "event planning",
-    "زفة",
-    "wedding",
-    "engagement",
-  ],
-  applicationName: "Zaffa",
-  authors: [{ name: "Zaffa" }],
-  openGraph: {
-    type: "website",
-    siteName: "Zaffa",
-    title: "Zaffa — Your whole wedding, handled",
+export async function generateMetadata(): Promise<Metadata> {
+  // Previously `openGraph.locale` was hardcoded "en_US", so every Arabic
+  // share card announced itself as US English to Facebook, WhatsApp and
+  // LinkedIn. That matters more than it sounds for a platform whose primary
+  // audience is Arabic-speaking and whose main sharing channel is WhatsApp:
+  // the wrong locale tag costs correct language attribution and RTL rendering
+  // in link previews.
+  const locale = await getLocale();
+
+  return {
+    metadataBase: new URL(siteUrl()),
+    // Site-wide fallback for pages that don't set their own title. Kept
+    // generic — it has to work above a vendor profile and a checkout page as
+    // well as the marketing pages — but aligned with the homepage positioning
+    // rather than contradicting it, which is what "Your Dream Event, Expertly
+    // Planned" was doing while the homepage sold something else entirely.
+    title: {
+      default: "Zaffa — Your whole wedding, handled",
+      template: "%s | Zaffa",
+    },
     description:
       "Zaffa handles the whole wedding — we find you the right planner, deal with the back-and-forth, and only send you venues and vendors we'd use ourselves.",
-    url: siteUrl(),
-    locale: "en_US",
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "Zaffa — Your whole wedding, handled",
-    description:
-      "We find you the right planner, deal with the back-and-forth, and only send you vendors we'd use ourselves.",
-  },
-  robots: {
-    index: true,
-    follow: true,
-    googleBot: { index: true, follow: true, "max-image-preview": "large" },
-  },
-};
+    keywords: [
+      "wedding planner",
+      "event planning",
+      "زفة",
+      "wedding",
+      "engagement",
+    ],
+    applicationName: "Zaffa",
+    authors: [{ name: "Zaffa" }],
+    openGraph: {
+      type: "website",
+      siteName: "Zaffa",
+      title: "Zaffa — Your whole wedding, handled",
+      description:
+        "Zaffa handles the whole wedding — we find you the right planner, deal with the back-and-forth, and only send you venues and vendors we'd use ourselves.",
+      url: siteUrl(),
+      ...openGraphLocaleFields(locale),
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: "Zaffa — Your whole wedding, handled",
+      description:
+        "We find you the right planner, deal with the back-and-forth, and only send you vendors we'd use ourselves.",
+    },
+    robots: {
+      index: true,
+      follow: true,
+      googleBot: { index: true, follow: true, "max-image-preview": "large" },
+    },
+  };
+}
 
 export default async function RootLayout({
   children,

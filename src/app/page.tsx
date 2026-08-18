@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { getLocale } from "next-intl/server";
+import { openGraphLocaleFields } from "@/i18n/config";
 import { Suspense } from "react";
 import { Navbar } from "@/components/layout/navbar";
 import { Footer } from "@/components/layout/footer";
@@ -20,19 +22,26 @@ import { TierComparisonSection } from "@/components/home/tier-comparison-section
 // with the AI tool and the price tag on purpose, because asking for money
 // before the visitor knows what we do was losing them. The tier comparison
 // still shows real, per-country pricing further down the page.
-export const metadata: Metadata = {
-  title: "Zaffa — Getting married? We've got all of it.",
-  description:
-    "The planner, the venue, the vendors — and the hundred things nobody warned you about. Zaffa handles the whole wedding. Start with a free look at your day.",
-  alternates: { canonical: "/" },
-  openGraph: {
+export async function generateMetadata(): Promise<Metadata> {
+  // Next.js replaces `openGraph` wholesale rather than merging with the root
+  // layout, so the locale fields have to be spread in here too — without this
+  // the home page emits no og:locale at all.
+  const locale = await getLocale();
+  return {
     title: "Zaffa — Getting married? We've got all of it.",
     description:
-      "We find you the right planner, deal with the back-and-forth, and only send you vendors we'd use ourselves. See your day first — free, in about thirty seconds.",
-    url: "/",
-    type: "website",
-  },
-};
+      "The planner, the venue, the vendors — and the hundred things nobody warned you about. Zaffa handles the whole wedding. Start with a free look at your day.",
+    alternates: { canonical: "/" },
+    openGraph: {
+      title: "Zaffa — Getting married? We've got all of it.",
+      description:
+        "We find you the right planner, deal with the back-and-forth, and only send you vendors we'd use ourselves. See your day first — free, in about thirty seconds.",
+      url: "/",
+      type: "website",
+      ...openGraphLocaleFields(locale),
+    },
+  };
+}
 
 // ISR: refresh the teaser data at most every 5 minutes. Plenty fresh for
 // the "platform is buzzing" social proof, and one DB hit per 5 minutes is
