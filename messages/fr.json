@@ -569,7 +569,24 @@
     "conciergePillar2Title": "Nous gérons les échanges et négociations.",
     "conciergePillar2Body": "Courir après les prestataires, régler les malentendus, ces conversations gênantes sur l'argent. C'est notre travail, pas le vôtre.",
     "conciergePillar3Title": "Nous ne vous recommandons que des prestataires que nous utiliserions nous-mêmes.",
-    "conciergePillar3Body": "Chaque lieu et prestataire est vérifié avant de vous être présenté. Plus de devinettes sur leur qualité réelle."
+    "conciergePillar3Body": "Chaque lieu et prestataire est vérifié avant de vous être présenté. Plus de devinettes sur leur qualité réelle.",
+    "wholeWedding": {
+      "aria": "Le Mariage Complet — notre formule tout compris",
+      "eyebrow": "Le Mariage Complet",
+      "title": "Ou laissez-nous tout organiser.",
+      "tagline": "Une seule équipe gère votre mariage de A à Z — chaque prestataire trouvé, réservé et coordonné — pour un prix fixé avant le début.",
+      "bullet1": "Nous sélectionnons chacun — organisateur, lieu, photographe, décoration, fleurs — et ne vous présentons que ceux que nous choisirions pour notre propre famille.",
+      "bullet2": "Vous choisissez parmi deux ou trois options réelles par poste, avec des prix transparents. Pas besoin de chercher partout.",
+      "bullet3": "Un seul contrat et un interlocuteur unique. Nous gérons le planning, relançons les prestataires, et vous informons des échéances.",
+      "bullet4": "Nous connaissons déjà les tarifs justes, et réservons à nos prix — pas ceux qui montent dès qu’on prononce le mot « mariage ».",
+      "bullet5": "Une personne à contacter, du premier échange jusqu’au jour J.",
+      "priceParagraph": "Vous ne trouverez aucun prix ici, et c’est voulu : quatre-vingts invités au Caire et trois cents à Dubaï ne représentent pas le même mariage, et faire semblant conduit à payer trop cher. Dites-nous la date souhaitée et votre budget, nous vous proposons un prix fixe global. Rien ne commence sans votre accord.",
+      "reassurance": "Vous prenez les décisions. Nous prenons les dispositions.",
+      "reassuranceLong": "Vous choisissez toujours tout — le lieu, la robe, les fleurs. Vous ne serez simplement pas celle qui court après, vérifie ou s’inquiète d’avoir payé trop cher.",
+      "cta": "Parlez-nous de votre mariage",
+      "ctaHint": "Un échange, puis un prix fixe. Sans carte, sans engagement.",
+      "covers": "organisateur | lieu | photographe | décoration | fleurs | traiteur | musique | invitations | coiffure & maquillage | transport | planning | relances"
+    }
   },
   "dashboard": {
     "vendorWelcome": "Bon retour,{name}",

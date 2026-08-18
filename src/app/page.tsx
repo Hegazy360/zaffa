@@ -7,6 +7,7 @@ import { Footer } from "@/components/layout/footer";
 import { HeroEditorial } from "@/components/home/hero-editorial";
 import { HowItWorks } from "@/components/home/how-it-works";
 import { ConciergePillarsSection } from "@/components/home/concierge-pillars-section";
+import { WholeWeddingSection } from "@/components/home/whole-wedding-section";
 import { ShareSection } from "@/components/home/share-section";
 import { BeginSection } from "@/components/home/begin-section";
 import {
@@ -65,6 +66,15 @@ export default function HomePage() {
             statement. Sits right after the AI-flow walkthrough so the
             handoff (step 4) and the payoff land back-to-back. */}
         <ConciergePillarsSection />
+
+        {/* The Whole Wedding — the full-service plan. Sits immediately after
+            the pillars because the pillars ask "so what do we actually do?"
+            and answer "the whole thing"; this is the next sentence, naming
+            the plan that does it. Deliberately *above* the two artefact
+            packs: leading with the packs after that promise would contradict
+            the hero. Its own section rather than a third tier card — see the
+            header comment in the component for why. */}
+        <WholeWeddingSection />
 
         {/* The artefacts — what you walk away with: a private microsite
             and a printable lookbook PDF, designed for the audiences that

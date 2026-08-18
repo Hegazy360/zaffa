@@ -569,7 +569,24 @@
     "conciergePillar2Title": "Wir übernehmen den ganzen Schriftverkehr.",
     "conciergePillar2Body": "Anbieter hinterherlaufen, Missverständnisse klären, unangenehme Gespräche über Geld. Das übernehmen wir, nicht Sie.",
     "conciergePillar3Title": "Wir empfehlen nur Dienstleister, die wir selbst wählen würden.",
-    "conciergePillar3Body": "Jeder Veranstaltungsort und Anbieter wird geprüft, bevor er Ihnen vorgestellt wird. Kein Rätselraten, wer wirklich überzeugt."
+    "conciergePillar3Body": "Jeder Veranstaltungsort und Anbieter wird geprüft, bevor er Ihnen vorgestellt wird. Kein Rätselraten, wer wirklich überzeugt.",
+    "wholeWedding": {
+      "aria": "Die komplette Hochzeit – unser Rundum-sorglos-Paket",
+      "eyebrow": "Die komplette Hochzeit",
+      "title": "Oder überlassen Sie uns die komplette Organisation.",
+      "tagline": "Ein Team übernimmt Ihre gesamte Hochzeit – alle Dienstleister werden gefunden, gebucht und koordiniert – zu einem vorab vereinbarten Festpreis.",
+      "bullet1": "Wir finden alle – Planer, Location, Fotograf, Dekoration, Blumen – und stellen Ihnen nur Dienstleister vor, die wir auch für unsere eigene Familie buchen würden.",
+      "bullet2": "Sie wählen aus zwei oder drei echten Optionen pro Kategorie mit transparenten Preisen. Kein endloses Suchen im Markt.",
+      "bullet3": "Ein Vertrag, ein Ansprechpartner. Wir koordinieren den Zeitplan, verfolgen die Dienstleister und informieren Sie über alle Termine und Fristen.",
+      "bullet4": "Wir kennen die marktüblichen Preise und buchen zu unseren Konditionen – nicht zu den Preisen, die sofort steigen, wenn jemand „Hochzeit“ hört.",
+      "bullet5": "Eine Person, die Sie vom ersten Gespräch bis zum Hochzeitstag begleitet.",
+      "priceParagraph": "Hier finden Sie keinen einzigen Preis – und das ist gut so: Achtzig Gäste in Kairo und dreihundert in Dubai sind nicht dieselbe Hochzeit. Wer das ignoriert, zahlt am Ende zu viel. Deshalb gehen wir anders vor: Nennen Sie uns Ihr Datum und Ihr Budget, und wir nennen Ihnen einen Festpreis. Erst wenn Sie zustimmen, starten wir.",
+      "reassurance": "Sie treffen die Entscheidungen. Wir setzen sie um.",
+      "reassuranceLong": "Sie wählen weiterhin alles selbst – Location, Kleid, Blumen. Nur das Nachhaken, Kontrollieren und Grübeln, ob Sie zu viel bezahlt haben, fällt weg.",
+      "cta": "Erzählen Sie uns von Ihrer Hochzeit",
+      "ctaHint": "Ein Gespräch, dann ein Festpreis. Keine Karte, keine Verpflichtung.",
+      "covers": "Planer | Location | Fotograf | Dekoration | Blumen | Catering | Musik | Einladungen | Haare & Make-up | Transport | Zeitplan | Nachverfolgung"
+    }
   },
   "dashboard": {
     "vendorWelcome": "Willkommen zurück,{name}",

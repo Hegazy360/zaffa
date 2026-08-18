@@ -460,7 +460,7 @@
     "heroCtaHint": "No card needed. Start with a free look at your day.",
     "heroSocialProof": "Loved by 10,000+ couples planning the day they actually want",
     "startingPrice": "Starting at {price}",
-    "tiersEyebrow": "Two ways in",
+    "tiersEyebrow": "Or start it yourself",
     "tiersTitle": "Pick the pack that fits your day",
     "tiersSubtitle": "Both packs ship a real moodboard, photoreal renders, a printable lookbook PDF, and a private microsite. The Vision Pack adds Zaffa-curated venue suggestions and the option to match with verified planners.",
     "tierBadgeMostPopular": "Most popular",
@@ -569,6 +569,23 @@
       "loggedInTitle": "Welcome back to Zaffa",
       "loggedInBody": "Continue planning your perfect celebration from your dashboard.",
       "loggedInCta": "Go to dashboard"
+    },
+    "wholeWedding": {
+      "aria": "The Whole Wedding — our full-service plan",
+      "eyebrow": "The Whole Wedding",
+      "title": "Or let us run the whole thing.",
+      "tagline": "One team runs your whole wedding — every vendor found, booked and managed — for one price agreed before anything starts.",
+      "bullet1": "We find everyone — planner, venue, photographer, decor, flowers — and only put people in front of you we'd book for our own family.",
+      "bullet2": "You choose from two or three real options per thing, with real prices. Not a whole market to search.",
+      "bullet3": "One agreement and one point of contact. We hold the schedule, chase the vendors, and tell you what's due and when.",
+      "bullet4": "We already know what things should cost, and we book at our prices — not the price that appears the moment someone hears the word “wedding”.",
+      "bullet5": "One person you can call, from the first conversation to the wedding day itself.",
+      "priceParagraph": "You won't find a single price on this page, and you shouldn't: eighty guests in Cairo and three hundred in Dubai are not the same wedding, and pretending they are is exactly how people end up overpaying. So we work the other way round. Tell us the day you want and the number you're comfortable with, and we come back with one fixed price for all of it. Nothing starts until you've seen that number and said yes.",
+      "reassurance": "You make the decisions. We make the calls.",
+      "reassuranceLong": "You'll still choose everything — the venue, the dress, the flowers. You just won't be the one chasing it, checking it, or lying awake wondering whether you paid too much.",
+      "cta": "Tell us about your wedding",
+      "ctaHint": "One conversation, then a fixed price. No card, no obligation.",
+      "covers": "planner | venue | photographer | decor | flowers | catering | music | invitations | hair & makeup | transport | the schedule | the chasing"
     }
   },
   "dashboard": {
