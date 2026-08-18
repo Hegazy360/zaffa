@@ -1,0 +1,107 @@
+"use client";
+
+import { motion, useReducedMotion } from "framer-motion";
+import { useTranslations } from "next-intl";
+import { Building2, ShieldCheck, Sparkles, Users, type LucideIcon } from "lucide-react";
+
+// The one new UI surface in the ZAF-18/ZAF-19 homepage rebrand — sits
+// between `HowItWorks` (which ends at the reinstated step 4, "hand it to
+// your concierge") and `ShareSection` (demoted to supporting proof). This
+// is the "then we take over" payoff: three *parallel* capabilities, not
+// more sequential steps, which is why it's centered/un-numbered rather
+// than reusing `HowItWorks`'s alternating numbered-step layout.
+//
+// Icon choices deliberately reuse icons already established elsewhere on
+// the page for the same concepts (Users = planner matching, also used in
+// `how-it-works.tsx` step 4 and `tier-comparison-section.tsx`; Building2 =
+// vetted venue/vendor sourcing, also used in `tier-comparison-section.tsx`).
+// `ShieldCheck` is new to the page — the "we're the buffer" idea has no
+// existing visual precedent to reuse.
+interface Pillar {
+  id: "match" | "handle" | "source";
+  icon: LucideIcon;
+  titleKey: "conciergePillar1Title" | "conciergePillar2Title" | "conciergePillar3Title";
+  bodyKey: "conciergePillar1Body" | "conciergePillar2Body" | "conciergePillar3Body";
+}
+
+const PILLARS: Pillar[] = [
+  {
+    id: "match",
+    icon: Users,
+    titleKey: "conciergePillar1Title",
+    bodyKey: "conciergePillar1Body",
+  },
+  {
+    id: "handle",
+    icon: ShieldCheck,
+    titleKey: "conciergePillar2Title",
+    bodyKey: "conciergePillar2Body",
+  },
+  {
+    id: "source",
+    icon: Building2,
+    titleKey: "conciergePillar3Title",
+    bodyKey: "conciergePillar3Body",
+  },
+];
+
+export function ConciergePillarsSection() {
+  const t = useTranslations("marketing");
+  const reduce = useReducedMotion();
+
+  return (
+    <section
+      aria-label={t("conciergeAria")}
+      className="relative isolate overflow-hidden bg-gradient-to-b from-rose-50/40 via-background to-background dark:from-rose-950/15"
+    >
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 grain-bg opacity-30"
+      />
+
+      <div className="relative mx-auto max-w-6xl px-4 py-20 sm:py-24">
+        <header className="mx-auto mb-14 max-w-2xl text-center sm:mb-16">
+          <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-rose-200/60 bg-rose-50/70 px-4 py-1.5 text-[0.7rem] uppercase tracking-[0.3em] text-rose-700 backdrop-blur-md dark:border-rose-900/40 dark:bg-rose-950/30 dark:text-rose-200">
+            <Sparkles className="h-3.5 w-3.5" />
+            {t("conciergeEyebrow")}
+          </div>
+          <h2 className="font-display text-balance text-4xl font-light leading-tight tracking-tight sm:text-5xl">
+            {t("conciergeTitle")}
+          </h2>
+          <p className="mt-4 text-pretty text-base text-muted-foreground sm:text-lg">
+            {t("conciergeSubtitle")}
+          </p>
+        </header>
+
+        <div className="grid gap-8 sm:grid-cols-3">
+          {PILLARS.map((pillar, idx) => {
+            const Icon = pillar.icon;
+            return (
+              <motion.div
+                key={pillar.id}
+                initial={{ opacity: 0, y: 24 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-15% 0px" }}
+                transition={{
+                  duration: reduce ? 0 : 0.6,
+                  delay: reduce ? 0 : idx * 0.1,
+                }}
+                className="text-center"
+              >
+                <span className="mx-auto grid size-12 place-items-center rounded-full border border-rose-200/70 bg-gradient-to-br from-rose-50 to-amber-50 text-rose-700 ring-1 ring-rose-200/40 dark:border-rose-900/50 dark:from-rose-950/40 dark:to-amber-950/30 dark:text-rose-200">
+                  <Icon className="size-5" strokeWidth={2} />
+                </span>
+                <h3 className="font-display mt-4 text-xl font-light tracking-tight">
+                  {t(pillar.titleKey)}
+                </h3>
+                <p className="mx-auto mt-2 max-w-xs text-sm leading-relaxed text-muted-foreground">
+                  {t(pillar.bodyKey)}
+                </p>
+              </motion.div>
+            );
+          })}
+        </div>
+      </div>
+    </section>
+  );
+}

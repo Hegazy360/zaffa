@@ -9,9 +9,14 @@ to the matching `/home/how-it-works/<file>` path.
 | 1    | `step-1-inspirations.png`           |
 | 2    | `step-2-palette.png`                |
 | 3    | `step-3-ai-render.png`              |
-| 4    | `step-4-share-with-planner.png`     |
+| 4    | `step-4-concierge-handoff.png`      |
 
-Recommended dimensions: **1600 × 1000** (16:10), PNG or JPG.
+Recommended dimensions for steps 1–3: **1600 × 1000** (16:10), PNG or JPG.
+
+Step 4 ("hand it to your concierge") is expected to be **portrait**, not
+landscape — e.g. a planner-match card or handoff message referencing the
+couple's moodboard/palette, not another wide editor screenshot. The
+`Screenshot` component caps step images at `max-h-[640px]` with this in mind.
 
 Until a screenshot is dropped in, that step renders a clean
 "screenshot coming soon" placeholder with a code chip that points to this

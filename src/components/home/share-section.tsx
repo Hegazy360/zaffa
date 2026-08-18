@@ -38,13 +38,18 @@ export function ShareSection() {
         className="pointer-events-none absolute -top-32 end-[-12%] h-[32rem] w-[32rem] rounded-full bg-gradient-to-br from-rose-200/35 to-amber-200/25 blur-3xl"
       />
 
-      <div className="relative mx-auto max-w-6xl px-4 py-24 sm:py-28">
+      <div className="relative mx-auto max-w-6xl px-4 py-20 sm:py-24">
         <header className="mx-auto mb-14 max-w-2xl text-center sm:mb-20">
           <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-rose-200/60 bg-rose-50/70 px-4 py-1.5 text-[0.7rem] uppercase tracking-[0.3em] text-rose-700 backdrop-blur-md dark:border-rose-900/40 dark:bg-rose-950/30 dark:text-rose-200">
             <Heart className="h-3.5 w-3.5" />
             {t("shareEyebrow")}
           </div>
-          <h2 className="font-display text-balance text-4xl font-light leading-tight tracking-tight sm:text-5xl">
+          {/* Demoted vs. HowItWorks/hero scale (text-4xl/5xl) — this
+              section is now supporting proof, not a primary sell. Closer
+              to TierComparisonSection's heading scale (clamp(1.875rem,
+              4vw,2.75rem)) than to the primary-narrative sections above
+              it. Content unchanged, proportion only — see ZAF-18/ZAF-19. */}
+          <h2 className="font-display text-balance text-3xl font-light leading-tight tracking-tight sm:text-4xl">
             {t("shareTitlePart1")}{" "}
             <span className="italic">{t("shareTitleItalic")}</span>{" "}
             {t("shareTitleTail")}

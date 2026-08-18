@@ -5,10 +5,9 @@ import Link from "next/link";
 import { useEffect, useRef } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import { useTranslations } from "next-intl";
-import { ArrowRight, Loader2, Sparkles, Star } from "lucide-react";
+import { ArrowRight, Sparkles, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useVisionPackPricing } from "@/components/vision-pack/use-pricing";
-import { usePackCheckoutAction } from "@/components/vision-pack/use-pack-checkout-action";
 import { ttTrack, TIKTOK_EVENTS } from "@/lib/tiktok";
 import { DEFAULT_PACK_SKU } from "@/lib/vision-pack";
 import { minorToMajor } from "@/lib/vision-pack-pricing";
@@ -21,15 +20,7 @@ const HERO_IMAGE = "/home/examples/hero.jpeg";
 export function HeroEditorial() {
   const reduce = useReducedMotion();
   const t = useTranslations("marketing");
-  const tv = useTranslations("visionPack");
   const pricing = useVisionPackPricing();
-  // The paid CTA below routes through the same buy pipeline as the
-  // paywall modal / `PackCheckoutCard`: anon → `/auth/signup?next=
-  // /checkout?sku=…` (signup-then-pay), permanent → Stripe directly.
-  // Previously it was a `<Link href="/venue-designer">` which dropped
-  // the visitor into the gallery and (for anon) bounced them straight
-  // to `/venue-designer/new` without ever surfacing payment.
-  const checkout = usePackCheckoutAction();
 
   // Fire TikTok ViewContent once per mount. The home-page hero is the
   // canonical Vision Pack "product page" surface — TikTok requires this
@@ -86,7 +77,7 @@ export function HeroEditorial() {
             className="mb-5 inline-flex w-fit items-center gap-2 rounded-full border border-rose-200/60 bg-white/60 px-3 py-1.5 text-[0.65rem] uppercase tracking-[0.18em] text-rose-700 backdrop-blur-md sm:mb-6 sm:px-4 sm:text-xs dark:border-rose-900/40 dark:bg-rose-950/30 dark:text-rose-200"
           >
             <Sparkles className="h-3.5 w-3.5" />
-            {t("heroEyebrow", { price: pricing.label })}
+            {t("heroEyebrow")}
           </motion.div>
 
           <motion.h1
@@ -107,7 +98,7 @@ export function HeroEditorial() {
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: reduce ? 0 : 0.7, delay: 0.15 }}
-            className="mt-5 max-w-xl text-pretty text-base text-muted-foreground sm:mt-6 md:text-lg"
+            className="mt-5 max-w-xl text-pretty text-base text-muted-foreground sm:mt-6 md:text-lg lg:max-w-2xl"
           >
             {t("heroSubtitle")}
           </motion.p>
@@ -155,30 +146,19 @@ export function HeroEditorial() {
               {t("heroCtaFree")}
               <ArrowRight className="h-4 w-4 transition-transform rtl:-scale-x-100 group-hover:translate-x-0.5 rtl:group-hover:-translate-x-0.5" />
             </Button>
-            {/* Secondary CTA — the buy path. Still surfaced inline so
-                returning visitors / paid-intent traffic don't have to
-                scroll to the tier comparison. Wired through
-                `usePackCheckoutAction` so anon clicks land in
-                signup-then-checkout instead of the gallery's anon
-                redirect to `/venue-designer/new`. */}
+            {/* Secondary CTA — no longer a purchase ask. Per ZAF-18/ZAF-19,
+                the fold shouldn't ask for money before a visitor knows what
+                a concierge even is; this is a same-page anchor into
+                How It Works instead. Mirrors the primary CTA's
+                `render={<Link .../>}` pattern; no pending/async state since
+                there's nothing to await. */}
             <Button
-              type="button"
               size="lg"
               variant="outline"
-              disabled={checkout.isPending}
-              onClick={() => checkout.buy(DEFAULT_PACK_SKU)}
+              render={<Link href="#how-it-works" />}
               className="h-12 w-full gap-2 border-rose-200/80 bg-white px-6 text-base text-rose-700 hover:bg-rose-50/70 hover:text-rose-700 sm:w-auto sm:px-8 dark:border-rose-900/40 dark:bg-card dark:text-rose-200 dark:hover:bg-rose-950/20 dark:hover:text-rose-200"
             >
-              {checkout.isPending ? (
-                <>
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  {tv("checkoutLoading")}
-                </>
-              ) : checkout.isAnon ? (
-                tv("paywallCtaSignupThenPay", { price: pricing.label })
-              ) : (
-                t("heroCta", { price: pricing.label })
-              )}
+              {t("heroCtaSecondary")}
             </Button>
           </motion.div>
 

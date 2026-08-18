@@ -106,7 +106,7 @@ export function BeginSection() {
             transition={{ duration: reduce ? 0 : 0.7, delay: 0.15 }}
             className="mt-5 max-w-xl text-pretty text-base text-muted-foreground sm:mt-6 md:text-lg"
           >
-            {t("beginSubtitle", { price: pricing.label })}
+            {t("beginSubtitle")}
           </motion.p>
         </div>
 

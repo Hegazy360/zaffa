@@ -4,6 +4,7 @@ import { Navbar } from "@/components/layout/navbar";
 import { Footer } from "@/components/layout/footer";
 import { HeroEditorial } from "@/components/home/hero-editorial";
 import { HowItWorks } from "@/components/home/how-it-works";
+import { ConciergePillarsSection } from "@/components/home/concierge-pillars-section";
 import { ShareSection } from "@/components/home/share-section";
 import { BeginSection } from "@/components/home/begin-section";
 import {
@@ -54,12 +55,21 @@ export default function HomePage() {
         {/* What the platform is */}
         <HeroEditorial />
 
-        {/* How it works — three simple steps with screenshots */}
+        {/* How it works — four steps with screenshots, ending in the
+            handoff to the concierge (step 4) */}
         <HowItWorks />
+
+        {/* What your concierge does — the "then we take over" identity
+            statement. Sits right after the AI-flow walkthrough so the
+            handoff (step 4) and the payoff land back-to-back. */}
+        <ConciergePillarsSection />
 
         {/* The artefacts — what you walk away with: a private microsite
             and a printable lookbook PDF, designed for the audiences that
-            matter (family, friends, every planner you meet). */}
+            matter (family, friends, every planner you meet). Demoted to
+            supporting proof (smaller heading scale, tighter rhythm) now
+            that the concierge pillars carry the primary identity
+            statement — see ZAF-18/ZAF-19. */}
         <ShareSection />
 
         {/* Tier comparison — sits *after* the artefacts walkthrough so
