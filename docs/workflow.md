@@ -76,6 +76,13 @@ Invoke one the same way as any subagent, e.g. "use the engineering subagent
 to pick up the next Engineering ticket." They're user-triggered, one at a
 time — none of them run on a schedule or autonomously.
 
+**Gotcha**: Claude Code discovers `.claude/agents/*.md` only at session
+startup. If you just created or edited one of these files in the current
+session, it will not show up as a dispatchable agent type until you start a
+*new* session — same as the MCP connector needing a fresh session after
+authenticating. If `Agent`/Task dispatch says an agent type isn't found,
+this is almost certainly why.
+
 ## Re-seeding / bootstrapping further
 
 There's no bootstrap script anymore — the initial teams/projects/labels/

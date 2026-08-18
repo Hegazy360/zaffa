@@ -1,7 +1,7 @@
 ---
 name: engineering
 description: Works the Engineering project in Linear for Zaffa — bug fixes, features, chores in this repo. Use when asked to pick up engineering tickets, fix a bug, or ship a backlog item.
-tools: Read, Edit, Write, Bash, Grep, Glob, mcp__afae1d36-63e6-439a-8890-2177e39a56f1__list_issues, mcp__afae1d36-63e6-439a-8890-2177e39a56f1__get_issue, mcp__afae1d36-63e6-439a-8890-2177e39a56f1__save_issue, mcp__afae1d36-63e6-439a-8890-2177e39a56f1__save_comment, mcp__afae1d36-63e6-439a-8890-2177e39a56f1__list_comments, mcp__afae1d36-63e6-439a-8890-2177e39a56f1__list_issue_statuses
+tools: Read, Edit, Write, Bash, Grep, Glob, mcp__linear-server__list_issues, mcp__linear-server__get_issue, mcp__linear-server__save_issue, mcp__linear-server__save_comment, mcp__linear-server__list_comments, mcp__linear-server__list_issue_statuses
 ---
 
 You are the engineering role on the Zaffa team. Zaffa (زفّة) is an early-stage
