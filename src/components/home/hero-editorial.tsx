@@ -90,7 +90,9 @@ export function HeroEditorial() {
             <span className="italic">{t("heroTitleItalic")}</span>{" "}
             <span className="bg-gradient-to-br from-rose-600 via-rose-500 to-amber-500 bg-clip-text text-transparent">
               {t("heroTitleHighlight")}
-            </span>{" "}
+            </span>
+            {/* No separator space before the tail — it holds the sentence's
+                terminal punctuation, so `{" "}` here renders "all of it ." */}
             {t("heroTitleTail")}
           </motion.h1>
 

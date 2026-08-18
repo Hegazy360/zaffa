@@ -7,7 +7,6 @@ import {
   ImagePlus,
   Palette,
   Sparkles,
-  Users,
   type LucideIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -19,10 +18,10 @@ import { cn } from "@/lib/utils";
 // aspect ratio so nothing is cropped — no fixed 16:10 box. Until a screenshot
 // is wired up the step shows a clean "screenshot coming soon" placeholder.
 interface StepDef {
-  id: "inspirations" | "palette" | "ai" | "concierge";
+  id: "inspirations" | "palette" | "ai";
   icon: LucideIcon;
-  titleKey: "howStep1Title" | "howStep2Title" | "howStep3Title" | "howStep4Title";
-  bodyKey: "howStep1Body" | "howStep2Body" | "howStep3Body" | "howStep4Body";
+  titleKey: "howStep1Title" | "howStep2Title" | "howStep3Title";
+  bodyKey: "howStep1Body" | "howStep2Body" | "howStep3Body";
   screenshot: {
     src: string;
     width: number;
@@ -69,27 +68,14 @@ const STEPS: StepDef[] = [
     },
     suggestedFilename: "step-3-ai-render.png",
   },
-  {
-    // Reinstated (was "Hand it to your planner" / hidden while the
-    // two-tier pricing surface shipped, see ZAF-18/ZAF-19) and reframed
-    // for the Wedding Concierge positioning: this is the handoff from
-    // the AI vision tool to Zaffa's concierge service, not to a planner
-    // the visitor is assumed to already have. `Users` mirrors the icon
-    // used for the same "matched with a planner" idea in the pillar
-    // section below and in `tier-comparison-section.tsx`.
-    id: "concierge",
-    icon: Users,
-    titleKey: "howStep4Title",
-    bodyKey: "howStep4Body",
-    // No asset yet — renders the dashed-border placeholder. Recommended
-    // eventual asset is a portrait mock (planner-match card / handoff
-    // message referencing the couple's moodboard), not a repeat of the
-    // wide editor screenshots — see `Screenshot`'s `max-h-[640px]` cap
-    // below, sized in anticipation of this being portrait.
-    screenshot: null,
-    suggestedFilename: "step-4-concierge-handoff.png",
-  },
 ];
+
+// There is deliberately no step 4. ZAF-20 reinstated one ("hand it to your
+// concierge"), but it restated `ConciergePillarsSection` — which sits
+// directly below and says the same thing at more length — and it was the one
+// step with no screenshot, so it shipped a dashed placeholder printing an
+// internal repo path to visitors. This section now does one job: show the
+// free way in. What happens afterwards is the pillars section's job.
 
 export function HowItWorks() {
   const t = useTranslations("marketing");

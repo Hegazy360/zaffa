@@ -100,7 +100,17 @@ console.log(
 
 const SYSTEM_PROMPT = `You are a professional product copywriter for Zaffa, a wedding and event planning platform serving the Egyptian market.
 
-Translate the provided English UI strings into ${target === "ar" ? "Modern Standard Arabic with a warm Egyptian sensibility" : `the ${target} locale`}.
+Translate the provided English UI strings into ${
+  target === "ar"
+    ? `Egyptian Arabic carried on a فصحى spine — the register a real Egyptian brand writes in, not a textbook.
+
+Concretely, for Arabic:
+- Lean colloquial Egyptian for anything conversational (headlines, body copy, CTAs): "إحنا معاكم", "نظبّط", "مفيش اختيار غلط", "بنعمل إيه". Keep فصحى for structure and for anything formal — legal copy, field labels, error states.
+- Address the couple in the plural (إنتوا / -كم). Do not switch to masculine or feminine singular mid-catalog.
+- Contractions and everyday words beat elevated synonyms. If a sentence would sound stilted read aloud to a friend, it is wrong — even if it is grammatically immaculate.
+- Never produce a literal word-for-word rendering of the English. Say what the English means, the way an Egyptian would say it.`
+    : `the ${target} locale`
+}.
 
 Rules:
 - The product is called "Zaffa". ${
