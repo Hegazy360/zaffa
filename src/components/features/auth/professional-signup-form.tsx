@@ -32,6 +32,8 @@ export function ProfessionalSignUpForm() {
   const t = useTranslations("auth");
   const tCommon = useTranslations("common");
   const claimProspect = trpc.profile.claimProspect.useMutation();
+  // See the `user_already_exists` branch in handleSubmit below.
+  const releaseStaleEmail = trpc.auth.releaseStaleEmail.useMutation();
 
   const [step, setStep] = useState<1 | 2>(1);
   const [role, setRole] = useState<ProRole | null>(null);
@@ -66,13 +68,37 @@ export function ProfessionalSignUpForm() {
     setError(null);
     setLoading(true);
 
-    const { data: authData, error: signUpError } = await supabase.auth.signUp({
+    let { data: authData, error: signUpError } = await supabase.auth.signUp({
       email,
       password,
       options: {
         data: { full_name: fullName, role },
       },
     });
+
+    if (signUpError) {
+      // `user_already_exists` doesn't always mean "you have an
+      // account" — it also fires when the email is still parked on an
+      // abandoned anonymous session from a previous free-render
+      // attempt that never confirmed. Try to reclaim it and retry once
+      // before dead-ending the visitor with a confusing error.
+      const errCode = (signUpError as { code?: string }).code;
+      if (errCode === "user_already_exists") {
+        const release = await releaseStaleEmail
+          .mutateAsync({ email })
+          .catch(() => null);
+        if (release?.released) {
+          ({ data: authData, error: signUpError } =
+            await supabase.auth.signUp({
+              email,
+              password,
+              options: {
+                data: { full_name: fullName, role },
+              },
+            }));
+        }
+      }
+    }
 
     if (signUpError) {
       setError(signUpError.message);

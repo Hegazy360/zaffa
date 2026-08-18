@@ -1,11 +1,12 @@
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
-import { router, protectedProcedure } from "../trpc";
+import { router, protectedProcedure, publicProcedure } from "../trpc";
 import { prisma } from "@/lib/prisma";
 import { enforceTrpc, ipFromRequest } from "@/lib/rate-limit";
 import { addToAudience } from "@/lib/resend";
 import { reportError } from "@/lib/logger";
 import { verifyTurnstile } from "@/lib/turnstile";
+import { getSupabaseAdmin } from "@/lib/supabase/admin";
 
 /**
  * Auth-flow tRPC procedures that wrap the Supabase Auth client.
@@ -175,5 +176,60 @@ export const authRouter = router({
         // The client uses this in the magic-link redirect target.
         renderId: input.renderId ?? null,
       };
+    }),
+
+  /**
+   * Called by the sign-up forms when `supabase.auth.signUp` rejects an
+   * email with `user_already_exists`. That error doesn't only mean "you
+   * have an account" — it also fires when the email is still parked on
+   * an abandoned anonymous session from a previous free-render attempt
+   * that never clicked the confirmation link (see `requestEmailUpgrade`
+   * above). Without this, that visitor is locked out of signing up with
+   * their own email until the `cleanup-anon-users` cron eventually
+   * reaps the row (up to 14 days later).
+   *
+   * Deliberately narrow: only deletes a `profiles` row that (a) is
+   * still anonymous — i.e. the `on_auth_user_upgraded` trigger never
+   * flipped it, meaning the confirmation link was never clicked — and
+   * (b) whose `auth.users` email really is this address and really is
+   * unconfirmed. A real, confirmed account is never touched.
+   */
+  releaseStaleEmail: publicProcedure
+    .input(z.object({ email: z.string().email().max(254) }))
+    .mutation(async ({ ctx, input }) => {
+      const ip = ctx.req ? ipFromRequest(ctx.req) : "unknown";
+      await enforceTrpc(
+        "authSignUp",
+        ip,
+        "Too many attempts. Please wait a few minutes and try again.",
+      );
+
+      const email = input.email.trim().toLowerCase();
+
+      const stale = await prisma.profile.findFirst({
+        where: { free_render_email: email, is_anonymous: true },
+        select: { id: true },
+      });
+      if (!stale) return { released: false };
+
+      const supabase = getSupabaseAdmin();
+      const { data, error } = await supabase.auth.admin.getUserById(
+        stale.id,
+      );
+      if (error || !data?.user) return { released: false };
+      if (data.user.email?.toLowerCase() !== email) return { released: false };
+      if (data.user.email_confirmed_at) return { released: false };
+
+      const { error: delErr } = await supabase.auth.admin.deleteUser(
+        stale.id,
+      );
+      if (delErr && !/not.?found/i.test(delErr.message)) {
+        reportError("auth.releaseStaleEmail.delete_failed", delErr, {
+          userId: stale.id,
+        });
+        return { released: false };
+      }
+
+      return { released: true };
     }),
 });

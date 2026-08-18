@@ -40,6 +40,8 @@ export function ClientSignUpForm() {
   const t = useTranslations("auth");
   // Best-effort: link any matching Prospect row (warm lead) to this account.
   const claimProspect = trpc.profile.claimProspect.useMutation();
+  // See the `user_already_exists` branch in handleSubmit below.
+  const releaseStaleEmail = trpc.auth.releaseStaleEmail.useMutation();
 
   const nextPath = sanitizeNext(searchParams.get("next"));
 
@@ -100,7 +102,7 @@ export function ClientSignUpForm() {
       typeof window !== "undefined" ? window.location.origin : "";
     const emailRedirectTo = `${origin}/auth/confirm?next=${encodeURIComponent(nextPath)}`;
 
-    const result = isAnon
+    let result = isAnon
       ? await supabase.auth.updateUser(
           { email, password, data: { full_name: fullName } },
           { emailRedirectTo },
@@ -137,9 +139,33 @@ export function ClientSignUpForm() {
         router.refresh();
         return;
       }
-      setError(result.error.message);
-      setLoading(false);
-      return;
+
+      // `user_already_exists` doesn't always mean "you have an
+      // account" — it also fires when the email is still parked on an
+      // abandoned anonymous session from a previous free-render
+      // attempt that never confirmed. Try to reclaim it and retry once
+      // before dead-ending the visitor with a confusing error.
+      if (!isAnon && errCode === "user_already_exists") {
+        const release = await releaseStaleEmail
+          .mutateAsync({ email })
+          .catch(() => null);
+        if (release?.released) {
+          result = await supabase.auth.signUp({
+            email,
+            password,
+            options: {
+              data: { full_name: fullName, role: "client" },
+              emailRedirectTo,
+            },
+          });
+        }
+      }
+
+      if (result.error) {
+        setError(result.error.message);
+        setLoading(false);
+        return;
+      }
     }
 
     track(ANALYTICS_EVENTS.AUTH_SIGNED_UP, {
