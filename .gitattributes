@@ -1,0 +1,4 @@
+# Message catalogs are rewritten by scripts/translate-messages.mjs, which
+# always emits LF. Without this, fr/de drifted to CRLF and every automated
+# translation pass produced a whole-file diff on top of the real change.
+*.json text eol=lf
