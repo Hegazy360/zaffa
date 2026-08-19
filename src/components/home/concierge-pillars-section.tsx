@@ -52,23 +52,27 @@ export function ConciergePillarsSection() {
   return (
     <section
       aria-label={t("conciergeAria")}
-      className="relative isolate overflow-hidden bg-gradient-to-b from-rose-50/40 via-background to-background dark:from-rose-950/15"
+      className="relative isolate overflow-hidden bg-zinc-950 text-zinc-50"
     >
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-0 grain-bg opacity-30"
+        className="pointer-events-none absolute inset-0 grain-bg opacity-[0.15]"
+      />
+      <div
+        aria-hidden
+        className="pointer-events-none absolute -top-40 end-[-10%] h-[34rem] w-[34rem] rounded-full bg-gradient-to-br from-rose-500/20 to-amber-400/10 blur-3xl"
       />
 
       <div className="relative mx-auto max-w-6xl px-4 py-20 sm:py-24">
         <header className="mx-auto mb-14 max-w-2xl text-center sm:mb-16">
-          <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-rose-200/60 bg-rose-50/70 px-4 py-1.5 text-[0.7rem] uppercase tracking-[0.3em] text-rose-700 backdrop-blur-md dark:border-rose-900/40 dark:bg-rose-950/30 dark:text-rose-200">
+          <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-4 py-1.5 text-[0.7rem] uppercase tracking-[0.3em] text-rose-200 backdrop-blur-md rtl:tracking-normal">
             <Sparkles className="h-3.5 w-3.5" />
             {t("conciergeEyebrow")}
           </div>
           <h2 className="font-display text-balance text-4xl font-light leading-tight tracking-tight sm:text-5xl">
             {t("conciergeTitle")}
           </h2>
-          <p className="mt-4 text-pretty text-base text-muted-foreground sm:text-lg">
+          <p className="mt-4 text-pretty text-base text-zinc-300 sm:text-lg">
             {t("conciergeSubtitle")}
           </p>
         </header>
@@ -88,13 +92,13 @@ export function ConciergePillarsSection() {
                 }}
                 className="text-center"
               >
-                <span className="mx-auto grid size-12 place-items-center rounded-full border border-rose-200/70 bg-gradient-to-br from-rose-50 to-amber-50 text-rose-700 ring-1 ring-rose-200/40 dark:border-rose-900/50 dark:from-rose-950/40 dark:to-amber-950/30 dark:text-rose-200">
+                <span className="mx-auto grid size-12 place-items-center rounded-full border border-white/15 bg-gradient-to-br from-rose-500/20 to-amber-400/10 text-rose-200 ring-1 ring-white/10">
                   <Icon className="size-5" strokeWidth={2} />
                 </span>
                 <h3 className="font-display mt-4 text-xl font-light tracking-tight">
                   {t(pillar.titleKey)}
                 </h3>
-                <p className="mx-auto mt-2 max-w-xs text-sm leading-relaxed text-muted-foreground">
+                <p className="mx-auto mt-2 max-w-xs text-sm leading-relaxed text-zinc-400">
                   {t(pillar.bodyKey)}
                 </p>
               </motion.div>

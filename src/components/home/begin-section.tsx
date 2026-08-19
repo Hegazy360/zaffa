@@ -48,7 +48,7 @@ export function BeginSection() {
   const t = useTranslations("marketing");
 
   return (
-    <section className="relative isolate overflow-hidden bg-gradient-to-b from-background via-rose-50/40 to-amber-50/30">
+    <section className="relative isolate overflow-hidden bg-zinc-950 text-zinc-50">
       {/* Atmosphere */}
       <div
         aria-hidden
@@ -76,7 +76,7 @@ export function BeginSection() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-15% 0px" }}
             transition={{ duration: reduce ? 0 : 0.7 }}
-            className="mb-5 inline-flex w-fit items-center gap-2 rounded-full border border-rose-200/60 bg-white/70 px-3 py-1.5 text-[0.6rem] uppercase tracking-[0.28em] text-rose-700 backdrop-blur-md sm:mb-6 sm:px-4 sm:text-[0.7rem] sm:tracking-[0.3em]"
+            className="mb-5 inline-flex w-fit items-center gap-2 rounded-full border border-white/15 bg-white/5 px-3 py-1.5 text-[0.6rem] uppercase tracking-[0.28em] text-rose-200 backdrop-blur-md sm:mb-6 sm:px-4 sm:text-[0.7rem] sm:tracking-[0.3em] rtl:tracking-normal"
           >
             <Sparkles className="h-3.5 w-3.5" />
             {t("beginEyebrow")}
@@ -93,7 +93,7 @@ export function BeginSection() {
             <span className="italic">{t("beginTitleItalic")}</span>
             <br />
             {t("beginTitleConnector")}{" "}
-            <span className="bg-gradient-to-br from-rose-600 via-rose-500 to-amber-500 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-br from-rose-400 via-rose-300 to-amber-300 bg-clip-text text-transparent">
               {t("beginTitleHighlight")}
             </span>{" "}
             {t("beginTitleTail")}
@@ -104,7 +104,7 @@ export function BeginSection() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-15% 0px" }}
             transition={{ duration: reduce ? 0 : 0.7, delay: 0.15 }}
-            className="mt-5 max-w-xl text-pretty text-base text-muted-foreground sm:mt-6 md:text-lg"
+            className="mt-5 max-w-xl text-pretty text-base text-zinc-300 sm:mt-6 md:text-lg"
           >
             {t("beginSubtitle")}
           </motion.p>
@@ -123,7 +123,7 @@ export function BeginSection() {
                   delay: 0.1 + i * 0.08,
                   ease: [0.16, 1, 0.3, 1],
                 }}
-                className={`absolute overflow-hidden rounded-2xl shadow-xl shadow-rose-900/15 ring-1 ring-rose-900/10 ${c.cls}`}
+                className={`absolute overflow-hidden rounded-2xl shadow-2xl shadow-black/40 ring-1 ring-white/10 ${c.cls}`}
               >
                 <Image
                   src={c.src}
@@ -160,12 +160,12 @@ export function BeginSection() {
               size="lg"
               variant="outline"
               render={<Link href="/venue-designer" />}
-              className="h-12 w-full gap-2 border-rose-200/80 bg-white px-6 text-base text-rose-700 hover:bg-rose-50/70 hover:text-rose-700 sm:w-auto sm:px-8 dark:border-rose-900/40 dark:bg-card dark:text-rose-200 dark:hover:bg-rose-950/20 dark:hover:text-rose-200"
+              className="h-12 w-full gap-2 border-white/20 bg-white/5 px-6 text-base text-zinc-100 backdrop-blur-sm hover:bg-white/10 hover:text-white sm:w-auto sm:px-8"
             >
               {t("beginCta", { price: pricing.label })}
             </Button>
           </motion.div>
-          <p className="mt-3 text-xs text-muted-foreground">
+          <p className="mt-3 text-xs text-zinc-400">
             {t("beginCtaHint")}
           </p>
 
@@ -177,7 +177,7 @@ export function BeginSection() {
             transition={{ duration: reduce ? 0 : 0.8, delay: 0.4 }}
             className="mt-12 max-w-xl sm:mt-16"
           >
-            <p className="mb-3 text-[0.6rem] uppercase tracking-[0.28em] text-muted-foreground sm:text-[0.65rem] sm:tracking-[0.3em]">
+            <p className="mb-3 text-[0.6rem] uppercase tracking-[0.28em] text-zinc-400 sm:text-[0.65rem] sm:tracking-[0.3em] rtl:tracking-normal">
               {t("beginAsSeenIn")}
             </p>
             <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-foreground/65 sm:gap-x-5">
