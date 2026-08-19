@@ -28,6 +28,15 @@ const COUNTRY_COOKIE_MAX_AGE = 60 * 60 * 24 * 365;
 // edge to get the correct status code on the wire.
 const PUBLIC_BROWSE_ROUTE = /^\/(planners|vendors)(\/.*)?$/;
 
+// Planner/vendor-facing surfaces, hidden by the `professionalSurfaces` flag.
+// Same edge-404 treatment and the same reason: these are authenticated
+// dashboards, so `notFound()` inside the layout would still render behind a
+// 200. Kept as a separate regex from PUBLIC_BROWSE_ROUTE because the two
+// flags are independent — public browse is about SEO acquisition, this is
+// about the pivot to a client-only product.
+const PROFESSIONAL_ROUTE =
+  /^\/(dashboard\/(planner|vendor)|auth\/signup\/professional)(\/.*)?$/;
+
 // Paths whose middleware behaviour actually depends on the Supabase session:
 //   - /dashboard/*       → redirect to signin when unauthenticated
 //   - /venue-designer/*  → redirect to signin when unauthenticated
@@ -122,6 +131,20 @@ export async function middleware(request: NextRequest) {
   if (
     !isFlagEnabled("publicBrowse") &&
     PUBLIC_BROWSE_ROUTE.test(request.nextUrl.pathname)
+  ) {
+    return new NextResponse(HIDDEN_ROUTE_404_BODY, {
+      status: 404,
+      headers: {
+        "content-type": "text/html; charset=utf-8",
+        "cache-control": "no-store",
+        "x-robots-tag": "noindex, nofollow",
+      },
+    });
+  }
+
+  if (
+    !isFlagEnabled("professionalSurfaces") &&
+    PROFESSIONAL_ROUTE.test(request.nextUrl.pathname)
   ) {
     return new NextResponse(HIDDEN_ROUTE_404_BODY, {
       status: 404,

@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { getNavUser, type NavUser } from "@/lib/auth-user";
+import { isFlagEnabled } from "@/lib/flags";
 import type { UserRole } from "@/types";
 
 export type DashboardProfile = {
@@ -97,9 +98,14 @@ export function dashboardHomeFor(role: UserRole): string {
     case "admin":
       return "/dashboard/admin";
     case "planner":
-      return "/dashboard/planner";
     case "vendor":
-      return "/dashboard/vendor";
+      // While `professionalSurfaces` is off those dashboards 404 at the
+      // edge, so sending a legacy pro there would bounce them between a
+      // redirect and a 404 forever. Land them on the marketing home
+      // instead — the product they can actually use.
+      return isFlagEnabled("professionalSurfaces")
+        ? `/dashboard/${role}`
+        : "/";
     case "client":
     default:
       return "/dashboard/client";

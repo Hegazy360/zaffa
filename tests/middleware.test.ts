@@ -18,6 +18,7 @@ beforeEach(() => {
   delete process.env.SITE_PASSWORD;
   delete process.env.SITE_USERNAME;
   delete process.env.FLAG_PUBLIC_BROWSE;
+  delete process.env.FLAG_PROFESSIONAL_SURFACES;
   // The default fresh response the supabase middleware would return — we
   // mutate cookies on it inside the locale-seeding branch.
   updateSessionMock.mockImplementation(async () => NextResponse.next());
@@ -132,7 +133,16 @@ describe("middleware: publicBrowse flag", () => {
 });
 
 describe("middleware: auth-aware routing", () => {
-  it.each(["/dashboard", "/dashboard/vendor", "/venue-designer", "/auth/signin"])(
+  // NB: /dashboard/vendor used to be listed here, but it is now gated by
+  // `professionalSurfaces` and 404s before the auth round-trip (that gate is
+  // covered in its own describe block below). /dashboard/client stands in as
+  // the auth-aware dashboard route.
+  it.each([
+    "/dashboard",
+    "/dashboard/client",
+    "/venue-designer",
+    "/auth/signin",
+  ])(
     "calls updateSession on %s",
     async (path) => {
       const res = await middleware(
@@ -310,5 +320,60 @@ describe("middleware: matcher", () => {
     const matcher = (config.matcher as string[])[0];
     expect(matcher).toMatch(/api/);
     expect(matcher).toMatch(/_next/);
+  });
+});
+
+describe("middleware: professionalSurfaces flag", () => {
+  // The pivot hides planner/vendor surfaces rather than deleting them
+  // (docs/plan-pivot-2026-08.md Phase 0.2). These must 404 at the edge:
+  // they're authenticated dashboards, so a `notFound()` inside the layout
+  // would still be served behind a 200 status.
+  it.each([
+    "https://app.test/dashboard/planner",
+    "https://app.test/dashboard/planner/proposals",
+    "https://app.test/dashboard/vendor",
+    "https://app.test/dashboard/vendor/catalog",
+    "https://app.test/auth/signup/professional",
+  ])("returns 404 for %s when the flag is off (default)", async (url) => {
+    const res = await middleware(buildRequest(url));
+    expect(res.status).toBe(404);
+    expect(res.headers.get("x-robots-tag")).toContain("noindex");
+    // Gated before the Supabase round-trip — hiding these must not cost
+    // an auth call.
+    expect(updateSessionMock).not.toHaveBeenCalled();
+  });
+
+  it("does NOT gate the client or admin dashboards", async () => {
+    for (const url of [
+      "https://app.test/dashboard/client",
+      "https://app.test/dashboard/admin",
+    ]) {
+      updateSessionMock.mockClear();
+      const res = await middleware(
+        buildRequest(url, { cookies: { zaffa_locale: "en" } })
+      );
+      expect(res.status).toBe(200);
+      // These stay auth-aware.
+      expect(updateSessionMock).toHaveBeenCalled();
+    }
+  });
+
+  it("does NOT gate ordinary signup", async () => {
+    const res = await middleware(
+      buildRequest("https://app.test/auth/signup", {
+        cookies: { zaffa_locale: "en" },
+      })
+    );
+    expect(res.status).toBe(200);
+  });
+
+  it("lets the professional surfaces through when the flag is on", async () => {
+    process.env.FLAG_PROFESSIONAL_SURFACES = "true";
+    const res = await middleware(
+      buildRequest("https://app.test/dashboard/planner", {
+        cookies: { zaffa_locale: "en" },
+      })
+    );
+    expect(res.status).toBe(200);
   });
 });

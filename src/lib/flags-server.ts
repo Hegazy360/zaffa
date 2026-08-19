@@ -7,10 +7,14 @@ import { getPostHogServer } from "@/lib/posthog";
 // stays free of `posthog-node` (which uses `node:async_hooks` + `node:fs`
 // and can't be bundled for the browser).
 
+// Mirrors `DEFAULTS` in flags.ts. Typed as a total Record so adding a flag
+// there is a compile error here until it's mirrored — which is how the
+// omission of `professionalSurfaces` was caught.
 const DEFAULTS_FOR_FALLBACK: Record<FlagKey, boolean> = {
   publicBrowse: false,
   plannerVerification: true,
   onboardingWizard: true,
+  professionalSurfaces: false,
 };
 
 /**

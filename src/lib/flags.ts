@@ -28,6 +28,15 @@ export const KNOWN = {
   // Onboarding wizard for planners + vendors. Off = old setup-needed
   // splash, on = multi-step wizard.
   onboardingWizard: "ONBOARDING_WIZARD",
+  // Every planner/vendor-facing surface: their dashboards and the
+  // professional signup route. Currently OFF — the business pivoted to
+  // serving the paying couple directly (they self-serve the AI packs, or
+  // hire us and we assemble the package by hand), so the two-sided
+  // marketplace is hidden rather than deleted. ~25 pages and 10 routers stay
+  // in the tree behind this flag; flip it on to bring the whole side back.
+  // The E2E suite forces it on, because money-path.spec.ts drives planner
+  // flows. See docs/plan-pivot-2026-08.md Phase 0.2.
+  professionalSurfaces: "PROFESSIONAL_SURFACES",
 } as const;
 
 export type FlagKey = keyof typeof KNOWN;
@@ -37,6 +46,8 @@ const DEFAULTS: Record<FlagKey, boolean> = {
   publicBrowse: false,
   plannerVerification: true,
   onboardingWizard: true,
+  // OFF — see comment on `professionalSurfaces` above.
+  professionalSurfaces: false,
 };
 
 export function parseFlagValue(value: string | undefined): boolean | null {
