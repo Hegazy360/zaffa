@@ -2044,15 +2044,6 @@
     "emptyBody": "Le couple n'a pas épinglé de références pour ce design. Leurs notes de style et leur palette ci-dessous vous en donnent toujours l'essentiel."
   },
   "marketplaceTeaser": {
-    "homeAria": "Événements en direct sur Zaffa",
-    "homeEyebrow": "En direct sur Zaffa",
-    "homeTitle": "<highlight>{count, plural, =0 {Nouveaux événements} one {# événement} other {# événements}}</highlight> à la recherche d'un planificateur en ce moment",
-    "homeSubtitle": "Les couples conçoivent leur journée sur Zaffa — palettes, mood boards, tout le cahier des charges — et présélectionnent les organisateurs capables de concrétiser leur vision. Inscrivez-vous de n'importe quel côté de la table et vous serez dans la salle.",
-    "homeCtaPlanner": "Postuler en tant que planificateur",
-    "homeCtaCouple": "Commencez votre événement",
-    "homeAlsoDesigning": "{count, plural, =0 {} one {Plus # autre couple finalisant son brief.} other {Plus # autres couples finalisant leur brief.}}",
-    "homeEmptyTitle": "Zaffa vient tout juste d'ouvrir ses portes",
-    "homeEmptyBody": "Nous intégrons la première vague de couples et de planificateurs. Inscrivez-vous dès maintenant et vous serez mis en relation avec les tout premiers briefs dès leur mise en ligne.",
     "signupAria": "Appels d'offres ouverts à la recherche d'un planificateur",
     "signupEyebrow": "Pourquoi nous rejoindre maintenant",
     "signupTitle": "<highlight>{count, plural, =0 {Des couples} one {# couple} other {# couples}}</highlight> attendent de rencontrer leur planificateur",
@@ -2068,7 +2059,16 @@
     "guestBand_intimate": "Jusqu'à environ 50 invités",
     "guestBand_medium": "50 à 150 invités",
     "guestBand_large": "Plus de 150 invités",
-    "guestBandUnknown": "Nombre d'invités à déterminer"
+    "guestBandUnknown": "Nombre d'invités à déterminer",
+    "homeAria": "Couples créant leur mariage sur Zaffa",
+    "homeEyebrow": "En ce moment",
+    "homeTitle": "<highlight>{count, plural, =0 {Couples} one {# couple} other {# couples}}</highlight> créent leur mariage sur Zaffa en ce moment",
+    "homeSubtitle": "Palettes, mood boards, la pièce telle qu’elle sera réellement — conçus en une trentaine de secondes. Commencez gratuitement, ou parlez-nous de votre journée et nous nous occupons de tout.",
+    "homeCtaCouple": "Visualisez votre journée — gratuitement",
+    "homeAlsoDesigning": "{count, plural, =0 {} one {Et # autre est en cours de planification avec nous en ce moment.} other {Et # autres sont en cours de planification avec nous en ce moment.}}",
+    "homeEmptyTitle": "Zaffa ouvre tout juste ses portes",
+    "homeEmptyBody": "Nous concevons les premiers mariages sur la plateforme. Commencez gratuitement et visualisez votre journée avant toute décision.",
+    "homeCtaFullService": "Confiez-nous l’organisation"
   },
   "common": {
     "cancel": "Annuler",

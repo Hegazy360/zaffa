@@ -2044,15 +2044,6 @@
     "emptyBody": "Das Paar hat keine Referenzen für diesen Entwurf gepinnt. Ihre Stilnotizen und die Farbpalette unten vermitteln Ihnen immer noch das Wesentliche."
   },
   "marketplaceTeaser": {
-    "homeAria": "Live-Events auf Zaffa",
-    "homeEyebrow": "Live auf Zaffa",
-    "homeTitle": "<highlight>{count, plural, =0 {Neue Veranstaltungen} one {# Veranstaltung} other {# Veranstaltungen}}</highlight> suchen gerade nach einem Planer",
-    "homeSubtitle": "Paare gestalten ihren Tag auf Zaffa – Farbpaletten, Moodboards, das gesamte Konzept – und wählen die Planer in die engere Auswahl, die dies umsetzen können. Melden Sie sich auf einer der beiden Seiten des Tisches an und Sie sind im Raum.",
-    "homeCtaPlanner": "Als Planer bewerben",
-    "homeCtaCouple": "Starten Sie Ihre Veranstaltung",
-    "homeAlsoDesigning": "{count, plural, =0 {} one {Plus # weiteres Paar, das das Briefing noch abschließt.} other {Plus # weitere Paare, die ihr Briefing noch abschließen.}}",
-    "homeEmptyTitle": "Zaffa öffnet gerade seine Türen",
-    "homeEmptyBody": "Wir nehmen gerade die erste Welle von Paaren und Planern auf. Melden Sie sich jetzt an und Sie erhalten die allerersten Briefings, sobald diese veröffentlicht werden.",
     "signupAria": "Offene Briefings auf der Suche nach einem Planer",
     "signupEyebrow": "Warum jetzt beitreten",
     "signupTitle": "<highlight>{count, plural, =0 {Paare} one {# Paar} other {# Paare}}</highlight> warten darauf, ihren Planer zu treffen",
@@ -2068,7 +2059,16 @@
     "guestBand_intimate": "Bis zu ~50 Gäste",
     "guestBand_medium": "50–150 Gäste",
     "guestBand_large": "150+ Gäste",
-    "guestBandUnknown": "Gästeanzahl wird noch festgelegt"
+    "guestBandUnknown": "Gästeanzahl wird noch festgelegt",
+    "homeAria": "Paare gestalten auf Zaffa",
+    "homeEyebrow": "Gerade jetzt",
+    "homeTitle": "<highlight>{count, plural, =0 {Paare} one {# Paar} other {# Paare}}</highlight> gestalten gerade ihre Hochzeit auf Zaffa",
+    "homeSubtitle": "Farbschemata, Moodboards, der Raum, wie er wirklich aussehen wird – erstellt in etwa dreißig Sekunden. Beginnen Sie kostenlos oder erzählen Sie uns von Ihrem Tag, und wir übernehmen alles für Sie.",
+    "homeCtaCouple": "Sehen Sie Ihren Tag – kostenlos",
+    "homeAlsoDesigning": "{count, plural, =0 {} one {Und # weitere werden gerade mit uns geplant.} other {Und # weitere werden gerade mit uns geplant.}}",
+    "homeEmptyTitle": "Zaffa öffnet gerade seine Türen",
+    "homeEmptyBody": "Wir gestalten gerade die ersten Hochzeiten auf der Plattform. Starten Sie kostenlos und sehen Sie Ihren Tag, bevor Sie eine Entscheidung treffen.",
+    "homeCtaFullService": "Lassen Sie uns die Planung übernehmen"
   },
   "common": {
     "cancel": "Abbrechen",

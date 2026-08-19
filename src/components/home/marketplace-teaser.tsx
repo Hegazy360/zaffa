@@ -5,7 +5,6 @@ import { useLocale, useTranslations } from "next-intl";
 import { motion, useReducedMotion } from "framer-motion";
 import {
   ArrowRight,
-  Briefcase,
   CalendarDays,
   Lock,
   Sparkles,
@@ -150,7 +149,10 @@ export function MarketplaceTeaser({
           >
             {isHome
               ? t.rich("homeTitle", {
-                  count: data.total_open,
+                  // `total_active` (designing now) rather than `total_open`
+                  // (awaiting a planner): the planner marketplace is hidden,
+                  // so this number is about couple momentum, not supply.
+                  count: data.total_active,
                   highlight: (chunks) => (
                     <span className="bg-gradient-to-br from-rose-600 via-rose-500 to-amber-500 bg-clip-text text-transparent">
                       {chunks}
@@ -226,20 +228,23 @@ export function MarketplaceTeaser({
             <>
               <Button
                 size="lg"
-                render={<Link href="/auth/signup/professional" />}
+                render={<Link href="/venue-designer/new" />}
                 className="group h-12 gap-2 bg-gradient-to-r from-rose-600 to-amber-500 px-7 text-base text-white shadow-lg shadow-rose-600/20 transition-all hover:opacity-90 hover:shadow-rose-600/30"
               >
-                <Briefcase className="h-4 w-4" />
-                {t("homeCtaPlanner")}
+                {t("homeCtaCouple")}
                 <ArrowRight className="h-4 w-4 transition-transform rtl:-scale-x-100 group-hover:translate-x-0.5 rtl:group-hover:-translate-x-0.5" />
               </Button>
+              {/* Secondary CTA is the full-service enquiry. Points at
+                  /contact until the dedicated wizard lands (ZAF-39); the
+                  planner-acquisition CTA that used to sit here pointed at a
+                  route that now 404s. */}
               <Button
                 size="lg"
                 variant="outline"
-                render={<Link href="/venue-designer" />}
+                render={<Link href="/contact" />}
                 className="group h-12 gap-2 border-rose-200/70 bg-white/80 px-6 text-base backdrop-blur-sm hover:border-rose-300 hover:bg-white"
               >
-                {t("homeCtaCouple")}
+                {t("homeCtaFullService")}
                 <ArrowRight className="h-4 w-4 transition-transform rtl:-scale-x-100 group-hover:translate-x-0.5 rtl:group-hover:-translate-x-0.5" />
               </Button>
               {data.total_active > data.total_open && (

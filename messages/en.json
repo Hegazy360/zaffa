@@ -2044,15 +2044,14 @@
     "emptyBody": "The couple hasn't pinned references for this design. Their style notes and palette below still give you the gist."
   },
   "marketplaceTeaser": {
-    "homeAria": "Live events on Zaffa",
-    "homeEyebrow": "Live on Zaffa",
-    "homeTitle": "<highlight>{count, plural, =0 {New events} one {# event} other {# events}}</highlight> looking for a planner right now",
-    "homeSubtitle": "Couples are designing their day on Zaffa — palettes, mood boards, the whole brief — and shortlisting the planners who can pull it off. Sign up on either side of the table and you're in the room.",
-    "homeCtaPlanner": "Apply as a planner",
-    "homeCtaCouple": "Start your event",
-    "homeAlsoDesigning": "{count, plural, =0 {} one {Plus # more couple still finalizing the brief.} other {Plus # more couples still finalizing their briefs.}}",
+    "homeAria": "Couples designing on Zaffa",
+    "homeEyebrow": "Happening now",
+    "homeTitle": "<highlight>{count, plural, =0 {Couples} one {# couple} other {# couples}}</highlight> are designing their wedding on Zaffa right now",
+    "homeSubtitle": "Palettes, mood boards, the room as it will actually look — built in about thirty seconds. Start yours free, or tell us about your day and we will take the whole thing off your hands.",
+    "homeCtaCouple": "See your day — free",
+    "homeAlsoDesigning": "{count, plural, =0 {} one {And # more is being planned with us right now.} other {And # more are being planned with us right now.}}",
     "homeEmptyTitle": "Zaffa is just opening its doors",
-    "homeEmptyBody": "We're onboarding the first wave of couples and planners. Sign up now and you'll be matched with the very first briefs as they go live.",
+    "homeEmptyBody": "We are designing the first weddings on the platform now. Start yours free and see your day before you decide anything.",
     "signupAria": "Open briefs looking for a planner",
     "signupEyebrow": "Why join now",
     "signupTitle": "<highlight>{count, plural, =0 {Couples} one {# couple} other {# couples}}</highlight> are waiting to meet their planner",
@@ -2068,7 +2067,8 @@
     "guestBand_intimate": "Up to ~50 guests",
     "guestBand_medium": "50–150 guests",
     "guestBand_large": "150+ guests",
-    "guestBandUnknown": "Guest count TBD"
+    "guestBandUnknown": "Guest count TBD",
+    "homeCtaFullService": "Have us run it"
   },
   "common": {
     "cancel": "Cancel",

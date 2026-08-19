@@ -3,6 +3,7 @@ import Link from "next/link";
 import { ArrowRight, Sparkles } from "lucide-react";
 import { getTranslations } from "next-intl/server";
 import { ClientSignUpForm } from "@/components/features/auth/client-signup-form";
+import { isFlagEnabled } from "@/lib/flags";
 
 export const metadata = {
   title: "Create Your Zaffa Account",
@@ -35,19 +36,23 @@ export default async function SignUpPage() {
       </Suspense>
 
       {/* Quiet detour for planners and vendors. We deliberately keep it muted
-          so the client journey stays the obvious default. */}
-      <div className="rounded-2xl border border-rose-100/70 bg-white/70 p-4 text-sm backdrop-blur-sm dark:border-rose-900/30 dark:bg-card/60">
-        <p className="text-muted-foreground">
-          {t("areYouProfessional")}{" "}
-          <Link
-            href="/auth/signup/professional"
-            className="group inline-flex items-center gap-1 font-medium text-rose-700 underline-offset-4 hover:underline dark:text-rose-300"
-          >
-            {t("areYouProfessionalCta")}
-            <ArrowRight className="size-3.5 transition-transform rtl:-scale-x-100 group-hover:translate-x-0.5 rtl:group-hover:-translate-x-0.5" />
-          </Link>
-        </p>
-      </div>
+          so the client journey stays the obvious default — and hide it
+          entirely while the professional surfaces are off, since the
+          destination 404s at the edge and linking to it would be a dead end. */}
+      {isFlagEnabled("professionalSurfaces") ? (
+        <div className="rounded-2xl border border-rose-100/70 bg-white/70 p-4 text-sm backdrop-blur-sm dark:border-rose-900/30 dark:bg-card/60">
+          <p className="text-muted-foreground">
+            {t("areYouProfessional")}{" "}
+            <Link
+              href="/auth/signup/professional"
+              className="group inline-flex items-center gap-1 font-medium text-rose-700 underline-offset-4 hover:underline dark:text-rose-300"
+            >
+              {t("areYouProfessionalCta")}
+              <ArrowRight className="size-3.5 transition-transform rtl:-scale-x-100 group-hover:translate-x-0.5 rtl:group-hover:-translate-x-0.5" />
+            </Link>
+          </p>
+        </div>
+      ) : null}
     </div>
   );
 }
