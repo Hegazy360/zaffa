@@ -371,8 +371,8 @@
     "atelierEyebrow": "Une invitation",
     "atelierHeadlinePart1": "Entrez dans le",
     "atelierHeadlineItalic": "moderne",
-    "atelierSubtitle": "D'une palette de couleurs discrète à une cathédrale à la lueur des bougies, Zaffa vous met en relation avec nos meilleurs organisateurs, prestataires et un atelier d'IA, afin que chaque détail de votre journée semble inévitable.",
-    "atelierProof": "de plus de 10 000 couples qui planifient le jour dont ils ont vraiment envie",
+    "atelierSubtitle": "D'une palette de couleurs discrète à une salle éclairée aux bougies, Zaffa transforme l'ambiance que vous imaginez en image — puis organise, réserve et orchestre l'ensemble.",
+    "atelierProof": "Une équipe, un prix, et une personne qui vous répond sur WhatsApp.",
     "areYouProfessional": "Êtes-vous un organisateur ou un fournisseur professionnel ?",
     "areYouProfessionalCta": "Inscrivez-vous ici",
     "areYouAClient": "Vous organisez votre propre événement ?",
@@ -451,7 +451,9 @@
   "marketing": {
     "heroTitleTail": ".",
     "heroCta": "Obtenez le pack de design —{price}",
-    "heroSocialProof": "Plébiscité par plus de 10 000 couples qui organisent le jour dont ils ont vraiment envie",
+    "heroSocialProof": "Plus de {count} mariages conçus sur Zaffa",
+    "heroTrustChannels": "De vraies personnes sur WhatsApp — en arabe, anglais ou français",
+    "heroTrustReach": "Basés à Paris. Nous intervenons partout où votre mariage a lieu.",
     "startingPrice": "À partir de{price}",
     "tiersEyebrow": "Deux façons d'entrer",
     "tiersTitle": "Choisissez le forfait qui correspond à votre journée",
@@ -594,7 +596,8 @@
       "card2": "Deux ou trois options réelles par prestation",
       "card3": "Réservé à nos tarifs, pas aux tarifs mariage",
       "card4": "Une seule personne, du premier appel au jour J"
-    }
+    },
+    "testimonialsTitle": "Ce que disent les couples"
   },
   "dashboard": {
     "vendorWelcome": "Bon retour,{name}",

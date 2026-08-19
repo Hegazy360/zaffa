@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useRef } from "react";
 import { useTranslations } from "next-intl";
-import { ArrowRight, Sparkles, Star } from "lucide-react";
+import { ArrowRight, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useVisionPackPricing } from "@/components/vision-pack/use-pricing";
 import { ttTrack, TIKTOK_EVENTS } from "@/lib/tiktok";
@@ -23,7 +23,13 @@ import { minorToMajor } from "@/lib/vision-pack-pricing";
 // magazine spread, not an interactive toy.
 const HERO_IMAGE = "/home/examples/hero.jpeg";
 
-export function HeroEditorial() {
+export function HeroEditorial({
+  socialProof,
+}: {
+  /** Server-rendered social proof. A slot rather than a fetch because this
+   *  component is a client boundary and the counts must be real. */
+  socialProof?: React.ReactNode;
+}) {
   const t = useTranslations("marketing");
   const pricing = useVisionPackPricing();
 
@@ -165,49 +171,10 @@ export function HeroEditorial() {
             {t("heroCtaHint")}
           </p>
 
-          <div
-            style={{ animationDelay: "0.4s" }}
-            className="hero-rise mt-12 flex flex-wrap items-center gap-x-5 gap-y-3 sm:gap-x-6"
-          >
-            <div className="flex -space-x-3">
-              {[
-                "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=120&q=80",
-                "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?auto=format&fit=crop&w=120&q=80",
-                "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=120&q=80",
-                "https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=120&q=80",
-              ].map((src, i) => (
-                <div
-                  key={src}
-                  className="relative h-10 w-10 overflow-hidden rounded-full border-2 border-background"
-                  style={{ zIndex: 4 - i }}
-                >
-                  <Image
-                    src={src}
-                    alt=""
-                    fill
-                    sizes="40px"
-                    className="object-cover"
-                  />
-                </div>
-              ))}
-            </div>
-            <div className="space-y-0.5">
-              <div className="flex items-center gap-1.5">
-                <div className="flex">
-                  {Array.from({ length: 5 }).map((_, i) => (
-                    <Star
-                      key={i}
-                      className="h-3.5 w-3.5 fill-amber-500 text-amber-500"
-                    />
-                  ))}
-                </div>
-                <span className="text-sm font-semibold">4.9</span>
-              </div>
-              <p className="text-xs text-muted-foreground">
-                {t("heroSocialProof")}
-              </p>
-            </div>
-          </div>
+          {/* Real proof, injected from a server component: renders from
+              couples who opted into the public gallery, plus a live count.
+              Previously four Unsplash stock headshots and an invented 4.9. */}
+          {socialProof}
         </div>
       </div>
     </section>

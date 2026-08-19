@@ -44,7 +44,38 @@ function uuidFromKey(key: string): string {
   return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20, 32)}`;
 }
 
+/**
+ * These packs are fictional couples illustrated with stock photography, and
+ * the seeder marks them `microsite_public = true` — which puts them straight
+ * into /gallery and into the homepage's proof strip. That is precisely the
+ * fabricated social proof ZAF-45 removed, so it must not be one stray command
+ * away from coming back.
+ *
+ * There is no local database in this project: `.env.local` points at the
+ * production Supabase instance, so "don't run it against prod" cannot be
+ * enforced by inspecting the connection string. An explicit opt-in is the
+ * honest guard — a developer who wants demo content still gets it, but only
+ * by saying so out loud.
+ */
+function assertSeedingAllowed(): void {
+  if (process.env.ALLOW_FICTIONAL_SEED === "1") return;
+  console.error(
+    [
+      "Refusing to seed: these are fictional couples with stock photography,",
+      "and this seeder publishes them to the public gallery.",
+      "",
+      "There is no separate local database here — .env.local points at the",
+      "live project, so seeding writes fake couples to the real gallery.",
+      "",
+      "If you genuinely want them, re-run with ALLOW_FICTIONAL_SEED=1.",
+    ].join("\n"),
+  );
+  process.exit(1);
+}
+
 async function main() {
+  assertSeedingAllowed();
+
   // Avoid touching auth.users — these gallery rows are display-only.
   // We need the public.profiles FK to be satisfied; the easiest path is
   // to create a matching auth.users row first via raw SQL with the same

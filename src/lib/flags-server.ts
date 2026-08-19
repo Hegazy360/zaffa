@@ -15,6 +15,7 @@ const DEFAULTS_FOR_FALLBACK: Record<FlagKey, boolean> = {
   plannerVerification: true,
   onboardingWizard: true,
   professionalSurfaces: false,
+  testimonials: false,
 };
 
 /**

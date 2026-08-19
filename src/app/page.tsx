@@ -5,10 +5,12 @@ import { Suspense } from "react";
 import { Navbar } from "@/components/layout/navbar";
 import { Footer } from "@/components/layout/footer";
 import { HeroEditorial } from "@/components/home/hero-editorial";
+import { HeroSocialProof } from "@/components/home/hero-social-proof";
 import { HowItWorks } from "@/components/home/how-it-works";
 import { ConciergePillarsSection } from "@/components/home/concierge-pillars-section";
 import { WholeWeddingSection } from "@/components/home/whole-wedding-section";
 import { ShareSection } from "@/components/home/share-section";
+import { TestimonialsSection } from "@/components/home/testimonials-section";
 import { BeginSection } from "@/components/home/begin-section";
 import {
   MarketplaceTeaserSection,
@@ -56,7 +58,10 @@ export default function HomePage() {
 
       <main className="flex-1">
         {/* What the platform is */}
-        <HeroEditorial />
+        {/* Proof is a server component passed into the client hero as a
+            slot — the figures have to be real, so they are read at request
+            time rather than hardcoded. */}
+        <HeroEditorial socialProof={<HeroSocialProof />} />
 
         {/* How it works — four steps with screenshots, ending in the
             handoff to the concierge (step 4) */}
@@ -82,6 +87,10 @@ export default function HomePage() {
             supporting proof (smaller heading scale, tighter rhythm) now
             that the concierge pillars carry the primary identity
             statement — see ZAF-18/ZAF-19. */}
+        {/* Renders nothing until real couples have said something real —
+            both the flag and the empty data source gate it. */}
+        <TestimonialsSection />
+
         <ShareSection />
 
         {/* Tier comparison — sits *after* the artefacts walkthrough so

@@ -37,6 +37,11 @@ export const KNOWN = {
   // The E2E suite forces it on, because money-path.spec.ts drives planner
   // flows. See docs/plan-pivot-2026-08.md Phase 0.2.
   professionalSurfaces: "PROFESSIONAL_SURFACES",
+  // Testimonials on the marketing pages. OFF until the first weddings are
+  // delivered and real couples have said something we are allowed to quote.
+  // The section reads `src/lib/testimonials.ts`, which is empty on purpose —
+  // so even flipping this on cannot produce an invented quote. See ZAF-45.
+  testimonials: "TESTIMONIALS",
 } as const;
 
 export type FlagKey = keyof typeof KNOWN;
@@ -48,6 +53,8 @@ const DEFAULTS: Record<FlagKey, boolean> = {
   onboardingWizard: true,
   // OFF — see comment on `professionalSurfaces` above.
   professionalSurfaces: false,
+  // OFF — see comment on `testimonials` above.
+  testimonials: false,
 };
 
 export function parseFlagValue(value: string | undefined): boolean | null {

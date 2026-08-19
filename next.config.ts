@@ -37,7 +37,7 @@ const securityHeaders = [
       "worker-src 'self' blob:",
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
       "font-src 'self' data: https://fonts.gstatic.com",
-      "img-src 'self' data: blob: https://*.stripe.com https://*.supabase.co https://res.cloudinary.com https://images.unsplash.com https://i.pinimg.com https://*.googleusercontent.com https://*.fbcdn.net https://*.i.posthog.com https://analytics.tiktok.com",
+      "img-src 'self' data: blob: https://*.stripe.com https://*.supabase.co https://res.cloudinary.com https://images.unsplash.com https://*.googleusercontent.com https://*.fbcdn.net https://*.i.posthog.com https://analytics.tiktok.com",
       "media-src 'self' blob: https://res.cloudinary.com",
       // `data:` is required by `html-to-image` (used by the admin post
       // rasterizer): it walks the DOM and re-fetches embedded images,
@@ -56,13 +56,13 @@ const nextConfig: NextConfig = {
   images: {
     remotePatterns: [
       {
+        // Still here only for `scripts/seed-vision-pack-gallery.ts`, whose
+        // fictional demo packs are illustrated with stock photography. No
+        // shipped surface loads an Unsplash URL any more (ZAF-45 removed the
+        // last of them from the hero), so this pattern goes when that seed
+        // data is replaced with real Zaffa renders.
         protocol: "https",
         hostname: "images.unsplash.com",
-        pathname: "/**",
-      },
-      {
-        protocol: "https",
-        hostname: "i.pinimg.com",
         pathname: "/**",
       },
       {

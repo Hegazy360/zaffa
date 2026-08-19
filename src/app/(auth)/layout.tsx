@@ -1,16 +1,20 @@
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowLeft, Sparkles, Star } from "lucide-react";
+import { ArrowLeft, Sparkles } from "lucide-react";
 import { getTranslations } from "next-intl/server";
 import { LocaleSwitcher } from "@/components/locale-switcher";
 
 export const dynamic = "force-dynamic";
 
 // One curated editorial image, shared with the marketing hero so the auth
-// surfaces feel like the same atelier the visitor just left. Imported here
-// (instead of fetched as a remote URL) keeps the asset list discoverable.
-const ATELIER_IMAGE =
-  "https://i.pinimg.com/originals/c1/c7/e8/c1c7e8c387cdadcc45d435e716de3e97.jpg";
+// surfaces feel like the same atelier the visitor just left.
+//
+// This was a hotlink to i.pinimg.com — somebody else's photograph, served off
+// somebody else's CDN, as the first thing a couple sees when handing us their
+// wedding. Three separate problems: we did not own the rights, Pinterest can
+// break or swap the URL at any time, and the image did not show our own work.
+// Now it is a Zaffa render from this repo, which fixes all three.
+const ATELIER_IMAGE = "/home/examples/hero.jpeg";
 
 export default async function AuthLayout({
   children,
@@ -53,12 +57,12 @@ export default async function AuthLayout({
 
       <div className="relative z-10 grid flex-1 grid-cols-1 lg:grid-cols-2">
         {/* Left atelier panel — desktop only. Anchored editorial image with a
-            rose/amber wash, brand mark, tagline and the same 4.9★ proof block
-            from the marketing hero. */}
+            rose/amber wash, brand mark, tagline and the same trust line the
+            marketing hero carries. */}
         <aside className="relative hidden overflow-hidden lg:block">
           <Image
             src={ATELIER_IMAGE}
-            alt="A romantic alfresco wedding reception in cream and rose tones"
+            alt="A wedding reception rendered on Zaffa, in cream and rose tones"
             fill
             sizes="50vw"
             priority
@@ -92,20 +96,12 @@ export default async function AuthLayout({
                 {tAuth("atelierSubtitle")}
               </p>
 
-              <div className="flex items-center gap-3 pt-2">
-                <div className="flex">
-                  {Array.from({ length: 5 }).map((_, i) => (
-                    <Star
-                      key={i}
-                      className="size-4 fill-amber-300 text-amber-300"
-                    />
-                  ))}
-                </div>
-                <span className="text-sm font-semibold">4.9</span>
-                <span className="text-xs text-white/70">
-                  {tAuth("atelierProof")}
-                </span>
-              </div>
+              {/* No stars, no rating. The 4.9 here was invented, and an
+                  invented rating on the sign-up screen is the worst possible
+                  place to be caught. What replaces it is true today. */}
+              <p className="pt-2 text-sm text-white/80">
+                {tAuth("atelierProof")}
+              </p>
             </div>
 
             <p className="text-[0.65rem] uppercase tracking-[0.3em] text-white/60">

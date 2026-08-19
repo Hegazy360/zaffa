@@ -371,8 +371,8 @@
     "atelierEyebrow": "Eine Einladung",
     "atelierHeadlinePart1": "Treten Sie ein in das",
     "atelierHeadlineItalic": "modern",
-    "atelierSubtitle": "Von einer dezenten Farbwelt bis hin zu einer von Kerzen beleuchteten Kathedrale – Zaffa bringt Sie mit unseren besten Planern, Dienstleistern und einem KI-Atelier zusammen, damit sich jedes Detail Ihres Tages wie selbstverständlich anfühlt.",
-    "atelierProof": "von über 10.000 Paaren, die den Tag planen, den sie sich wirklich wünschen",
+    "atelierSubtitle": "Von einer dezenten Farbwelt bis zum kerzenbeleuchteten Saal – Zaffa macht sichtbar, wie sich Ihr Tag anfühlen soll, und übernimmt danach Planung, Buchung und Durchführung.",
+    "atelierProof": "Ein Team, ein Preis und eine Ansprechperson, die auf WhatsApp antwortet.",
     "areYouProfessional": "Sind Sie ein professioneller Planer oder Anbieter?",
     "areYouProfessionalCta": "Hier anmelden",
     "areYouAClient": "Planen Sie Ihre eigene Veranstaltung?",
@@ -451,7 +451,9 @@
   "marketing": {
     "heroTitleTail": ".",
     "heroCta": "Holen Sie sich das Design-Paket —{price}",
-    "heroSocialProof": "Von über 10.000 Paaren geliebt, die den Tag planen, den sie sich wirklich wünschen",
+    "heroSocialProof": "Über {count} Hochzeiten auf Zaffa gestaltet",
+    "heroTrustChannels": "Echte Menschen auf WhatsApp – auf Arabisch, Englisch oder Französisch",
+    "heroTrustReach": "Sitz in Paris. Wir arbeiten überall dort, wo Ihre Hochzeit stattfindet.",
     "startingPrice": "Beginnend bei{price}",
     "tiersEyebrow": "Zwei Zugänge",
     "tiersTitle": "Wähle das Paket, das zu deinem Tag passt",
@@ -594,7 +596,8 @@
       "card2": "Zwei oder drei echte Optionen pro Kategorie",
       "card3": "Gebucht zu unseren Preisen, nicht zu Hochzeitspreisen",
       "card4": "Eine Ansprechperson, vom ersten Anruf bis zum Hochzeitstag"
-    }
+    },
+    "testimonialsTitle": "Was Paare sagen"
   },
   "dashboard": {
     "vendorWelcome": "Willkommen zurück,{name}",

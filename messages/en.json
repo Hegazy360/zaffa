@@ -371,8 +371,8 @@
     "atelierEyebrow": "An invitation",
     "atelierHeadlinePart1": "Step inside the",
     "atelierHeadlineItalic": "modern",
-    "atelierSubtitle": "From a quiet color story to a candlelit cathedral, Zaffa pairs you with our finest planners, vendors, and an AI atelier — so every detail of your day feels inevitable.",
-    "atelierProof": "from 10,000+ couples planning the day they actually want",
+    "atelierSubtitle": "From a quiet colour story to a candlelit hall, Zaffa turns how you want the day to feel into something you can see — then plans, books and runs all of it.",
+    "atelierProof": "One team, one price, and one person answering you on WhatsApp.",
     "areYouProfessional": "Are you a professional planner or vendor?",
     "areYouProfessionalCta": "Sign up here",
     "areYouAClient": "Planning your own event?",
@@ -459,7 +459,9 @@
     "heroCta": "Get the Design Pack — {price}",
     "heroCtaSecondary": "What we handle",
     "heroCtaHint": "No card needed. Start with a free look at your day.",
-    "heroSocialProof": "Loved by 10,000+ couples planning the day they actually want",
+    "heroSocialProof": "{count}+ weddings designed on Zaffa",
+    "heroTrustChannels": "Real people on WhatsApp — in Arabic, English or French",
+    "heroTrustReach": "Based in Paris. We work wherever your wedding is.",
     "startingPrice": "Starting at {price}",
     "tiersEyebrow": "Three ways in",
     "tiersTitle": "Pick how much you want to do yourself",
@@ -594,7 +596,8 @@
       "card2": "Two or three real options per thing",
       "card3": "Booked at our rates, not wedding rates",
       "card4": "One person, first call to wedding day"
-    }
+    },
+    "testimonialsTitle": "What couples say"
   },
   "dashboard": {
     "vendorWelcome": "Welcome back, {name}",
