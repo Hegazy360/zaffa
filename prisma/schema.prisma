@@ -1054,9 +1054,9 @@ model VisionPack {
   recipient_user_id String? @db.Uuid
 
   status      VisionPackStatus @default(pending_payment)
-  redeemed_at DateTime?
+  redeemed_at DateTime?        @db.Timestamptz(6)
   // 60-day usage window from `redeemed_at` (or paid_at for self-purchase).
-  expires_at  DateTime?
+  expires_at  DateTime?        @db.Timestamptz(6)
 
   // Gifting (no UI in v1; columns ship now to avoid a follow-up migration).
   is_gift              Boolean @default(false)
@@ -1078,7 +1078,7 @@ model VisionPack {
   stripe_payment_intent_id   String?
   amount                     Int
   currency                   String    @default("EGP")
-  paid_at                    DateTime?
+  paid_at                    DateTime? @db.Timestamptz(6)
   // 2-letter ISO country resolved from the geo cookie/header at
   // checkout time. Stamped immutably so the delta-priced upgrade flow
   // can resolve the destination tier price in the same market the
@@ -1100,20 +1100,20 @@ model VisionPack {
   // Public microsite slug. Generated at activation time, immutable
   // afterwards so links don't rot. URL is `/v/<slug>`.
   microsite_slug         String?   @unique
-  microsite_published_at DateTime?
+  microsite_published_at DateTime? @db.Timestamptz(6)
   // True if the recipient has opted into the public gallery feed. Default
   // false at the row level — recipients must opt-in explicitly via account
   // settings. Microsite still renders at the slug regardless.
   microsite_public       Boolean   @default(false)
   // First-download timestamp on the lookbook PDF. Used by the refund
   // tripwire — once the lookbook is downloaded refunds are off.
-  lookbook_downloaded_at DateTime?
+  lookbook_downloaded_at DateTime? @db.Timestamptz(6)
 
-  refunded_at   DateTime?
+  refunded_at   DateTime? @db.Timestamptz(6)
   refund_reason String?
 
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
+  created_at DateTime @default(now()) @db.Timestamptz(6)
+  updated_at DateTime @updatedAt @db.Timestamptz(6)
 
   buyer     Profile             @relation("PackBuyer", fields: [buyer_user_id], references: [id], onDelete: Cascade)
   recipient Profile?            @relation("PackRecipient", fields: [recipient_user_id], references: [id], onDelete: SetNull)

@@ -15,7 +15,16 @@ import { test, expect, type Page } from "@playwright/test";
 //
 // Dynamic content strategy:
 // - `[data-visual-mask]` marks sections whose content is DB-driven (the
-//   marketplace teaser counts/cards) — masked out of every shot.
+//   marketplace teaser counts/cards, the per-country tier prices). These are
+//   both masked AND collapsed to a fixed height before the shot.
+//
+//   Masking alone is not enough: Playwright's `mask` paints over pixels but
+//   does not remove the element from layout, so a DB-driven section that
+//   changes *height* shifts every section below it and the full-page
+//   screenshot differs everywhere. That is exactly what happened when the
+//   teaser's content changed — the page grew ~1,400px and all four homepage
+//   baselines failed despite no styling change. Pinning the height makes the
+//   masked regions contribute a constant to layout.
 // - reducedMotion: "reduce" (project config) collapses CSS + framer-motion
 //   durations via the site's global reduced-motion block.
 // - a scroll sweep triggers every whileInView entrance (viewport.once=true
@@ -33,6 +42,15 @@ const LOCALES = [
   { locale: "en", country: "US" },
   { locale: "ar", country: "EG" },
 ] as const;
+
+/** Collapse DB-driven regions to a constant height so they cannot shift the
+ *  rest of the page between runs. Paired with `mask`, which hides whatever
+ *  they happen to contain. */
+async function pinDynamicRegions(page: Page) {
+  await page.addStyleTag({
+    content: `[data-visual-mask]{height:480px!important;min-height:480px!important;max-height:480px!important;overflow:hidden!important}`,
+  });
+}
 
 async function settle(page: Page) {
   // Fonts first — Fraunces/Cairo swap late and shift every headline.
@@ -76,6 +94,7 @@ for (const { locale, country } of LOCALES) {
     for (const p of PAGES) {
       test(`${p.name}`, async ({ page }) => {
         await page.goto(p.path, { waitUntil: "domcontentloaded" });
+        await pinDynamicRegions(page);
         await settle(page);
         await expect(page).toHaveScreenshot(`${p.name}-${locale}.png`, {
           fullPage: true,
