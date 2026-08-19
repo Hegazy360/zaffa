@@ -242,26 +242,6 @@ export const prospectsRouter = router({
       });
     }),
 
-  // Manual link from a prospect row to an existing user (rare — usually the
-  // signup matcher does this for us).
-  match: protectedProcedure
-    .input(z.object({ id: z.string().uuid(), userId: z.string().uuid() }))
-    .mutation(async ({ ctx, input }) => {
-      await assertAdmin(ctx.user.id);
-      const user = await prisma.profile.findUnique({
-        where: { id: input.userId },
-        select: { id: true },
-      });
-      if (!user) throw new TRPCError({ code: "NOT_FOUND", message: "User not found" });
-      return prisma.prospect.update({
-        where: { id: input.id },
-        data: {
-          status: ProspectStatus.signed_up,
-          signed_up_user_id: input.userId,
-        },
-      });
-    }),
-
   delete: protectedProcedure
     .input(z.object({ id: z.string().uuid() }))
     .mutation(async ({ ctx, input }) => {
