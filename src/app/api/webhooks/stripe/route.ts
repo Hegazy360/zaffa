@@ -3,7 +3,8 @@ import { NextResponse } from "next/server";
 import Stripe from "stripe";
 import { getStripe } from "@/lib/stripe";
 import { prisma } from "@/lib/prisma";
-import { computeFee, fromStripeAmount } from "@/lib/payments";
+import {
+  CONCIERGE_INSTALLMENT_KIND, computeFee, fromStripeAmount } from "@/lib/payments";
 import { logger, reportError } from "@/lib/logger";
 import { captureServer } from "@/lib/posthog";
 import { ANALYTICS_EVENTS } from "@/lib/analytics-events";
@@ -56,6 +57,83 @@ const HANDLED = new Set([
 // working — the suffix is purely additive context for admin payouts.
 const FUNDS_WITHDRAWN_SUFFIX = ":funds_withdrawn";
 
+/**
+ * A concierge installment was paid through a Payment Link.
+ *
+ * Deliberately simpler than the planner-installment path: there is no
+ * `PaymentSchedule` (that model is welded to a proposal and a planner), and no
+ * platform fee to split, because on this lane Zaffa IS the provider rather
+ * than a marketplace taking a cut. `platform_fee_amount` and
+ * `net_to_planner_amount` stay null, which is what marks these rows as
+ * first-party revenue.
+ */
+async function handleConciergeInstallmentCompleted(
+  session: Stripe.Checkout.Session,
+) {
+  const installmentId = session.metadata?.installmentId;
+  if (!installmentId) return;
+
+  const installment = await prisma.payment.findUnique({
+    where: { id: installmentId },
+    select: { id: true, currency: true, amount: true, event_id: true, status: true },
+  });
+  if (!installment) return;
+  // The webhook is already idempotent at the event level, but a Payment Link
+  // can in principle be completed once and replayed; never double-apply.
+  if (installment.status === "paid") return;
+
+  const gross =
+    session.amount_total != null
+      ? fromStripeAmount(session.amount_total, installment.currency)
+      : Number(installment.amount);
+
+  const paymentIntentId =
+    typeof session.payment_intent === "string"
+      ? session.payment_intent
+      : session.payment_intent?.id ?? null;
+
+  let chargeId: string | null = null;
+  if (paymentIntentId) {
+    try {
+      const pi = await getStripe().paymentIntents.retrieve(paymentIntentId, {
+        expand: ["latest_charge"],
+      });
+      const latest = pi.latest_charge;
+      if (typeof latest === "string") chargeId = latest;
+      else if (latest && typeof latest === "object") chargeId = latest.id;
+    } catch {
+      // Non-fatal — the charge id is only needed for refund handling.
+    }
+  }
+
+  await prisma.payment.update({
+    where: { id: installmentId },
+    data: {
+      status: "paid",
+      paid_at: new Date(),
+      amount: gross,
+      stripe_payment_intent_id: paymentIntentId,
+      stripe_charge_id: chargeId,
+    },
+  });
+
+  // Advance the enquiry once the DEPOSIT lands. Paying the deposit is what
+  // acceptance means on this plan — there is no separate accept step.
+  const enquiryId = session.metadata?.enquiryId;
+  if (enquiryId) {
+    const enquiry = await prisma.enquiry.findUnique({
+      where: { id: enquiryId },
+      select: { id: true, status: true },
+    });
+    if (enquiry && ["quote_sent", "accepted"].includes(enquiry.status)) {
+      await prisma.enquiry.update({
+        where: { id: enquiryId },
+        data: { status: "deposit_paid", status_changed_at: new Date() },
+      });
+    }
+  }
+}
+
 async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
   // Multiple Checkout flows funnel through this single webhook handler
   // (installments + Vision Pack today; future SKUs land here too). The
@@ -69,6 +147,10 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
   }
   if (kind === VISION_PACK_UPGRADE_CHECKOUT_KIND) {
     await handleVisionPackUpgradeCompleted(session);
+    return;
+  }
+  if (kind === CONCIERGE_INSTALLMENT_KIND) {
+    await handleConciergeInstallmentCompleted(session);
     return;
   }
   const installmentId = session.metadata?.installmentId;

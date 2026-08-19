@@ -294,4 +294,111 @@ describe("POST /api/webhooks/stripe", () => {
     // Installment expiration path not touched.
     expect(prismaMock.payment.updateMany).not.toHaveBeenCalled();
   });
+
+  // ---- Concierge installments (Payment Links) ----------------------------
+  //
+  // This lane is deliberately simpler than the planner one: no schedule, and
+  // no platform fee, because on the concierge plan Zaffa IS the provider
+  // rather than a marketplace taking a cut. Those null fee columns are what
+  // mark a row as first-party revenue, so they are asserted explicitly.
+
+  it("concierge installment: flips to paid with NO fee split", async () => {
+    const installmentId = randomUUID();
+    prismaMock.stripeWebhookEvent.create.mockResolvedValue({} as never);
+    prismaMock.stripeWebhookEvent.update.mockResolvedValue({} as never);
+    prismaMock.payment.findUnique.mockResolvedValueOnce({
+      id: installmentId,
+      currency: "AED",
+      amount: 30000,
+      event_id: randomUUID(),
+      status: "awaiting_payment",
+    } as never);
+    prismaMock.payment.update.mockResolvedValue({} as never);
+    prismaMock.enquiry.findUnique.mockResolvedValue(null as never);
+
+    const body = buildEvent("checkout.session.completed", {
+      id: "cs_test_concierge",
+      metadata: { kind: "concierge_installment", installmentId },
+      amount_total: 3000000,
+      payment_intent: null,
+    });
+    const res = await dispatch(body);
+    expect(res.status).toBe(200);
+
+    const data = prismaMock.payment.update.mock.calls[0][0].data;
+    expect(data.status).toBe("paid");
+    expect(data.amount).toBe(30000);
+    // Never a marketplace split on this lane.
+    expect(data).not.toHaveProperty("platform_fee_amount");
+    expect(data).not.toHaveProperty("net_to_planner_amount");
+  });
+
+  it("concierge installment: advances the enquiry to deposit_paid", async () => {
+    const installmentId = randomUUID();
+    const enquiryId = randomUUID();
+    prismaMock.stripeWebhookEvent.create.mockResolvedValue({} as never);
+    prismaMock.stripeWebhookEvent.update.mockResolvedValue({} as never);
+    prismaMock.payment.findUnique.mockResolvedValueOnce({
+      id: installmentId,
+      currency: "AED",
+      amount: 30000,
+      event_id: randomUUID(),
+      status: "awaiting_payment",
+    } as never);
+    prismaMock.payment.update.mockResolvedValue({} as never);
+    prismaMock.enquiry.findUnique.mockResolvedValue({
+      id: enquiryId,
+      status: "quote_sent",
+    } as never);
+    prismaMock.enquiry.update.mockResolvedValue({} as never);
+
+    await dispatch(
+      buildEvent("checkout.session.completed", {
+        id: "cs_test_concierge_enq",
+        metadata: { kind: "concierge_installment", installmentId, enquiryId },
+        amount_total: 3000000,
+        payment_intent: null,
+      })
+    );
+    // Paying the deposit IS acceptance on this plan; there is no separate
+    // accept step for the couple to complete.
+    expect(prismaMock.enquiry.update.mock.calls[0][0].data.status).toBe("deposit_paid");
+  });
+
+  it("concierge installment: never double-applies an already-paid row", async () => {
+    const installmentId = randomUUID();
+    prismaMock.stripeWebhookEvent.create.mockResolvedValue({} as never);
+    prismaMock.stripeWebhookEvent.update.mockResolvedValue({} as never);
+    prismaMock.payment.findUnique.mockResolvedValueOnce({
+      id: installmentId,
+      currency: "AED",
+      amount: 30000,
+      event_id: randomUUID(),
+      status: "paid",
+    } as never);
+
+    await dispatch(
+      buildEvent("checkout.session.completed", {
+        id: "cs_test_concierge_replay",
+        metadata: { kind: "concierge_installment", installmentId },
+        amount_total: 3000000,
+        payment_intent: null,
+      })
+    );
+    expect(prismaMock.payment.update).not.toHaveBeenCalled();
+  });
+
+  it("concierge installment: ignores a session with no installmentId", async () => {
+    prismaMock.stripeWebhookEvent.create.mockResolvedValue({} as never);
+    prismaMock.stripeWebhookEvent.update.mockResolvedValue({} as never);
+    const res = await dispatch(
+      buildEvent("checkout.session.completed", {
+        id: "cs_test_concierge_noid",
+        metadata: { kind: "concierge_installment" },
+      })
+    );
+    expect(res.status).toBe(200);
+    expect(prismaMock.payment.update).not.toHaveBeenCalled();
+  });
+
 });

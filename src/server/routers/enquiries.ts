@@ -10,6 +10,10 @@ import { captureServer } from "@/lib/posthog";
 import { ANALYTICS_EVENTS } from "@/lib/analytics-events";
 import { notifyEnquiryReceived } from "@/server/services/notifications/dispatchers";
 import { EnquiryStatus, EnquiryChannel } from "@/generated/prisma/enums";
+import { getStripe } from "@/lib/stripe";
+import { toStripeAmount, CONCIERGE_INSTALLMENT_KIND } from "@/lib/payments";
+import { getSupabaseAdmin } from "@/lib/supabase/admin";
+
 
 /**
  * Full-service enquiries — the only inbound channel for "The Whole Wedding".
@@ -357,6 +361,238 @@ export const enquiriesRouter = router({
       });
     }),
 
+
+  /**
+   * Turn an accepted enquiry into a real Event the couple can see.
+   *
+   * Matches an existing Profile by the enquiry's user link first, then by
+   * email, and only creates an account as a last resort — a couple who already
+   * has a Zaffa account from the free render must not end up with a second
+   * one, or their designs and their wedding live in different places.
+   */
+  convertToEvent: protectedProcedure
+    .input(z.object({ id: z.string().uuid() }))
+    .mutation(async ({ ctx, input }) => {
+      await assertAdmin(ctx.user.id);
+      const enquiry = await prisma.enquiry.findUnique({ where: { id: input.id } });
+      if (!enquiry) throw new TRPCError({ code: "NOT_FOUND" });
+      if (enquiry.event_id) {
+        return { eventId: enquiry.event_id, created: false as const };
+      }
+
+      let clientId = enquiry.user_id;
+
+      if (!clientId && enquiry.email) {
+        // Supabase owns the email→user mapping; Profile doesn't store email.
+        const admin = getSupabaseAdmin();
+        const { data } = await admin.auth.admin.listUsers();
+        const existing = data?.users?.find(
+          (u) => u.email?.toLowerCase() === enquiry.email!.toLowerCase(),
+        );
+        if (existing) {
+          clientId = existing.id;
+        } else {
+          const { data: created, error } = await admin.auth.admin.inviteUserByEmail(
+            enquiry.email,
+          );
+          if (error || !created?.user) {
+            throw new TRPCError({
+              code: "INTERNAL_SERVER_ERROR",
+              message: `Could not create an account for ${enquiry.email}: ${error?.message ?? "unknown"}`,
+            });
+          }
+          clientId = created.user.id;
+        }
+      }
+
+      if (!clientId) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message:
+            "This enquiry has no email and no linked account, so there is nobody to attach the event to. Capture an email first.",
+        });
+      }
+
+      // The invite creates an auth user; the profile row may lag behind it.
+      await prisma.profile.upsert({
+        where: { id: clientId },
+        create: { id: clientId, role: "client", full_name: enquiry.full_name },
+        update: {},
+      });
+
+      const event = await prisma.event.create({
+        data: {
+          client_id: clientId,
+          title: enquiry.city
+            ? `${enquiry.full_name} — ${enquiry.city}`
+            : enquiry.full_name,
+          event_type: "wedding",
+          event_date: enquiry.event_date,
+          status: "planning",
+        },
+        select: { id: true },
+      });
+
+      await prisma.enquiry.update({
+        where: { id: enquiry.id },
+        data: {
+          event_id: event.id,
+          user_id: clientId,
+          status: enquiry.status === "quote_sent" ? "accepted" : enquiry.status,
+          status_changed_at: new Date(),
+        },
+      });
+
+      return { eventId: event.id, created: true as const };
+    }),
+
+  /**
+   * Write the quote as two schedule-less Payment rows and mint a Stripe
+   * Payment Link for the deposit.
+   *
+   * `Payment` rows with `schedule_id = null` are an explicitly supported shape
+   * ("legacy manual ledger rows"), which lets the concierge lane reuse the
+   * existing refund, dispute and reminder machinery without touching
+   * `PaymentSchedule` — that model requires a proposal and a planner, both of
+   * which belong to the marketplace we just hid.
+   *
+   * The amounts are ZAFFA'S FEE ONLY. Vendor money stays vendor-direct until
+   * the licensing question is settled; see docs/pricing-full-service.md.
+   */
+  createQuote: protectedProcedure
+    .input(
+      z.object({
+        id: z.string().uuid(),
+        total: z.number().positive().max(100_000_000),
+        depositAmount: z.number().positive(),
+        currency: z.string().trim().length(3).toUpperCase(),
+        balanceDueDate: z.coerce.date().optional(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      await assertAdmin(ctx.user.id);
+      if (input.depositAmount > input.total) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "The deposit cannot be larger than the total.",
+        });
+      }
+      const enquiry = await prisma.enquiry.findUnique({ where: { id: input.id } });
+      if (!enquiry) throw new TRPCError({ code: "NOT_FOUND" });
+      if (!enquiry.event_id) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Convert the enquiry to an event before quoting.",
+        });
+      }
+
+      const balance = Number((input.total - input.depositAmount).toFixed(2));
+
+      const deposit = await prisma.payment.create({
+        data: {
+          event_id: enquiry.event_id,
+          schedule_id: null,
+          label: "Deposit",
+          amount: input.depositAmount,
+          currency: input.currency,
+          status: "pending",
+        },
+        select: { id: true },
+      });
+
+      const balanceRow =
+        balance > 0
+          ? await prisma.payment.create({
+              data: {
+                event_id: enquiry.event_id,
+                schedule_id: null,
+                label: "Balance",
+                amount: balance,
+                currency: input.currency,
+                status: "pending",
+                due_date: input.balanceDueDate ?? null,
+              },
+              select: { id: true },
+            })
+          : null;
+
+      const link = await createInstallmentLink({
+        installmentId: deposit.id,
+        enquiryId: enquiry.id,
+        label: `Zaffa — deposit for ${enquiry.full_name}`,
+        amount: input.depositAmount,
+        currency: input.currency,
+      });
+
+      await prisma.payment.update({
+        where: { id: deposit.id },
+        data: {
+          stripe_payment_link_id: link.id,
+          payment_link_url: link.url,
+          status: "awaiting_payment",
+        },
+      });
+
+      await prisma.enquiry.update({
+        where: { id: enquiry.id },
+        data: {
+          quoted_amount: input.total,
+          quoted_currency: input.currency,
+          status: "quote_sent",
+          status_changed_at: new Date(),
+        },
+      });
+
+      return {
+        depositId: deposit.id,
+        balanceId: balanceRow?.id ?? null,
+        paymentLinkUrl: link.url,
+      };
+    }),
+
+  /** Mint a link for an installment that doesn't have one yet (the balance). */
+  createPaymentLink: protectedProcedure
+    .input(z.object({ installmentId: z.string().uuid() }))
+    .mutation(async ({ ctx, input }) => {
+      await assertAdmin(ctx.user.id);
+      const row = await prisma.payment.findUnique({
+        where: { id: input.installmentId },
+        select: {
+          id: true,
+          amount: true,
+          currency: true,
+          label: true,
+          payment_link_url: true,
+          event_id: true,
+        },
+      });
+      if (!row) throw new TRPCError({ code: "NOT_FOUND" });
+      if (row.payment_link_url) return { paymentLinkUrl: row.payment_link_url };
+
+      const enquiry = await prisma.enquiry.findFirst({
+        where: { event_id: row.event_id },
+        select: { id: true, full_name: true },
+      });
+
+      const link = await createInstallmentLink({
+        installmentId: row.id,
+        enquiryId: enquiry?.id ?? null,
+        label: `Zaffa — ${row.label ?? "payment"}${enquiry ? ` for ${enquiry.full_name}` : ""}`,
+        amount: Number(row.amount),
+        currency: row.currency,
+      });
+
+      await prisma.payment.update({
+        where: { id: row.id },
+        data: {
+          stripe_payment_link_id: link.id,
+          payment_link_url: link.url,
+          status: "awaiting_payment",
+        },
+      });
+      return { paymentLinkUrl: link.url };
+    }),
+
   setQuote: protectedProcedure
     .input(
       z.object({
@@ -374,3 +610,42 @@ export const enquiriesRouter = router({
       });
     }),
 });
+
+/**
+ * Create a single-use Stripe Payment Link for one installment.
+ *
+ * `restrictions.completed_sessions.limit = 1` matters: these links get
+ * forwarded around WhatsApp groups, and without it a relative could pay the
+ * deposit twice. The metadata is mirrored onto `payment_intent_data` so it
+ * survives onto the charge, which is what the refund and dispute handlers
+ * resolve against.
+ */
+async function createInstallmentLink(args: {
+  installmentId: string;
+  enquiryId: string | null;
+  label: string;
+  amount: number;
+  currency: string;
+}): Promise<{ id: string; url: string }> {
+  const stripe = getStripe();
+  const metadata: Record<string, string> = {
+    kind: CONCIERGE_INSTALLMENT_KIND,
+    installmentId: args.installmentId,
+  };
+  if (args.enquiryId) metadata.enquiryId = args.enquiryId;
+
+  const price = await stripe.prices.create({
+    currency: args.currency.toLowerCase(),
+    unit_amount: toStripeAmount(args.amount, args.currency),
+    product_data: { name: args.label },
+  });
+
+  const link = await stripe.paymentLinks.create({
+    line_items: [{ price: price.id, quantity: 1 }],
+    metadata,
+    payment_intent_data: { metadata },
+    restrictions: { completed_sessions: { limit: 1 } },
+  });
+
+  return { id: link.id, url: link.url };
+}

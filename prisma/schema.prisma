@@ -661,6 +661,13 @@ model Payment {
   notes       String?
 
   // Stripe linkage. All nullable until the client opens a Checkout session.
+  /// Concierge installments are collected via Stripe Payment Links, not
+  /// Checkout Sessions: a Session expires in 24h, which is wrong for a link
+  /// sent over WhatsApp and opened days later. A Payment Link is persistent
+  /// and can be restricted to a single completion. Null on planner
+  /// installments, which keep using Checkout.
+  stripe_payment_link_id     String?
+  payment_link_url           String?
   stripe_checkout_session_id String?
   stripe_payment_intent_id   String?
   stripe_charge_id           String?

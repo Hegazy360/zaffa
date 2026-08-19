@@ -109,3 +109,11 @@ export function paymentSuccessUrlBase(): string {
  * `useFormatters()` hook so they pick up the active language.
  */
 export { formatCurrency } from "./formatters";
+
+/**
+ * `metadata.kind` discriminator for concierge installments on the shared
+ * Stripe webhook. Lives here rather than in the enquiries router so the
+ * webhook route can read it without importing a router module (which would
+ * pull in Resend and the whole tRPC surface at module load).
+ */
+export const CONCIERGE_INSTALLMENT_KIND = "concierge_installment";
