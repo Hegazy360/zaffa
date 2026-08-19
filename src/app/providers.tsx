@@ -5,7 +5,10 @@ import { httpBatchLink, TRPCClientError } from "@trpc/client";
 import { Suspense, useState } from "react";
 import { trpc } from "@/lib/trpc";
 import superjson from "superjson";
+import { DirectionProvider } from "@base-ui/react/direction-provider";
 import { PostHogProvider } from "@/components/analytics/posthog-provider";
+import { isRtlLocale } from "@/i18n/config";
+import { useLocale } from "next-intl";
 
 function getBaseUrl() {
   if (typeof window !== "undefined") return "";
@@ -35,6 +38,12 @@ function shouldRetry(failureCount: number, error: unknown): boolean {
 }
 
 export function Providers({ children }: { children: React.ReactNode }) {
+  // base-ui reads direction from context, not from the DOM's `dir`. Without
+  // this provider its positioning and arrow-key logic assume LTR even when
+  // <html dir="rtl"> — subtly wrong for our primary locale.
+  const locale = useLocale();
+  const direction = isRtlLocale(locale) ? "rtl" : "ltr";
+
   const [queryClient] = useState(
     () =>
       new QueryClient({
@@ -56,17 +65,19 @@ export function Providers({ children }: { children: React.ReactNode }) {
           transformer: superjson,
         }),
       ],
-    })
+    }),
   );
 
   return (
     <trpc.Provider client={trpcClient} queryClient={queryClient}>
       <QueryClientProvider client={queryClient}>
-        {/* Suspense wraps PostHog because PageviewTracker uses useSearchParams,
+        <DirectionProvider direction={direction}>
+          {/* Suspense wraps PostHog because PageviewTracker uses useSearchParams,
             which Next requires to be inside a Suspense boundary. */}
-        <Suspense fallback={null}>
-          <PostHogProvider>{children}</PostHogProvider>
-        </Suspense>
+          <Suspense fallback={null}>
+            <PostHogProvider>{children}</PostHogProvider>
+          </Suspense>
+        </DirectionProvider>
       </QueryClientProvider>
     </trpc.Provider>
   );

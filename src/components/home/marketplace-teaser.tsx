@@ -108,7 +108,7 @@ export function MarketplaceTeaser({
           />
           <div
             aria-hidden
-            className="pointer-events-none absolute -top-24 end-1/2 h-[36rem] w-[36rem] translate-x-1/2 rounded-full bg-gradient-to-br from-rose-200/30 to-amber-200/25 blur-3xl"
+            className="pointer-events-none absolute -top-24 left-1/2 h-[36rem] w-[36rem] -translate-x-1/2 rounded-full bg-gradient-to-br from-rose-200/30 to-amber-200/25 blur-3xl"
           />
         </>
       )}

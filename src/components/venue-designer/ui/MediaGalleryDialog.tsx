@@ -92,7 +92,7 @@ export function MediaGalleryDialog({
         className={cn(
           "p-4 gap-3 flex flex-col overflow-hidden",
           "inset-0 max-w-full w-screen h-[100dvh] max-h-[100dvh] translate-x-0 translate-y-0 rounded-none ring-0",
-          "sm:inset-auto sm:top-1/2 sm:start-1/2 sm:-translate-x-1/2 sm:-translate-y-1/2 sm:max-w-3xl sm:w-full sm:h-auto sm:max-h-[85vh] sm:rounded-xl sm:ring-1 sm:ring-foreground/10",
+          "sm:inset-auto sm:top-1/2 sm:left-1/2 sm:-translate-x-1/2 sm:-translate-y-1/2 sm:max-w-3xl sm:w-full sm:h-auto sm:max-h-[85vh] sm:rounded-xl sm:ring-1 sm:ring-foreground/10",
         )}
       >
         <DialogHeader className="pe-10 sm:pe-0">

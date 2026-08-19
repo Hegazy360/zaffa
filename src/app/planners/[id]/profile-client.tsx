@@ -143,7 +143,7 @@ export default function PublicPlannerProfilePage() {
         />
         <div
           aria-hidden
-          className="pointer-events-none absolute -top-40 start-1/2 -z-10 h-[28rem] w-[28rem] -translate-x-1/2 rounded-full bg-gradient-to-br from-rose-200/30 to-amber-200/20 blur-3xl"
+          className="pointer-events-none absolute -top-40 left-1/2 -z-10 h-[28rem] w-[28rem] -translate-x-1/2 rounded-full bg-gradient-to-br from-rose-200/30 to-amber-200/20 blur-3xl"
         />
 
         <div className="mx-auto max-w-5xl px-6 py-10 sm:py-14">

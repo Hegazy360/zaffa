@@ -315,13 +315,13 @@ export function ReferencePickerDialog({
         className={cn(
           "p-0 gap-0 flex flex-col overflow-hidden",
           // Mobile: full-screen sheet. `inset-0` + `translate-none`
-          // overrides the base dialog's `top-1/2 start-1/2 -translate-*`
+          // overrides the base dialog's `top-1/2 left-1/2 -translate-*`
           // centering so the popup snaps to the viewport edges without
           // sub-pixel offsets. We also strip the rounded corners and
           // ring so it reads as a native sheet on small screens.
           "inset-0 max-w-full w-screen h-[100dvh] max-h-[100dvh] translate-x-0 translate-y-0 rounded-none ring-0",
           // Desktop: back to the centered card.
-          "sm:inset-auto sm:top-1/2 sm:start-1/2 sm:-translate-x-1/2 sm:-translate-y-1/2 sm:max-w-3xl sm:w-full sm:h-auto sm:max-h-[calc(100dvh-2rem)] sm:rounded-xl sm:ring-1 sm:ring-foreground/10",
+          "sm:inset-auto sm:top-1/2 sm:left-1/2 sm:-translate-x-1/2 sm:-translate-y-1/2 sm:max-w-3xl sm:w-full sm:h-auto sm:max-h-[calc(100dvh-2rem)] sm:rounded-xl sm:ring-1 sm:ring-foreground/10",
         )}
       >
         <DialogHeader className="shrink-0 border-b border-border/60 px-4 pt-4 pb-3 pe-12 sm:border-b-0 sm:px-6 sm:pt-6 sm:pe-6">

@@ -56,7 +56,7 @@ export function BeginSection() {
       />
       <div
         aria-hidden
-        className="pointer-events-none absolute -top-32 start-1/2 h-[42rem] w-[42rem] -translate-x-1/2 rounded-full bg-gradient-to-br from-rose-200/45 to-amber-200/35 blur-3xl"
+        className="pointer-events-none absolute -top-32 left-1/2 h-[42rem] w-[42rem] -translate-x-1/2 rounded-full bg-gradient-to-br from-rose-200/45 to-amber-200/35 blur-3xl"
       />
       <div
         aria-hidden

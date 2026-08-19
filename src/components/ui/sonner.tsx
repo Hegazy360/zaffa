@@ -1,15 +1,18 @@
 "use client"
 
-import { useTheme } from "next-themes"
 import { Toaster as Sonner, type ToasterProps } from "sonner"
 import { CircleCheckIcon, InfoIcon, TriangleAlertIcon, OctagonXIcon, Loader2Icon } from "lucide-react"
 
 const Toaster = ({ ...props }: ToasterProps) => {
-  const { theme = "system" } = useTheme()
-
   return (
     <Sonner
-      theme={theme as ToasterProps["theme"]}
+      // Pinned light, deliberately. This previously read the theme from
+      // next-themes — but no ThemeProvider is mounted anywhere in the app, so
+      // the hook fell back to "system" and Sonner honoured the OS preference.
+      // The result was dark toasts floating over a permanently-light product
+      // for every user on OS dark mode. Zaffa ships one light theme; its
+      // darkness is the deliberate editorial plates, not a colour scheme.
+      theme="light"
       className="toaster group"
       icons={{
         success: (

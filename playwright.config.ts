@@ -38,7 +38,14 @@ export default defineConfig({
       // The visual net runs in its own projects below — keeping it out of
       // the functional project stops every feature PR from re-rendering
       // 12 full-page screenshots.
-      testIgnore: /visual\.spec\.ts/,
+      testIgnore: /(visual|rtl)\.spec\.ts/,
+    },
+    // RTL correctness assertions (ZAF-36). Public surfaces only, so no auth
+    // setup dependency — these must be runnable without a seeded database.
+    {
+      name: "rtl",
+      testMatch: /rtl\.spec\.ts/,
+      use: { ...devices["Desktop Chrome"] },
     },
     // Visual-regression net (ZAF-31). Public surfaces only, no auth setup
     // dependency, reducedMotion so entrance animations collapse to their

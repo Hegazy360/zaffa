@@ -203,13 +203,27 @@
     animation: none;
   }
 
+  /* Transitions and scrolling collapse for everything — no exceptions. */
   *,
   *::before,
   *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
+  }
+
+  /* Animations collapse for everything EXCEPT status indicators.
+     `animation-iteration-count: 1` applied to `*` froze all 163
+     `animate-spin` loaders after a single 0.01ms rotation, so every loading
+     state in the product looked like a hung app — precisely for the users
+     who most need unambiguous feedback. Spinners and pulses communicate
+     "working", which WCAG 2.3.3 treats as essential motion; collapsing
+     their duration instead of exempting them would also make them strobe,
+     which is worse than leaving them be. */
+  *:not(.animate-spin):not(.animate-pulse),
+  *:not(.animate-spin):not(.animate-pulse)::before,
+  *:not(.animate-spin):not(.animate-pulse)::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
   }
 }
 
