@@ -2333,5 +2333,23 @@
     "donePromise": "Nichts beginnt, bevor Sie diese Zahl gesehen und zugestimmt haben.",
     "doneWhatsapp": "Schreiben Sie uns stattdessen jetzt",
     "doneHome": "Zurück zur Startseite"
+  },
+  "concierge": {
+    "packageTitle": "Ihr Zaffa-Paket",
+    "packageSubtitle": "Ein vereinbarter Preis, in Raten zahlbar. Nichts beginnt, bevor Sie zugestimmt haben.",
+    "pay": "Jetzt bezahlen",
+    "paid": "Bezahlt",
+    "due": "Fällig am {date}",
+    "awaiting": "Bereit zur Zahlung",
+    "pending": "Wir senden dies, sobald es fällig ist",
+    "enquiryCardTitle": "Wir kümmern uns darum",
+    "enquiryCardBody": "Wir haben Ihre Anfrage erhalten und melden uns innerhalb eines Tages per WhatsApp bei Ihnen.",
+    "enquiryStatusNew": "Gerade eingegangen",
+    "enquiryStatusContacted": "Wir haben Kontakt aufgenommen",
+    "enquiryStatusCall": "Anruf gebucht",
+    "enquiryStatusQuote": "Ihr Preis liegt vor",
+    "enquiryStatusAccepted": "Vereinbart — wir bereiten alles vor",
+    "enquiryStatusDeposit": "Anzahlung erhalten",
+    "enquiryStatusPlanning": "Wir planen Ihren Tag"
   }
 }

@@ -2333,5 +2333,23 @@
     "donePromise": "Nothing starts until you have seen that number and said yes.",
     "doneWhatsapp": "Message us now instead",
     "doneHome": "Back to the homepage"
+  },
+  "concierge": {
+    "packageTitle": "Your Zaffa package",
+    "packageSubtitle": "One agreed price, paid in stages. Nothing starts until you have said yes.",
+    "pay": "Pay now",
+    "paid": "Paid",
+    "due": "Due {date}",
+    "awaiting": "Ready to pay",
+    "pending": "We will send this when it is due",
+    "enquiryCardTitle": "We are on it",
+    "enquiryCardBody": "We have got your enquiry and we will come back to you on WhatsApp within a day.",
+    "enquiryStatusNew": "Just received",
+    "enquiryStatusContacted": "We have been in touch",
+    "enquiryStatusCall": "Call booked",
+    "enquiryStatusQuote": "Your price is with you",
+    "enquiryStatusAccepted": "Agreed — setting things up",
+    "enquiryStatusDeposit": "Deposit received",
+    "enquiryStatusPlanning": "We are planning your day"
   }
 }

@@ -16,6 +16,41 @@ import { reportError } from "@/lib/logger";
 // to keep one source of truth, capture the platform fee on every transaction,
 // and protect both sides via the Stripe escrow flow.
 export const paymentsRouter = router({
+  /**
+   * The concierge package for one event: schedule-less `Payment` rows.
+   *
+   * `SchedulePanel` reads `paymentSchedules.forEvent` and is welded to the
+   * planner installment model, which requires a proposal and a planner. The
+   * concierge lane has neither, so its rows are the ones with
+   * `schedule_id = null` and they need their own query.
+   */
+  conciergeForEvent: protectedProcedure
+    .input(z.object({ eventId: z.string().uuid() }))
+    .query(async ({ ctx, input }) => {
+      // Ownership is checked against the event, not the payment rows — a
+      // client may only ever see their own wedding's ledger.
+      const event = await prisma.event.findFirst({
+        where: { id: input.eventId, client_id: ctx.user.id },
+        select: { id: true },
+      });
+      if (!event) throw new TRPCError({ code: "NOT_FOUND" });
+
+      return prisma.payment.findMany({
+        where: { event_id: input.eventId, schedule_id: null },
+        orderBy: { created_at: "asc" },
+        select: {
+          id: true,
+          label: true,
+          amount: true,
+          currency: true,
+          status: true,
+          due_date: true,
+          paid_at: true,
+          payment_link_url: true,
+        },
+      });
+    }),
+
   // Client-only: opens a Stripe Checkout Session for a single installment.
   // Returns the URL the client should redirect to.
   createCheckoutSession: protectedProcedure

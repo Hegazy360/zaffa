@@ -62,6 +62,7 @@ import type { EventStatus } from "@/types";
 import { SchedulePanel } from "@/components/payments/SchedulePanel";
 import { useRealtimeMessageSync } from "@/hooks/use-realtime-messages";
 import { RecommendedVenuesCard } from "./_components/recommended-venues-card";
+import { ConciergePackageCard } from "./_components/concierge-package-card";
 
 import { useFormatters } from "@/lib/use-formatters";
 const TABS = [
@@ -859,6 +860,9 @@ function OverviewTab({
       </div>
     </div>
 
+      {/* Renders only when a concierge quote exists, so it can sit here
+          unconditionally for every client. */}
+      <ConciergePackageCard eventId={event.id} />
       <RecommendedVenuesCard eventId={event.id} packSku={latestPackSku} />
     </div>
   );

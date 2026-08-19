@@ -2334,5 +2334,23 @@
     "donePromise": "ولا يبدأ شيء قبل أن تروا هذا الرقم وتوافقوا عليه.",
     "doneWhatsapp": "راسلونا الآن بدلًا من ذلك",
     "doneHome": "العودة إلى الصفحة الرئيسية"
+  },
+  "concierge": {
+    "packageTitle": "باقتكم مع زفّة",
+    "packageSubtitle": "سعر واحد متّفق عليه، يُدفع على مراحل. ولا يبدأ شيء قبل موافقتكم.",
+    "pay": "ادفعوا الآن",
+    "paid": "مدفوع",
+    "due": "مستحق في {date}",
+    "awaiting": "جاهز للدفع",
+    "pending": "سنرسله إليكم عند استحقاقه",
+    "enquiryCardTitle": "الأمر بين أيدينا",
+    "enquiryCardBody": "وصلنا طلبكم وسنعود إليكم عبر واتساب خلال يوم واحد.",
+    "enquiryStatusNew": "وصلنا للتو",
+    "enquiryStatusContacted": "تواصلنا معكم",
+    "enquiryStatusCall": "تم تحديد موعد المكالمة",
+    "enquiryStatusQuote": "أرسلنا إليكم السعر",
+    "enquiryStatusAccepted": "اتفقنا — نجهّز الأمور",
+    "enquiryStatusDeposit": "استلمنا الدفعة الأولى",
+    "enquiryStatusPlanning": "نخطّط ليومكم"
   }
 }

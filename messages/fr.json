@@ -2333,5 +2333,23 @@
     "donePromise": "Rien ne commence avant que vous ayez vu ce montant et dit oui.",
     "doneWhatsapp": "Envoyez-nous un message maintenant",
     "doneHome": "Retour à la page d'accueil"
+  },
+  "concierge": {
+    "packageTitle": "Votre forfait Zaffa",
+    "packageSubtitle": "Un prix unique convenu, payé en plusieurs étapes. Rien ne commence sans votre accord.",
+    "pay": "Payer maintenant",
+    "paid": "Payé",
+    "due": "Échéance {date}",
+    "awaiting": "Prêt à payer",
+    "pending": "Nous l’enverrons à l’échéance",
+    "enquiryCardTitle": "Nous nous en occupons",
+    "enquiryCardBody": "Nous avons reçu votre demande et reviendrons vers vous sur WhatsApp sous un jour.",
+    "enquiryStatusNew": "Vient d’être reçu",
+    "enquiryStatusContacted": "Nous avons pris contact",
+    "enquiryStatusCall": "Appel réservé",
+    "enquiryStatusQuote": "Votre devis est prêt",
+    "enquiryStatusAccepted": "Accordé — mise en place en cours",
+    "enquiryStatusDeposit": "Acompte reçu",
+    "enquiryStatusPlanning": "Nous organisons votre journée"
   }
 }

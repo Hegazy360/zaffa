@@ -18,6 +18,7 @@ import { useTranslations } from "next-intl";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { EnquiryStatusCard } from "@/components/dashboard/enquiry-status-card";
 import { useFormatters } from "@/lib/use-formatters";
 import type { EventStatus, EventType } from "@/types";
 
@@ -85,6 +86,10 @@ export default function ClientDashboardPage() {
       />
 
       <div className="mx-auto max-w-6xl px-6 py-12 sm:py-16">
+        {/* Live enquiry, if any. Renders nothing otherwise, and disappears
+            once the enquiry converts and the package card takes over. */}
+        <EnquiryStatusCard />
+
         {/* Hero */}
         <header className="mb-12 flex flex-col items-start gap-5 sm:flex-row sm:items-end sm:justify-between">
           <div className="space-y-3">
