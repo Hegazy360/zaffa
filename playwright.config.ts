@@ -35,6 +35,31 @@ export default defineConfig({
       name: "chromium",
       use: { ...devices["Desktop Chrome"] },
       dependencies: ["setup"],
+      // The visual net runs in its own projects below — keeping it out of
+      // the functional project stops every feature PR from re-rendering
+      // 12 full-page screenshots.
+      testIgnore: /visual\.spec\.ts/,
+    },
+    // Visual-regression net (ZAF-31). Public surfaces only, no auth setup
+    // dependency, reducedMotion so entrance animations collapse to their
+    // settled state deterministically.
+    {
+      name: "visual-desktop",
+      testMatch: /visual\.spec\.ts/,
+      use: {
+        ...devices["Desktop Chrome"],
+        viewport: { width: 1280, height: 800 },
+        contextOptions: { reducedMotion: "reduce" },
+      },
+    },
+    {
+      name: "visual-mobile",
+      testMatch: /visual\.spec\.ts/,
+      use: {
+        ...devices["Desktop Chrome"],
+        viewport: { width: 390, height: 844 },
+        contextOptions: { reducedMotion: "reduce" },
+      },
     },
   ],
 

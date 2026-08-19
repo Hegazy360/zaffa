@@ -64,6 +64,7 @@ export function MarketplaceTeaser({
     if (isSignup) return null;
     return (
       <section
+      data-visual-mask
         className={cn(
           "relative isolate overflow-hidden bg-gradient-to-b from-background via-amber-50/30 to-background",
           className,
@@ -95,6 +96,7 @@ export function MarketplaceTeaser({
 
   return (
     <section
+      data-visual-mask
       aria-label={t(isHome ? "homeAria" : "signupAria")}
       className={cn(containerCls, className)}
     >

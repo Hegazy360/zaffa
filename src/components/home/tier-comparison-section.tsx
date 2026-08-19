@@ -42,6 +42,9 @@ export function TierComparisonSection() {
 
   return (
     <section
+      // Prices resolve from a client-side per-country fetch, so this block
+      // is non-deterministic in screenshots — masked in the visual net.
+      data-visual-mask
       aria-labelledby="tier-comparison-title"
       className="relative isolate overflow-hidden border-y border-rose-100/70 bg-background"
     >

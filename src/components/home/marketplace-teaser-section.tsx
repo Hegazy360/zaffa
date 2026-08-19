@@ -43,6 +43,7 @@ export function MarketplaceTeaserSkeleton({
   if (isHome) {
     return (
       <section
+      data-visual-mask
         aria-hidden
         className={cn(
           "relative isolate overflow-hidden bg-gradient-to-b from-background via-rose-50/30 to-background",
@@ -77,6 +78,7 @@ export function MarketplaceTeaserSkeleton({
 
   return (
     <section
+      data-visual-mask
       aria-hidden
       className={cn(
         "rounded-3xl border border-rose-200/60 bg-gradient-to-br from-rose-50/80 via-white/70 to-amber-50/60 p-5 shadow-sm backdrop-blur-md sm:p-6 dark:border-rose-900/40 dark:from-rose-950/30 dark:via-card/60 dark:to-amber-950/20",
