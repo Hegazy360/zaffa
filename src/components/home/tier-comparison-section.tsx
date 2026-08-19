@@ -16,6 +16,7 @@ import {
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { useTierPricing, type TierPrice } from "@/components/vision-pack/use-pricing";
+import Link from "next/link";
 import { usePackCheckoutAction } from "@/components/vision-pack/use-pack-checkout-action";
 import { PACK_SKUS, type PackSkuId } from "@/lib/vision-pack";
 
@@ -65,10 +66,16 @@ export function TierComparisonSection() {
           </p>
         </div>
 
-        <div className="mt-12 grid gap-6 md:grid-cols-2">
+        <div className="mt-12 grid gap-6 md:grid-cols-3">
           {ordered.map((tier, idx) => (
             <TierCard key={tier.sku} tier={tier} idx={idx} reduce={reduce} />
           ))}
+          {/* The Whole Wedding. Rendered explicitly rather than through
+              `ordered`, which is priced SKUs only — this tier has no SKU, no
+              Stripe price and no checkout. Keeping it outside the loop is
+              what stops it inheriting `usePackCheckoutAction`, so its button
+              can never open Checkout. */}
+          <WholeWeddingCard idx={ordered.length} reduce={reduce} />
         </div>
       </div>
     </section>
@@ -266,5 +273,85 @@ function ExcludedRow({ label }: { label: string }) {
       </span>
       <span className="flex-1">{label}</span>
     </li>
+  );
+}
+
+/**
+ * The full-service tier, shown beside the two packs.
+ *
+ * It deliberately shares the packs' card chrome so it reads as a third
+ * option rather than an advert bolted on — but it carries no price and no
+ * checkout. The fee is 10-15% of a wedding budget and budgets across our
+ * markets differ by roughly 20x, so any single figure printed here would be
+ * wrong somewhere; how we actually quote lives in
+ * `docs/pricing-full-service.md`. The CTA is a link to /contact, never
+ * `usePackCheckoutAction` — a "tell us about your wedding" button that opens
+ * Stripe Checkout would be the worst outcome available on this page.
+ */
+function WholeWeddingCard({
+  idx,
+  reduce,
+}: {
+  idx: number;
+  reduce: boolean | null;
+}) {
+  const w = useTranslations("marketing.wholeWedding");
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 24 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: "-64px" }}
+      transition={{
+        duration: reduce ? 0 : 0.6,
+        delay: reduce ? 0 : idx * 0.1,
+      }}
+      className="relative flex flex-col overflow-hidden rounded-3xl border border-zinc-800 bg-zinc-950 p-7 text-zinc-50 shadow-xl shadow-zinc-900/20"
+    >
+      <div
+        aria-hidden
+        className="pointer-events-none absolute -top-24 end-[-20%] h-64 w-64 rounded-full bg-gradient-to-br from-rose-500/25 to-amber-400/10 blur-3xl"
+      />
+
+      <div className="relative">
+        <p className="text-[0.65rem] uppercase tracking-[0.22em] text-zinc-400 rtl:tracking-normal">
+          {w("eyebrow")}
+        </p>
+        <p className="mt-1 text-sm text-zinc-400">{w("cardTagline")}</p>
+
+        {/* Where the packs print a number, this prints what happens instead.
+            Same slot, same rhythm, so the row still scans as a price line. */}
+        <div className="mt-5 flex items-baseline gap-1.5">
+          <span className="font-display text-3xl font-light tracking-tight">
+            {w("priceLabel")}
+          </span>
+          <span className="text-xs text-zinc-400">{w("priceHint")}</span>
+        </div>
+      </div>
+
+      <ul className="relative mt-6 space-y-2.5 text-sm">
+        {(["card1", "card2", "card3", "card4"] as const).map((key) => (
+          <li key={key} className="flex items-start gap-2.5 text-zinc-300">
+            <span
+              aria-hidden
+              className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-gradient-to-br from-rose-400 to-amber-300"
+            />
+            <span>{w(key)}</span>
+          </li>
+        ))}
+      </ul>
+
+      <div className="relative mt-7 border-t border-zinc-800 pt-6">
+        <Button
+          size="lg"
+          render={<Link href="/contact" />}
+          className="group h-11 w-full gap-2 bg-white text-sm text-zinc-950 hover:bg-zinc-100"
+        >
+          {w("cta")}
+          <ArrowRight className="h-4 w-4 transition-transform rtl:-scale-x-100 group-hover:translate-x-0.5 rtl:group-hover:-translate-x-0.5" />
+        </Button>
+        <p className="mt-3 text-center text-xs text-zinc-500">{w("ctaHint")}</p>
+      </div>
+    </motion.div>
   );
 }

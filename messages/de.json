@@ -585,7 +585,14 @@
       "reassuranceLong": "Sie wählen weiterhin alles selbst – Location, Kleid, Blumen. Nur das Nachhaken, Kontrollieren und Grübeln, ob Sie zu viel bezahlt haben, fällt weg.",
       "cta": "Erzählen Sie uns von Ihrer Hochzeit",
       "ctaHint": "Ein Gespräch, dann ein Festpreis. Keine Karte, keine Verpflichtung.",
-      "covers": "Planer | Location | Fotograf | Dekoration | Blumen | Catering | Musik | Einladungen | Haare & Make-up | Transport | Zeitplan | Nachverfolgung"
+      "covers": "Planer | Location | Fotograf | Dekoration | Blumen | Catering | Musik | Einladungen | Haare & Make-up | Transport | Zeitplan | Nachverfolgung",
+      "cardTagline": "Wir organisieren die gesamte Hochzeit, von Anfang bis Ende.",
+      "priceLabel": "Angebot für Ihren Tag",
+      "priceHint": "nach nur einem Gespräch",
+      "card1": "Jeder Anbieter gefunden, gebucht und betreut",
+      "card2": "Zwei oder drei echte Optionen pro Kategorie",
+      "card3": "Gebucht zu unseren Preisen, nicht zu Hochzeitspreisen",
+      "card4": "Eine Ansprechperson, vom ersten Anruf bis zum Hochzeitstag"
     }
   },
   "dashboard": {

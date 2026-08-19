@@ -585,7 +585,14 @@
       "reassuranceLong": "Vous choisissez toujours tout — le lieu, la robe, les fleurs. Vous ne serez simplement pas celle qui court après, vérifie ou s’inquiète d’avoir payé trop cher.",
       "cta": "Parlez-nous de votre mariage",
       "ctaHint": "Un échange, puis un prix fixe. Sans carte, sans engagement.",
-      "covers": "organisateur | lieu | photographe | décoration | fleurs | traiteur | musique | invitations | coiffure & maquillage | transport | planning | relances"
+      "covers": "organisateur | lieu | photographe | décoration | fleurs | traiteur | musique | invitations | coiffure & maquillage | transport | planning | relances",
+      "cardTagline": "Nous orchestrons tout le mariage, de A à Z.",
+      "priceLabel": "Un devis personnalisé pour votre journée",
+      "priceHint": "après une seule conversation",
+      "card1": "Chaque prestataire trouvé, réservé et géré",
+      "card2": "Deux ou trois options réelles par prestation",
+      "card3": "Réservé à nos tarifs, pas aux tarifs mariage",
+      "card4": "Une seule personne, du premier appel au jour J"
     }
   },
   "dashboard": {

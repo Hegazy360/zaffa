@@ -460,9 +460,9 @@
     "heroCtaHint": "No card needed. Start with a free look at your day.",
     "heroSocialProof": "Loved by 10,000+ couples planning the day they actually want",
     "startingPrice": "Starting at {price}",
-    "tiersEyebrow": "Or start it yourself",
-    "tiersTitle": "Pick the pack that fits your day",
-    "tiersSubtitle": "Both packs ship a real moodboard, photoreal renders, a printable lookbook PDF, and a private microsite. The Vision Pack adds Zaffa-curated venue suggestions and the option to match with verified planners.",
+    "tiersEyebrow": "Three ways in",
+    "tiersTitle": "Pick how much you want to do yourself",
+    "tiersSubtitle": "Start on your own with a pack, or hand us the whole thing. The packs ship a moodboard, photoreal renders, a printable lookbook and a private microsite. The Whole Wedding is us running it.",
     "tierBadgeMostPopular": "Most popular",
     "tierIncludedRenders": "{count} photoreal renders ({styles} styles)",
     "tierIncludedVideos": "{count} short cinematic video",
@@ -585,7 +585,14 @@
       "reassuranceLong": "You'll still choose everything — the venue, the dress, the flowers. You just won't be the one chasing it, checking it, or lying awake wondering whether you paid too much.",
       "cta": "Tell us about your wedding",
       "ctaHint": "One conversation, then a fixed price. No card, no obligation.",
-      "covers": "planner | venue | photographer | decor | flowers | catering | music | invitations | hair & makeup | transport | the schedule | the chasing"
+      "covers": "planner | venue | photographer | decor | flowers | catering | music | invitations | hair & makeup | transport | the schedule | the chasing",
+      "cardTagline": "We run the whole wedding, end to end.",
+      "priceLabel": "Quoted for your day",
+      "priceHint": "after one conversation",
+      "card1": "Every vendor found, booked and managed",
+      "card2": "Two or three real options per thing",
+      "card3": "Booked at our rates, not wedding rates",
+      "card4": "One person, first call to wedding day"
     }
   },
   "dashboard": {
