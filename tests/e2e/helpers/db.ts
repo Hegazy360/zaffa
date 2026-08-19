@@ -268,3 +268,87 @@ export async function getPayoutForInstallment(
     amount: Number(p.amount),
   };
 }
+
+// ---------------------------------------------------------------- concierge
+
+export interface EnquirySnapshot {
+  id: string;
+  status: string;
+  full_name: string;
+  country: string | null;
+  city: string | null;
+  guest_band: string | null;
+  budget_band: string | null;
+  budget_currency: string | null;
+  preferred_channel: string;
+  locale: string | null;
+  event_id: string | null;
+  design_id: string | null;
+}
+
+/** The most recent enquiry for an email, or null. */
+export async function getEnquiryByEmail(
+  email: string,
+): Promise<EnquirySnapshot | null> {
+  const { rows } = await getPool().query<EnquirySnapshot>(
+    `select id, status, full_name, country, city, guest_band, budget_band,
+            budget_currency, preferred_channel, locale, event_id, design_id
+       from enquiries
+      where lower(email) = lower($1)
+      order by created_at desc
+      limit 1`,
+    [email],
+  );
+  return rows[0] ?? null;
+}
+
+export interface ConciergeInstallment {
+  id: string;
+  label: string | null;
+  amount: string;
+  currency: string;
+  status: string;
+  payment_link_url: string | null;
+  platform_fee_amount: string | null;
+  net_to_planner_amount: string | null;
+}
+
+/**
+ * Schedule-less payments for an event — the concierge ledger.
+ *
+ * Selecting the fee columns deliberately: on this lane they must stay null,
+ * which is what marks the row as first-party revenue rather than a
+ * marketplace split.
+ */
+export async function getConciergeInstallments(
+  eventId: string,
+): Promise<ConciergeInstallment[]> {
+  const { rows } = await getPool().query<ConciergeInstallment>(
+    `select id, label, amount::text, currency, status, payment_link_url,
+            platform_fee_amount::text, net_to_planner_amount::text
+       from payments
+      where event_id = $1 and schedule_id is null
+      order by created_at asc`,
+    [eventId],
+  );
+  return rows;
+}
+
+/** Removes an enquiry and everything created from it. Test cleanup only. */
+export async function purgeEnquiryByEmail(email: string): Promise<void> {
+  const pool = getPool();
+  const { rows } = await pool.query<{ id: string; event_id: string | null }>(
+    `select id, event_id from enquiries where lower(email) = lower($1)`,
+    [email],
+  );
+  for (const row of rows) {
+    if (row.event_id) {
+      await pool.query(`delete from payments where event_id = $1`, [row.event_id]);
+    }
+    await pool.query(`delete from enquiry_notes where enquiry_id = $1`, [row.id]);
+    await pool.query(`delete from enquiries where id = $1`, [row.id]);
+    if (row.event_id) {
+      await pool.query(`delete from events where id = $1`, [row.event_id]);
+    }
+  }
+}

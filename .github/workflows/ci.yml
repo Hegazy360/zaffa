@@ -90,7 +90,7 @@ jobs:
         run: npm run build
 
   e2e:
-    name: Playwright E2E (money path)
+    name: Playwright E2E (money paths: planner, pack, concierge)
     runs-on: ubuntu-latest
     # E2E is the slowest job — gate it on the cheaper jobs going green so we
     # don't burn 5 minutes of CI when we already know the change won't ship.
