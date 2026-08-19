@@ -173,7 +173,7 @@ export function WholeWeddingSection() {
 
               <Button
                 size="lg"
-                render={<Link href="/contact" />}
+                render={<Link href="/enquire" />}
                 className="group mt-8 h-12 w-full gap-2 bg-white px-8 text-base text-zinc-950 hover:bg-zinc-100 sm:w-auto"
               >
                 {t("cta")}

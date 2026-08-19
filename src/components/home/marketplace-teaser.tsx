@@ -234,14 +234,14 @@ export function MarketplaceTeaser({
                 {t("homeCtaCouple")}
                 <ArrowRight className="h-4 w-4 transition-transform rtl:-scale-x-100 group-hover:translate-x-0.5 rtl:group-hover:-translate-x-0.5" />
               </Button>
-              {/* Secondary CTA is the full-service enquiry. Points at
-                  /contact until the dedicated wizard lands (ZAF-39); the
+              {/* Secondary CTA is the full-service enquiry. Points at the
+                  dedicated intake wizard (ZAF-39); the
                   planner-acquisition CTA that used to sit here pointed at a
                   route that now 404s. */}
               <Button
                 size="lg"
                 variant="outline"
-                render={<Link href="/contact" />}
+                render={<Link href="/enquire" />}
                 className="group h-12 gap-2 border-rose-200/70 bg-white/80 px-6 text-base backdrop-blur-sm hover:border-rose-300 hover:bg-white"
               >
                 {t("homeCtaFullService")}

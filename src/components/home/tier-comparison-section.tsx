@@ -347,7 +347,7 @@ function WholeWeddingCard({
       <div className="relative mt-7 border-t border-zinc-800 pt-6">
         <Button
           size="lg"
-          render={<Link href="/contact" />}
+          render={<Link href="/enquire" />}
           className="group h-11 w-full gap-2 bg-white text-sm text-zinc-950 hover:bg-zinc-100"
         >
           {w("cta")}
