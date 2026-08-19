@@ -240,6 +240,12 @@ const DEMO_VARS: Record<NotificationType, SeedVars> = {
     venueCity: "Cairo",
     eventTitle: "Layla & Adam's Summer Rooftop",
   },
+  enquiry_received: {
+    fullName: "Noor & Faisal",
+    city: "Dubai",
+    guests: "150–200 guests",
+    channel: "WhatsApp",
+  },
 };
 
 function parseArgs(): {

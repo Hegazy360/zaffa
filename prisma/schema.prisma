@@ -164,6 +164,31 @@ enum NotificationType {
   // Ops/admin: couple clicked "I'm interested" on a recommended venue.
   // Fan-out target is whichever admins should action the introduction.
   venue_lead_opened
+  // Ops/admin: a full-service enquiry landed. This is the flagship tier's
+  // only inbound channel, so the fan-out is deliberately noisy.
+  enquiry_received
+}
+
+/// Sales pipeline for the full-service plan ("The Whole Wedding").
+/// Forward-only except `lost`, which is reachable from any state.
+enum EnquiryStatus {
+  new
+  contacted
+  call_scheduled
+  quote_sent
+  accepted
+  deposit_paid
+  in_planning
+  delivered
+  lost
+}
+
+/// How the couple prefers to be reached. WhatsApp leads because it is the
+/// dominant business channel across our launch markets.
+enum EnquiryChannel {
+  whatsapp
+  email
+  phone
 }
 
 model Profile {
@@ -201,18 +226,20 @@ model Profile {
   created_at             DateTime  @default(now())
   updated_at             DateTime  @updatedAt
 
-  planner_profile     PlannerProfile?
-  vendor_profile      VendorProfile?
-  client_events       Event[]            @relation("ClientEvents")
-  sent_messages       Message[]
-  reviews             Review[]           @relation("AuthorReviews")
-  vendor_reviews      VendorReview[]     @relation("AuthorVendorReviews")
-  style_quiz_sessions StyleQuizSession[]
-  venue_designs       VenueDesign[]
-  notifications       Notification[]
-  bought_vision_packs VisionPack[]       @relation("PackBuyer")
-  received_vision_packs VisionPack[]     @relation("PackRecipient")
-  email_capture_events EmailCaptureEvent[]
+  planner_profile       PlannerProfile?
+  vendor_profile        VendorProfile?
+  client_events         Event[]             @relation("ClientEvents")
+  sent_messages         Message[]
+  reviews               Review[]            @relation("AuthorReviews")
+  vendor_reviews        VendorReview[]      @relation("AuthorVendorReviews")
+  style_quiz_sessions   StyleQuizSession[]
+  venue_designs         VenueDesign[]
+  notifications         Notification[]
+  enquiries             Enquiry[]           @relation("EnquiryContact")
+  enquiry_notes         EnquiryNote[]
+  bought_vision_packs   VisionPack[]        @relation("PackBuyer")
+  received_vision_packs VisionPack[]        @relation("PackRecipient")
+  email_capture_events  EmailCaptureEvent[]
 
   @@index([is_anonymous, created_at])
   @@map("profiles")
@@ -434,18 +461,19 @@ model Event {
   created_at         DateTime    @default(now())
   updated_at         DateTime    @updatedAt
 
-  client                 Profile                    @relation("ClientEvents", fields: [client_id], references: [id], onDelete: Cascade)
-  planner                PlannerProfile?            @relation("PlannerEvents", fields: [planner_id], references: [id])
-  vendors                EventVendor[]
-  messages               Message[]
-  designs                VenueDesign[]
-  payments               Payment[]
-  proposals              Proposal[]
-  reviews                Review[]
-  payment_schedules      PaymentSchedule[]
-  vendor_engagements     VendorEngagement[]
-  vision_packs           VisionPack[]
-  venue_recommendations  EventVenueRecommendation[]
+  client                Profile                    @relation("ClientEvents", fields: [client_id], references: [id], onDelete: Cascade)
+  planner               PlannerProfile?            @relation("PlannerEvents", fields: [planner_id], references: [id])
+  vendors               EventVendor[]
+  messages              Message[]
+  designs               VenueDesign[]
+  payments              Payment[]
+  proposals             Proposal[]
+  reviews               Review[]
+  payment_schedules     PaymentSchedule[]
+  vendor_engagements    VendorEngagement[]
+  vision_packs          VisionPack[]
+  venue_recommendations EventVenueRecommendation[]
+  enquiries             Enquiry[]
 
   // Hot path: the marketplace teaser counts/fetches "open briefs"
   // (planner_id IS NULL). Without this we seq-scan `events` on every
@@ -578,9 +606,10 @@ model VenueDesign {
   created_at  DateTime  @default(now())
   updated_at  DateTime  @updatedAt
 
-  user  Profile            @relation(fields: [user_id], references: [id], onDelete: Cascade)
-  event Event?             @relation(fields: [event_id], references: [id], onDelete: SetNull)
-  media VenueDesignMedia[]
+  user      Profile            @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  event     Event?             @relation(fields: [event_id], references: [id], onDelete: SetNull)
+  media     VenueDesignMedia[]
+  enquiries Enquiry[]
 
   // Marketplace teaser joins event → designs and filters approved_at IS
   // NOT NULL. Composite (event_id, approved_at) supersedes the bare
@@ -591,27 +620,27 @@ model VenueDesign {
 }
 
 model VenueDesignMedia {
-  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  design_id  String   @db.Uuid
+  id                   String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  design_id            String   @db.Uuid
   // For videos: id of the render (also a VenueDesignMedia row) the video was
   // generated from. NULL for renders themselves and for legacy videos from
   // before this column existed.
-  parent_id  String?  @db.Uuid
-  type       String
+  parent_id            String?  @db.Uuid
+  type                 String
   // CDN URL of the clean (un-watermarked) asset. For free-tier renders
   // the list/getById endpoints rewrite this on read into the signed
   // watermarked URL derived from `cloudinary_public_id` (see
   // `watermarkedUrl` in `src/lib/cloudinary.ts`).
-  url        String
+  url                  String
   // Cloudinary `public_id` for media uploaded through our pipeline.
   // Nullable for legacy rows + provider URLs that bypass Cloudinary.
   // Required to derive the watermarked transformation URL on the fly.
   cloudinary_public_id String?
-  created_at DateTime @default(now())
+  created_at           DateTime @default(now())
 
-  design   VenueDesign        @relation(fields: [design_id], references: [id], onDelete: Cascade)
-  parent   VenueDesignMedia?  @relation("MediaParent", fields: [parent_id], references: [id], onDelete: SetNull)
-  children VenueDesignMedia[] @relation("MediaParent")
+  design               VenueDesign         @relation(fields: [design_id], references: [id], onDelete: Cascade)
+  parent               VenueDesignMedia?   @relation("MediaParent", fields: [parent_id], references: [id], onDelete: SetNull)
+  children             VenueDesignMedia[]  @relation("MediaParent")
   email_capture_events EmailCaptureEvent[]
 
   @@map("venue_design_media")
@@ -1045,16 +1074,16 @@ model VisionPack {
   // The free email-gated tier (`wedding_free_taste_v1`) is stored with
   // `amount = 0`. Refund eligibility (`isPackRefundable`) short-circuits
   // on amount === 0 so the free tier is never refundable.
-  stripe_checkout_session_id String?  @unique
+  stripe_checkout_session_id String?   @unique
   stripe_payment_intent_id   String?
   amount                     Int
-  currency                   String   @default("EGP")
+  currency                   String    @default("EGP")
   paid_at                    DateTime?
   // 2-letter ISO country resolved from the geo cookie/header at
   // checkout time. Stamped immutably so the delta-priced upgrade flow
   // can resolve the destination tier price in the same market the
   // original purchase used. Null on legacy rows + the free tier.
-  purchase_country           String?  @db.VarChar(8)
+  purchase_country           String?   @db.VarChar(8)
 
   // Quotas. Stamped from the SKU registry at checkout time so an
   // individual pack keeps its quotas even if the SKU defaults change.
@@ -1086,9 +1115,9 @@ model VisionPack {
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
 
-  buyer     Profile  @relation("PackBuyer", fields: [buyer_user_id], references: [id], onDelete: Cascade)
-  recipient Profile? @relation("PackRecipient", fields: [recipient_user_id], references: [id], onDelete: SetNull)
-  event     Event?   @relation(fields: [event_id], references: [id], onDelete: SetNull)
+  buyer     Profile             @relation("PackBuyer", fields: [buyer_user_id], references: [id], onDelete: Cascade)
+  recipient Profile?            @relation("PackRecipient", fields: [recipient_user_id], references: [id], onDelete: SetNull)
+  event     Event?              @relation(fields: [event_id], references: [id], onDelete: SetNull)
   upgrades  VisionPackUpgrade[]
 
   @@index([recipient_user_id, status])
@@ -1140,17 +1169,17 @@ model VisionPackUpgrade {
 // drives the reconciliation cron that retries pushes to Resend
 // Audiences for captures that failed first time.
 model EmailCaptureEvent {
-  id              String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  anon_user_id    String    @db.Uuid
-  email           String
-  ip              String?
-  country         String?
-  design_id       String?   @db.Uuid
-  render_id       String?   @db.Uuid
+  id               String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  anon_user_id     String    @db.Uuid
+  email            String
+  ip               String?
+  country          String?
+  design_id        String?   @db.Uuid
+  render_id        String?   @db.Uuid
   // pending | sent | confirmed | failed
-  status          String    @default("pending")
+  status           String    @default("pending")
   resend_synced_at DateTime?
-  created_at      DateTime  @default(now())
+  created_at       DateTime  @default(now())
 
   anon_user Profile           @relation(fields: [anon_user_id], references: [id], onDelete: Cascade)
   render    VenueDesignMedia? @relation(fields: [render_id], references: [id], onDelete: SetNull)
@@ -1319,4 +1348,90 @@ model Post {
 
   @@index([status, created_at(sort: Desc)])
   @@map("posts")
+}
+
+/// A full-service enquiry — the only inbound channel for "The Whole Wedding".
+///
+/// Persistence is the whole point of this model. Before it existed, an
+/// enquiry for the flagship tier was a single Resend email that silently
+/// vanished if the API key was absent, so the sales pipeline lived in one
+/// shared mailbox. The row is now written first and every side effect
+/// (admin fan-out, acknowledgement email, analytics) is best-effort after it.
+///
+/// `user_id` is nullable on purpose: the wizard is open to anonymous
+/// visitors, and the middleware only mints a Supabase user on the designer
+/// and dashboard routes. A cold visitor from the homepage submits with
+/// contact details alone.
+model Enquiry {
+  id                String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  status            EnquiryStatus @default(new)
+  status_changed_at DateTime      @default(now()) @db.Timestamptz(6)
+
+  /// Set when the submitter had a session (anonymous or permanent). Kept on
+  /// SetNull so reaping anonymous users never destroys a lead.
+  user_id String?  @db.Uuid
+  user    Profile? @relation("EnquiryContact", fields: [user_id], references: [id], onDelete: SetNull)
+
+  full_name         String
+  email             String?
+  /// E.164. At least one of email/phone is enforced in the router rather
+  /// than the database, so the constraint can carry a translated message.
+  phone             String?
+  preferred_channel EnquiryChannel @default(whatsapp)
+
+  /// ISO-3166-1 alpha-2, prefilled from the same `zaffa_country` cookie that
+  /// drives per-country pricing. Never restricted to a list — an enquiry from
+  /// an unpriced market is quoted bespoke, never refused.
+  country         String?   @db.VarChar(2)
+  city            String?
+  event_date      DateTime? @db.Date
+  date_flexible   Boolean   @default(false)
+  /// Matches the buckets in `sizeFromGuestCount` so the wizard and the
+  /// designer speak the same language.
+  guest_band      String?
+  budget_band     String?
+  budget_currency String?   @db.Char(3)
+  message         String?
+
+  /// The design they enquired from — their AI render IS the brief. The
+  /// admin sees their other designs via `user_id`, so no join table.
+  design_id String?      @db.Uuid
+  design    VenueDesign? @relation(fields: [design_id], references: [id], onDelete: SetNull)
+  /// Set on conversion, linking the lead to the event we then run.
+  event_id  String?      @db.Uuid
+  event     Event?       @relation(fields: [event_id], references: [id], onDelete: SetNull)
+
+  /// Which surface produced it: whole_wedding_home | render_page | contact | admin
+  source String  @default("whole_wedding_home")
+  locale String? @db.VarChar(5)
+
+  /// Written when an admin prepares the quote. Decimal majors, matching
+  /// `Payment.amount` rather than the minor-unit convention VisionPack uses.
+  quoted_amount   Decimal? @db.Decimal(12, 2)
+  quoted_currency String?  @db.Char(3)
+
+  created_at DateTime @default(now()) @db.Timestamptz(6)
+  updated_at DateTime @updatedAt @db.Timestamptz(6)
+
+  notes EnquiryNote[]
+
+  /// The admin inbox is a status-filtered, newest-first list; this index is
+  /// exactly that query.
+  @@index([status, created_at(sort: Desc)])
+  @@index([user_id])
+  @@map("enquiries")
+}
+
+/// Free-text operator notes on an enquiry — the CRM's memory between calls.
+model EnquiryNote {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  enquiry_id String   @db.Uuid
+  enquiry    Enquiry  @relation(fields: [enquiry_id], references: [id], onDelete: Cascade)
+  author_id  String   @db.Uuid
+  author     Profile  @relation(fields: [author_id], references: [id], onDelete: Cascade)
+  body       String
+  created_at DateTime @default(now()) @db.Timestamptz(6)
+
+  @@index([enquiry_id, created_at(sort: Desc)])
+  @@map("enquiry_notes")
 }

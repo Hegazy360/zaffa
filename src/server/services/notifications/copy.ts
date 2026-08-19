@@ -434,6 +434,24 @@ const CATALOG: Record<
       eyebrow: "طلب مكان",
     },
   },
+
+  // ----- Ops: full-service enquiry -----
+  // Admin-facing, so the Arabic here is فصحى rather than the colloquial the
+  // marketing surfaces use — this is an internal, commitment-adjacent alert.
+  enquiry_received: {
+    en: {
+      title: "{fullName} wants us to run their wedding",
+      body: "A full-service enquiry came in from {fullName} — {city}, {guests}. Reply on {channel} before the trail goes cold.",
+      ctaLabel: "Open the enquiry",
+      eyebrow: "New enquiry",
+    },
+    ar: {
+      title: "{fullName} يريد أن نتولّى تنظيم زفافه",
+      body: "وصل طلب خدمة كاملة من {fullName} — {city}، {guests}. تواصل معه عبر {channel} قبل أن يفتر الاهتمام.",
+      ctaLabel: "فتح الطلب",
+      eyebrow: "طلب جديد",
+    },
+  },
 };
 
 /**
