@@ -15,3 +15,24 @@ export const WHATSAPP_NUMBER_DISPLAY = "+33 7 69 99 97 07";
 export const WHATSAPP_NUMBER_DIGITS = WHATSAPP_NUMBER_E164.replace(/\D/g, "");
 /** Tap-to-chat link. Opens the native WhatsApp app or the web client. */
 export const WHATSAPP_LINK = `https://wa.me/${WHATSAPP_NUMBER_DIGITS}`;
+
+/**
+ * A wa.me deep link to a *lead's* number, optionally with a prefilled message.
+ *
+ * Note the direction: the constants above are OUR number, for visitors to
+ * reach us. This is the reverse — the operator opening a chat with a couple
+ * from the CRM. Returns null when there's no usable number, so callers render
+ * the absence rather than a broken link.
+ */
+export function waLinkFor(
+  phone: string | null | undefined,
+  message?: string,
+): string | null {
+  if (!phone) return null;
+  const digits = phone.replace(/\D/g, "");
+  // Too short to be a real international number — better to show nothing than
+  // to open WhatsApp on a malformed contact.
+  if (digits.length < 8) return null;
+  const base = `https://wa.me/${digits}`;
+  return message ? `${base}?text=${encodeURIComponent(message)}` : base;
+}

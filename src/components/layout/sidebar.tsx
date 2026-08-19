@@ -172,6 +172,14 @@ const roleLinks: Record<UserRole, NavLink[]> = {
   admin: [
     { href: "/dashboard/admin", labelKey: "overview", icon: Home },
     {
+      // Top of the admin group: this is the flagship tier's pipeline, and
+      // response latency is where these deals die.
+      href: "/dashboard/admin/enquiries",
+      labelKey: "enquiries",
+      icon: Inbox,
+      match: ["/dashboard/admin/enquiries"],
+    },
+    {
       href: "/dashboard/admin/users",
       labelKey: "users",
       icon: Users,
