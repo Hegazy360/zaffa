@@ -7,6 +7,7 @@ import { aiRouter } from "./ai";
 import { authRouter } from "./auth";
 import { availabilityRouter } from "./availability";
 import { contactRouter } from "./contact";
+import { enquiriesRouter } from "./enquiries";
 import { discoveryRouter } from "./discovery";
 import { eventsRouter } from "./events";
 import { inspirationRouter } from "./inspiration";
@@ -39,6 +40,7 @@ export const appRouter = router({
   auth: authRouter,
   availability: availabilityRouter,
   contact: contactRouter,
+  enquiries: enquiriesRouter,
   discovery: discoveryRouter,
   events: eventsRouter,
   inspiration: inspirationRouter,

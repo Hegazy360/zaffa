@@ -32,6 +32,11 @@ export const limiters = {
   // legitimate follow-up message will easily clear it.
   contactForm: makeLimiter("rl:contact", 5, "10 m"),
   contactFormDaily: makeLimiter("rl:contact:d", 20, "1 d"),
+  // Full-service enquiries. Same shape as the contact form — this is the
+  // flagship tier's only inbound channel, so the limits exist to slow abuse
+  // without ever turning a real buyer away.
+  enquiryForm: makeLimiter("rl:enquiry", 5, "10 m"),
+  enquiryFormDaily: makeLimiter("rl:enquiry:d", 20, "1 d"),
   // Per-user AI surfaces. These are the most expensive operations.
   // Two layers: the per-hour limiter caps burst usage; the per-day
   // limiter is the cost ceiling. Render image calls cost ~$0.04 each at

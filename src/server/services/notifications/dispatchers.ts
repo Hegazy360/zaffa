@@ -535,6 +535,35 @@ export async function notifyVenueLeadOpened(args: {
   });
 }
 
+// A full-service enquiry landed. Fan out to every admin: this is the flagship
+// tier's only inbound channel and response latency is where these deals die,
+// so the notification is deliberately noisy rather than batched.
+export async function notifyEnquiryReceived(args: {
+  enquiryId: string;
+  fullName: string;
+  city: string;
+  guests: string;
+  channel: string;
+}): Promise<void> {
+  const admins = await prisma.profile.findMany({
+    where: { role: "admin" },
+    select: { id: true },
+  });
+  if (admins.length === 0) return;
+  await notifyMany({
+    userIds: admins.map((a) => a.id),
+    type: "enquiry_received",
+    link: `/dashboard/admin/enquiries/${args.enquiryId}`,
+    varsFor: () => ({
+      fullName: args.fullName,
+      city: args.city,
+      guests: args.guests,
+      channel: args.channel,
+    }),
+    data: { enquiryId: args.enquiryId },
+  });
+}
+
 // ----- Shared -----
 
 export function notifyMessageReceived(args: {
