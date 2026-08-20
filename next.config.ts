@@ -37,7 +37,15 @@ const securityHeaders = [
       "worker-src 'self' blob:",
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
       "font-src 'self' data: https://fonts.gstatic.com",
-      "img-src 'self' data: blob: https://*.stripe.com https://*.supabase.co https://res.cloudinary.com https://images.unsplash.com https://*.googleusercontent.com https://*.fbcdn.net https://*.i.posthog.com https://analytics.tiktok.com",
+      // i.pinimg.com is back, and it is not the hotlink ZAF-46 removed.
+      // That one was a decorative photo on the sign-in page — somebody else's
+      // image, used as our own. This is the Pinterest reference *search*: the
+      // designer's inspiration board and reference picker display search
+      // results, which is the feature working as intended. Removing the host
+      // from the CSP blocked those thumbnails in production; removing it from
+      // `remotePatterns` was correct and stays, because these are arbitrary
+      // third-party URLs that must not go through our image optimizer.
+      "img-src 'self' data: blob: https://*.stripe.com https://*.supabase.co https://res.cloudinary.com https://images.unsplash.com https://i.pinimg.com https://*.googleusercontent.com https://*.fbcdn.net https://*.i.posthog.com https://analytics.tiktok.com",
       "media-src 'self' blob: https://res.cloudinary.com",
       // `data:` is required by `html-to-image` (used by the admin post
       // rasterizer): it walks the DOM and re-fetches embedded images,
