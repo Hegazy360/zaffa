@@ -389,9 +389,33 @@
    anchored to the document root would leave every one of those broken. Both
    forms are needed because a descendant selector cannot match the element
    that carries the attribute itself. */
-[dir="rtl"] .text-eyebrow,
-.text-eyebrow[dir="rtl"] {
+/* Tracking follows the *direction the text is actually in*, not the document's.
+   Four combinations, and all four have to be right, because Arabic appears
+   inside English pages (the brand mark, a name, a quote) and Latin appears
+   inside Arabic ones.
+
+   The obvious way to write this is `.text-eyebrow:dir(rtl)`, which asks
+   exactly the right question. It cannot be used: Lightning CSS transpiles
+   `:dir()` into a `:lang()` list for the current browser targets, and language
+   is not direction — a `dir="rtl"` element inside an English document stops
+   matching.
+
+   So: two ancestor rules, then two self rules with the attribute doubled to
+   raise their specificity. An element's own `dir` has to beat whatever it is
+   nested in, and equal specificity plus source order does not achieve that —
+   it just makes whichever rule is written last win, regardless of the
+   element. */
+[dir="rtl"] .text-eyebrow {
   letter-spacing: 0;
+}
+[dir="ltr"] .text-eyebrow {
+  letter-spacing: 0.25em;
+}
+.text-eyebrow[dir="rtl"][dir] {
+  letter-spacing: 0;
+}
+.text-eyebrow[dir="ltr"][dir] {
+  letter-spacing: 0.25em;
 }
 
 .grain-bg {

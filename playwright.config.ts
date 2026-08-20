@@ -32,39 +32,45 @@ export default defineConfig({
       testMatch: /auth\.setup\.ts/,
     },
     {
+      // Money paths and other flows that need a seeded, signed-in database.
       name: "chromium",
       use: { ...devices["Desktop Chrome"] },
       dependencies: ["setup"],
-      // The visual net runs in its own projects below — keeping it out of
-      // the functional project stops every feature PR from re-rendering
-      // 12 full-page screenshots.
-      testIgnore: /(visual|rtl|share-cards|first-impression|eyebrow-rtl|eyebrow-live-rtl|confirm-rtl|media-rtl|keyboard-rtl)\.spec\.ts/,
+      testMatch: /(money-path|pack-path|concierge-path)\.spec\.ts/,
     },
-    // RTL correctness assertions (ZAF-36). Public surfaces only, so no auth
-    // setup dependency — these must be runnable without a seeded database.
+
+    // ---- The correctness matrix (ZAF-69) -----------------------------------
+    //
+    // The product's primary user is Arabic, on a phone. Until now every spec
+    // ran as a desktop English visitor, so the market we are actually building
+    // for was tested by none of them.
+    //
+    // Both projects run the same public specs. No auth setup: these must work
+    // for someone who has never signed in. The locale comes from the browser's
+    // `Accept-Language`, which the middleware already negotiates — so a spec
+    // gets an Arabic, RTL page without any cookie plumbing, and a spec that
+    // needs a *specific* locale still sets its own cookie and overrides it.
     {
-      name: "rtl",
-      testMatch: /rtl\.spec\.ts/,
-      use: { ...devices["Desktop Chrome"] },
+      name: "desktop-en",
+      use: { ...devices["Desktop Chrome"], locale: "en-US" },
+      testMatch:
+        /(rtl|eyebrow|eyebrow-live|confirm|media|keyboard|share-cards|first-impression)\.spec\.ts/,
     },
-    // Share cards (ZAF-49). Public surfaces, no auth setup dependency — the
-    // whole point is that a link preview works for someone who has never
-    // signed in.
     {
-      name: "share-cards",
-      testMatch: /share-cards\.spec\.ts/,
-      use: { ...devices["Desktop Chrome"] },
+      name: "mobile-ar",
+      use: {
+        ...devices["Pixel 7"],
+        locale: "ar-EG",
+        timezoneId: "Africa/Cairo",
+      },
+      // Share cards and first-impression states iterate locales internally, so
+      // running them here would only repeat work. Everything else is a genuine
+      // second environment.
+      testMatch: /(rtl|eyebrow|eyebrow-live|confirm|media|keyboard)\.spec\.ts/,
     },
-    // First-impression states (ZAF-51): 404, loading, crash page. Public, no
-    // auth setup — a 404 has to work for someone who has never signed in.
-    {
-      name: "first-impression",
-      testMatch: /first-impression\.spec\.ts/,
-      use: { ...devices["Desktop Chrome"] },
-    },
-    // Visual-regression net (ZAF-31). Public surfaces only, no auth setup
-    // dependency, reducedMotion so entrance animations collapse to their
-    // settled state deterministically.
+
+    // Visual-regression net (ZAF-31). Iterates locales internally, and pins
+    // reducedMotion so entrance animations settle deterministically.
     {
       name: "visual-desktop",
       testMatch: /visual\.spec\.ts/,

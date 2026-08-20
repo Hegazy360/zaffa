@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { ConfirmDemo } from "./_components/confirm-demo";
+import { DialogDemo } from "./_components/dialog-demo";
 
 /**
  * Every brand token, on one page.
@@ -179,6 +180,7 @@ export default function KitchenSink() {
             equivalent bug shipped once, and it is invisible unless you open a
             dialog in Arabic. */}
         <ConfirmDemo />
+        <DialogDemo />
       </section>
 
       <section className="space-y-2">

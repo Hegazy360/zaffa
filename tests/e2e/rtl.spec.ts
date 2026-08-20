@@ -1,4 +1,4 @@
-import { test, expect, type Page } from "@playwright/test";
+import {test, expect } from "@playwright/test";
 
 // RTL correctness assertions (ZAF-36; extended by ZAF-69).
 //
@@ -8,49 +8,26 @@ import { test, expect, type Page } from "@playwright/test";
 
 const AR = { name: "zaffa_locale", value: "ar", path: "/" };
 
-async function inAr(page: Page, baseURL: string) {
-  await page.context().addCookies([{ ...AR, domain: new URL(baseURL).hostname }]);
-  await page.goto("/", { waitUntil: "domcontentloaded" });
-  await expect(page.locator("html")).toHaveAttribute("dir", "rtl");
-}
-
-/**
- * Measures where a fixed-position element actually lands, given a set of
- * centring classes, under the live document direction. Returns the offset of
- * the element's centre from the viewport's centre — 0 means correctly
- * centred.
- */
-async function centreOffset(page: Page, classes: string): Promise<number> {
-  return page.evaluate((cls) => {
-    const el = document.createElement("div");
-    el.className = `${cls} fixed top-1/2`;
-    el.style.width = "400px";
-    el.style.height = "100px";
-    el.style.zIndex = "-1";
-    el.style.pointerEvents = "none";
-    document.body.appendChild(el);
-    const r = el.getBoundingClientRect();
-    el.remove();
-    return Math.round(r.left + r.width / 2 - window.innerWidth / 2);
-  }, classes);
-}
-
 test.describe("RTL", () => {
-  test("dialog centring classes centre correctly in Arabic", async ({
-    page,
-    baseURL,
-  }) => {
-    await inAr(page, baseURL!);
+  test("the shipped dialog is centred, in this direction", async ({ page }) => {
+    // Measured on a **real** `<Dialog>`, not on a synthesised div carrying the
+    // class pairing. The previous version of this test asserted the geometry
+    // of `left-1/2` versus `start-1/2` — which proved Tailwind's semantics and
+    // said nothing about which pairing the component ships. Re-introducing the
+    // bug left it green. This one fails.
+    await page.goto("/kitchen-sink", { waitUntil: "load" });
+    await page.getByRole("button", { name: "Open dialog" }).click();
 
-    // The shipped pairing (physical `left` + physical translate) must centre.
-    // Centring is symmetric, so this holds in both directions.
-    expect(Math.abs(await centreOffset(page, "left-1/2 -translate-x-1/2"))).toBeLessThanOrEqual(2);
+    const popup = page.locator('[data-slot="dialog-content"]');
+    await expect(popup).toBeVisible();
+    // The open animation zooms; measuring mid-flight reports a box that is
+    // neither the start nor the end.
+    await page.waitForTimeout(400);
 
-    // The regression guard: the logical pairing this replaced resolves to
-    // `right: 50%` under RTL while the translate stays physical, throwing the
-    // element a full width off-centre. If this ever stops being wrong,
-    // Tailwind's semantics changed and the fix above should be revisited.
-    expect(Math.abs(await centreOffset(page, "start-1/2 -translate-x-1/2"))).toBeGreaterThan(100);
+    const box = (await popup.boundingBox())!;
+    const viewport = page.viewportSize()!;
+    const centre = box.x + box.width / 2;
+    expect(Math.abs(centre - viewport.width / 2)).toBeLessThanOrEqual(2);
   });
 
   test("loading spinners still animate under reduced motion", async ({
