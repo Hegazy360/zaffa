@@ -40,6 +40,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useConfirm } from "@/components/ui/confirm";
 
 type EventTypeOption = "wedding" | "engagement" | "birthday" | "corporate" | "other" | "none";
 
@@ -78,6 +79,8 @@ function styleTagsArray(value: unknown): string[] {
 
 export default function PortfolioPage() {
   const t = useTranslations("planner");
+  const tCommon = useTranslations("common");
+  const confirm = useConfirm();
   const utils = trpc.useUtils();
   const { data: planner, isLoading: plannerLoading } =
     trpc.planner.me.useQuery();
@@ -209,8 +212,14 @@ export default function PortfolioPage() {
                       <Button
                         size="icon-sm"
                         variant="outline"
-                        onClick={() => {
-                          if (window.confirm(t("removeFromPortfolioConfirm"))) {
+                        onClick={async () => {
+                          if (
+                            await confirm({
+                              title: t("removeFromPortfolioConfirm"),
+                              confirmLabel: tCommon("remove"),
+                              destructive: true,
+                            })
+                          ) {
                             remove.mutate({ id: item.id });
                           }
                         }}

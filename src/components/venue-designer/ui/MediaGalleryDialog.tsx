@@ -21,6 +21,7 @@ import {
 import { trpc } from "@/lib/trpc";
 import { useFormatters } from "@/lib/use-formatters";
 import { cn } from "@/lib/utils";
+import { useConfirm } from "@/components/ui/confirm";
 
 interface MediaGalleryDialogProps {
   open: boolean;
@@ -41,6 +42,8 @@ export function MediaGalleryDialog({
   designId,
 }: MediaGalleryDialogProps) {
   const t = useTranslations("designer");
+  const tCommon = useTranslations("common");
+  const confirm = useConfirm();
   const f = useFormatters();
   const [selected, setSelected] = useState<MediaItem | null>(null);
   const [filter, setFilter] = useState<"all" | "render" | "video">("all");
@@ -65,8 +68,15 @@ export function MediaGalleryDialog({
   const renderCount = design?.media?.filter((m) => m.type === "render").length ?? 0;
   const videoCount = design?.media?.filter((m) => m.type === "video").length ?? 0;
 
-  const handleDelete = (id: string) => {
-    if (window.confirm(t("deleteMediaConfirm"))) {
+  const handleDelete = async (id: string) => {
+    if (
+      await confirm({
+        title: t("deleteMediaConfirm"),
+        description: tCommon("areYouSure"),
+        confirmLabel: tCommon("delete"),
+        destructive: true,
+      })
+    ) {
       deleteMutation.mutate({ id });
     }
   };

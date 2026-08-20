@@ -50,7 +50,15 @@
     "notFoundTitle": "الصفحة دي مش هنا.",
     "notFoundBody": "يمكن الرابط قديم، أو الصفحة اتنقلت. باقي الموقع شغّال عادي.",
     "notFoundHome": "ارجعوا للبداية",
-    "notFoundEnquire": "كلّمونا بدل كده"
+    "notFoundEnquire": "كلّمونا بدل كده",
+    "tooShort": "أطول قليلًا من فضلكم — {min} حروف على الأقل.",
+    "tooLong": "هذا طويل أكثر من اللازم. اجعلوه أقل من {max} حرفًا.",
+    "numberTooSmall": "لا يقلّ عن {min}.",
+    "numberTooBig": "لا يزيد عن {max}.",
+    "invalidEmail": "لا يبدو هذا بريدًا إلكترونيًّا.",
+    "invalidUrl": "لا يبدو هذا عنوان موقع.",
+    "invalidFormat": "الصيغة ليست صحيحة تمامًا.",
+    "invalidChoice": "اختاروا واحدًا من الخيارات من فضلكم."
   },
   "account": {
     "changeAvatar": "تغيير",
@@ -933,7 +941,10 @@
     "tryAgain": "حاول مرة أخرى",
     "language": "اللغة",
     "english": "English",
-    "arabic": "العربية"
+    "arabic": "العربية",
+    "confirm": "تأكيد",
+    "confirmDestructive": "حذف",
+    "areYouSure": "لا يمكن التراجع عن هذا."
   },
   "marketplace": {
     "eyebrow": "السوق",

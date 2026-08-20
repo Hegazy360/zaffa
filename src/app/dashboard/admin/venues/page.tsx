@@ -17,6 +17,7 @@ import {
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { useConfirm } from "@/components/ui/confirm";
 
 /**
  * Admin venues directory.
@@ -31,6 +32,7 @@ import { Input } from "@/components/ui/input";
  * follow-up migration.
  */
 export default function AdminVenuesPage() {
+  const confirm = useConfirm();
   const utils = trpc.useUtils();
   const [query, setQuery] = useState("");
   const { data, isLoading } = trpc.venues.adminList.useQuery({ query });
@@ -170,12 +172,16 @@ export default function AdminVenuesPage() {
                     variant="ghost"
                     className="h-7 gap-1 bg-white/90 text-xs text-destructive backdrop-blur hover:text-destructive"
                     disabled={remove.isPending}
-                    onClick={(e) => {
+                    onClick={async (e) => {
                       e.preventDefault();
                       if (
-                        window.confirm(
-                          `Remove "${venue.name}" from the directory? This also removes any active recommendations.`,
-                        )
+                        await confirm({
+                          title: `Remove "${venue.name}" from the directory?`,
+                          description:
+                            "This also removes any active recommendations.",
+                          confirmLabel: "Remove",
+                          destructive: true,
+                        })
                       ) {
                         remove.mutate({ id: venue.id });
                       }

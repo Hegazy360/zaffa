@@ -33,6 +33,7 @@ import {
   PACK_SKU_ORDER,
   type PackSkuId,
 } from "@/lib/vision-pack";
+import { useConfirm } from "@/components/ui/confirm";
 
 type Row = {
   sku: string;
@@ -173,6 +174,7 @@ function TierSection({
   onRemove,
   removing,
 }: TierSectionProps) {
+  const confirm = useConfirm();
   const meta = PACK_SKUS[sku];
   const overriddenCodes = new Set(overrides.map((r) => r.country_code));
   const seedBucket = SEED_PRICING[sku] ?? {};
@@ -252,11 +254,14 @@ function TierSection({
                     variant="ghost"
                     className="h-8 gap-1 text-xs text-destructive hover:text-destructive"
                     disabled={removing}
-                    onClick={() => {
+                    onClick={async () => {
                       if (
-                        window.confirm(
-                          `Remove the ${row.country_code} override for ${meta.name}? It'll fall back to the seed matrix.`,
-                        )
+                        await confirm({
+                          title: `Remove the ${row.country_code} override for ${meta.name}?`,
+                          description: "It'll fall back to the seed matrix.",
+                          confirmLabel: "Remove",
+                          destructive: true,
+                        })
                       ) {
                         onRemove(row);
                       }

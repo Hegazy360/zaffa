@@ -26,6 +26,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { useConfirm } from "@/components/ui/confirm";
 
 /**
  * Client-side panel mounted on the admin event page. Lists existing
@@ -35,6 +36,7 @@ import {
  * reflects what's been sent.
  */
 export function RecommendationsPanel({ eventId }: { eventId: string }) {
+  const confirm = useConfirm();
   const utils = trpc.useUtils();
   const { data: recs, isLoading } =
     trpc.venues.adminListForEvent.useQuery({ eventId });
@@ -106,8 +108,14 @@ export function RecommendationsPanel({ eventId }: { eventId: string }) {
                       variant="ghost"
                       className="h-7 gap-1 text-xs text-destructive hover:text-destructive"
                       disabled={remove.isPending}
-                      onClick={() => {
-                        if (window.confirm("Remove this recommendation?")) {
+                      onClick={async () => {
+                        if (
+                          await confirm({
+                            title: "Remove this recommendation?",
+                            confirmLabel: "Remove",
+                            destructive: true,
+                          })
+                        ) {
                           remove.mutate({ id: rec.id });
                         }
                       }}

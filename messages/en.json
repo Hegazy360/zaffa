@@ -50,7 +50,15 @@
     "notFoundTitle": "This page isn't here.",
     "notFoundBody": "The link may be old, or the page may have moved. Everything else still works.",
     "notFoundHome": "Back to the start",
-    "notFoundEnquire": "Talk to us instead"
+    "notFoundEnquire": "Talk to us instead",
+    "tooShort": "A little longer, please — at least {min} characters.",
+    "tooLong": "That is too long. Keep it under {max} characters.",
+    "numberTooSmall": "Needs to be at least {min}.",
+    "numberTooBig": "Needs to be {max} or less.",
+    "invalidEmail": "That does not look like an email address.",
+    "invalidUrl": "That does not look like a web address.",
+    "invalidFormat": "That is not quite the right format.",
+    "invalidChoice": "Please pick one of the options."
   },
   "account": {
     "changeAvatar": "Change",
@@ -2148,7 +2156,10 @@
     "tryAgain": "Try again",
     "language": "Language",
     "english": "English",
-    "arabic": "العربية"
+    "arabic": "العربية",
+    "confirm": "Confirm",
+    "confirmDestructive": "Delete",
+    "areYouSure": "This cannot be undone."
   },
   "visionPack": {
     "name": "Wedding Vision Pack",

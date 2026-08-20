@@ -9,6 +9,7 @@ import { DirectionProvider } from "@base-ui/react/direction-provider";
 import { PostHogProvider } from "@/components/analytics/posthog-provider";
 import { isRtlLocale } from "@/i18n/config";
 import { useLocale } from "next-intl";
+import { ConfirmProvider } from "@/components/ui/confirm";
 
 function getBaseUrl() {
   if (typeof window !== "undefined") return "";
@@ -75,7 +76,12 @@ export function Providers({ children }: { children: React.ReactNode }) {
           {/* Suspense wraps PostHog because PageviewTracker uses useSearchParams,
             which Next requires to be inside a Suspense boundary. */}
           <Suspense fallback={null}>
-            <PostHogProvider>{children}</PostHogProvider>
+            {/* One confirmation dialog, mounted once. `useConfirm()` resolves
+                a promise from anywhere in the tree, which is what let the
+                eleven `window.confirm` call sites keep their shape. */}
+            <ConfirmProvider>
+              <PostHogProvider>{children}</PostHogProvider>
+            </ConfirmProvider>
           </Suspense>
         </DirectionProvider>
       </QueryClientProvider>

@@ -30,6 +30,7 @@ import {
 import { decimalToNumber } from "@/lib/payments";
 
 import { useFormatters } from "@/lib/use-formatters";
+import { useConfirm } from "@/components/ui/confirm";
 interface VendorService {
   id: string;
   name: string;
@@ -53,6 +54,8 @@ export default function VendorCatalogPage() {
   const utils = trpc.useUtils();
   const f = useFormatters();
   const t = useTranslations("vendor");
+  const tCommon = useTranslations("common");
+  const confirm = useConfirm();
   const tMarketplace = useTranslations("marketplace");
   const me = trpc.vendors.me.useQuery();
   const list = trpc.vendors.services.list.useQuery(undefined, {
@@ -226,8 +229,14 @@ export default function VendorCatalogPage() {
                         size="sm"
                         variant="ghost"
                         className="gap-1 text-destructive hover:text-destructive"
-                        onClick={() => {
-                          if (confirm(t("removeServiceConfirm", { name: s.name }))) {
+                        onClick={async () => {
+                          if (
+                      await confirm({
+                        title: t("removeServiceConfirm", { name: s.name }),
+                        confirmLabel: tCommon("remove"),
+                        destructive: true,
+                      })
+                    ) {
                             remove.mutate({ id: s.id });
                           }
                         }}

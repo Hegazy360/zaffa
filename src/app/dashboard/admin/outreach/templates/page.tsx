@@ -24,6 +24,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
+import { useConfirm } from "@/components/ui/confirm";
 
 const CHANNELS = ["email", "whatsapp", "instagram"] as const;
 const TYPES = ["planner", "vendor", "unknown"] as const;
@@ -343,6 +344,8 @@ function TemplateDialog({ template }: { template?: Template }) {
 
 function DeleteTemplateButton({ id }: { id: string }) {
   const t = useTranslations("admin");
+  const tCommon = useTranslations("common");
+  const confirm = useConfirm();
   const utils = trpc.useUtils();
   const remove = trpc.outreach.templateDelete.useMutation({
     onSuccess: () => {
@@ -355,8 +358,16 @@ function DeleteTemplateButton({ id }: { id: string }) {
     <Button
       size="sm"
       variant="ghost"
-      onClick={() => {
-        if (confirm(t("confirmDeleteTemplate"))) remove.mutate({ id });
+      onClick={async () => {
+        if (
+          await confirm({
+            title: t("confirmDeleteTemplate"),
+            confirmLabel: tCommon("delete"),
+            destructive: true,
+          })
+        ) {
+          remove.mutate({ id });
+        }
       }}
       disabled={remove.isPending}
     >

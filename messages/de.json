@@ -50,7 +50,15 @@
     "notFoundTitle": "Diese Seite gibt es hier nicht.",
     "notFoundBody": "Der Link ist vielleicht alt, oder die Seite wurde verschoben. Alles andere funktioniert weiter.",
     "notFoundHome": "Zurück zum Anfang",
-    "notFoundEnquire": "Sprechen Sie stattdessen mit uns"
+    "notFoundEnquire": "Sprechen Sie stattdessen mit uns",
+    "tooShort": "Etwas länger, bitte – mindestens {min} Zeichen.",
+    "tooLong": "Das ist zu lang. Bitte unter {max} Zeichen bleiben.",
+    "numberTooSmall": "Muss mindestens {min} sein.",
+    "numberTooBig": "Darf höchstens {max} sein.",
+    "invalidEmail": "Das sieht nicht nach einer E-Mail-Adresse aus.",
+    "invalidUrl": "Das sieht nicht nach einer Webadresse aus.",
+    "invalidFormat": "Das Format stimmt nicht ganz.",
+    "invalidChoice": "Bitte wählen Sie eine der Optionen."
   },
   "account": {
     "changeAvatar": "Änderung",
@@ -2148,7 +2156,10 @@
     "tryAgain": "Versuchen Sie es erneut",
     "language": "Sprache",
     "english": "Englisch",
-    "arabic": "العربية"
+    "arabic": "العربية",
+    "confirm": "Bestätigen",
+    "confirmDestructive": "Löschen",
+    "areYouSure": "Das lässt sich nicht rückgängig machen."
   },
   "visionPack": {
     "name": "Hochzeits-Visionspaket",

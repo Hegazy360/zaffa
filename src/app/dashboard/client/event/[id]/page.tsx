@@ -65,6 +65,7 @@ import { RecommendedVenuesCard } from "./_components/recommended-venues-card";
 import { ConciergePackageCard } from "./_components/concierge-package-card";
 
 import { useFormatters } from "@/lib/use-formatters";
+import { useConfirm } from "@/components/ui/confirm";
 const TABS = [
   "overview",
   "design",
@@ -577,6 +578,8 @@ function OverviewTab({
 }) {
   const f = useFormatters();
   const tc = useTranslations("client");
+  const tCommon = useTranslations("common");
+  const confirm = useConfirm();
   const [editing, setEditing] = useState(false);
   const [title, setTitle] = useState(event.title);
   const [eventDate, setEventDate] = useState(
@@ -793,8 +796,15 @@ function OverviewTab({
               variant="outline"
               size="sm"
               disabled={remove.isPending}
-              onClick={() => {
-                if (window.confirm(tc("deleteConfirm", { title: event.title }))) {
+              onClick={async () => {
+                if (
+                  await confirm({
+                    title: tc("deleteConfirm", { title: event.title }),
+                    description: tCommon("areYouSure"),
+                    confirmLabel: tCommon("delete"),
+                    destructive: true,
+                  })
+                ) {
                   remove.mutate({ id: event.id });
                 }
               }}
@@ -1834,6 +1844,8 @@ function ReviewSection({
   plannerId: string;
 }) {
   const tc = useTranslations("client");
+  const tCommon = useTranslations("common");
+  const confirm = useConfirm();
   const [open, setOpen] = useState(false);
   const utils = trpc.useUtils();
   const { data: review, isLoading } = trpc.reviews.mineForEvent.useQuery({
@@ -1905,8 +1917,14 @@ function ReviewSection({
         <button
           type="button"
           disabled={remove.isPending}
-          onClick={() => {
-            if (confirm(tc("removeReviewConfirm"))) {
+          onClick={async () => {
+            if (
+              await confirm({
+                title: tc("removeReviewConfirm"),
+                confirmLabel: tCommon("remove"),
+                destructive: true,
+              })
+            ) {
               remove.mutate({ id: review.id });
             }
           }}

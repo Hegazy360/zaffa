@@ -21,6 +21,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import { FORMAT_LABELS } from "@/lib/post-generator/formats";
 import type { HydratedPost, NamedColor, NamedPalette } from "@/types/posts";
+import { useConfirm } from "@/components/ui/confirm";
 
 interface PostMetadataSidebarProps {
   post: HydratedPost;
@@ -40,6 +41,7 @@ export function PostMetadataSidebar({
   isRasterizing,
   rasterizedUrls,
 }: PostMetadataSidebarProps) {
+  const confirm = useConfirm();
   const utils = trpc.useUtils();
 
   // Local copy so the user can edit before saving. Re-seeded whenever
@@ -423,11 +425,15 @@ export function PostMetadataSidebar({
           </Button>
           <Button
             variant="ghost"
-            onClick={() => {
+            onClick={async () => {
               if (
-                window.confirm(
-                  "Discard this post? It'll move to the discarded tab and stop appearing in pending.",
-                )
+                await confirm({
+                  title: "Discard this post?",
+                  description:
+                    "It'll move to the discarded tab and stop appearing in pending.",
+                  confirmLabel: "Discard",
+                  destructive: true,
+                })
               ) {
                 updateStatus.mutate({ id: post.id, status: "discarded" });
               }

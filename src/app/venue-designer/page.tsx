@@ -27,6 +27,7 @@ import { useVisionPackPricing } from "@/components/vision-pack/use-pricing";
 import { useIsAnonymous } from "@/lib/use-is-anonymous";
 import { isFreePack } from "@/lib/vision-pack";
 import { Skeleton, SkeletonRegion } from "@/components/ui/skeleton";
+import { useConfirm } from "@/components/ui/confirm";
 
 interface NormalizedPalette {
   colors: string[];
@@ -47,8 +48,9 @@ export default function VenueDesignerGalleryPage() {
   const router = useRouter();
   const reduceMotion = useReducedMotion();
   const t = useTranslations("designer");
-  const tv = useTranslations("visionPack");
   const tCommon = useTranslations("common");
+  const confirm = useConfirm();
+  const tv = useTranslations("visionPack");
   const f = useFormatters();
   const { data: designs, isLoading } = trpc.venueDesigns.list.useQuery();
   const { data: pack } = trpc.visionPacks.current.useQuery();
@@ -81,14 +83,21 @@ export default function VenueDesignerGalleryPage() {
     onError: (err) => toast.error(err.message),
   });
 
-  const handleDelete = (
+  const handleDelete = async (
     e: React.MouseEvent,
     id: string,
     name: string
   ) => {
     e.stopPropagation();
     e.preventDefault();
-    if (window.confirm(t("deleteDesignConfirm", { name }))) {
+    if (
+      await confirm({
+        title: t("deleteDesignConfirm", { name }),
+        description: tCommon("areYouSure"),
+        confirmLabel: tCommon("delete"),
+        destructive: true,
+      })
+    ) {
       deleteMutation.mutate({ id });
     }
   };

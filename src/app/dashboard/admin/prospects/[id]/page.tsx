@@ -33,6 +33,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { QuickSendWhatsapp } from "@/components/features/prospects/quick-send-whatsapp";
 import { toast } from "sonner";
+import { useConfirm } from "@/components/ui/confirm";
 
 type Channel = "email" | "whatsapp" | "instagram";
 
@@ -53,6 +54,8 @@ export default function ProspectDetailPage({
 }) {
   const { id } = use(params);
   const t = useTranslations("admin");
+  const tCommon = useTranslations("common");
+  const confirm = useConfirm();
   const f = useFormatters();
   const utils = trpc.useUtils();
   const detail = trpc.prospects.byId.useQuery({ id });
@@ -118,8 +121,14 @@ export default function ProspectDetailPage({
           variant="ghost"
           size="sm"
           className="text-rose-700"
-          onClick={() => {
-            if (confirm(t("confirmDeleteProspect"))) {
+          onClick={async () => {
+            if (
+              await confirm({
+                title: t("confirmDeleteProspect"),
+                confirmLabel: tCommon("delete"),
+                destructive: true,
+              })
+            ) {
               remove.mutate({ id });
               window.location.href = "/dashboard/admin/prospects";
             }

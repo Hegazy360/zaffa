@@ -22,6 +22,7 @@ import { EnquiryStatusCard } from "@/components/dashboard/enquiry-status-card";
 import { Skeleton, SkeletonRegion } from "@/components/ui/skeleton";
 import { useFormatters } from "@/lib/use-formatters";
 import type { EventStatus, EventType } from "@/types";
+import { EmptyState } from "@/components/ui/empty-state";
 
 interface NormalizedPalette {
   colors: string[];
@@ -418,40 +419,27 @@ function statusLabelKey(status: string): ClientStatusKey {
 function DesignsEmptyState({ onStart }: { onStart: () => void }) {
   const tc = useTranslations("client");
   return (
-    <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-rose-200/70 bg-white/40 px-6 py-16 text-center backdrop-blur-sm">
-      <div className="mb-5 grid size-14 place-items-center rounded-full bg-gradient-to-br from-rose-100 to-amber-100 ring-1 ring-rose-200/60">
-        <Wand2 className="size-6 text-rose-600" />
-      </div>
-      <h3 className="font-display text-xl font-light tracking-tight">
-        {tc("noDesignsYet")}
-      </h3>
-      <p className="mt-2 max-w-md text-pretty text-sm text-muted-foreground">
-        {tc("noDesignsBody")}
-      </p>
-      <Button
-        onClick={onStart}
-        className="mt-6 h-10 gap-2 bg-brand-gradient px-5 text-white shadow-glow-sm hover:opacity-90"
-      >
-        <Plus className="size-4" />
-        {tc("createFirstDesign")}
-      </Button>
-    </div>
+    <EmptyState
+      icon={Wand2}
+      title={tc("noDesignsYet")}
+      description={tc("noDesignsBody")}
+      action={
+        <Button variant="cta" onClick={onStart} className="h-10 gap-2 px-5">
+          <Plus className="size-4" />
+          {tc("createFirstDesign")}
+        </Button>
+      }
+    />
   );
 }
 
 function EventsEmptyState() {
   const tc = useTranslations("client");
   return (
-    <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-rose-200/70 bg-white/40 px-6 py-16 text-center backdrop-blur-sm">
-      <div className="mb-5 grid size-14 place-items-center rounded-full bg-gradient-to-br from-rose-100 to-amber-100 ring-1 ring-rose-200/60">
-        <CalendarDays className="size-6 text-rose-600" />
-      </div>
-      <h3 className="font-display text-xl font-light tracking-tight">
-        {tc("noEventsYet")}
-      </h3>
-      <p className="mt-2 max-w-md text-pretty text-sm text-muted-foreground">
-        {tc("noEventsBody")}
-      </p>
-    </div>
+    <EmptyState
+      icon={CalendarDays}
+      title={tc("noEventsYet")}
+      description={tc("noEventsBody")}
+    />
   );
 }

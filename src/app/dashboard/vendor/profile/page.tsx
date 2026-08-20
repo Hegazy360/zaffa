@@ -35,6 +35,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useConfirm } from "@/components/ui/confirm";
 
 type CategoryOption =
   | "catering"
@@ -113,6 +114,8 @@ function styleTagsArray(value: unknown): string[] {
 export default function VendorProfilePage() {
   const utils = trpc.useUtils();
   const t = useTranslations("vendor");
+  const tCommon = useTranslations("common");
+  const confirm = useConfirm();
   const tMarketplace = useTranslations("marketplace");
   const me = trpc.vendors.me.useQuery();
   const portfolio = trpc.vendors.portfolio.list.useQuery(undefined, {
@@ -432,8 +435,14 @@ export default function VendorProfilePage() {
                           size="sm"
                           variant="ghost"
                           className="gap-1 text-destructive"
-                          onClick={() => {
-                            if (confirm(t("removePieceConfirm"))) {
+                          onClick={async () => {
+                            if (
+                      await confirm({
+                        title: t("removePieceConfirm"),
+                        confirmLabel: tCommon("remove"),
+                        destructive: true,
+                      })
+                    ) {
                               removeItem.mutate({ id: item.id });
                             }
                           }}

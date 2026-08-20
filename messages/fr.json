@@ -50,7 +50,15 @@
     "notFoundTitle": "Cette page n'est pas ici.",
     "notFoundBody": "Le lien est peut-être ancien, ou la page a été déplacée. Tout le reste fonctionne.",
     "notFoundHome": "Revenir au début",
-    "notFoundEnquire": "Parlez-nous plutôt"
+    "notFoundEnquire": "Parlez-nous plutôt",
+    "tooShort": "Un peu plus long, merci — au moins {min} caractères.",
+    "tooLong": "C'est trop long. Restez sous {max} caractères.",
+    "numberTooSmall": "Doit être au moins {min}.",
+    "numberTooBig": "Doit être au plus {max}.",
+    "invalidEmail": "Cela ne ressemble pas à une adresse e-mail.",
+    "invalidUrl": "Cela ne ressemble pas à une adresse web.",
+    "invalidFormat": "Le format n'est pas tout à fait correct.",
+    "invalidChoice": "Choisissez l'une des options, merci."
   },
   "account": {
     "changeAvatar": "Changement",
@@ -2148,7 +2156,10 @@
     "tryAgain": "Réessayer",
     "language": "Langue",
     "english": "Anglais",
-    "arabic": "العربية"
+    "arabic": "العربية",
+    "confirm": "Confirmer",
+    "confirmDestructive": "Supprimer",
+    "areYouSure": "Cette action est irréversible."
   },
   "visionPack": {
     "name": "Pack Vision Mariage",

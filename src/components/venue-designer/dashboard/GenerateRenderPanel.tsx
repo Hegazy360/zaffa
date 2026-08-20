@@ -36,6 +36,7 @@ import { useIsAnonymous } from "@/lib/use-is-anonymous";
 import { isFreePack, packAllowsVideo } from "@/lib/vision-pack";
 import { VisionPackUpgradeCta } from "@/components/vision-pack/VisionPackUpgradeCta";
 import { LockableAction } from "@/components/ui/lockable-action";
+import { useConfirm } from "@/components/ui/confirm";
 
 interface GenerateRenderPanelProps {
   designId?: string;
@@ -73,6 +74,8 @@ const EVENT_TYPE_KEY: Record<string, string> = {
 
 export function GenerateRenderPanel({ designId }: GenerateRenderPanelProps) {
   const t = useTranslations("designer");
+  const tCommon = useTranslations("common");
+  const confirm = useConfirm();
   const f = useFormatters();
   const paywall = usePackPaywall();
   const eventType = useVenueDesignerStore((s) => s.eventType);
@@ -398,14 +401,20 @@ export function GenerateRenderPanel({ designId }: GenerateRenderPanelProps) {
   );
 
   const handleDeletePast = useCallback(
-    (item: { id: string; url: string }) => {
-      if (!window.confirm(t("deleteRenderConfirm"))) return;
+    async (item: { id: string; url: string }) => {
+      const ok = await confirm({
+        title: t("deleteRenderConfirm"),
+        description: tCommon("areYouSure"),
+        confirmLabel: tCommon("delete"),
+        destructive: true,
+      });
+      if (!ok) return;
       if (item.url === resultImage) setResultImage(null);
       if (item.url === videoUrl) setVideoUrl(null);
       if (item.url === resultImage || item.url === videoUrl) setView("form");
       deleteMediaMutation.mutate({ id: item.id });
     },
-    [deleteMediaMutation, resultImage, videoUrl, t]
+    [deleteMediaMutation, resultImage, videoUrl, t, tCommon, confirm]
   );
 
   const previousMedia = useMemo(() => {

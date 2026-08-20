@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import { Button } from "@/components/ui/button";
+import { ConfirmDemo } from "./_components/confirm-demo";
 
 /**
  * Every brand token, on one page.
@@ -168,6 +169,16 @@ export default function KitchenSink() {
           <Button>Brand button</Button>
           <Button variant="outline">Outline on dark</Button>
         </div>
+      </section>
+
+      <section className="space-y-3">
+        <h2 className="text-eyebrow text-muted-foreground">
+          Confirmation dialog
+        </h2>
+        {/* Here so its RTL centring can be asserted on a real page: the
+            equivalent bug shipped once, and it is invisible unless you open a
+            dialog in Arabic. */}
+        <ConfirmDemo />
       </section>
 
       <section className="space-y-2">
