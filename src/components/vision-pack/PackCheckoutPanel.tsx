@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import { useTranslations } from "next-intl";
 import {
   Check,
@@ -17,7 +16,6 @@ import { Button } from "@/components/ui/button";
 import {
   DEFAULT_PACK_SKU,
   PACK_SKUS,
-  PURCHASABLE_PACK_SKUS,
   VISION_PACK_DEFAULT_PLATFORM_FEE_PCT,
   type PackSkuId,
 } from "@/lib/vision-pack";
@@ -51,8 +49,9 @@ interface PackCheckoutPanelProps {
 }
 
 /**
- * The buyable surface of a Vision Pack: tier picker, what's included
- * for the selected tier, stacking/refund note, and the buy CTA.
+ * The buyable surface of the pack: summary card, what's included,
+ * refund note, and the buy CTA. One purchasable SKU, so there is no
+ * picker — nothing should look choosable when there's no choice.
  *
  * Used in two contexts:
  *   - Inside `VisionPackPaywall` as the modal body, with the dialog
@@ -60,10 +59,6 @@ interface PackCheckoutPanelProps {
  *   - On `/r/[renderId]` as an inline checkout panel — host page
  *     supplies a `heading` and there's no `onCancel` (no modal to
  *     close).
- *
- * Selection state lives in the panel itself, so flipping between
- * tiers updates the includes list + CTA price label without bouncing
- * through a parent.
  */
 export function PackCheckoutPanel({
   defaultSku,
@@ -73,9 +68,10 @@ export function PackCheckoutPanel({
 }: PackCheckoutPanelProps) {
   const t = useTranslations("visionPack");
   const tm = useTranslations("marketing");
-  const [selectedSku, setSelectedSku] = useState<PackSkuId>(
-    defaultSku ?? DEFAULT_PACK_SKU,
-  );
+  // No selection state: one purchasable pack. `defaultSku` survives in the
+  // prop signature so historic callers keep compiling, but it can only
+  // resolve to the one entry in PURCHASABLE_PACK_SKUS.
+  const selectedSku: PackSkuId = defaultSku ?? DEFAULT_PACK_SKU;
   const tierPricing = useTierPricing();
   const sku = PACK_SKUS[selectedSku];
   const skuPrice = tierPricing.bySku[selectedSku];
@@ -99,38 +95,21 @@ export function PackCheckoutPanel({
         </div>
       ) : null}
 
-      {/* Tier picker — two cards, click to select. Order matches
-          `PACK_SKU_ORDER` so the lower tier reads first. */}
-      <div className="grid grid-cols-2 gap-2 px-6 pt-5">
-        {PURCHASABLE_PACK_SKUS.map((id) => {
-          const price = tierPricing.bySku[id];
-          const active = id === selectedSku;
-          return (
-            <button
-              key={id}
-              type="button"
-              onClick={() => setSelectedSku(id)}
-              aria-pressed={active}
-              aria-label={tm(`tier.${id}.eyebrow`)}
-              className={
-                "group rounded-xl border p-3 text-start transition-all " +
-                (active
-                  ? "border-rose-400 bg-rose-50/60 shadow-sm ring-1 ring-rose-300"
-                  : "border-brand-line bg-background hover:border-rose-200")
-              }
-            >
-              <div className="text-eyebrow font-semibold text-rose-700">
-                {tm(`tier.${id}.eyebrow`)}
-              </div>
-              <div className="mt-1 font-display text-lg font-light tracking-tight">
-                {price.label}
-              </div>
-              <div className="mt-1 text-xs text-muted-foreground leading-snug">
-                {tm(`tier.${id}.tagline`)}
-              </div>
-            </button>
-          );
-        })}
+      {/* One pack, not a picker. When the tiers consolidated
+          (ZAF-77/78) the two-card selector collapsed to a summary card:
+          there is nothing to choose, so nothing should look choosable. */}
+      <div className="px-6 pt-5">
+        <div className="rounded-xl border border-rose-400 bg-rose-50/60 p-4 shadow-sm ring-1 ring-rose-300">
+          <div className="text-eyebrow font-semibold text-rose-700">
+            {tm(`tier.${selectedSku}.eyebrow`)}
+          </div>
+          <div className="mt-1 font-display text-2xl font-light tracking-tight">
+            {skuPrice.label}
+          </div>
+          <div className="mt-1 text-xs text-muted-foreground leading-snug">
+            {tm(`tier.${selectedSku}.tagline`)}
+          </div>
+        </div>
       </div>
 
       {/* What's included — derived from the selected SKU's quotas and

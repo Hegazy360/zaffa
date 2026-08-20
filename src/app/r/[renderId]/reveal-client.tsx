@@ -203,15 +203,14 @@ function RevealInner({ renderId }: { renderId: string }) {
             </div>
           </div>
 
-          {/* Side-by-side checkout cards — full price + includes +
-              its own CTA per tier. Each CTA fires `startCheckout`
-              (permanent users) or routes through `/auth/signup`
-              (anonymous), preserving `/r/{renderId}` as the
-              `returnPath` so they land back here after Stripe. The
-              higher-value tier is featured so the visitor sees a
-              clear default without locking them out of the entry
-              tier — one click commits, no modal in between. The
-              second card (Vision Pack) is featured by sort order. */}
+          {/* The one pack, full-width and featured. The CTA fires
+              `startCheckout` (permanent users) or routes through
+              `/auth/signup` (anonymous), preserving `/r/{renderId}`
+              as the `returnPath` so they land back here after Stripe
+              — one click commits, no modal in between. There used to
+              be a two-card tier comparison here; with a single SKU a
+              lone card in a 2-col grid read as "the other option is
+              missing", so the layout is a centered single card. */}
           <div className="mt-12 space-y-6">
             <div className="text-center">
               <div className="text-eyebrow font-semibold text-rose-700">
@@ -225,13 +224,13 @@ function RevealInner({ renderId }: { renderId: string }) {
               </p>
             </div>
 
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5">
-              {PURCHASABLE_PACK_SKUS.map((sku, index) => (
+            <div className="mx-auto max-w-md">
+              {PURCHASABLE_PACK_SKUS.map((sku) => (
                 <PackCheckoutCard
                   key={sku}
                   sku={sku}
                   returnPath={`/r/${renderId}`}
-                  featured={index === PURCHASABLE_PACK_SKUS.length - 1}
+                  featured
                 />
               ))}
             </div>

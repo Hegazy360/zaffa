@@ -58,13 +58,22 @@ test.describe("pack path: pay → activate → publish microsite", () => {
     try {
       await test.step("trigger pack checkout from the venue-designer marketing surface", async () => {
         await page.goto("/venue-designer");
-        // The marketing hero (shown to signed-in users without a pack)
-        // exposes the buy CTA. The first matching button starts checkout.
+        // The marketing banner (shown to signed-in users without a pack)
+        // exposes the buy CTA, which opens the paywall panel — now a
+        // single-pack summary (ZAF-78), not a tier picker.
         const buyCta = page
-          .getByRole("button", { name: /unlock|create.*vision|get yours|buy/i })
+          .getByRole("button", { name: /unlock|get yours|buy/i })
           .first();
         await buyCta.waitFor({ state: "visible", timeout: 15_000 });
         await buyCta.click();
+        // The panel's one money button carries the price label; clicking
+        // it is what actually starts Stripe Checkout.
+        const dialog = page.getByRole("dialog");
+        await dialog.waitFor({ state: "visible", timeout: 10_000 });
+        await dialog
+          .getByRole("button", { name: /—|sign up|get/i })
+          .last()
+          .click();
         await page.waitForURL(/checkout\.stripe\.com/, { timeout: 45_000 });
       });
 

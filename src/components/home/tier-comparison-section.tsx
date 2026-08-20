@@ -3,14 +3,11 @@
 import { useTranslations } from "next-intl";
 import {
   ArrowRight,
-  Building2,
   Check,
   FileDown,
   Globe,
   Loader2,
   Sparkles,
-  Users,
-  X as XIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -28,11 +25,10 @@ import { Rise } from "@/components/motion/rise";
 
 // The free-tier SKU never surfaces on the marketing page — it's only
 // reachable via the email gate after generation — so the CTA label
-// table only covers the purchasable tiers. The same key is reused as
+// table only covers the purchasable tier. The same key is reused as
 // the post-signup "Get the X Pack — $Y" CTA copy.
 const TIER_TO_LABEL_KEY: Partial<Record<PackSkuId, string>> = {
   wedding_design_pack_v1: "tierCtaDesign",
-  wedding_vision_pack_v1: "tierCtaVision",
 };
 
 export function TierComparisonSection() {
@@ -68,7 +64,9 @@ export function TierComparisonSection() {
           </p>
         </div>
 
-        <div className="mt-12 grid gap-6 md:grid-cols-3">
+        {/* Two offers, not a ladder: the one self-serve pack beside the
+            concierge. */}
+        <div className="mx-auto mt-12 grid max-w-4xl gap-6 md:grid-cols-2">
           {ordered.map((tier, idx) => (
             <TierCard key={tier.sku} tier={tier} idx={idx} />
           ))}
@@ -109,19 +107,21 @@ function TierCard({ tier, idx }: TierCardProps) {
   const tv = useTranslations("visionPack");
   const meta = PACK_SKUS[tier.sku];
   const ctaKey = TIER_TO_LABEL_KEY[tier.sku] ?? "tierCtaDesign";
-  const isVision = tier.sku === "wedding_vision_pack_v1";
+  // The purchasable pack carries the featured chrome — it is the default
+  // way in, sitting beside the unpriced concierge card.
+  const isFeatured = tier.sku === "wedding_design_pack_v1";
   const { buy, isPending, isAnon } = usePackCheckoutAction();
 
   return (
     <Rise as="div" delay={idx * 0.08}
           className={cn(
         "relative flex flex-col overflow-hidden rounded-3xl border bg-white/90 p-7",
-        isVision
+        isFeatured
           ? "border-rose-300 shadow-glow-lg ring-1 ring-rose-200/60"
           : "border-brand-line",
       )}
         >
-      {isVision ? (
+      {isFeatured ? (
         <span className="absolute end-6 top-6 rounded-full bg-brand-gradient px-3 py-1 text-eyebrow font-medium text-white">
           {t("tierBadgeMostPopular")}
         </span>
@@ -172,22 +172,6 @@ function TierCard({ tier, idx }: TierCardProps) {
           label={t("tierIncludedMicrosite")}
           icon={<Globe className="h-3.5 w-3.5" />}
         />
-        {meta.includesVenueRecs ? (
-          <IncludedRow
-            label={t("tierIncludedVenueRecs")}
-            icon={<Building2 className="h-3.5 w-3.5" />}
-          />
-        ) : (
-          <ExcludedRow label={t("tierExcludedVenueRecs")} />
-        )}
-        {meta.includesPlannerMatch ? (
-          <IncludedRow
-            label={t("tierIncludedPlannerMatch")}
-            icon={<Users className="h-3.5 w-3.5" />}
-          />
-        ) : (
-          <ExcludedRow label={t("tierExcludedPlannerMatch")} />
-        )}
       </ul>
 
       <div className="mt-7 pt-6 border-t border-brand-line">
@@ -196,12 +180,11 @@ function TierCard({ tier, idx }: TierCardProps) {
           size="lg"
           disabled={isPending}
           onClick={() => buy(tier.sku)}
-          // The featured tier gets the one blessed money button; the other
-          // stays `outline`, which is the visual hierarchy between them.
-          variant={isVision ? "cta" : "outline"}
+          // The purchasable pack gets the one blessed money button.
+          variant={isFeatured ? "cta" : "outline"}
           className={cn(
             "group h-11 w-full gap-2 text-sm",
-            !isVision &&
+            !isFeatured &&
               "border-brand-line bg-background text-brand-strong hover:bg-brand-tint hover:text-brand-strong",
           )}
         >
@@ -246,16 +229,6 @@ function IncludedRow({
   );
 }
 
-function ExcludedRow({ label }: { label: string }) {
-  return (
-    <li className="flex items-start gap-2 text-muted-foreground">
-      <span className="mt-0.5 grid h-5 w-5 flex-shrink-0 place-items-center rounded-full bg-muted/60 text-muted-foreground">
-        <XIcon className="h-3 w-3" />
-      </span>
-      <span className="flex-1">{label}</span>
-    </li>
-  );
-}
 
 /**
  * The full-service tier, shown beside the two packs.
