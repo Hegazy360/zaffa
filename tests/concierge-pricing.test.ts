@@ -37,7 +37,60 @@ describe("quoteGuidanceFor", () => {
   it("reproduces the published Egypt table", () => {
     const g = quoteGuidanceFor("EG")!;
     expect(g.currency).toBe("EGP");
-    expect(g.bands.map((b) => b.fee)).toEqual([45_000, 65_000, 100_000]);
+    // Band 3 was 100_000 until publishing the table forced its edges to be
+    // stated. At the resulting floor of 650_000 that is 15.4% — outside the
+    // norm. See docs/pricing-published-2026-08.md.
+    expect(g.bands.map((b) => b.fee)).toEqual([45_000, 65_000, 95_000]);
+  });
+
+  it("publishes band edges the table can actually show", () => {
+    // The derived model steps at 1.5x, which produces edges like 1_012_500.
+    // Fine internally, unpublishable on a page. These are the legible ones.
+    expect(quoteGuidanceFor("AE")!.bands.map((b) => [b.budgetFrom, b.budgetTo])).toEqual([
+      [200_000, 300_000],
+      [300_000, 450_000],
+      [450_000, 650_000],
+    ]);
+    expect(quoteGuidanceFor("EG")!.bands.map((b) => [b.budgetFrom, b.budgetTo])).toEqual([
+      [300_000, 450_000],
+      [450_000, 650_000],
+      [650_000, 950_000],
+    ]);
+  });
+
+  it("keeps every published band inside the 10-15% norm at both of its edges", () => {
+    // The load-bearing test for the whole published table. Rounding a fee to a
+    // legible number, or nudging a band edge, can silently push a rate outside
+    // the range the entire pricing argument rests on. This is what catches it.
+    for (const country of ["EG", "AE"]) {
+      for (const band of quoteGuidanceFor(country)!.bands) {
+        const atFloor = band.fee / band.budgetFrom;
+        const atCeiling = band.fee / band.budgetTo;
+        expect(atFloor).toBeLessThanOrEqual(0.15 + 1e-9);
+        expect(atCeiling).toBeGreaterThanOrEqual(0.1 - 1e-9);
+        // And the rate must fall across the band, never rise.
+        expect(atCeiling).toBeLessThan(atFloor);
+      }
+    }
+  });
+
+  it("leaves no gap between published bands", () => {
+    // A gap is a budget with no published price, which on a public table
+    // reads as either a mistake or a trap.
+    for (const country of ["EG", "AE"]) {
+      const bands = quoteGuidanceFor(country)!.bands;
+      for (let i = 1; i < bands.length; i++) {
+        expect(bands[i].budgetFrom).toBe(bands[i - 1].budgetTo);
+      }
+    }
+  });
+
+  it("caps the bespoke quote below the top band's ceiling being unbounded", () => {
+    // "Quoted for your day" is only tolerable next to a published ceiling.
+    for (const country of ["EG", "AE"]) {
+      const g = quoteGuidanceFor(country)!;
+      expect(g.cap).toBeGreaterThan(g.bands.at(-1)!.fee);
+    }
   });
 
   it("never publishes a fee above 15% of its band floor", () => {

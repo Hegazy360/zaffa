@@ -42,6 +42,14 @@ export const KNOWN = {
   // The section reads `src/lib/testimonials.ts`, which is empty on purpose —
   // so even flipping this on cannot produce an invented quote. See ZAF-45.
   testimonials: "TESTIMONIALS",
+  // The published fee table on /pricing and the price line on the homepage.
+  // ON by default — D9 is a decision, not an experiment. The flag exists for
+  // one reason: /enquire and published pricing went live days apart, so the
+  // with-price / without-price comparison cannot be reconstructed from deploy
+  // history. Each enquiry records the flag state it was submitted under
+  // (`Enquiry.pricing_published`), which keeps that comparison possible if it
+  // is ever wanted. See docs/pricing-published-2026-08.md.
+  publishedPricing: "PUBLISHED_PRICING",
 } as const;
 
 export type FlagKey = keyof typeof KNOWN;
@@ -55,6 +63,8 @@ const DEFAULTS: Record<FlagKey, boolean> = {
   professionalSurfaces: false,
   // OFF — see comment on `testimonials` above.
   testimonials: false,
+  // ON — see comment on `publishedPricing` above.
+  publishedPricing: true,
 };
 
 export function parseFlagValue(value: string | undefined): boolean | null {

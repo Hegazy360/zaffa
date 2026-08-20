@@ -12,6 +12,7 @@ import { cn } from "@/lib/utils";
 import { trpc } from "@/lib/trpc";
 import { budgetBandsFor, type BudgetBandOption } from "@/lib/concierge-pricing";
 import { WHATSAPP_LINK } from "@/lib/contact-channels";
+import { formatMoney } from "@/lib/money-format";
 
 /**
  * Intake for "The Whole Wedding".
@@ -31,27 +32,16 @@ type Channel = "whatsapp" | "email" | "phone";
 
 const TOTAL_STEPS = 3;
 
-/** Money for the band chips. Latin digits even in Arabic (decision D11) —
- *  these numbers sit beside Stripe receipts and must read unambiguously. */
-function formatMoney(amount: number, currency: string, locale: string): string {
-  const tag = locale === "ar" ? "ar-EG-u-nu-latn" : locale;
-  try {
-    return new Intl.NumberFormat(tag, {
-      style: "currency",
-      currency,
-      maximumFractionDigits: 0,
-    }).format(amount);
-  } catch {
-    return `${currency} ${amount.toLocaleString("en-US")}`;
-  }
-}
-
 export function EnquireWizard({
+  showPricingLink,
   initialCountry,
   designId,
 }: {
   initialCountry: string | null;
   designId: string | null;
+  /** Whether the fee table is live. Passed in rather than read here so the
+   *  flag is evaluated once, on the server, alongside the page's own gate. */
+  showPricingLink: boolean;
 }) {
   const t = useTranslations("enquire");
   const locale = useLocale();
@@ -308,6 +298,21 @@ export function EnquireWizard({
               {t("budgetSkip")}
             </button>
           </div>
+
+          {/* The obvious question at the moment a budget is asked for is
+              "so what do you charge?". Link, don't repeat — /pricing is the
+              single source of truth and this step must not drift from it. */}
+          {showPricingLink && (
+            <p className="mt-4 text-xs text-muted-foreground">
+              <Link
+                href="/pricing"
+                target="_blank"
+                className="underline underline-offset-4 hover:text-foreground"
+              >
+                {t("budgetPricingLink")}
+              </Link>
+            </p>
+          )}
         </section>
       )}
 

@@ -5,6 +5,7 @@ import { Check, ExternalLink } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { formatMoney, formatMoneyDate } from "@/lib/money-format";
 
 /**
  * The couple's view of their concierge package.
@@ -24,28 +25,9 @@ export function ConciergePackageCard({ eventId }: { eventId: string }) {
   const rows = q.data ?? [];
   if (q.isLoading || rows.length === 0) return null;
 
-  /** Latin digits even in Arabic (decision D11): these figures sit beside
-   *  Stripe receipts, and a reader comparing the two must not have to
-   *  translate numerals. */
-  const money = (amount: number, currency: string) => {
-    const tag = locale === "ar" ? "ar-EG-u-nu-latn" : locale;
-    try {
-      return new Intl.NumberFormat(tag, {
-        style: "currency",
-        currency,
-        maximumFractionDigits: 0,
-      }).format(amount);
-    } catch {
-      return `${currency} ${amount.toLocaleString("en-US")}`;
-    }
-  };
-
-  const dateFmt = (d: string | Date) =>
-    new Intl.DateTimeFormat(locale === "ar" ? "ar-EG-u-nu-latn" : locale, {
-      day: "numeric",
-      month: "short",
-      year: "numeric",
-    }).format(new Date(d));
+  const money = (amount: number, currency: string) =>
+    formatMoney(amount, currency, locale);
+  const dateFmt = (d: string | Date) => formatMoneyDate(d, locale);
 
   return (
     <section className="rounded-2xl border border-rose-100 bg-white/70 p-5">

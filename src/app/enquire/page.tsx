@@ -6,6 +6,7 @@ import { Footer } from "@/components/layout/footer";
 import { EnquireWizard } from "@/components/enquire/enquire-wizard";
 import { openGraphLocaleFields } from "@/i18n/config";
 import { VISION_PACK_COUNTRY_COOKIE } from "@/lib/vision-pack-pricing";
+import { isFlagEnabled } from "@/lib/flags";
 
 export async function generateMetadata(): Promise<Metadata> {
   const locale = await getLocale();
@@ -76,6 +77,7 @@ export default async function EnquirePage({
               </p>
             </header>
             <EnquireWizard
+              showPricingLink={isFlagEnabled("publishedPricing")}
               initialCountry={initialCountry}
               designId={params.designId ?? null}
             />

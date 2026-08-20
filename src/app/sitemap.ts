@@ -38,6 +38,19 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
           },
         ] satisfies MetadataRoute.Sitemap)
       : []),
+    // Published pricing is a search-visibility play as much as a trust one —
+    // most of the measured lift from showing rates comes from being findable,
+    // so this entry is load-bearing rather than housekeeping.
+    ...(isFlagEnabled("publishedPricing")
+      ? ([
+          {
+            url: `${base}/pricing`,
+            lastModified: now,
+            changeFrequency: "monthly" as const,
+            priority: 0.9,
+          },
+        ] satisfies MetadataRoute.Sitemap)
+      : []),
     { url: `${base}/about`, lastModified: now, changeFrequency: "monthly", priority: 0.5 },
     { url: `${base}/contact`, lastModified: now, changeFrequency: "monthly", priority: 0.5 },
     { url: `${base}/privacy`, lastModified: now, changeFrequency: "yearly", priority: 0.3 },

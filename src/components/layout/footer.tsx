@@ -83,6 +83,7 @@ export async function Footer() {
   const tBrand = await getTranslations("brand");
   const year = new Date().getFullYear();
   const showBrowse = isFlagEnabled("publicBrowse");
+  const showPricing = isFlagEnabled("publishedPricing");
 
   return (
     <footer className="border-t bg-muted/30">
@@ -165,6 +166,13 @@ export async function Footer() {
           <div>
             <h4 className="font-semibold mb-3">{t("footerCompany")}</h4>
             <ul className="space-y-2 text-sm text-muted-foreground">
+              {showPricing && (
+                <li>
+                  <Link href="/pricing" className="hover:text-foreground">
+                    {t("footerPricing")}
+                  </Link>
+                </li>
+              )}
               <li>
                 <Link href="/about" className="hover:text-foreground">
                   {t("footerAbout")}

@@ -54,6 +54,7 @@ const BULLETS = [
 
 export function WholeWeddingSection() {
   const t = useTranslations("marketing.wholeWedding");
+  const tp = useTranslations("marketing.pricing");
   const reduce = useReducedMotion();
   const covers = parseCovers(t("covers"));
 
@@ -157,12 +158,23 @@ export function WholeWeddingSection() {
               className="pointer-events-none absolute inset-0 bg-gradient-to-br from-white/5 via-transparent to-transparent"
             />
             <div className="relative">
-              {/* The price paragraph. It explains why there is no number
-                  before refusing to give one — the reason lands first, so
-                  "no price here" reads as honest rather than evasive. */}
+              {/* The price paragraph. It used to explain why there was no
+                  number before refusing to give one; D9 reversed that, so it
+                  now makes the same honest argument (Cairo and Dubai are not
+                  the same wedding) and resolves it with a published fee per
+                  market instead of with silence. The table itself stays on
+                  /pricing — three rows per market at the top of a funnel makes
+                  the decision harder, not easier. */}
               <p className="text-pretty text-sm leading-relaxed text-zinc-400">
                 {t("priceParagraph")}
               </p>
+              <Link
+                href="/pricing"
+                className="group mt-4 inline-flex items-center gap-1.5 text-sm text-rose-300 underline-offset-4 transition-colors hover:text-rose-200 hover:underline"
+              >
+                {tp("homeLink")}
+                <ArrowRight className="size-3.5 transition-transform rtl:-scale-x-100 group-hover:translate-x-0.5 rtl:group-hover:-translate-x-0.5" />
+              </Link>
 
               <p className="font-display mt-7 text-balance text-2xl font-light leading-snug tracking-tight text-zinc-50">
                 {t("reassurance")}

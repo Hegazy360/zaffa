@@ -16,6 +16,7 @@ const DEFAULTS_FOR_FALLBACK: Record<FlagKey, boolean> = {
   onboardingWizard: true,
   professionalSurfaces: false,
   testimonials: false,
+  publishedPricing: true,
 };
 
 /**

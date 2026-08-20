@@ -13,6 +13,7 @@ import { EnquiryStatus, EnquiryChannel } from "@/generated/prisma/enums";
 import { getStripe } from "@/lib/stripe";
 import { toStripeAmount, CONCIERGE_INSTALLMENT_KIND } from "@/lib/payments";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
+import { isFlagEnabled } from "@/lib/flags";
 
 
 /**
@@ -159,6 +160,10 @@ export const enquiriesRouter = router({
           design_id: designId,
           source: input.source,
           locale: input.locale ?? null,
+          // Stamp the pricing cohort. `/enquire` and the published fee table
+          // went live days apart, so "did this lead see our price?" cannot be
+          // answered from deploy history later. Recorded here or never.
+          pricing_published: isFlagEnabled("publishedPricing"),
         },
         select: { id: true },
       });
@@ -276,6 +281,112 @@ export const enquiriesRouter = router({
       Record<EnquiryStatus, number>
     >;
   }),
+
+  /**
+   * Lead quality, by weekly cohort.
+   *
+   * The one number that has to be watched after publishing our fee: showing a
+   * price is expected to reduce enquiry *volume* while raising the share that
+   * are real. Volume alone would read as the page failing. `quoteWorthy` —
+   * the share of a week's enquiries that reached `quote_sent` or beyond — is
+   * the number that should rise while volume falls. If both fall, the page is
+   * wrong.
+   *
+   * `pricingPublished` splits each week by the cohort stamped on the row at
+   * submit time, because `/enquire` and the fee table went live days apart and
+   * deploy history will not reconstruct that later.
+   */
+  leadQuality: protectedProcedure
+    .input(z.object({ weeks: z.number().int().min(1).max(52).default(12) }))
+    .query(async ({ ctx, input }) => {
+      await assertAdmin(ctx.user.id);
+
+      const since = new Date();
+      since.setUTCDate(since.getUTCDate() - input.weeks * 7);
+
+      const rows = await prisma.enquiry.findMany({
+        where: { created_at: { gte: since } },
+        select: {
+          created_at: true,
+          status: true,
+          budget_band: true,
+          pricing_published: true,
+        },
+        orderBy: { created_at: "asc" },
+      });
+
+      // Reaching a quote is the bar. Everything downstream of `quote_sent`
+      // counts too — a lead that went straight to `accepted` was obviously
+      // quote-worthy, and a status ladder should never punish speed.
+      const QUOTED: ReadonlySet<string> = new Set([
+        "quote_sent",
+        "accepted",
+        "deposit_paid",
+        "in_planning",
+        "delivered",
+      ]);
+
+      type Bucket = {
+        weekStart: string;
+        total: number;
+        quoted: number;
+        lost: number;
+        withPublishedPricing: number;
+        bandCounts: Record<string, number>;
+      };
+      const buckets = new Map<string, Bucket>();
+
+      for (const row of rows) {
+        // ISO-ish week key: floor the timestamp to the preceding Monday, UTC.
+        const d = new Date(row.created_at);
+        const day = (d.getUTCDay() + 6) % 7;
+        d.setUTCDate(d.getUTCDate() - day);
+        d.setUTCHours(0, 0, 0, 0);
+        const key = d.toISOString().slice(0, 10);
+
+        let bucket = buckets.get(key);
+        if (!bucket) {
+          bucket = {
+            weekStart: key,
+            total: 0,
+            quoted: 0,
+            lost: 0,
+            withPublishedPricing: 0,
+            bandCounts: {},
+          };
+          buckets.set(key, bucket);
+        }
+        bucket.total += 1;
+        if (QUOTED.has(row.status)) bucket.quoted += 1;
+        if (row.status === "lost") bucket.lost += 1;
+        if (row.pricing_published) bucket.withPublishedPricing += 1;
+        if (row.budget_band) {
+          bucket.bandCounts[row.budget_band] =
+            (bucket.bandCounts[row.budget_band] ?? 0) + 1;
+        }
+      }
+
+      const weeks = [...buckets.values()].sort((a, b) =>
+        a.weekStart < b.weekStart ? -1 : 1,
+      );
+
+      const total = rows.length;
+      const quoted = rows.filter((r) => QUOTED.has(r.status)).length;
+
+      return {
+        weeks: weeks.map((w) => ({
+          ...w,
+          // Null rather than 0 for an empty week: a rate of "none out of none"
+          // is not zero, and charting it as zero invents a collapse.
+          quoteWorthyRate: w.total === 0 ? null : w.quoted / w.total,
+        })),
+        overall: {
+          total,
+          quoted,
+          quoteWorthyRate: total === 0 ? null : quoted / total,
+        },
+      };
+    }),
 
   byId: protectedProcedure
     .input(z.object({ id: z.string().uuid() }))

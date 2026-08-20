@@ -34,6 +34,11 @@ const PAGES: ReadonlyArray<{ name: string; path: string }> = [
   { name: "home", path: "/" },
   { name: "signin", path: "/auth/signin" },
   { name: "contact", path: "/contact" },
+  // Pinned to ?market=AE so the shot does not depend on the country cookie:
+  // the ar project sets EG and the en project US, which would otherwise give
+  // the two baselines different tables and different page heights for reasons
+  // that have nothing to do with styling.
+  { name: "pricing", path: "/pricing?market=AE" },
 ];
 
 const LOCALES = [

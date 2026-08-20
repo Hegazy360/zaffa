@@ -6,6 +6,7 @@ import { formatDistanceToNow } from "date-fns";
 import { MessageCircle, Mail, Phone, Inbox } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { cn } from "@/lib/utils";
+import { LeadQualityCard } from "./_components/lead-quality-card";
 
 /**
  * The concierge sales pipeline.
@@ -71,6 +72,11 @@ export default function AdminEnquiriesPage() {
           where these deals die.
         </p>
       </header>
+
+      {/* The number that has to be watched after publishing our fee: volume
+          is expected to fall while quality rises, and only one of those is
+          visible from the list below. */}
+      <LeadQualityCard />
 
       {/* Status tabs. `aria-current` carries the selection so it isn't
           communicated by colour alone. */}

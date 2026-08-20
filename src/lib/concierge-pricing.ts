@@ -1,11 +1,16 @@
 /**
- * Internal quoting policy for the full-service plan ("The Whole Wedding").
+ * Quoting policy for the full-service plan ("The Whole Wedding").
  *
  * This encodes `docs/pricing-full-service.md` so the numbers live in one place
- * instead of in an operator's head. It is **admin-facing guidance** — it feeds
- * the quote panel in the enquiry CRM and the currency/band choices in the
- * intake wizard. It is never exposed on a public endpoint: the plan is
- * enquiry-led, and the couple sees one fixed price after a conversation.
+ * instead of in an operator's head. It feeds three surfaces that must never
+ * disagree: the quote panel in the enquiry CRM, the budget chips in the intake
+ * wizard, and — as of ZAF-48 — the public `/pricing` table.
+ *
+ * That last one is a reversal. This module used to say the model was never
+ * exposed publicly, on the reasoning that no single price fits Cairo and Dubai
+ * alike. The reasoning was sound and the conclusion was wrong: the answer to
+ * "one price cannot fit both markets" is a published fee *per market*, not
+ * silence. See `docs/pricing-published-2026-08.md`.
  *
  * The model, in one line: from a single per-market input `E` (the event budget
  * at which full service becomes a realistic purchase), derive three geometric
@@ -89,8 +94,41 @@ const MARKETS: Readonly<Record<string, { currency: string; entryBudget: number; 
  * exists for markets we add later and is unit-tested against these.
  */
 const PUBLISHED_FEES: Readonly<Record<string, [number, number, number]>> = {
-  EG: [45_000, 65_000, 100_000],
+  // Egypt band 3 was 100_000 until 2026-08-20. Publishing the table meant
+  // publishing band *edges*, and at the resulting band-3 floor of 650_000 a
+  // fee of 100_000 is 15.4% — outside the norm this model exists to stay
+  // inside. 95_000 is 14.6% there and exactly 10% at 950_000.
+  EG: [45_000, 65_000, 95_000],
   AE: [30_000, 45_000, 65_000],
+};
+
+/**
+ * Published band edges: `[floor, ceiling]` per band, in market currency.
+ *
+ * The derived model steps budgets at 1.5× (E, 1.5E, 2.25E, 3.375E), which
+ * produces edges like EGP 1,012,500 — a fine internal boundary and an
+ * unpublishable one. These are the legible equivalents, derived as
+ * `fee / 0.15` to `fee / 0.10`, with each band starting exactly where the
+ * previous ends so the table has no gaps for a reader to fall into.
+ *
+ * Every entry is checked in `tests/concierge-pricing.test.ts` against the
+ * property that makes the whole ladder safe: fee ≤ 15% at the floor and
+ * ≥ 10% at the ceiling. Editing a number here without editing its band edge
+ * fails that test rather than quietly shipping a rate outside the norm.
+ */
+const PUBLISHED_EDGES: Readonly<
+  Record<string, [[number, number], [number, number], [number, number]]>
+> = {
+  EG: [
+    [300_000, 450_000],
+    [450_000, 650_000],
+    [650_000, 950_000],
+  ],
+  AE: [
+    [200_000, 300_000],
+    [300_000, 450_000],
+    [450_000, 650_000],
+  ],
 };
 
 /**
@@ -122,9 +160,14 @@ export function quoteGuidanceFor(
   if (!market) return null;
 
   const derived = deriveBands(market.entryBudget);
-  const published = PUBLISHED_FEES[code];
-  const bands = published
-    ? derived.map((b, i) => ({ ...b, fee: published[i] }))
+  const fees = PUBLISHED_FEES[code];
+  const edges = PUBLISHED_EDGES[code];
+  const bands = fees
+    ? derived.map((b, i) => ({
+        budgetFrom: edges?.[i]?.[0] ?? b.budgetFrom,
+        budgetTo: edges?.[i]?.[1] ?? b.budgetTo,
+        fee: fees[i],
+      }))
     : derived;
 
   return {
