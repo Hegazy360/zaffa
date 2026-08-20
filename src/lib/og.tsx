@@ -24,35 +24,66 @@ export const OG_PHOTO_CONTENT_TYPE = "image/jpeg";
 
 /**
  * WhatsApp will not fetch a link preview image much over ~300 KB, and a
- * preview that never loads is the whole point of this system failing. Cards
- * that are mostly flat colour compress fine as the PNG `ImageResponse`
- * produces — the root card lands around 150 KB. A card with a photograph in it
- * does not: the microsite card came out at 1 MB.
+ * preview that never loads is this whole system failing silently. Cards that
+ * are mostly flat colour compress fine as the PNG `ImageResponse` produces —
+ * the root card lands around 150 KB. A card with a photograph in it does not:
+ * the microsite card came out at 1 MB.
  *
- * So photographic cards are re-encoded to JPEG. Quality 78 keeps the render
- * looking like the render at roughly a fifth of the bytes.
+ * So photographic cards are re-encoded to JPEG, in **pure JavaScript**.
+ *
+ * That is deliberate, and it is the second attempt. The first used `sharp`,
+ * the obvious tool, which worked perfectly in dev and then failed in
+ * production twice with `ERR_DLOPEN_FAILED: libvips-cpp.so.8.18.3` — its
+ * native sibling package is not reliably present in a serverless bundle, and
+ * neither npm's optional-dependency handling nor file tracing fixed it. A
+ * native module for one image conversion, on the growth-critical path, is not
+ * worth that class of failure. `fast-png` and `jpeg-js` ship no binaries at
+ * all, so there is nothing to prune, mis-link, or build for the wrong
+ * architecture.
+ *
+ * Slower than libvips, and it does not matter: this route revalidates hourly.
  */
 export async function ogAsJpeg(image: Response): Promise<Response> {
-  const png = Buffer.from(await image.arrayBuffer());
+  const png = new Uint8Array(await image.arrayBuffer());
   const cacheControl =
     image.headers.get("cache-control") ?? "public, max-age=3600";
 
   try {
-    const { default: sharp } = await import("sharp");
-    const jpeg = await sharp(png)
-      .jpeg({ quality: 78, mozjpeg: true })
-      .toBuffer();
-    return new Response(new Uint8Array(jpeg), {
-      headers: { "content-type": OG_PHOTO_CONTENT_TYPE, "cache-control": cacheControl },
+    const [{ decode }, jpeg] = await Promise.all([
+      import("fast-png"),
+      import("jpeg-js"),
+    ]);
+    const decoded = decode(png);
+
+    // `jpeg-js` wants 8-bit RGBA. Satori's output always is, but a 16-bit or
+    // palette-indexed PNG would silently encode as garbage, so bail to the
+    // PNG rather than serve a corrupted card.
+    if (decoded.depth !== 8 || decoded.channels !== 4) {
+      throw new Error(
+        `unexpected PNG shape: depth=${decoded.depth} channels=${decoded.channels}`,
+      );
+    }
+
+    const encoded = jpeg.encode(
+      {
+        data: Buffer.from(decoded.data as Uint8Array),
+        width: decoded.width,
+        height: decoded.height,
+      },
+      78,
+    );
+    return new Response(new Uint8Array(encoded.data), {
+      headers: {
+        "content-type": OG_PHOTO_CONTENT_TYPE,
+        "cache-control": cacheControl,
+      },
     });
   } catch (err) {
-    // sharp is a native module, and native modules are exactly what gets
-    // pruned or mis-linked in a serverless bundle. A card that is too heavy
-    // for WhatsApp still renders everywhere else; a 500 renders nowhere. So
-    // the PNG is served with its own honest content-type and the failure is
-    // reported rather than swallowed.
+    // A card too heavy for WhatsApp still renders everywhere else; a 500
+    // renders nowhere. Serve the PNG under its own honest content-type and
+    // report the failure rather than swallowing it.
     reportError("og.jpeg_encode_failed", err);
-    return new Response(new Uint8Array(png), {
+    return new Response(png, {
       headers: { "content-type": OG_CONTENT_TYPE, "cache-control": cacheControl },
     });
   }

@@ -16,7 +16,9 @@ import { test, expect } from "@playwright/test";
  *     and every card 500s — while working perfectly in dev.
  *  2. **The preview exceeds WhatsApp's fetch limit.** WhatsApp declines
  *     preview images much above ~300 KB. The microsite card composes a
- *     photograph, which came out at 1 MB as PNG before it was re-encoded.
+ *     photograph, which came out at 1 MB as PNG before it was re-encoded —
+ *     and the first re-encoder (`sharp`) failed in production only, so the
+ *     card silently fell back to the 1 MB PNG. Hence the byte ceiling here.
  */
 
 const MAX_PREVIEW_BYTES = 300 * 1024;
@@ -47,6 +49,23 @@ for (const locale of ["en", "ar"] as const) {
       const body = await res.body();
       expect(body.byteLength).toBeGreaterThan(1000);
       expect(body.byteLength).toBeLessThan(MAX_PREVIEW_BYTES);
+    });
+
+    test("the microsite card is re-encoded and stays under the limit", async ({
+      request,
+    }) => {
+      // The photographic card is the one that cannot be served as PNG. If the
+      // encoder ever silently falls back — which is exactly what happened in
+      // production once — the content-type flips to image/png and the size
+      // blows past the ceiling. Both are asserted.
+      const res = await request.get(
+        "/v/pwvtun6cvc/opengraph-image",
+      );
+      // A microsite that no longer exists is not this test's business.
+      test.skip(res.status() === 404, "seed microsite is not published");
+      expect(res.status()).toBe(200);
+      expect(res.headers()["content-type"]).toContain("image/jpeg");
+      expect((await res.body()).byteLength).toBeLessThan(MAX_PREVIEW_BYTES);
     });
 
     test("the reveal page's card is generic, not the render", async ({
