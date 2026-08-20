@@ -311,9 +311,10 @@ export default async function PricingPage({
             <p className="mt-3 text-sm text-muted-foreground">{t("ctaBody")}</p>
             <div className="mt-6 flex flex-col items-center justify-center gap-3 sm:flex-row">
               <Button
-                size="lg"
+                variant="cta"
+                size="xl"
                 render={<Link href="/enquire" />}
-                className="group h-12 w-full gap-2 bg-gradient-to-r from-rose-600 to-amber-500 px-8 text-base text-white shadow-lg shadow-rose-600/20 transition-all hover:opacity-90 sm:w-auto"
+                className="group w-full sm:w-auto sm:px-8"
               >
                 {t("cta")}
                 <ArrowRight className="h-4 w-4 transition-transform rtl:-scale-x-100 group-hover:translate-x-0.5 rtl:group-hover:-translate-x-0.5" />

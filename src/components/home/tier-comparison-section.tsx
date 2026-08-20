@@ -214,17 +214,13 @@ function TierCard({ tier, idx, reduce }: TierCardProps) {
           size="lg"
           disabled={isPending}
           onClick={() => buy(tier.sku)}
-          // Switch the lower-tier CTA to the `outline` variant so the
-          // rose hover utility overrides cleanly (the `default`
-          // variant's `[a]:hover:bg-primary/80` legacy rule no longer
-          // applies now that this isn't a Link, but we keep outline
-          // for visual hierarchy between the two tiers).
-          variant={isVision ? "default" : "outline"}
+          // The featured tier gets the one blessed money button; the other
+          // stays `outline`, which is the visual hierarchy between them.
+          variant={isVision ? "cta" : "outline"}
           className={cn(
             "group h-11 w-full gap-2 text-sm",
-            isVision
-              ? "border-transparent bg-gradient-to-r from-rose-600 to-amber-500 text-white shadow-md shadow-rose-600/15 hover:opacity-90"
-              : "border-rose-200/80 bg-white text-rose-700 hover:bg-rose-50/70 hover:text-rose-700 dark:border-rose-900/40 dark:bg-card dark:text-rose-200 dark:hover:bg-rose-950/20 dark:hover:text-rose-200",
+            !isVision &&
+              "border-brand-line bg-background text-brand-strong hover:bg-brand-tint hover:text-brand-strong",
           )}
         >
           {isPending ? (

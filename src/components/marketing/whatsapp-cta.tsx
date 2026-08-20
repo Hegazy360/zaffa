@@ -88,7 +88,8 @@ export function WhatsAppCta({
 
   return (
     <Button
-      size="lg"
+      variant={variant === "solid" ? "cta" : "outline"}
+      size="xl"
       render={
         <a
           href={href}
@@ -98,10 +99,8 @@ export function WhatsAppCta({
         />
       }
       className={cn(
-        "h-12 gap-2 px-6",
-        variant === "solid"
-          ? "bg-gradient-to-r from-rose-600 to-amber-500 text-white shadow-lg shadow-rose-600/20 transition-all hover:opacity-90"
-          : "border border-rose-200/80 bg-white text-rose-700 hover:bg-rose-50/70 hover:text-rose-700",
+        variant === "outline" &&
+          "border-brand-line text-brand-strong hover:bg-brand-tint hover:text-brand-strong",
         className,
       )}
     >

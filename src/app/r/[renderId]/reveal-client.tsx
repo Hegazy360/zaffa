@@ -123,8 +123,9 @@ function RevealInner({ renderId }: { renderId: string }) {
           </h1>
           <p className="mt-3 text-sm text-muted-foreground">{t("notFoundBody")}</p>
           <Button
-            size="lg"
-            className="mt-6 gap-2 bg-gradient-to-r from-rose-600 to-amber-500 text-white shadow-lg"
+            variant="cta"
+            size="xl"
+            className="mt-6"
             render={<Link href="/venue-designer" />}
           >
             <Sparkles className="size-4" />

@@ -149,9 +149,10 @@ export function BeginSection() {
             {/* Primary free CTA — symmetrical with the hero so the
                 conversion path is consistent top-to-bottom on the page. */}
             <Button
-              size="lg"
+              variant="cta"
+              size="xl"
               render={<Link href="/venue-designer/new" />}
-              className="group h-12 w-full gap-2 bg-gradient-to-r from-rose-600 to-amber-500 px-6 text-base text-white shadow-lg shadow-rose-600/20 transition-all hover:opacity-90 hover:shadow-rose-600/30 sm:w-auto sm:px-8"
+              className="group w-full sm:w-auto sm:px-8"
             >
               {t("heroCtaFree")}
               <ArrowRight className="h-4 w-4 transition-transform rtl:-scale-x-100 group-hover:translate-x-0.5 rtl:group-hover:-translate-x-0.5" />

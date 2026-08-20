@@ -41,18 +41,19 @@ export default async function NotFound() {
           </p>
           <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
             <Button
-              size="lg"
+              variant="cta"
+              size="xl"
               render={<Link href="/" />}
-              className="group h-12 w-full gap-2 bg-gradient-to-r from-rose-600 to-amber-500 px-6 text-white sm:w-auto"
+              className="group w-full sm:w-auto"
             >
               {t("notFoundHome")}
               <ArrowRight className="size-4 transition-transform rtl:-scale-x-100 group-hover:translate-x-0.5 rtl:group-hover:-translate-x-0.5" />
             </Button>
             <Button
-              size="lg"
+              size="xl"
               variant="outline"
               render={<Link href="/enquire" />}
-              className="h-12 w-full border-rose-200/80 px-6 text-rose-700 hover:bg-rose-50/70 hover:text-rose-700 sm:w-auto"
+              className="w-full border-brand-line text-brand-strong hover:bg-brand-tint hover:text-brand-strong sm:w-auto"
             >
               {t("notFoundEnquire")}
             </Button>

@@ -143,12 +143,12 @@ export function PackCheckoutCard({
         size="lg"
         disabled={isPending}
         onClick={() => buy(sku)}
-        variant={featured ? "default" : "outline"}
+        variant={featured ? "cta" : "outline"}
         className={
           "h-11 gap-2 px-5 " +
           (featured
-            ? "bg-gradient-to-r from-rose-600 to-amber-500 text-white shadow-lg shadow-rose-500/20 hover:opacity-90"
-            : "border-rose-300 text-rose-700 hover:bg-rose-50 hover:text-rose-800 dark:border-rose-800 dark:text-rose-200 dark:hover:bg-rose-950/40")
+            ? ""
+            : "border-brand-line text-brand-strong hover:bg-brand-tint hover:text-brand-strong")
         }
       >
         {isPending ? (

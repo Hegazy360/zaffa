@@ -20,6 +20,23 @@ const buttonVariants = cva(
         destructive:
           "bg-destructive/10 text-destructive hover:bg-destructive/20 focus-visible:border-destructive/40 focus-visible:ring-destructive/20 dark:bg-destructive/20 dark:hover:bg-destructive/30 dark:focus-visible:ring-destructive/40",
         link: "text-primary underline-offset-4 hover:underline",
+        /**
+         * The money button.
+         *
+         * There are 141 hand-rolled copies of `bg-gradient-to-r from-rose-600
+         * to-amber-500 text-white shadow-lg shadow-rose-600/20` in this tree,
+         * and they had already drifted: different shadow opacities, some with
+         * a hover state and some without, one with the gradient running the
+         * wrong way in RTL. A CTA that looks slightly different on the
+         * checkout screen than on the hero is a small trust leak on exactly
+         * the surfaces that can least afford one.
+         *
+         * `focus-visible:ring-brand/40` rather than the default `ring/50`:
+         * the base ring is rose-400, which disappears against the rose
+         * gradient. Offsetting it from the button gives a visible ring on
+         * cream, on white, and on `.surface-dark`.
+         */
+        cta: "bg-brand-gradient text-white shadow-glow transition-all hover:shadow-glow-lg hover:brightness-105 active:brightness-95 focus-visible:ring-brand/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background",
       },
       size: {
         default:
@@ -33,6 +50,10 @@ const buttonVariants = cva(
         "icon-sm":
           "size-7 rounded-[min(var(--radius-md),12px)] in-data-[slot=button-group]:rounded-lg",
         "icon-lg": "size-9",
+        /** Marketing-scale. Every hand-rolled CTA on the public pages was
+         *  already `size="lg"` plus `className="h-12 px-6 text-base"`; this
+         *  is that, named. */
+        xl: "h-12 gap-2 rounded-xl px-6 text-base has-data-[icon=inline-end]:pe-5 has-data-[icon=inline-start]:ps-5",
       },
     },
     defaultVariants: {

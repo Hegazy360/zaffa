@@ -130,6 +130,9 @@ export default function KitchenSink() {
       <section className="space-y-4">
         <h2 className="text-eyebrow text-muted-foreground">Buttons</h2>
         <div className="flex flex-wrap items-center gap-3">
+          <Button variant="cta" size="xl">
+            The money button
+          </Button>
           <Button>Default (now brand)</Button>
           <Button variant="outline">Outline</Button>
           <Button variant="secondary">Secondary</Button>
@@ -156,7 +159,12 @@ export default function KitchenSink() {
         <div className="rounded-card border border-border bg-card p-4 text-sm">
           A card on the plate.
         </div>
-        <div className="flex gap-3">
+        {/* The focus ring has to stay visible against the gradient itself,
+            not just against the plate behind it — tab to these. */}
+        <div className="flex flex-wrap gap-3">
+          <Button variant="cta" size="xl">
+            The money button, on dark
+          </Button>
           <Button>Brand button</Button>
           <Button variant="outline">Outline on dark</Button>
         </div>
