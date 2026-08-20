@@ -48,27 +48,110 @@
   --radius-2xl: calc(var(--radius) * 1.8);
   --radius-3xl: calc(var(--radius) * 2.2);
   --radius-4xl: calc(var(--radius) * 2.6);
+
+  /* Brand tokens as Tailwind utilities — `bg-brand`, `text-brand-strong`,
+     `border-brand-line`, `bg-surface-dark`, and so on. */
+  --color-brand: var(--brand);
+  --color-brand-strong: var(--brand-strong);
+  --color-brand-soft: var(--brand-soft);
+  --color-brand-accent: var(--brand-accent);
+  --color-brand-tint: var(--brand-tint);
+  --color-brand-line: var(--brand-line);
+  --color-brand-on: var(--brand-on);
+  --color-surface-dark: var(--surface-dark);
+  --color-surface-dark-raised: var(--surface-dark-raised);
+  --color-surface-dark-foreground: var(--surface-dark-foreground);
+  --color-surface-dark-muted: var(--surface-dark-muted);
+  --color-surface-dark-line: var(--surface-dark-line);
+
+  /* Glow shadows, derived from the brand rather than hand-mixed rgba. There
+     were three different rose shadow recipes in the tree, none of which
+     tracked the brand colour if it ever changed. */
+  --shadow-glow-sm: 0 8px 20px -12px color-mix(in oklab, var(--brand) 35%, transparent);
+  --shadow-glow: 0 20px 50px -20px color-mix(in oklab, var(--brand) 30%, transparent);
+  --shadow-glow-lg: 0 32px 80px -28px color-mix(in oklab, var(--brand) 35%, transparent);
+
+  /* Two display sizes instead of seven bespoke clamps. The hero clamp is
+     copied verbatim from `hero-editorial.tsx` so it does not move. */
+  --text-display: clamp(2.25rem, 9vw, 5.25rem);
+  --text-display--line-height: 1.05;
+  --text-headline: clamp(1.75rem, 4vw, 3rem);
+  --text-headline--line-height: 1.1;
+
+  /* Named radii, so a card and a plate are not both "rounded-2xl" by
+     coincidence. */
+  --radius-field: 0.75rem;
+  --radius-card: 1rem;
+  --radius-plate: 1.5rem;
+}
+
+/* ---------------------------------------------------------------------------
+   Brand tokens (ZAF-53 / decisions D1–D7)
+
+   Every value below is *copied from what already ships*, not invented. The
+   codebase had 2,014 hardcoded `rose-*` utilities and 120 literal gradients
+   describing a brand that existed only as a habit — so this layer names the
+   habit rather than changing it. A codemod can then replace the literals with
+   tokens and prove the result is pixel-identical, which is only possible
+   because the numbers here are the same numbers Tailwind was already
+   resolving.
+
+   The one deliberate change is the neutral ramp: shadcn's greys are pure
+   achromatic (chroma 0), and the pages they sit under are warm cream. D3 says
+   warm stone for light surfaces, cool zinc for dark plates — the cool ink is
+   *why* the rose glow reads, so it is now a rule rather than an accident. The
+   retint is chroma ≤0.006, under 1ΔE.
+   --------------------------------------------------------------------------- */
+
+:root {
+  /* Brand — rose-600 → amber-500, the pairing already used everywhere. */
+  --brand: oklch(58.6% 0.253 17.585); /* rose-600 */
+  --brand-strong: oklch(51.4% 0.222 16.935); /* rose-700 */
+  --brand-soft: oklch(64.5% 0.246 16.439); /* rose-500 */
+  --brand-accent: oklch(76.9% 0.188 70.08); /* amber-500 */
+  --brand-tint: oklch(96.9% 0.015 12.422); /* rose-50 — page washes */
+  /* rose-200, not rose-100. The old border colour was invisible against a
+     cream page at 1px; this is the lightest rose that actually draws a line. */
+  --brand-line: oklch(89.2% 0.058 10.001);
+  --brand-on: oklch(100% 0 0);
+
+  /* Dark plate. Cool zinc against warm stone pages — the contrast is what
+     makes the rose glow read as light rather than as paint. */
+  --surface-dark: oklch(14.1% 0.005 285.823); /* zinc-950 */
+  --surface-dark-raised: oklch(21% 0.006 285.885); /* zinc-900 */
+  --surface-dark-foreground: oklch(96.7% 0.001 286.375); /* zinc-100 */
+  --surface-dark-muted: oklch(70.5% 0.015 286.067); /* zinc-400 */
+  --surface-dark-line: oklch(100% 0 0 / 15%);
 }
 
 :root {
   --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
+  /* Stone, not the achromatic default. Every page these sit on is a warm
+     cream gradient, and pure grey text on warm cream reads faintly blue.
+     Chroma ≤0.006 — under 1ΔE, so this is a warmth correction, not a
+     recolour. See D3. */
+  --foreground: oklch(14.7% 0.004 49.25); /* stone-950 */
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
+  --card-foreground: oklch(14.7% 0.004 49.25);
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
+  --popover-foreground: oklch(14.7% 0.004 49.25);
+  /* Primary is the brand now. Default shadcn buttons were near-black on a
+     site whose every real CTA is a rose gradient — so the "unstyled" button
+     looked like it belonged to a different product. Intended visual change. */
+  --primary: var(--brand);
+  --primary-foreground: var(--brand-on);
+  --secondary: oklch(97% 0.001 106.424); /* stone-100 */
+  --secondary-foreground: oklch(21.6% 0.006 56.043); /* stone-900 */
+  --muted: oklch(97% 0.001 106.424);
+  --muted-foreground: oklch(55.3% 0.013 58.071); /* stone-500 */
+  --accent: oklch(97% 0.001 106.424);
+  --accent-foreground: oklch(21.6% 0.006 56.043);
   --destructive: oklch(0.58 0.22 27);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
+  --border: oklch(92.3% 0.003 48.717); /* stone-200 */
+  --input: oklch(92.3% 0.003 48.717);
+  /* rose-400: the focus ring should read as the brand, not as a system
+     default, and it has to be visible on both cream and white. */
+  --ring: oklch(71.2% 0.194 13.428);
   --chart-1: oklch(0.809 0.105 251.813);
   --chart-2: oklch(0.623 0.214 259.815);
   --chart-3: oklch(0.546 0.245 262.881);
@@ -129,6 +212,52 @@
   html {
     @apply font-sans;
   }
+}
+
+/* One canonical brand gradient. There were ~120 literal
+   `from-rose-600 to-amber-500` gradients in the tree; interpolating in oklab
+   makes this pixel-identical to what Tailwind was already producing, so the
+   codemod that replaces them can be proved by the visual net rather than
+   argued about. */
+@utility bg-brand-gradient {
+  background-image: linear-gradient(
+    to right,
+    var(--brand),
+    var(--brand-accent)
+  );
+}
+
+@utility text-brand-gradient {
+  background-image: linear-gradient(
+    to bottom right,
+    var(--brand),
+    var(--brand-soft),
+    var(--brand-accent)
+  );
+  background-clip: text;
+  color: transparent;
+}
+
+/* The soft radial bloom used behind heroes and section corners. */
+@utility bg-brand-orb {
+  background-image: radial-gradient(
+    circle,
+    color-mix(in oklab, var(--brand) 22%, transparent) 0%,
+    transparent 68%
+  );
+}
+
+/* Eyebrow text: 12px floor, wide tracking — and **no tracking in RTL**.
+   Letter-spacing breaks Arabic glyph joining: the letters stop connecting and
+   the word falls apart into disconnected shapes. That bug is live across ten
+   homepage sections (ZAF-29), and it recurs every time someone writes
+   `tracking-[0.28em]` by hand. Building the reset into the utility is the
+   only version of this that stays fixed. */
+@utility text-eyebrow {
+  font-size: 0.75rem;
+  line-height: 1.2;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
 }
 
 @utility font-display {
@@ -259,6 +388,43 @@
   .hero-rise {
     animation-delay: 0s !important;
   }
+}
+
+/* A dark *surface*, not a dark *theme*.
+   The founder asked for "a good mix" of light and dark rather than a dark
+   mode, and this is the mechanism: any section can opt into the plate by
+   adding one class, and everything inside it — text, borders, muted copy —
+   remaps automatically. No `dark:` variants, no theme switch, no 502
+   unreachable classes. */
+.surface-dark {
+  --background: var(--surface-dark);
+  --foreground: var(--surface-dark-foreground);
+  --card: var(--surface-dark-raised);
+  --card-foreground: var(--surface-dark-foreground);
+  --muted: var(--surface-dark-raised);
+  --muted-foreground: var(--surface-dark-muted);
+  --border: var(--surface-dark-line);
+  --input: var(--surface-dark-line);
+  --popover: var(--surface-dark-raised);
+  --popover-foreground: var(--surface-dark-foreground);
+
+  background-color: var(--surface-dark);
+  color: var(--surface-dark-foreground);
+}
+
+/* Arabic letters connect. Letter-spacing pulls them apart and the word breaks
+   into disconnected shapes, which is the live bug across ten homepage sections
+   (ZAF-29).
+
+   Matched on **any** `dir="rtl"`, not `:root[dir="rtl"]`. Arabic appears
+   inside otherwise-English pages all over this product — the brand mark in the
+   navbar, a quote in its original language, a couple's name — and a rule
+   anchored to the document root would leave every one of those broken. Both
+   forms are needed because a descendant selector cannot match the element
+   that carries the attribute itself. */
+[dir="rtl"] .text-eyebrow,
+.text-eyebrow[dir="rtl"] {
+  letter-spacing: 0;
 }
 
 .grain-bg {
