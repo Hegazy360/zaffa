@@ -31,7 +31,7 @@ export interface NotifyArgs {
 /**
  * The single entrypoint for producing a notification. Writes the DB row
  * (source of truth for the in-app bell) and kicks off an email in the
- * background when eligible. Never throws — failures are logged and
+ * background when eligible. Never throws, failures are logged and
  * swallowed so a notification bug can't break the parent mutation.
  *
  * Usage is meant to be one-liners inside tRPC mutations:
@@ -74,7 +74,7 @@ export async function notify(args: NotifyArgs): Promise<void> {
     if (args.skipEmail || recipient.email_unsubscribed_at) return;
 
     // Resolve the recipient's email from Supabase auth. Profile table doesn't
-    // store the email (auth.users does) — we select via a raw query so Prisma
+    // store the email (auth.users does), we select via a raw query so Prisma
     // doesn't need to know about the auth schema.
     const email = await resolveUserEmail(recipient.id);
     if (!email) return;

@@ -8,7 +8,7 @@ import { minorToMajor } from "@/lib/vision-pack-pricing";
 
 /**
  * Fire TikTok ViewContent once per mount. The home-page hero is the
- * canonical pack "product page" surface — TikTok requires this
+ * canonical pack "product page" surface, TikTok requires this
  * funnel-top event for vertical optimization (else campaigns drop ROAS,
  * see the Events Manager warning). Guarded by a ref so re-renders /
  * pricing refetches don't re-fire. `ttTrack` itself no-ops when
@@ -16,7 +16,7 @@ import { minorToMajor } from "@/lib/vision-pack-pricing";
  * local dev / tests / CI without the key.
  *
  * Extracted verbatim from the old HeroEditorial when the sample-studio
- * hero replaced it — the event MUST keep firing on `/` whatever the hero
+ * hero replaced it, the event MUST keep firing on `/` whatever the hero
  * looks like.
  */
 export function useTikTokViewContent(): void {

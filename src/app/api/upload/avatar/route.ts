@@ -27,7 +27,7 @@ export async function POST(request: Request) {
   }
 
   // Per-user rate limit so a stuck client can't loop. Using the
-  // mutationDefault bucket — avatar churn is naturally low.
+  // mutationDefault bucket, avatar churn is naturally low.
   const limit = await consume("mutationDefault", `avatar:${user.id}`);
   if (!limit.success) {
     return NextResponse.json(
@@ -65,7 +65,7 @@ export async function POST(request: Request) {
               { width: 400, height: 400, crop: "fill", gravity: "face" },
               { quality: "auto", fetch_format: "auto" },
             ],
-            // Each user has at most one avatar at a time — overwrite the
+            // Each user has at most one avatar at a time, overwrite the
             // previous so we don't accumulate orphan images.
             public_id: "current",
             overwrite: true,

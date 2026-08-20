@@ -18,7 +18,7 @@ interface Args {
 interface PackCheckoutAction {
   /**
    * Kick off the buy flow for `sku`. Anonymous visitors are bounced to
-   * `/auth/signup?next=/checkout?sku=...` — `/checkout` then auto-fires
+   * `/auth/signup?next=/checkout?sku=...`, `/checkout` then auto-fires
    * `startCheckout` once they're permanent. Authenticated visitors hit
    * Stripe directly.
    */
@@ -38,7 +38,7 @@ interface PackCheckoutAction {
    * just hasn't had their claims resolved client-side yet. The
    * server-side `ANONYMOUS_NOT_ALLOWED` fallback in `checkout.onError`
    * still catches the rare case where a truly-anon visitor clicks
-   * inside that initial loading window — they pay one extra server
+   * inside that initial loading window, they pay one extra server
    * round-trip before being routed to signup, which is worth it to
    * avoid the "sign up redirect on first click, payment on second"
    * confusion that hits every permanent user otherwise.
@@ -62,7 +62,7 @@ export function usePackCheckoutAction({
   const anonClaim = useIsAnonymous();
   // Only treat the caller as anonymous when we've actually resolved
   // their JWT claims and they came back `is_anonymous: true`. The
-  // null (loading) state is treated as "unknown — try the buy path,
+  // null (loading) state is treated as "unknown - try the buy path,
   // let the server be the source of truth". See `isAnon` jsdoc above
   // for why this beats the previous "null → anon" treatment.
   const isAnon = anonClaim === true;
@@ -74,7 +74,7 @@ export function usePackCheckoutAction({
 
   // Resolve a TikTok-shaped contents/value/currency payload for `sku`.
   // Returns null when the tier price isn't in `bySku` yet (extremely
-  // rare — `useTierPricing` falls back to seed prices immediately) so
+  // rare, `useTierPricing` falls back to seed prices immediately) so
   // callers can skip firing rather than send a malformed event.
   const ttPayloadFor = (sku: PackSkuId) => {
     const tier = tiers.bySku[sku];
@@ -103,7 +103,7 @@ export function usePackCheckoutAction({
 
   const checkout = trpc.visionPacks.startCheckout.useMutation({
     onSuccess: ({ url, packId }, variables) => {
-      // Funnel signal — fire BEFORE the redirect so the pixel has time
+      // Funnel signal, fire BEFORE the redirect so the pixel has time
       // to flush. `packId` is used as the TikTok event_id so a future
       // server-side CompletePayment from the Stripe webhook can dedupe
       // against the same conversion.
@@ -118,17 +118,17 @@ export function usePackCheckoutAction({
     onError: (err, variables) => {
       // Server-side safety net for the auth race. Two flavours we
       // route to signup instead of toasting:
-      //   - `ANONYMOUS_NOT_ALLOWED` — caller has an anon Supabase
+      //   - `ANONYMOUS_NOT_ALLOWED`, caller has an anon Supabase
       //     session (e.g. they ran a free try) and the client hook
       //     hadn't resolved that yet when they clicked.
-      //   - `UNAUTHORIZED` (no message) — caller has no session at
+      //   - `UNAUTHORIZED` (no message), caller has no session at
       //     all (fresh visitor, cleared cookies). Mirrors the same
       //     branch in `/checkout/page.tsx`'s onError.
       // Both happen when a visitor clicks a buy CTA inside the
       // ~100ms window before `useIsAnonymous` resolves; the fallback
       // makes that loading state invisible to the user.
       // We only re-route when we actually know which sku they were
-      // trying to buy — the input shape is optional in the tRPC
+      // trying to buy, the input shape is optional in the tRPC
       // schema so this guard is load-bearing.
       const needsAuth =
         err.message === "ANONYMOUS_NOT_ALLOWED" ||
@@ -142,7 +142,7 @@ export function usePackCheckoutAction({
   });
 
   const buy = (sku: PackSkuId) => {
-    // Funnel signal — TikTok requires AddToCart for vertical funnel
+    // Funnel signal, TikTok requires AddToCart for vertical funnel
     // optimization. We don't have a literal cart, so we fire it on the
     // buy-intent click (same moment as routing the user toward
     // signup-or-Stripe).

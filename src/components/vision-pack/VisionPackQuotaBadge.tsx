@@ -17,7 +17,7 @@ import { useVisionPackPricing } from "./use-pricing";
  * Tapping the pill pops the paywall when the pack is exhausted or the
  * window has expired, so the user can buy a fresh one.
  *
- * Returns null when there's no pack at all — the paywall modal handles
+ * Returns null when there's no pack at all, the paywall modal handles
  * the first-time-buy framing on render attempts.
  */
 export function VisionPackQuotaBadge() {

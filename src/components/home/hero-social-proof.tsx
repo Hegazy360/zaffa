@@ -11,7 +11,7 @@ import { reportError } from "@/lib/logger";
  * filled stars, an invented "4.9", and "Loved by 10,000+ couples". The real
  * numbers at time of writing are 31 renders across 14 accounts, most of them
  * ours. On a product whose entire proposition is "trust us with your wedding",
- * that gap is not a growth shortcut — it is the one lie that, if noticed,
+ * that gap is not a growth shortcut - it is the one lie that, if noticed,
  * invalidates every other claim on the page.
  *
  * The replacement has three parts, and two of them are silent today by design:
@@ -20,7 +20,7 @@ import { reportError } from "@/lib/logger";
  *     to the public gallery. Consent is the gate. Hidden below three, because
  *     two avatars read as "nobody uses this".
  *  2. A live count, hidden below a floor high enough that the number is worth
- *     saying. It turns itself on when the business earns it — no code change,
+ *     saying. It turns itself on when the business earns it - no code change,
  *     no one deciding it's time to start rounding up.
  *  3. A trust line that is true on day one: who answers, in which languages,
  *     from where. For a couple who cannot tell good vendors from bad ones,
@@ -84,7 +84,7 @@ async function loadProof(): Promise<{ count: number; thumbs: string[] }> {
     },
   });
 
-  // One render per couple — four thumbnails of the same wedding is not proof
+  // One render per couple, four thumbnails of the same wedding is not proof
   // that four couples exist.
   //
   // Note the loop keeps scanning a user's designs until it finds one with a

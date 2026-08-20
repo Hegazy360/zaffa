@@ -22,7 +22,7 @@ export function getPostHogServer(): PostHog | null {
   }
   cached = new PostHog(key, {
     host,
-    // Tighter flush than the SDK default — Vercel functions can be killed
+    // Tighter flush than the SDK default, Vercel functions can be killed
     // quickly after returning a response, so we want events shipped fast.
     flushAt: 1,
     flushInterval: 0,

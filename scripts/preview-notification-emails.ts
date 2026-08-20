@@ -12,7 +12,7 @@
  * Defaults:
  *   --out     ./tmp/email-previews
  *   --locale  en
- *   (no --type) — renders all 24 types
+ *   (no --type), renders all 24 types
  *
  * Open the generated files directly in a browser to preview. The text
  * alternative is written alongside each HTML file for quick diffing.
@@ -27,7 +27,7 @@ import type { NotificationType } from "../src/generated/prisma/client";
 type Vars = Record<string, string | number>;
 
 // Mirrors scripts/seed-notification.ts DEMO_VARS, kept in sync by hand.
-// Duplicated intentionally — this script is a devtool and we don't want
+// Duplicated intentionally, this script is a devtool and we don't want
 // a runtime dependency on seed-notification's internals.
 const DEMO_VARS: Record<NotificationType, Vars> = {
   proposal_received: {
@@ -126,7 +126,7 @@ const DEMO_VARS: Record<NotificationType, Vars> = {
     plannerName: "Nada Hassan",
     engagementTitle: "Full-service floral (ceremony + reception)",
     totalAmount: "EGP 48,500",
-    eventTitle: "Mariam & Youssef — Sep 14",
+    eventTitle: "Mariam & Youssef - Sep 14",
   },
   engagement_cancelled: {
     plannerName: "Nada Hassan",
@@ -140,7 +140,7 @@ const DEMO_VARS: Record<NotificationType, Vars> = {
   message_received: {
     senderName: "Nour, your planner",
     preview:
-      "\u201cHey! Quick question about the floral palette — would you be open to a softer blush instead of coral?\u201d",
+      "\u201cHey! Quick question about the floral palette - would you be open to a softer blush instead of coral?\u201d",
   },
   vision_pack_ready: {
     days: 60,
@@ -154,7 +154,7 @@ const DEMO_VARS: Record<NotificationType, Vars> = {
   enquiry_received: {
     fullName: "Noor & Faisal",
     city: "Dubai",
-    guests: "150–200 guests",
+    guests: "150-200 guests",
     channel: "WhatsApp",
   },
   design_approved: {
@@ -206,7 +206,7 @@ async function main() {
     await writeFile(htmlPath, html, "utf8");
     await writeFile(txtPath, text, "utf8");
     indexRows.push(
-      `<li><a href="./${baseName}.html"><strong>${t}</strong></a> <span style="color:#857a74">— ${subject}</span> · <a href="./${baseName}.txt">plain text</a></li>`,
+      `<li><a href="./${baseName}.html"><strong>${t}</strong></a> <span style="color:#857a74">- ${subject}</span> · <a href="./${baseName}.txt">plain text</a></li>`,
     );
     console.log(`  rendered ${t} (${locale}) -> ${htmlPath}`);
   }

@@ -87,7 +87,7 @@ export default function OutreachKanbanPage() {
               <ul className="space-y-1 p-2">
                 {grouped[status].length === 0 && (
                   <li className="px-1 py-2 text-center text-xs text-muted-foreground">
-                    —
+                    -
                   </li>
                 )}
                 {grouped[status].slice(0, 25).map((p) => (

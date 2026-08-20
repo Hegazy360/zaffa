@@ -132,7 +132,7 @@ export const proposalsRouter = router({
             heroImage,
             palette: design?.palette ?? null,
             // True when this event is currently engaged with a different
-            // planner — gives the planner the "Backup" hint.
+            // planner, gives the planner the "Backup" hint.
             engaged_with_other:
               p.event.planner_id !== null && p.status === "pending",
           },
@@ -219,7 +219,7 @@ export const proposalsRouter = router({
         });
       }
 
-      // Planner-journey funnel — fired when the planner ships a proposal
+      // Planner-journey funnel, fired when the planner ships a proposal
       // out the door. The mirror `proposal.received` is captured client-
       // side when the couple opens the proposals tab.
       await trackServer(ctx.user.id, ANALYTICS_EVENTS.PROPOSAL_SENT, {
@@ -320,7 +320,7 @@ export const proposalsRouter = router({
       });
 
       // Only alert the client when the withdrawal actually detaches the
-      // active planner — a pending withdrawal is just a lost bid, not an
+      // active planner - a pending withdrawal is just a lost bid, not an
       // event to broadcast.
       if (wasActive) {
         await notifyProposalWithdrawn({
@@ -477,7 +477,7 @@ export const proposalsRouter = router({
         }),
       ]);
 
-      // Couple-journey funnel — one of the most important conversion
+      // Couple-journey funnel, one of the most important conversion
       // moments. Tracked against the client's distinctId so it stitches
       // with their browser-side `proposal.received` view.
       await trackServer(ctx.user.id, ANALYTICS_EVENTS.PROPOSAL_ACCEPTED, {
@@ -649,7 +649,7 @@ export const proposalsRouter = router({
       });
 
       // Notify both planners of the swap. The outgoing planner gets two
-      // items — one for the release itself, one for the review — since
+      // items - one for the release itself, one for the review - since
       // they're useful signals independently (earnings page vs. portfolio).
       await Promise.all([
         notifyProposalReleased({

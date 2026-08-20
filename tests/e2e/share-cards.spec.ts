@@ -13,10 +13,10 @@ import { test, expect } from "@playwright/test";
  *  1. **The fonts vanish in production.** The cards read font files off disk,
  *     which Next's tracer cannot follow through `path.join(process.cwd(), …)`.
  *     Without `outputFileTracingIncludes` they are pruned from the deployment
- *     and every card 500s — while working perfectly in dev.
+ *     and every card 500s, while working perfectly in dev.
  *  2. **The preview exceeds WhatsApp's fetch limit.** WhatsApp declines
  *     preview images much above ~300 KB. The microsite card composes a
- *     photograph, which came out at 1 MB as PNG before it was re-encoded —
+ *     photograph, which came out at 1 MB as PNG before it was re-encoded -
  *     and the first re-encoder (`sharp`) failed in production only, so the
  *     card silently fell back to the 1 MB PNG. Hence the byte ceiling here.
  */
@@ -55,8 +55,8 @@ for (const locale of ["en", "ar"] as const) {
       request,
     }) => {
       // The photographic card is the one that cannot be served as PNG. If the
-      // encoder ever silently falls back — which is exactly what happened in
-      // production once — the content-type flips to image/png and the size
+      // encoder ever silently falls back, which is exactly what happened in
+      // production once, the content-type flips to image/png and the size
       // blows past the ceiling. Both are asserted.
       const res = await request.get(
         "/v/pwvtun6cvc/opengraph-image",

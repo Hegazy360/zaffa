@@ -6,7 +6,7 @@
 // `NEXT_PUBLIC_TURNSTILE_SITE_KEY` (rendered into the widget) and
 // `TURNSTILE_SECRET_KEY` (used here) so the gate actually closes.
 //
-// We hit Cloudflare from the server only — the token is single-use and
+// We hit Cloudflare from the server only, the token is single-use and
 // must be validated before granting the action it protects (an
 // anonymous render here). On a verification failure we surface a
 // machine-readable code so the tRPC procedure can map it to a tidy
@@ -28,7 +28,7 @@ export interface TurnstileVerifyResult {
  * - Returns `{ ok: true }` immediately when no secret is set
  *   (dev/preview pass-through).
  * - Returns `{ ok: false }` when the secret IS set but the token is
- *   missing — production must always send a token.
+ *   missing, production must always send a token.
  */
 export async function verifyTurnstile(
   token: string | null | undefined,
@@ -55,7 +55,7 @@ export async function verifyTurnstile(
     logger.warn("turnstile.verify.exception", {
       error: err instanceof Error ? err.message : String(err),
     });
-    // Fail open on Cloudflare network blips — Turnstile is defense in
+    // Fail open on Cloudflare network blips, Turnstile is defense in
     // depth, not the primary rate-limit. The IP+email limiters still
     // apply.
     return { ok: true };

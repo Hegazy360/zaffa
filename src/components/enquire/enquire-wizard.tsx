@@ -14,12 +14,13 @@ import { budgetBandsFor, type BudgetBandOption } from "@/lib/concierge-pricing";
 import { REPLY_WITHIN_HOURS } from "@/lib/contact-channels";
 import { WhatsAppCta } from "@/components/marketing/whatsapp-cta";
 import { formatMoney } from "@/lib/money-format";
+import { CountryCombobox } from "@/components/ui/country-combobox";
 
 /**
  * Intake for "The Whole Wedding".
  *
  * Three steps, in commitment order: their day, their budget, then who they
- * are. Contact details come last on purpose — asking for a phone number before
+ * are. Contact details come last on purpose, asking for a phone number before
  * the visitor has invested anything is where guided funnels leak. Every field
  * here earns its place; this buyer is already tracking a hundred things.
  *
@@ -179,13 +180,11 @@ export function EnquireWizard({
           <div className="mt-6 space-y-5">
             <div>
               <Label htmlFor="eq-country">{t("countryLabel")}</Label>
-              <Input
+              <CountryCombobox
                 id="eq-country"
                 value={country}
-                onChange={(e) => setCountry(e.target.value.toUpperCase().slice(0, 2))}
-                placeholder="AE"
-                maxLength={2}
-                className="mt-1.5 w-24 uppercase"
+                onValueChange={setCountry}
+                className="mt-1.5"
               />
             </div>
             <div>
@@ -298,7 +297,7 @@ export function EnquireWizard({
           </div>
 
           {/* The obvious question at the moment a budget is asked for is
-              "so what do you charge?". Link, don't repeat — /pricing is the
+              "so what do you charge?". Link, don't repeat - /pricing is the
               single source of truth and this step must not drift from it. */}
           {showPricingLink && (
             <p className="mt-4 text-xs text-muted-foreground">
@@ -397,7 +396,7 @@ export function EnquireWizard({
                 className="mt-1.5"
               />
             </div>
-            {/* Honeypot — visually hidden, never announced. */}
+            {/* Honeypot - visually hidden, never announced. */}
             <input
               type="text"
               tabIndex={-1}

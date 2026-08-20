@@ -8,7 +8,7 @@ import { getPostHogServer } from "@/lib/posthog";
 // and can't be bundled for the browser).
 
 // Mirrors `DEFAULTS` in flags.ts. Typed as a total Record so adding a flag
-// there is a compile error here until it's mirrored — which is how the
+// there is a compile error here until it's mirrored, which is how the
 // omission of `professionalSurfaces` was caught.
 const DEFAULTS_FOR_FALLBACK: Record<FlagKey, boolean> = {
   publicBrowse: false,
@@ -26,7 +26,7 @@ const DEFAULTS_FOR_FALLBACK: Record<FlagKey, boolean> = {
  *   2. PostHog `isFeatureEnabled(KEY, distinctId)` when configured.
  *   3. Static fallback default.
  *
- * Never throws — analytics outages must not break a request.
+ * Never throws, analytics outages must not break a request.
  */
 export async function isFlagEnabledFor(
   key: FlagKey,
@@ -41,7 +41,7 @@ export async function isFlagEnabledFor(
       const result = await ph.isFeatureEnabled(KNOWN[key], distinctId);
       if (typeof result === "boolean") return result;
     } catch {
-      // Swallow — fall through to static default.
+      // Swallow, fall through to static default.
     }
   }
   return DEFAULTS_FOR_FALLBACK[key];

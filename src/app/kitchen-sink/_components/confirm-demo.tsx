@@ -4,11 +4,11 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useConfirm } from "@/components/ui/confirm";
 
-/** Opens the shared confirmation dialog so its behaviour — and, critically,
- *  its centring under RTL — can be checked on a real page. */
+/** Opens the shared confirmation dialog so its behaviour - and, critically,
+ *  its centring under RTL, can be checked on a real page. */
 export function ConfirmDemo() {
   const confirm = useConfirm();
-  const [last, setLast] = useState<string>("—");
+  const [last, setLast] = useState<string>("-");
 
   return (
     <div className="flex flex-wrap items-center gap-3">

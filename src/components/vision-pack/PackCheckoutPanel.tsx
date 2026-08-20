@@ -29,7 +29,7 @@ interface PackCheckoutPanelProps {
   returnPath?: string;
   /**
    * Optional cancel/dismiss handler. When provided, renders a ghost
-   * "Not now" button alongside the primary CTA — used by the modal
+   * "Not now" button alongside the primary CTA, used by the modal
    * variant to give visitors an escape hatch. Inline usages typically
    * omit this; the visitor can just navigate away.
    */
@@ -51,12 +51,12 @@ interface PackCheckoutPanelProps {
 /**
  * The buyable surface of the pack: summary card, what's included,
  * refund note, and the buy CTA. One purchasable SKU, so there is no
- * picker — nothing should look choosable when there's no choice.
+ * picker, nothing should look choosable when there's no choice.
  *
  * Used in two contexts:
  *   - Inside `VisionPackPaywall` as the modal body, with the dialog
  *     supplying its own headline (so `heading` is `null`).
- *   - On `/r/[renderId]` as an inline checkout panel — host page
+ *   - On `/r/[renderId]` as an inline checkout panel, host page
  *     supplies a `heading` and there's no `onCancel` (no modal to
  *     close).
  */
@@ -112,7 +112,7 @@ export function PackCheckoutPanel({
         </div>
       </div>
 
-      {/* What's included — derived from the selected SKU's quotas and
+      {/* What's included, derived from the selected SKU's quotas and
           capability flags so adding a tier doesn't require any edits
           here. */}
       <div className="px-6 py-5">
@@ -156,7 +156,7 @@ export function PackCheckoutPanel({
       </div>
 
       {/* Stacking note + refund. Only relevant when planner match is
-          part of the selected tier — Design Pack is a flat one-off
+          part of the selected tier, Design Pack is a flat one-off
           with no marketplace fee. */}
       <div className="px-6 py-4 border-t border-brand-line bg-muted/30 text-xs text-muted-foreground leading-relaxed">
         {sku.includesPlannerMatch ? (

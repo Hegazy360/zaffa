@@ -38,7 +38,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
           },
         ] satisfies MetadataRoute.Sitemap)
       : []),
-    // Published pricing is a search-visibility play as much as a trust one —
+    // Published pricing is a search-visibility play as much as a trust one -
     // most of the measured lift from showing rates comes from being findable,
     // so this entry is load-bearing rather than housekeeping.
     ...(isFlagEnabled("publishedPricing")
@@ -60,7 +60,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${base}/terms`, lastModified: now, changeFrequency: "yearly", priority: 0.3 },
   ];
 
-  // Skip the catalog fetch entirely when public browse is gated off — those
+  // Skip the catalog fetch entirely when public browse is gated off, those
   // URLs 404, so listing them in the sitemap would just waste crawl budget.
   if (!includeBrowse) return staticEntries;
 

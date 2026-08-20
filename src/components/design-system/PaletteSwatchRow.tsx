@@ -11,8 +11,8 @@ import type { DesignPalette } from "@/types/venue-designer";
  *    (`src/components/admin/post-generator/slides/PaletteSlide.tsx`).
  *  - Anywhere else we need to display a palette consistently.
  *
- * Accepts either an unnamed `DesignPalette` (just hex strings — current
- * venue-designer shape) or a fully-`NamedPalette` (per-color names —
+ * Accepts either an unnamed `DesignPalette` (just hex strings, current
+ * venue-designer shape) or a fully-`NamedPalette` (per-color names -
  * post-generator shape). The `layout` prop drives visual treatment.
  */
 type PaletteInput = NamedPalette | DesignPalette | { colors: string[] };
@@ -23,7 +23,7 @@ export type PaletteSwatchRowLayout =
   | "stripes"
   /** Pill-shaped chips with the hex shown in `font-mono`. */
   | "chips"
-  /** Tall named-swatch tiles used by the carousel slide — each color
+  /** Tall named-swatch tiles used by the carousel slide, each color
    *  shows the swatch + its human-readable name + hex underneath. Only
    *  meaningful when the palette includes per-color names. */
   | "named";

@@ -16,7 +16,7 @@ import { trpc } from "@/lib/trpc";
  */
 
 function pct(value: number | null): string {
-  if (value === null) return "—";
+  if (value === null) return "-";
   return `${Math.round(value * 100)}%`;
 }
 
@@ -31,7 +31,7 @@ export function LeadQualityCard() {
       <section className="rounded-2xl border border-dashed border-rose-200 bg-rose-50/30 px-5 py-4">
         <p className="text-sm text-muted-foreground">
           No enquiries yet. Once they arrive, this shows the share reaching a
-          quote each week — the number that should rise as published pricing
+          quote each week, the number that should rise as published pricing
           filters out the browsers.
         </p>
       </section>
@@ -56,7 +56,7 @@ export function LeadQualityCard() {
 
       {/* Two figures per week: total volume as the bar height, quote-worthy
           share as the filled portion. The whole point is watching them move in
-          opposite directions — that is what "fewer, better" looks like. */}
+          opposite directions - that is what "fewer, better" looks like. */}
       <ol className="mt-4 flex items-end gap-2">
         {weeks.map((w) => (
           <li

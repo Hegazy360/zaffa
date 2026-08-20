@@ -18,7 +18,7 @@ const IMAGE_MODEL =
   process.env.AI_IMAGE_MODEL ?? "google/gemini-3-pro-image-preview";
 
 export interface GenerateImageInput {
-  /** The text prompt — fully composed by the caller. */
+  /** The text prompt, fully composed by the caller. */
   prompt: string;
   /** Optional reference images. Each is sent as a multimodal `image_url`. */
   references?: Array<{ url: string }>;

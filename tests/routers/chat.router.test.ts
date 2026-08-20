@@ -70,7 +70,7 @@ beforeEach(() => {
 });
 
 describe("chat.ask", () => {
-  it("refuses when the flag is off — the instant kill switch", async () => {
+  it("refuses when the flag is off - the instant kill switch", async () => {
     vi.stubEnv("FLAG_AI_CHAT", "0");
     await expect(caller(null).ask(ASK)).rejects.toMatchObject({
       message: "CHAT_DISABLED",
@@ -108,7 +108,7 @@ describe("chat.ask", () => {
     );
   });
 
-  it("refuses at the Postgres global daily cap — the bound that cannot fail open", async () => {
+  it("refuses at the Postgres global daily cap - the bound that cannot fail open", async () => {
     prismaMock.chatMessage.count.mockResolvedValue(2000);
     await expect(caller(null).ask(ASK)).rejects.toMatchObject({
       message: "CHAT_GLOBAL_CAP",
@@ -152,7 +152,7 @@ describe("chat.ask", () => {
     expect(system.role).toBe("system");
     expect(system.content).toContain("99 EGP");
     // The prohibition must be present (the rule necessarily names the
-    // things it forbids — asserting their absence would fail on the rule).
+    // things it forbids, asserting their absence would fail on the rule).
     expect(system.content).toMatch(/never mention planner/i);
     expect(system.content).toContain("زفّة");
   });

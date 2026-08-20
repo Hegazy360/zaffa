@@ -18,14 +18,14 @@ export type DashboardProfile = {
  *
  *   1. There's an authenticated Supabase user. Otherwise bounce to the
  *      sign-in page with a `next` param so we land back here after auth.
- *   2. There's a matching `profiles` row. If not (very rare — usually a
+ *   2. There's a matching `profiles` row. If not (very rare, usually a
  *      half-finished signup), send the user to `/dashboard` which will
  *      redirect them somewhere sane.
  *   3. The profile's role is in `allowed`. If the user is authenticated
  *      but on the wrong sidebar (e.g. a client poking `/dashboard/planner`
  *      in their address bar), bounce them to their own dashboard root.
  *
- * Admins are deliberately NOT auto-allowed into other role dashboards —
+ * Admins are deliberately NOT auto-allowed into other role dashboards -
  * they have their own console at /dashboard/admin. If we later decide to
  * grant them impersonation access, flip a single flag here rather than
  * auditing every page.
@@ -40,7 +40,7 @@ export async function requireRole(
   const allowedRoles = Array.isArray(allowed) ? allowed : [allowed];
 
   // `getNavUser()` verifies the access-token JWT locally against the
-  // project's JWK — no Supabase Auth round-trip. Layouts re-render on
+  // project's JWK, no Supabase Auth round-trip. Layouts re-render on
   // every navigation, so this matters.
   const user = await getNavUser();
   if (!user) {
@@ -52,7 +52,7 @@ export async function requireRole(
     select: { id: true, role: true, full_name: true, avatar_url: true },
   });
   if (!profile) {
-    // Auth session exists but no profile row — send to /dashboard which
+    // Auth session exists but no profile row, send to /dashboard which
     // will either create one or bounce to onboarding.
     redirect("/dashboard");
   }
@@ -72,7 +72,7 @@ export async function requireRole(
 
 /**
  * Build the slim `NavUser` shape the navbar consumes from a profile that
- * `requireRole` already loaded — saves the navbar from doing its own
+ * `requireRole` already loaded, saves the navbar from doing its own
  * `getClaims()` call when the layout already knows who's signed in.
  */
 export function navUserFromProfile(profile: DashboardProfile): NavUser {
@@ -82,7 +82,7 @@ export function navUserFromProfile(profile: DashboardProfile): NavUser {
     fullName: profile.full_name,
     avatarUrl: profile.avatar_url,
     // `requireRole` rejects anonymous users via the role check (anon
-    // users default to `client` but have no email — and the dashboards
+    // users default to `client` but have no email, and the dashboards
     // are gated by middleware anyway), so this is always false in
     // practice. Set explicitly so the type contract stays honest.
     isAnonymous: false,
@@ -102,7 +102,7 @@ export function dashboardHomeFor(role: UserRole): string {
       // While `professionalSurfaces` is off those dashboards 404 at the
       // edge, so sending a legacy pro there would bounce them between a
       // redirect and a 404 forever. Land them on the marketing home
-      // instead — the product they can actually use.
+      // instead, the product they can actually use.
       return isFlagEnabled("professionalSurfaces")
         ? `/dashboard/${role}`
         : "/";

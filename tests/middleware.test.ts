@@ -19,7 +19,7 @@ beforeEach(() => {
   delete process.env.SITE_USERNAME;
   delete process.env.FLAG_PUBLIC_BROWSE;
   delete process.env.FLAG_PROFESSIONAL_SURFACES;
-  // The default fresh response the supabase middleware would return — we
+  // The default fresh response the supabase middleware would return, we
   // mutate cookies on it inside the locale-seeding branch.
   updateSessionMock.mockImplementation(async () => NextResponse.next());
 });
@@ -126,7 +126,7 @@ describe("middleware: publicBrowse flag", () => {
       })
     );
     expect(res.status).toBe(200);
-    // Public browse routes are intentionally not auth-aware — they should
+    // Public browse routes are intentionally not auth-aware, they should
     // skip the Supabase round-trip even when the flag lets them through.
     expect(updateSessionMock).not.toHaveBeenCalled();
   });
@@ -243,7 +243,7 @@ describe("middleware: country-based locale seeding", () => {
   });
 
   it("falls back to Accept-Language when the country doesn't map to a locale", async () => {
-    // GB has no entry in COUNTRY_TO_LOCALE — visitor's Accept-Language wins.
+    // GB has no entry in COUNTRY_TO_LOCALE, visitor's Accept-Language wins.
     const res = await middleware(
       buildRequest("https://app.test/", {
         headers: {
@@ -338,7 +338,7 @@ describe("middleware: professionalSurfaces flag", () => {
     const res = await middleware(buildRequest(url));
     expect(res.status).toBe(404);
     expect(res.headers.get("x-robots-tag")).toContain("noindex");
-    // Gated before the Supabase round-trip — hiding these must not cost
+    // Gated before the Supabase round-trip, hiding these must not cost
     // an auth call.
     expect(updateSessionMock).not.toHaveBeenCalled();
   });
@@ -382,7 +382,7 @@ describe("middleware: the dev-only kitchen sink", () => {
   afterEach(() => vi.unstubAllEnvs());
 
   // `/kitchen-sink` guards itself with `notFound()` on NODE_ENV, and that
-  // guard works — production served none of its content. It answered **200**
+  // guard works, production served none of its content. It answered **200**
   // anyway, because a middleware response's status takes precedence over a
   // page's `notFound()`. A soft 404 is worse than a hard one: it is
   // indexable, and it tells a crawler the URL is real. Caught by checking

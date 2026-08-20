@@ -68,7 +68,7 @@ export default function AdminEnquiriesPage() {
           Enquiries
         </h1>
         <p className="mt-2 text-sm text-muted-foreground">
-          Every full-service enquiry, newest first. Reply fast — latency is
+          Every full-service enquiry, newest first. Reply fast - latency is
           where these deals die.
         </p>
       </header>
@@ -142,7 +142,7 @@ export default function AdminEnquiriesPage() {
             return (
               <li key={e.id} className="relative">
                 <div className="flex items-start gap-3 rounded-2xl border border-brand-line p-4 transition-colors hover:border-rose-200 focus-within:ring-2 focus-within:ring-rose-300">
-                  {/* A design_approved lead IS its render — show it on the
+                  {/* A design_approved lead IS its render, show it on the
                       row so the operator recognises the wedding at a glance. */}
                   {e.design?.thumbnail && (
                     // eslint-disable-next-line @next/next/no-img-element -- admin-only inbox chip, tiny fixed size, Cloudinary thumb already sized

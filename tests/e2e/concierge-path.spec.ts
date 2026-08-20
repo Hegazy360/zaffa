@@ -9,7 +9,7 @@ import {
 /**
  * The concierge money path, end to end.
  *
- * This is the flagship tier's lane — the other two money paths each have a
+ * This is the flagship tier's lane, the other two money paths each have a
  * spec, and this one carries the largest transactions in the product, so it
  * gets the same treatment: a real submission through the real wizard, a real
  * quote, and a real Stripe Payment Link.
@@ -45,12 +45,12 @@ test("a couple can enquire, and the enquiry persists with their answers", async 
   await page.goto("/", { waitUntil: "domcontentloaded" });
   await page.goto("/enquire", { waitUntil: "domcontentloaded" });
 
-  // Country must be prefilled from the cookie — the visitor should not have
+  // Country must be prefilled from the cookie, the visitor should not have
   // to tell us what we already know.
   await expect(page.locator("#eq-country")).toHaveValue("AE");
 
   await page.fill("#eq-city", "Dubai");
-  await page.getByRole("button", { name: "50–150" }).click();
+  await page.getByRole("button", { name: "50-150" }).click();
   await page.getByRole("button", { name: "Continue" }).click();
 
   // Budget chips must be denominated in the market's currency.

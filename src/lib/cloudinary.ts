@@ -24,7 +24,7 @@ export function getOptimizedUrl(
 
 /**
  * Print-sized variant for the lookbook PDF. Chromium downloads every
- * image before printing, and the stored originals are full-resolution —
+ * image before printing, and the stored originals are full-resolution -
  * on a 20-image document that difference is what pushes a cold render
  * past the route timeout. `crop: "limit"` preserves aspect ratio and
  * never upscales; JPEG because the PDF re-encodes anyway and decodes it
@@ -44,12 +44,12 @@ export function printSizedUrl(publicId: string, width: number): string {
  * "Made with Zaffa" overlay into the image via a signed Cloudinary
  * transformation. The signature prevents URL tampering when the
  * Cloudinary account has Strict Transformations enabled (ops checklist
- * item — without it, anyone who knows Cloudinary can swap the
+ * item - without it, anyone who knows Cloudinary can swap the
  * transformation off).
  *
  * Server stores the clean asset (no watermark) and derives this URL on
  * read. After a paid upgrade, the same row's media is returned as the
- * clean `secure_url` — no re-rendering needed.
+ * clean `secure_url`, no re-rendering needed.
  *
  * Positioning: bottom-right at ~70% opacity, sized relative to the image
  * width so it scales with thumbnails / hero crops alike.

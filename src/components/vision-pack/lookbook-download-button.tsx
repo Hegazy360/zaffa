@@ -16,7 +16,7 @@ interface Props {
   hideHint?: boolean;
   /**
    * Caller-driven disable. Used by the share panel to grey the button
-   * out for free-tier packs (mirrors the "Publish microsite" gating —
+   * out for free-tier packs (mirrors the "Publish microsite" gating -
    * the artefact is a paid-pack feature).
    */
   disabled?: boolean;

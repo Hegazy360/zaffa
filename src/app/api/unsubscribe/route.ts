@@ -38,7 +38,7 @@ async function handle(req: NextRequest): Promise<NextResponse> {
   try {
     verified = verifyUnsubscribeToken(token);
   } catch {
-    // Secret missing or misconfigured — treat as invalid token from the
+    // Secret missing or misconfigured, treat as invalid token from the
     // user's perspective rather than a 500, so the email link still lands
     // somewhere sensible.
     verified = null;

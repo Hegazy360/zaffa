@@ -11,7 +11,7 @@ function siteUrl(): string {
 
 export default function robots(): MetadataRoute.Robots {
   // Anything inside the dashboard, auth flow, or platform APIs should never
-  // be indexed — these pages either require auth, expose tokens in URLs, or
+  // be indexed - these pages either require auth, expose tokens in URLs, or
   // have no SEO value. While public browse is gated off we also disallow the
   // catalog routes belt-and-braces (the pages themselves 404 + emit
   // `noindex`, but a stale crawler shouldn't even ask).
@@ -21,7 +21,7 @@ export default function robots(): MetadataRoute.Robots {
     "/api/",
     "/unsubscribed",
     "/venue-designer/",
-    // Operational surface — only useful for existing users sent here from
+    // Operational surface, only useful for existing users sent here from
     // the footer. The page already emits `noindex` via metadata; we
     // disallow it here so crawlers don't waste budget on it either.
     "/report-bug",

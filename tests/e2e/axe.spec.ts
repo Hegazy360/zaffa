@@ -7,7 +7,7 @@ import allowlist from "./axe-allowlist.json";
  *
  * Serious and critical violations only. The lower severities are real but they
  * are also numerous and largely cosmetic, and a gate that fires on everything
- * gets muted — which costs more than it saves. Serious and critical are the
+ * gets muted, which costs more than it saves. Serious and critical are the
  * ones that stop somebody using the product.
  *
  * Runs in both projects, because half of what this catches is direction- and
@@ -20,7 +20,7 @@ import allowlist from "./axe-allowlist.json";
 
 // Reduced motion, and not for the reason it looks like. axe resolves an
 // element's background colour by walking up until it finds an opaque
-// ancestor — and an element mid-entrance-animation has an opacity below 1, so
+// ancestor - and an element mid-entrance-animation has an opacity below 1, so
 // axe skips its real background and measures the section behind it. That
 // reported a white button on the dark plate as "contrast 1.05:1", which is
 // a measurement artefact, not a defect: the button is `rgb(255,255,255)` with
@@ -69,12 +69,12 @@ for (const page_ of PAGES) {
           ),
       );
 
-    // Report the element, not just the rule — "color-contrast failed" is not
+    // Report the element, not just the rule - "color-contrast failed" is not
     // actionable; "this button, this ratio" is.
     const detail = blocking
       .map(
         (v) =>
-          `${v.impact} · ${v.id} — ${v.help}\n` +
+          `${v.impact} · ${v.id}, ${v.help}\n` +
           v.nodes
             .slice(0, 3)
             .map((n) => `    ${n.target.join(" ")}\n    ${n.failureSummary?.split("\n")[1] ?? ""}`)

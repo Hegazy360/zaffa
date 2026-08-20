@@ -50,7 +50,7 @@ beforeEach(() => {
 });
 
 describe("venueDesigns.approve", () => {
-  it("approves without any pack — the tier gate is gone", async () => {
+  it("approves without any pack - the tier gate is gone", async () => {
     // The account that surfaced PACK_TIER_NO_PLANNER_MATCH had only an
     // expired free-taste pack. No visionPack query may run in this path.
     const res = await caller(COUPLE).approve({ designId: DESIGN_ID });
@@ -74,7 +74,7 @@ describe("venueDesigns.approve", () => {
     );
   });
 
-  it("writes the row BEFORE notifying — ordering is the guarantee", async () => {
+  it("writes the row BEFORE notifying - ordering is the guarantee", async () => {
     const order: string[] = [];
     prismaMock.enquiry.create.mockImplementationOnce((() => {
       order.push("create");
@@ -108,7 +108,7 @@ describe("venueDesigns.approve", () => {
 
   it("rejects a design the caller does not own", async () => {
     // updateMany scoped by user_id misses, and the ownership probe misses too
-    // — someone else's designId must read as NOT_FOUND, not as approved.
+    // - someone else's designId must read as NOT_FOUND, not as approved.
     prismaMock.venueDesign.updateMany.mockResolvedValue({ count: 0 } as never);
     prismaMock.venueDesign.findFirst.mockResolvedValue(null as never);
     await expect(
@@ -117,7 +117,7 @@ describe("venueDesigns.approve", () => {
     expect(prismaMock.enquiry.create).not.toHaveBeenCalled();
   });
 
-  it("rejects anonymous users — contact details are the point", async () => {
+  it("rejects anonymous users - contact details are the point", async () => {
     await expect(
       caller({ id: USER_ID, is_anonymous: true }).approve({ designId: DESIGN_ID }),
     ).rejects.toMatchObject({ message: "ANONYMOUS_NOT_ALLOWED" });

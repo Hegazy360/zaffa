@@ -9,7 +9,7 @@ import { createHmac, timingSafeEqual } from "node:crypto";
  * ancient (tokens older than 90 days are rejected so a leaked mail doesn't
  * expose the account forever), and flips Profile.email_unsubscribed_at.
  *
- * We deliberately avoid JWT libraries — the payload is trivially small and
+ * We deliberately avoid JWT libraries, the payload is trivially small and
  * a bare HMAC keeps us one dependency lighter.
  */
 const MAX_AGE_MS = 90 * 24 * 60 * 60 * 1000;

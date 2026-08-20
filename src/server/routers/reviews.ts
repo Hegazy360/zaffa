@@ -29,7 +29,7 @@ async function recomputePlannerAggregates(
 
 // Confirms the caller has standing to review the given planner on the given
 // event: they must own the event, and must have engaged that planner at least
-// once (currently accepted, or previously released — both count as "worked
+// once (currently accepted, or previously released - both count as "worked
 // with them"). This stops random users from leaving reviews.
 async function requireEngagement(
   eventId: string,
@@ -139,7 +139,7 @@ export const reviewsRouter = router({
         await recomputePlannerAggregates(tx, input.plannerId);
         return review;
       });
-      // Couple-journey funnel — fired on every upsert (create or rating
+      // Couple-journey funnel, fired on every upsert (create or rating
       // edit) since both are meaningful engagement signals.
       await trackServer(ctx.user.id, ANALYTICS_EVENTS.REVIEW_POSTED, {
         target: "planner",

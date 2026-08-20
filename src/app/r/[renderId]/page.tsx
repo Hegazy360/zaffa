@@ -6,8 +6,8 @@ import { RenderRevealClient } from "./reveal-client";
 /**
  * Server wrapper for the magic-link reveal page.
  *
- * The reveal itself has to be a client component — it reads the Supabase
- * session that `verifyOtp` just established, and drives the paywall — and a
+ * The reveal itself has to be a client component, it reads the Supabase
+ * session that `verifyOtp` just established, and drives the paywall - and a
  * client component cannot export `generateMetadata`. So this route had no
  * title, no description, no `og:locale`, and, more importantly, **no
  * `noindex`**: a private render page that search engines were free to crawl if

@@ -12,7 +12,7 @@ interface SparklineProps {
 }
 
 // Tiny dependency-free sparkline. Polyline + filled area under the line.
-// Designed for KPI cards — accepts a 30-day series and normalizes to the
+// Designed for KPI cards, accepts a 30-day series and normalizes to the
 // SVG box. Renders nothing if all values are zero (cleaner empty state).
 export function Sparkline({
   data,

@@ -5,7 +5,7 @@ import { trpc } from "@/lib/trpc";
 import { WhatsAppCta } from "@/components/marketing/whatsapp-cta";
 
 /**
- * "We're on it" — the couple's view of a live enquiry.
+ * "We're on it", the couple's view of a live enquiry.
  *
  * Between submitting the wizard and the first WhatsApp reply there is a silent
  * gap, and silence after handing over your wedding is exactly the anxiety this
@@ -50,7 +50,7 @@ export function EnquiryStatusCard() {
           </p>
         </div>
         {/* Their enquiry is already in our pipeline, so the prefilled message
-            carries the reference — the operator opens the chat already knowing
+            carries the reference, the operator opens the chat already knowing
             which lead it is, instead of asking. */}
         <WhatsAppCta
           surface="dashboard_enquiry"

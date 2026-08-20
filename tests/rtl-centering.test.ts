@@ -21,11 +21,11 @@ const SRC = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../src")
 const FORBIDDEN: ReadonlyArray<{ pattern: RegExp; why: string }> = [
   {
     pattern: /\bstart-1\/2\b[^"'`]*?-translate-x-1\/2/,
-    why: "logical `start-1/2` with physical `-translate-x-1/2` — use `left-1/2`",
+    why: "logical `start-1/2` with physical `-translate-x-1/2` - use `left-1/2`",
   },
   {
     pattern: /\bend-1\/2\b[^"'`]*?[^-]translate-x-1\/2/,
-    why: "logical `end-1/2` with physical `translate-x-1/2` — use `left-1/2 -translate-x-1/2`",
+    why: "logical `end-1/2` with physical `translate-x-1/2` - use `left-1/2 -translate-x-1/2`",
   },
 ];
 
@@ -55,7 +55,7 @@ describe("RTL centring", () => {
           if (trimmed.startsWith("//") || trimmed.startsWith("*")) return;
           if (pattern.test(line)) {
             offenders.push(
-              `${path.relative(SRC, file)}:${i + 1} — ${why}`,
+              `${path.relative(SRC, file)}:${i + 1} - ${why}`,
             );
           }
         });

@@ -10,7 +10,7 @@
 //   - Always pass an event name as the first arg ("stripe.webhook.failed")
 //     so logs are aggregable even before structured ingestion lands.
 //   - Pass error + structured context in the second arg.
-//   - The logger NEVER throws — observability bugs must not take down a
+//   - The logger NEVER throws, observability bugs must not take down a
 //     request handler.
 
 type Level = "info" | "warn" | "error";

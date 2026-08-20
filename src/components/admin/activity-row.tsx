@@ -88,7 +88,7 @@ export function ActivityRow({ item }: { item: ActivityItem }) {
           <span className="font-medium">{planner.business_name}</span>{" "}
           <span className="text-muted-foreground">
             {t("activityProposed", {
-              amount: amount > 0 ? f.currency(amount, currency) : "—",
+              amount: amount > 0 ? f.currency(amount, currency) : "-",
             })}{" "}
           </span>
           <span>{event.title}</span>{" "}

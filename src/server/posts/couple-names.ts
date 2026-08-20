@@ -9,7 +9,7 @@
 
 import type { CoupleNames } from "@/types/posts";
 
-// MENA pool — heavier weight. Use commonly-spelled romanizations.
+// MENA pool, heavier weight. Use commonly-spelled romanizations.
 const MENA_FEMALE = [
   "Yara",
   "Layla",
@@ -92,14 +92,14 @@ function pickFrom<T>(arr: T[], rng: () => number): T {
 
 /**
  * Returns a couple with one feminine name (partner_a) and one
- * masculine name (partner_b). Always girl + boy by design — this is a
+ * masculine name (partner_b). Always girl + boy by design, this is a
  * MENA wedding-planning brand and editorial bride/groom imagery
  * implicitly expects a heteronormative couple.
  */
 export function pickCoupleNames(
   rng: () => number = Math.random,
 ): CoupleNames {
-  // 70% MENA-only, 30% mixed pool — keeps the feed feeling localized
+  // 70% MENA-only, 30% mixed pool - keeps the feed feeling localized
   // while leaving room for the international vibes.
   const useMena = rng() < 0.7;
   const femalePool = useMena ? MENA_FEMALE : [...MENA_FEMALE, ...GLOBAL_FEMALE];

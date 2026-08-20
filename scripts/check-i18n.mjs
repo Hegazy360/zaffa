@@ -40,8 +40,8 @@ const BRAND_MISRENDERINGS = {
 };
 
 // Real ICU parsing rather than a regex. A regex cannot tell the argument
-// `{price}` from the plural option body in `{n, plural, one {reference} …}` —
-// both are `{word}` — so a regex version reports false failures on every
+// `{price}` from the plural option body in `{n, plural, one {reference} …}` -
+// both are `{word}`, so a regex version reports false failures on every
 // pluralized string in the catalog. The parser ships as a transitive dep of
 // next-intl; if it ever stops resolving we skip the ICU check rather than
 // block every push on a missing dev dependency.
@@ -50,7 +50,7 @@ try {
   ({ parse: parseIcu } = await import("@formatjs/icu-messageformat-parser"));
 } catch {
   console.warn(
-    "note: @formatjs/icu-messageformat-parser not resolvable — skipping ICU argument check",
+    "note: @formatjs/icu-messageformat-parser not resolvable - skipping ICU argument check",
   );
 }
 
@@ -119,7 +119,7 @@ for (const locale of locales) {
   try {
     catalog = flatten(await readCatalog(locale));
   } catch (err) {
-    problems.push(`${locale}: cannot read catalog — ${err.message}`);
+    problems.push(`${locale}: cannot read catalog, ${err.message}`);
     continue;
   }
 
@@ -138,7 +138,7 @@ for (const locale of locales) {
       continue;
     }
 
-    // An empty translation is only legitimate when `en` is also empty — some
+    // An empty translation is only legitimate when `en` is also empty, some
     // headline slots are intentionally blank.
     if (value === "" && enValue !== "") {
       problems.push(`${locale}: "${key}" is empty but "${SOURCE_LOCALE}" is not`);
@@ -148,7 +148,7 @@ for (const locale of locales) {
     const placeholder = PLACEHOLDER_PATTERNS.find((re) => re.test(value));
     if (placeholder) {
       problems.push(
-        `${locale}: "${key}" still holds untranslated placeholder copy — ${JSON.stringify(value.slice(0, 60))}`,
+        `${locale}: "${key}" still holds untranslated placeholder copy - ${JSON.stringify(value.slice(0, 60))}`,
       );
       continue;
     }
@@ -175,7 +175,7 @@ for (const locale of locales) {
     for (const [key, value] of catalog) {
       if (typeof value === "string" && value.includes(bad)) {
         problems.push(
-          `${locale}: "${key}" spells the brand "${bad}" — should be "${BRAND_FORMS[locale]}"`,
+          `${locale}: "${key}" spells the brand "${bad}" - should be "${BRAND_FORMS[locale]}"`,
         );
       }
     }
@@ -184,7 +184,7 @@ for (const locale of locales) {
 
 if (problems.length) {
   console.error(
-    `i18n check failed — ${problems.length} problem(s) across ${locales.join(", ")}:\n`,
+    `i18n check failed - ${problems.length} problem(s) across ${locales.join(", ")}:\n`,
   );
   for (const p of problems) console.error(`  ✗ ${p}`);
   console.error(
@@ -195,5 +195,5 @@ if (problems.length) {
 }
 
 console.log(
-  `i18n check passed — ${locales.join(", ")} each complete against "${SOURCE_LOCALE}" (${en.size} keys).`,
+  `i18n check passed - ${locales.join(", ")} each complete against "${SOURCE_LOCALE}" (${en.size} keys).`,
 );

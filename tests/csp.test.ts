@@ -4,7 +4,7 @@ import { join } from "node:path";
 
 /**
  * The CSP is a list of hosts the product will actually load from, and it is
- * edited by people removing things — which is how a whole feature goes dark.
+ * edited by people removing things, which is how a whole feature goes dark.
  *
  * ZAF-46 removed `i.pinimg.com` because the sign-in page hotlinked a
  * decorative Pinterest photo. Correct removal, wrong blast radius: the
@@ -28,7 +28,7 @@ describe("CSP img-src", () => {
     ["https://i.pinimg.com", "the designer's Pinterest reference search"],
     ["data:", "inline placeholders and generated SVGs"],
     ["blob:", "client-side previews before upload"],
-  ])("allows %s — %s", (host) => {
+  ])("allows %s - %s", (host) => {
     expect(imgSrc, `img-src is: ${imgSrc}`).toContain(host);
   });
 

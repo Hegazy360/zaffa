@@ -15,7 +15,7 @@ function classify(message: string): "expired" | "invalid" | "unknown" {
 
 // Handles email-link confirmations (recovery, signup, magiclink, invite, email_change).
 // Use this with email templates that pass `{{ .TokenHash }}` so the verification
-// happens server-side and the session is established via cookies — no URL hash.
+// happens server-side and the session is established via cookies, no URL hash.
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
   const token_hash = searchParams.get("token_hash");
@@ -63,7 +63,7 @@ export async function GET(request: Request) {
         });
       }
     } catch (err) {
-      // Non-fatal — the user's session is established either way. Log
+      // Non-fatal, the user's session is established either way. Log
       // so the reconcile cron / analytics dashboard can show drift.
       reportError("auth.confirm.email_capture_update_failed", err);
     }

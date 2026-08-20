@@ -21,18 +21,18 @@ function makeLimiter(
 }
 
 export const limiters = {
-  // Auth surfaces — keep tight to slow down credential stuffing.
+  // Auth surfaces, keep tight to slow down credential stuffing.
   authSignIn: makeLimiter("rl:auth:signin", 10, "1 m"),
   authSignUp: makeLimiter("rl:auth:signup", 5, "1 h"),
   authPasswordReset: makeLimiter("rl:auth:reset", 5, "1 h"),
-  // Public unsubscribe HMAC route — abused only to enumerate user ids.
+  // Public unsubscribe HMAC route, abused only to enumerate user ids.
   unsubscribe: makeLimiter("rl:unsub", 30, "1 m"),
   // Public contact / bug-report form. Tight per-identifier window so a
   // bot that solves the honeypot can't blast our inbox; a human with a
   // legitimate follow-up message will easily clear it.
   contactForm: makeLimiter("rl:contact", 5, "10 m"),
   contactFormDaily: makeLimiter("rl:contact:d", 20, "1 d"),
-  // Full-service enquiries. Same shape as the contact form — this is the
+  // Full-service enquiries. Same shape as the contact form, this is the
   // flagship tier's only inbound channel, so the limits exist to slow abuse
   // without ever turning a real buyer away.
   enquiryForm: makeLimiter("rl:enquiry", 5, "10 m"),
@@ -56,7 +56,7 @@ export const limiters = {
   // Public homepage chat, keyed per IP. Cheap per message (~$0.001 at
   // gpt-4.1-mini with max_tokens 350) but reachable without any session,
   // so both a burst cap and a daily ceiling. NOTE: `consume` fails OPEN
-  // when Upstash is down — the Postgres-backed global daily cap inside
+  // when Upstash is down, the Postgres-backed global daily cap inside
   // `chat.ask` is the guarantee, these buckets are the first line.
   chat: makeLimiter("rl:chat", 10, "5 m"),
   chatDaily: makeLimiter("rl:chat:d", 40, "1 d"),

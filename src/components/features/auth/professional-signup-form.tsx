@@ -23,9 +23,9 @@ import { cn } from "@/lib/utils";
 const MIN_PASSWORD_LENGTH = 6;
 type ProRole = Extract<UserRole, "planner" | "vendor">;
 
-// Two-step sign-up tailored to professionals — planners and vendors.
+// Two-step sign-up tailored to professionals, planners and vendors.
 // Step 1 surfaces the role choice up front so step 2 can speak directly to
-// the chosen audience ("Welcome, planner — your atelier in one place.").
+// the chosen audience ("Welcome, planner - your atelier in one place.").
 export function ProfessionalSignUpForm() {
   const router = useRouter();
   const supabase = createClient();
@@ -78,7 +78,7 @@ export function ProfessionalSignUpForm() {
 
     if (signUpError) {
       // `user_already_exists` doesn't always mean "you have an
-      // account" — it also fires when the email is still parked on an
+      // account", it also fires when the email is still parked on an
       // abandoned anonymous session from a previous free-render
       // attempt that never confirmed. Try to reclaim it and retry once
       // before dead-ending the visitor with a confusing error.
@@ -106,7 +106,7 @@ export function ProfessionalSignUpForm() {
       return;
     }
 
-    // Activation funnel — fired client-side because this is the moment
+    // Activation funnel, fired client-side because this is the moment
     // the user perceives "I just signed up". The role-specific
     // `onboarding.completed` / `profile.published` events fire later
     // server-side when the wizard saves.
@@ -114,7 +114,7 @@ export function ProfessionalSignUpForm() {
       role,
       via: "email_password",
     });
-    // TikTok activation funnel — see commentary in
+    // TikTok activation funnel, see commentary in
     // `client-signup-form.tsx`. We fire the same standard event for
     // pros (planner / vendor) so TikTok campaigns can optimize
     // toward sign-ups regardless of role.
@@ -156,7 +156,7 @@ export function ProfessionalSignUpForm() {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      {/* Step indicator — minimal pair of capsules + an em-dash divider so
+      {/* Step indicator, minimal pair of capsules + an em-dash divider so
           progress is obvious without dominating the layout. */}
       <div className="flex items-center gap-2 text-eyebrow text-muted-foreground">
         <span

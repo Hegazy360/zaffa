@@ -53,7 +53,7 @@ vi.mock("next/headers", () => ({
   }),
 }));
 
-// We let the real Stripe SDK do signature verification + event parsing —
+// We let the real Stripe SDK do signature verification + event parsing -
 // only the network surface is stubbed (paymentIntents.retrieve, etc.).
 vi.mock("@/lib/stripe", async () => {
   const StripeMod = (await import("stripe")).default;
@@ -85,7 +85,7 @@ afterEach(() => {
 
 function buildEvent(type: string, dataObject: Record<string, unknown>) {
   // Stripe lets us craft a raw event body for testing. The shape doesn't
-  // need to be byte-identical to the live API — only the fields the
+  // need to be byte-identical to the live API, only the fields the
   // handler reads matter.
   const event = {
     id: `evt_${randomUUID().replace(/-/g, "")}`,

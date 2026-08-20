@@ -5,10 +5,10 @@
 // Like the IG source, this module runs a self-rotating discovery loop on
 // repeat runs:
 //
-//   1. Primary pass — hashtags + searchQueries. TikTok's hashtag/search
+//   1. Primary pass, hashtags + searchQueries. TikTok's hashtag/search
 //      modes don't accept a date cursor, so we rely on the exclude-list
 //      below to rotate.
-//   2. Mention-snowball — extracts `@mentions` and `detailedMentions`
+//   2. Mention-snowball, extracts `@mentions` and `detailedMentions`
 //      from the primary captions, filters out handles we already have,
 //      then runs a profile-mode pass on the top-K via `profiles: [...]`
 //      with `profileSorting: "latest"` and `oldestPostDateUnified` so

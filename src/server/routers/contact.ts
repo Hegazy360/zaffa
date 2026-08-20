@@ -34,7 +34,7 @@ function escapeHtml(value: string): string {
 export const contactRouter = router({
   /**
    * Public submit endpoint for the contact + bug-report forms. Anonymous
-   * visitors are allowed — we rate-limit by IP (and by user id when
+   * visitors are allowed, we rate-limit by IP (and by user id when
    * signed in) to slow abuse without forcing auth on visitors who just
    * want to email us.
    *
@@ -51,17 +51,17 @@ export const contactRouter = router({
         subject: z.string().trim().max(200).optional(),
         message: z.string().trim().min(10).max(5000),
         kind: KIND.default("contact"),
-        // Optional client-collected diagnostics — only used for the bug
+        // Optional client-collected diagnostics, only used for the bug
         // report flow but accepted on either kind so the form stays
         // single-shape on the wire.
         url: z.string().trim().max(2000).optional(),
         userAgent: z.string().trim().max(500).optional(),
-        // Honeypot — must be empty.
+        // Honeypot, must be empty.
         hp: z.string().max(0).optional(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      // Bot caught by honeypot — pretend success, log it so we can
+      // Bot caught by honeypot - pretend success, log it so we can
       // tune the form if a real user ever trips it.
       if (input.hp && input.hp.length > 0) {
         logger.info("contact.honeypot.tripped", {
@@ -71,7 +71,7 @@ export const contactRouter = router({
         return { ok: true, queued: false };
       }
 
-      // Rate-limit by user id when signed in, otherwise by email — IP
+      // Rate-limit by user id when signed in, otherwise by email - IP
       // would be ideal but the tRPC context doesn't carry it; email is
       // a reasonable fallback for a public form.
       const identifier = ctx.user?.id ?? input.email.toLowerCase();
@@ -94,7 +94,7 @@ export const contactRouter = router({
       const inbox = inboxFor(input.kind);
       const subjectPrefix =
         input.kind === "bug_report" ? "[Bug report]" : "[Contact]";
-      const subject = `${subjectPrefix} ${input.subject?.trim() || "(no subject)"} — ${input.name}`;
+      const subject = `${subjectPrefix} ${input.subject?.trim() || "(no subject)"}, ${input.name}`;
 
       const safeName = escapeHtml(input.name);
       const safeEmail = escapeHtml(input.email);
@@ -108,7 +108,7 @@ export const contactRouter = router({
         ? escapeHtml(ctx.user.email)
         : "anonymous visitor";
 
-      // Plain HTML — no chrome, no design tokens. This goes to a human
+      // Plain HTML - no chrome, no design tokens. This goes to a human
       // operator, not a customer; readability + grep-ability beats
       // brand polish here.
       const html = `
@@ -138,7 +138,7 @@ export const contactRouter = router({
         .filter(Boolean)
         .join("\n");
 
-      // No Resend key configured (local dev) — short-circuit with a log
+      // No Resend key configured (local dev), short-circuit with a log
       // so callers can still test the UI happy path. Production is
       // expected to have RESEND_API_KEY set.
       if (!process.env.RESEND_API_KEY) {
@@ -156,7 +156,7 @@ export const contactRouter = router({
             process.env.NOTIFICATION_FROM_EMAIL ?? "Zaffa <noreply@zaffa.ai>",
           to: inbox,
           // Set Reply-To to the submitter so hitting "Reply" in Gmail
-          // goes back to the user — not to our no-reply mailbox.
+          // goes back to the user, not to our no-reply mailbox.
           replyTo: input.email,
           subject,
           html,
@@ -177,7 +177,7 @@ export const contactRouter = router({
         });
       }
 
-      // Funnel signal — useful for spotting spikes in bug reports vs
+      // Funnel signal, useful for spotting spikes in bug reports vs
       // general contact (e.g. after a deploy). distinctId falls back to
       // the email when anonymous; PostHog tolerates that. Bypassing the
       // typed `trackServer` because contact-form submissions aren't

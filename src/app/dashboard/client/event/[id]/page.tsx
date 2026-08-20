@@ -128,7 +128,7 @@ function decimalToNumber(value: unknown): number {
   if (value == null) return 0;
   if (typeof value === "number") return value;
   if (typeof value === "string") return parseFloat(value) || 0;
-  // Prisma Decimal serializes via superjson — convert via toString.
+  // Prisma Decimal serializes via superjson, convert via toString.
   if (typeof value === "object" && "toString" in (value as object)) {
     return parseFloat((value as { toString(): string }).toString()) || 0;
   }
@@ -153,7 +153,7 @@ export default function EventDetailPage() {
     id: eventId,
   });
 
-  // Hooks must be called unconditionally — pull the days-until value before
+  // Hooks must be called unconditionally, pull the days-until value before
   // any early returns. The hook is null-tolerant so it's safe pre-load.
   const daysUntil = useDaysUntil(event?.event_date ?? null);
 
@@ -277,7 +277,7 @@ export default function EventDetailPage() {
                 label={tc("daysToGo")}
                 value={
                   daysUntil == null
-                    ? "—"
+                    ? "-"
                     : daysUntil < 0
                       ? tc("past")
                       : `${daysUntil}`
@@ -285,14 +285,14 @@ export default function EventDetailPage() {
               />
               <Stat
                 label={tc("budget")}
-                value={budget > 0 ? f.currency(budget) : "—"}
+                value={budget > 0 ? f.currency(budget) : "-"}
               />
               <Stat
                 label={tc("paid")}
                 value={
                   totalAll > 0
                     ? `${Math.round((totalPaid / totalAll) * 100)}%`
-                    : "—"
+                    : "-"
                 }
                 hint={
                   totalAll > 0
@@ -381,7 +381,7 @@ export default function EventDetailPage() {
 // across renders (no Date.now() in render, no setState in effect).
 //
 // CRITICAL: getSnapshot must return the SAME value across calls within a
-// single render — otherwise React treats it as a constantly-changing store
+// single render, otherwise React treats it as a constantly-changing store
 // and infinite-loops. We cache the value in a module-level state and only
 // refresh it from the subscriber's interval (every minute, plenty for a
 // day-granularity countdown).
@@ -455,7 +455,7 @@ function Stat({
 }
 
 // ---------------------------------------------------------------------------
-// Approved design card (above the tabs) — anchors the page to the visual
+// Approved design card (above the tabs), anchors the page to the visual
 // agreement: this is the room we're building.
 // ---------------------------------------------------------------------------
 
@@ -546,7 +546,7 @@ function ApprovedDesignCard({
 }
 
 // ---------------------------------------------------------------------------
-// Overview tab — editable event basics
+// Overview tab, editable event basics
 // ---------------------------------------------------------------------------
 
 interface OverviewEvent {
@@ -743,7 +743,7 @@ function OverviewTab({
                 <p className="font-medium">
                   {decimalToNumber(event.budget) > 0
                     ? f.currency(decimalToNumber(event.budget))
-                    : "—"}
+                    : "-"}
                 </p>
               )}
             </DetailRow>
@@ -898,7 +898,7 @@ function DetailRow({
 }
 
 // ---------------------------------------------------------------------------
-// Design tab — switch which design is "the approved one"
+// Design tab, switch which design is "the approved one"
 // ---------------------------------------------------------------------------
 
 function DesignTab({
@@ -1096,7 +1096,7 @@ function DesignTab({
 }
 
 // ---------------------------------------------------------------------------
-// Payments tab — totals, list, add, mark paid
+// Payments tab - totals, list, add, mark paid
 // ---------------------------------------------------------------------------
 
 function PaymentsTab({ eventId }: { eventId: string }) {
@@ -1266,7 +1266,7 @@ function MessagesTab({ eventId }: { eventId: string }) {
 }
 
 // ---------------------------------------------------------------------------
-// Proposals tab — list + accept + switch planner
+// Proposals tab, list + accept + switch planner
 // ---------------------------------------------------------------------------
 
 interface ProposalForClient {
@@ -1315,7 +1315,7 @@ function ProposalsTab({
     eventId,
   });
 
-  // Couple-journey funnel — fired the first time a proposal becomes
+  // Couple-journey funnel, fired the first time a proposal becomes
   // visible to the client for this event in this session. The mirror
   // server-side `proposal.sent` is captured in proposals.create, so the
   // funnel "sent → received" measures the gap.

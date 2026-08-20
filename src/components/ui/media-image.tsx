@@ -3,7 +3,7 @@
 // A client component, and it has to be: `loader` is a function prop, and a
 // server component cannot pass a function across the client boundary. Rendered
 // from a server component it fails with "Functions cannot be passed directly
-// to Client Components" — and the failure is quiet, because the image simply
+// to Client Components" - and the failure is quiet, because the image simply
 // does not render and any fallback beside it takes over. That is exactly how
 // it went unnoticed for a full page load here.
 
@@ -20,7 +20,7 @@ import {
  *
  * There were 66 raw `<img>` tags in this tree, 34 of them with an
  * eslint-disable to silence the rule that exists to prevent exactly this. They
- * shipped full-resolution Cloudinary renders — multiple megabytes — into
+ * shipped full-resolution Cloudinary renders, multiple megabytes, into
  * 300px cards, with no `srcset`, no dimensions, and lazy loading on almost
  * none of them. The market is mobile, in the Gulf, frequently on cellular.
  *
@@ -32,7 +32,7 @@ import {
  *    is the bug we are fixing. Naming the frames makes the right value the
  *    easy one.
  *  - **The Cloudinary loader composes with signed URLs** instead of breaking
- *    them. See `cloudinary-loader.ts` — a naive loader would silently 401
+ *    them. See `cloudinary-loader.ts`, a naive loader would silently 401
  *    every watermarked free-tier render.
  *  - **Dimensions are structural.** Either `fill` inside a sized parent, or
  *    explicit `width`/`height`. There is no third option, because the third
@@ -42,7 +42,7 @@ import {
 type Common = {
   src: string;
   /**
-   * Required, and empty string is a legitimate value — for an image that is
+   * Required, and empty string is a legitimate value - for an image that is
    * purely decorative or already described by adjacent text. Making it a
    * deliberate `alt=""` rather than an omission is the point.
    */

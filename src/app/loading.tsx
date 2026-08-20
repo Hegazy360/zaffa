@@ -4,7 +4,7 @@
  *
  * No text. `loading.tsx` can render before the locale is resolved and before
  * `NextIntlClientProvider` has messages, so any copy here is either English
- * for everyone or a crash — and the previous version shipped a hardcoded
+ * for everyone or a crash, and the previous version shipped a hardcoded
  * "Loading..." to Arabic, French and German visitors alike.
  *
  * What replaces it is the brand mark alone: a rose-to-amber dot on the same

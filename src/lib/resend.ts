@@ -15,7 +15,7 @@ export const resend = new Resend(process.env.RESEND_API_KEY);
  * an unexpected SDK error so the caller can decide to log + retry.
  *
  * Per the email-gate flow we deliberately do NOT collect first/last
- * name at submit time — the gate is single-field. Names can be
+ * name at submit time, the gate is single-field. Names can be
  * back-filled from `auth.users.email` / a follow-up form later.
  *
  * Resend Audiences treats duplicate `contacts.create` calls with the
@@ -28,7 +28,7 @@ export async function addToAudience(
 ): Promise<boolean> {
   const audienceId = process.env.RESEND_AUDIENCE_ID;
   if (!audienceId) {
-    // No audience configured — common in dev/preview environments.
+    // No audience configured, common in dev/preview environments.
     // Caller logs the capture event for later reconciliation when the
     // env var is added.
     return false;
@@ -38,9 +38,9 @@ export async function addToAudience(
       email,
       audienceId,
       unsubscribed: false,
-      // first/last name intentionally omitted — see header comment.
+      // first/last name intentionally omitted, see header comment.
     });
-    void meta; // Currently unused — see header comment about future
+    void meta; // Currently unused, see header comment about future
     // segmentation. Kept on the signature so callers don't churn when
     // we add Resend tags.
     return true;

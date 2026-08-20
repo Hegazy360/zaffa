@@ -27,7 +27,7 @@ const inter = Inter({
   subsets: ["latin"],
 });
 
-// `axes: ["SOFT"]` dropped — nothing in the tree sets
+// `axes: ["SOFT"]` dropped, nothing in the tree sets
 // `font-variation-settings`, so the axis was downloaded and never moved off
 // its default. `opsz` stays because `font-optical-sizing: auto` (set by the
 // `font-display` utility) actually drives it.
@@ -75,16 +75,16 @@ export async function generateMetadata(): Promise<Metadata> {
   return {
     metadataBase: new URL(siteUrl()),
     // Site-wide fallback for pages that don't set their own title. Kept
-    // generic — it has to work above a vendor profile and a checkout page as
-    // well as the marketing pages — but aligned with the homepage positioning
+    // generic, it has to work above a vendor profile and a checkout page as
+    // well as the marketing pages, but aligned with the homepage positioning
     // rather than contradicting it, which is what "Your Dream Event, Expertly
     // Planned" was doing while the homepage sold something else entirely.
     title: {
-      default: "Zaffa — Your whole wedding, handled",
+      default: "Zaffa - Your whole wedding, handled",
       template: "%s | Zaffa",
     },
     description:
-      "Zaffa handles the whole wedding — we find you the right planner, deal with the back-and-forth, and only send you venues and vendors we'd use ourselves.",
+      "Zaffa handles the whole wedding - we find you the right planner, deal with the back-and-forth, and only send you venues and vendors we'd use ourselves.",
     keywords: [
       "wedding planner",
       "event planning",
@@ -97,15 +97,15 @@ export async function generateMetadata(): Promise<Metadata> {
     openGraph: {
       type: "website",
       siteName: "Zaffa",
-      title: "Zaffa — Your whole wedding, handled",
+      title: "Zaffa - Your whole wedding, handled",
       description:
-        "Zaffa handles the whole wedding — we find you the right planner, deal with the back-and-forth, and only send you venues and vendors we'd use ourselves.",
+        "Zaffa handles the whole wedding - we find you the right planner, deal with the back-and-forth, and only send you venues and vendors we'd use ourselves.",
       url: siteUrl(),
       ...openGraphLocaleFields(locale),
     },
     twitter: {
       card: "summary_large_image",
-      title: "Zaffa — Your whole wedding, handled",
+      title: "Zaffa - Your whole wedding, handled",
       description:
         "We find you the right planner, deal with the back-and-forth, and only send you vendors we'd use ourselves.",
     },
@@ -155,7 +155,7 @@ export default async function RootLayout({
         <NextIntlClientProvider locale={locale} messages={messages}>
           <Providers>
             {children}
-            {/* Flag off = no launcher markup and no panel chunk anywhere —
+            {/* Flag off = no launcher markup and no panel chunk anywhere -
                 the server-side check is the whole-widget kill. */}
             {isFlagEnabled("aiChat") ? <ChatWidgetRoot /> : null}
             <Toaster />

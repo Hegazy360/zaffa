@@ -35,7 +35,7 @@ export const accountRouter = router({
 
   // Stamps the soft-delete timestamps. The user remains signed in and can
   // call `cancelDeletion` from settings to stop the process. We do NOT
-  // sign them out here — leaving them in lets them undo with one click.
+  // sign them out here, leaving them in lets them undo with one click.
   requestDeletion: protectedProcedure
     .input(
       z
@@ -56,7 +56,7 @@ export const accountRouter = router({
           deletion_scheduled_for: scheduled,
         },
       });
-      // Account-hygiene funnel — useful for retention analysis (how many
+      // Account-hygiene funnel, useful for retention analysis (how many
       // users come back to cancel within the grace window).
       await trackServer(
         ctx.user.id,
@@ -117,7 +117,7 @@ export const accountRouter = router({
 export async function hardDeleteUser(userId: string): Promise<void> {
   // Chat transcripts are SetNull on the profile FK (an anonymized
   // transcript is fine to keep for a *live* account that merely signs
-  // out) — but account deletion is a PII erasure request, and whatever
+  // out) - but account deletion is a PII erasure request, and whatever
   // the user typed into the chat goes with it. Explicit delete because
   // the cascade won't reach them.
   await prisma.chatConversation.deleteMany({ where: { user_id: userId } });

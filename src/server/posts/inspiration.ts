@@ -4,7 +4,7 @@
 // the existing `searchPinterest` worker proxy and then mirror the
 // chosen URLs through Cloudinary because:
 //
-//   1. Pinterest CDN URLs rotate / expire — we'd lose the moodboard
+//   1. Pinterest CDN URLs rotate / expire, we'd lose the moodboard
 //      image after a week or two.
 //   2. We render the inspiration grid into a PNG on the client. CORS
 //      against Pinterest's CDN intermittently fails; Cloudinary always
@@ -18,7 +18,7 @@ const TARGET_COUNT_MAX = 8;
 
 async function mirrorOne(url: string): Promise<string> {
   if (!url) return url;
-  // Cloudinary's `upload()` accepts remote URLs directly — it fetches
+  // Cloudinary's `upload()` accepts remote URLs directly, it fetches
   // and re-stores. We use folder `zaffa-posts` (separate from
   // zaffa-renders) so admin tooling can browse post assets independently.
   const res = await cloudinary.uploader.upload(url, {
@@ -37,7 +37,7 @@ export interface FetchInspirationResult {
 /**
  * Search Pinterest for `vibe` and mirror the top 6-8 results to
  * Cloudinary. Returns the mirrored URLs in the same order Pinterest
- * gave them — we don't try to be clever about ranking; the carousel
+ * gave them, we don't try to be clever about ranking; the carousel
  * collage looks good with a varied grab-bag.
  */
 export async function fetchInspiration(input: {

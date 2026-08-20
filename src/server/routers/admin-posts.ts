@@ -1,7 +1,7 @@
 // Admin-only tRPC router for the post generator.
 //
 // Mounted as `adminPosts` on the app router. Every procedure starts
-// with `await assertAdmin(ctx.user.id)` — same inline pattern as
+// with `await assertAdmin(ctx.user.id)`, same inline pattern as
 // `src/server/routers/admin.ts` (the codebase has no `adminProcedure`
 // wrapper).
 
@@ -61,7 +61,7 @@ const hashtagSchema = z
 
 export const adminPostsRouter = router({
   /**
-   * Generate a new post. The pipeline is single-shot — it returns the
+   * Generate a new post. The pipeline is single-shot, it returns the
    * persisted row once Pinterest + image-gen + caption are all done
    * (typically 30-60s). The client shows a single spinner across the
    * whole operation.
@@ -235,7 +235,7 @@ export const adminPostsRouter = router({
       if (slide.component_name !== "FinalRenderSlide") {
         // Just clear the rasterized PNG so the admin re-rasterizes
         // (the live React tree is the source of truth for non-render
-        // slides — there's nothing else to regenerate).
+        // slides, there's nothing else to regenerate).
         slides[input.slide_index] = {
           ...slide,
           rendered_png_url: null,

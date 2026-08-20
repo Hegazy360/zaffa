@@ -29,7 +29,7 @@ export async function generateMetadata(): Promise<Metadata> {
  * Intake for the full-service plan.
  *
  * Server component so the country can be prefilled from the same
- * `zaffa_country` cookie that drives per-country pack pricing — the visitor
+ * `zaffa_country` cookie that drives per-country pack pricing, the visitor
  * should not have to tell us where they are when we already know. Everything
  * interactive lives in the client wizard.
  *
@@ -48,7 +48,7 @@ export default async function EnquirePage({
     getTranslations("enquire"),
   ]);
   const country = jar.get(VISION_PACK_COUNTRY_COOKIE)?.value?.toUpperCase() ?? null;
-  // Normalised the same way the pricing resolver does — `XX`/`T1` are
+  // Normalised the same way the pricing resolver does, `XX`/`T1` are
   // Vercel's "unknown origin" placeholders, not countries.
   const initialCountry =
     country && country.length === 2 && !["XX", "T1"].includes(country)

@@ -23,10 +23,10 @@ import { Rise } from "@/components/motion/rise";
 // `trpc.visionPacks.pricing` once and shares the cache), so this block
 // adds zero extra round-trips when the paywall opens later.
 
-// The free-tier SKU never surfaces on the marketing page — it's only
-// reachable via the email gate after generation — so the CTA label
+// The free-tier SKU never surfaces on the marketing page, it's only
+// reachable via the email gate after generation, so the CTA label
 // table only covers the purchasable tier. The same key is reused as
-// the post-signup "Get the X Pack — $Y" CTA copy.
+// the post-signup "Get the X Pack, $Y" CTA copy.
 const TIER_TO_LABEL_KEY: Partial<Record<PackSkuId, string>> = {
   wedding_design_pack_v1: "tierCtaDesign",
 };
@@ -38,7 +38,7 @@ export function TierComparisonSection() {
   return (
     <section
       // Prices resolve from a client-side per-country fetch, so this block
-      // is non-deterministic in screenshots — masked in the visual net.
+      // is non-deterministic in screenshots, masked in the visual net.
       data-visual-mask
       aria-labelledby="tier-comparison-title"
       className="relative isolate overflow-clip border-y border-brand-line bg-background"
@@ -71,7 +71,7 @@ export function TierComparisonSection() {
             <TierCard key={tier.sku} tier={tier} idx={idx} />
           ))}
           {/* The Whole Wedding. Rendered explicitly rather than through
-              `ordered`, which is priced SKUs only — this tier has no SKU, no
+              `ordered`, which is priced SKUs only - this tier has no SKU, no
               Stripe price and no checkout. Keeping it outside the loop is
               what stops it inheriting `usePackCheckoutAction`, so its button
               can never open Checkout. */}
@@ -107,7 +107,7 @@ function TierCard({ tier, idx }: TierCardProps) {
   const tv = useTranslations("visionPack");
   const meta = PACK_SKUS[tier.sku];
   const ctaKey = TIER_TO_LABEL_KEY[tier.sku] ?? "tierCtaDesign";
-  // The purchasable pack carries the featured chrome — it is the default
+  // The purchasable pack carries the featured chrome, it is the default
   // way in, sitting beside the unpriced concierge card.
   const isFeatured = tier.sku === "wedding_design_pack_v1";
   const { buy, isPending, isAnon } = usePackCheckoutAction();
@@ -234,12 +234,12 @@ function IncludedRow({
  * The full-service tier, shown beside the two packs.
  *
  * It deliberately shares the packs' card chrome so it reads as a third
- * option rather than an advert bolted on — but it carries no price and no
+ * option rather than an advert bolted on, but it carries no price and no
  * checkout. The fee is 10-15% of a wedding budget and budgets across our
  * markets differ by roughly 20x, so any single figure printed here would be
  * wrong somewhere; how we actually quote lives in
  * `docs/pricing-full-service.md`. The CTA is a link to /contact, never
- * `usePackCheckoutAction` — a "tell us about your wedding" button that opens
+ * `usePackCheckoutAction`, a "tell us about your wedding" button that opens
  * Stripe Checkout would be the worst outcome available on this page.
  */
 function WholeWeddingCard({ idx }: { idx: number }) {

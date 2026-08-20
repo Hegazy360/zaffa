@@ -125,7 +125,7 @@ export const vendorReleasesRouter = router({
           notes: input.notes ?? null,
         },
       });
-      // Planner-journey funnel — every release queued is a step toward
+      // Planner-journey funnel, every release queued is a step toward
       // the vendor getting paid. Useful for spotting planners who book
       // vendors but never release funds.
       await trackServer(ctx.user.id, ANALYTICS_EVENTS.RELEASE_QUEUED, {

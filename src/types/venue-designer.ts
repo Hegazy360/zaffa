@@ -86,7 +86,7 @@ export interface DesignDocument {
   name: string;
   eventType: EventType;
   setting: Setting;
-  // Coarse bucket — kept for the AI scene generator. Derived from
+  // Coarse bucket, kept for the AI scene generator. Derived from
   // `guestCount` whenever a precise count is set.
   size: Size;
   // Exact expected guest count. Optional so existing designs created before

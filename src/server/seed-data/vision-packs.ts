@@ -39,11 +39,11 @@ export interface SeedVisionPack {
     }>;
     /** Final render URLs that will be inserted as `venue_design_media` rows. */
     renders: string[];
-    /** Optional video URL — at most one per seeded pack to keep storage small. */
+    /** Optional video URL, at most one per seeded pack to keep storage small. */
     video?: string;
   };
   /**
-   * Stable slug — short, memorable, used for the `/v/<slug>` URL. The
+   * Stable slug - short, memorable, used for the `/v/<slug>` URL. The
    * production flow auto-generates random slugs; the seed entries use
    * legible ones so the gallery's first cohort feels intentional.
    */
@@ -102,7 +102,7 @@ export const SEED_VISION_PACKS: SeedVisionPack[] = [
       locale: "ar",
     },
     design: {
-      name: "Garden ceremony — September",
+      name: "Garden ceremony - September",
       eventType: "wedding",
       setting: "outdoor",
       size: "large",
@@ -249,7 +249,7 @@ export const SEED_VISION_PACKS: SeedVisionPack[] = [
       locale: "ar",
     },
     design: {
-      name: "Desert tent — winter",
+      name: "Desert tent - winter",
       eventType: "wedding",
       setting: "tent",
       size: "medium",
@@ -327,7 +327,7 @@ export const SEED_VISION_PACKS: SeedVisionPack[] = [
         colors: ["#f4f9e8", "#dbe9b3", "#9bc15d", "#3f5d2a", "#1d2c14"],
       },
       styleNotes:
-        "An afternoon brunch — overflowing fruit centerpieces, fresh herbs, sun streaming through tall windows.",
+        "An afternoon brunch - overflowing fruit centerpieces, fresh herbs, sun streaming through tall windows.",
       references: {
         overall_vibe: [
           "https://images.unsplash.com/photo-1527529482837-4698179dc6ce?w=1200",
@@ -385,7 +385,7 @@ export const SEED_VISION_PACKS: SeedVisionPack[] = [
       locale: "en",
     },
     design: {
-      name: "Glass orangery — spring",
+      name: "Glass orangery - spring",
       eventType: "wedding",
       setting: "indoor",
       size: "medium",

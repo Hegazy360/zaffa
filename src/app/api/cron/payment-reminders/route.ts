@@ -11,8 +11,8 @@ import {
 /**
  * Once-a-day cron that emits two families of time-based notifications:
  *
- *   1. `payment_due_reminder` — for installments becoming due in 3 days.
- *   2. `payment_overdue`      — for installments past due and still open.
+ *   1. `payment_due_reminder`, for installments becoming due in 3 days.
+ *   2. `payment_overdue`, for installments past due and still open.
  *
  * Condensed into a single endpoint because the Vercel Hobby plan caps us
  * to one cron run per day. Dedupe is per-installment: we skip any row

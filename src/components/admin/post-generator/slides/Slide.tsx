@@ -44,7 +44,7 @@ export const OVERLAY_TEXT_SHADOW = {
 } as const;
 
 /**
- * Slightly lighter shadow used for sublines and small caps labels —
+ * Slightly lighter shadow used for sublines and small caps labels -
  * preserves crispness without making the type feel chunky.
  */
 export const OVERLAY_SUBTEXT_SHADOW = {

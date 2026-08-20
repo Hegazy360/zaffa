@@ -1,7 +1,7 @@
 /**
  * A client-safe Cloudinary URL builder for `next/image`.
  *
- * Pure string manipulation — deliberately not the Cloudinary SDK, which pulls
+ * Pure string manipulation - deliberately not the Cloudinary SDK, which pulls
  * `node:crypto` and the account credentials into whatever imports it. This
  * runs in the browser.
  *
@@ -10,7 +10,7 @@
  *  1. **Never touch a signed URL.** `watermarkedUrl` signs its transformation
  *     (`s--<sig>--`) precisely so nobody can strip the watermark by editing the
  *     URL. Appending our own segment invalidates that signature, and with
- *     Strict Transformations enabled Cloudinary answers 401 — the free-tier
+ *     Strict Transformations enabled Cloudinary answers 401, the free-tier
  *     reveal would show a broken image instead of a watermarked render. Signed
  *     URLs pass through untouched, which costs us the resize and is the
  *     correct trade.
@@ -25,7 +25,7 @@
 
 const CLOUDINARY_HOST = "res.cloudinary.com";
 
-/** `/upload/` or `/fetch/` — the delivery type segment we insert after. */
+/** `/upload/` or `/fetch/`, the delivery type segment we insert after. */
 const DELIVERY = /\/(image|video)\/(upload|fetch|authenticated)\//;
 
 /** Cloudinary marks a signed URL with an `s--<signature>--` path segment. */
@@ -61,7 +61,7 @@ export function cloudinaryLoader({
  * `sizes` presets.
  *
  * `sizes` is the only thing that makes `srcset` useful, and it is the thing
- * everybody omits — without it the browser assumes the image is the full
+ * everybody omits, without it the browser assumes the image is the full
  * viewport width and downloads the largest candidate, which is exactly the
  * behaviour we are trying to fix. Naming the common frames makes the right
  * value the easy one.

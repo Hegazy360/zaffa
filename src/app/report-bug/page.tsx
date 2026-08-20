@@ -7,7 +7,7 @@ export const metadata: Metadata = {
   title: "Report a bug",
   description:
     "Found something broken on Zaffa? Send us the details and we'll take a look.",
-  // Bug-report page should never appear in search results — it's an
+  // Bug-report page should never appear in search results, it's an
   // operational surface for existing users, not a marketing page.
   robots: { index: false, follow: false },
 };

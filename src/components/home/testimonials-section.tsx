@@ -3,7 +3,7 @@ import { isFlagEnabled } from "@/lib/flags";
 import { MIN_TESTIMONIALS, TESTIMONIALS } from "@/lib/testimonials";
 
 /**
- * Testimonials — structurally incapable of showing a quote we did not get.
+ * Testimonials, structurally incapable of showing a quote we did not get.
  *
  * Two independent gates, either of which renders nothing: the `testimonials`
  * flag, and the fact that `TESTIMONIALS` is empty until real couples have said

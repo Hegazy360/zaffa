@@ -46,7 +46,7 @@ export async function generateMetadata(): Promise<Metadata> {
  * search-visibility effect, which only lands if the page can be found.
  *
  * Country comes from the same `zaffa_country` cookie the packs use, and the
- * switcher is a link, not a client-side selector — a market's prices should
+ * switcher is a link, not a client-side selector - a market's prices should
  * be a URL you can send to your fiancé.
  */
 
@@ -65,7 +65,7 @@ export default async function PricingPage({
 }: {
   searchParams: Promise<{ market?: string }>;
 }) {
-  // The flag is a cohort control, not a kill switch — but if it is off, the
+  // The flag is a cohort control, not a kill switch - but if it is off, the
   // page must not exist rather than render an empty table.
   if (!isFlagEnabled("publishedPricing")) notFound();
 
@@ -99,19 +99,19 @@ export default async function PricingPage({
   try {
     regionName = new Intl.DisplayNames([locale], { type: "region" }).of(selected) ?? selected;
   } catch {
-    /* no region data — the code stands in */
+    /* no region data, the code stands in */
   }
   const money = (amount: number) =>
     formatMoney(amount, guidance.currency, locale);
 
   // The visitor is in a market we have no table for. They still see a real
   // table (so the model is legible) plus an explicit note that theirs is
-  // quoted individually — never a converted number, never a refusal.
+  // quoted individually - never a converted number, never a refusal.
   const isUnpricedVisitor = Boolean(detected) && !markets.includes(detected!);
 
   // The worked example is pinned to Dubai in AED, whichever market's table is
   // showing. It names a city and quotes a band position, so formatting it in
-  // the selected currency would produce "a wedding in Dubai... EGP 380,000" —
+  // the selected currency would produce "a wedding in Dubai... EGP 380,000" -
   // and the band it cites is the second one only in the UAE ladder. An
   // illustration that is explicitly about one city is clearer than one that
   // silently re-denominates itself.
@@ -123,7 +123,7 @@ export default async function PricingPage({
 
   // Service + Offer, so the fee is legible to search engines rather than
   // living only in a <table> nobody parses. `Offer` is only ever emitted here,
-  // where the exact figures are printed on the page beside it — markup that
+  // where the exact figures are printed on the page beside it, markup that
   // states a price the visitor cannot see is what gets penalised.
   const jsonLd = {
     ...serviceLd({
@@ -135,13 +135,13 @@ export default async function PricingPage({
       "@type": "Offer",
       price: band.fee,
       priceCurrency: guidance.currency,
-      description: `${band.budgetFrom}–${band.budgetTo} ${guidance.currency}`,
+      description: `${band.budgetFrom}-${band.budgetTo} ${guidance.currency}`,
     })),
   };
 
   const weeks = [1, 2, 3, 4, 5, 6, 7, 8, 9] as const;
   // Step numbers are ordinals, not money, so they take Eastern Arabic
-  // numerals in ar — matching the prose around them. Only fees are pinned to
+  // numerals in ar, matching the prose around them. Only fees are pinned to
   // Latin digits. See `uiLocaleTag` for why the raw locale is not enough.
 
   return (
@@ -182,7 +182,7 @@ export default async function PricingPage({
 
             <div className="mt-6 overflow-hidden rounded-2xl border border-brand-line bg-white/70">
               <table className="w-full text-start">
-                {/* A caption naming the market, not repeating the headline —
+                {/* A caption naming the market, not repeating the headline -
                     a screen reader announcing "Here is our number" twice tells
                     you nothing about what the table contains. */}
                 <caption className="sr-only">
@@ -205,7 +205,7 @@ export default async function PricingPage({
                         {/* bdi so the bidi algorithm cannot pull the dash or a
                             neighbouring letter into the numbers in Arabic. */}
                         <bdi>
-                          {money(band.budgetFrom)} – {money(band.budgetTo)}
+                          {money(band.budgetFrom)}, {money(band.budgetTo)}
                         </bdi>
                       </td>
                       <td className="px-5 py-4 text-end font-display text-xl">
@@ -260,7 +260,7 @@ export default async function PricingPage({
           </div>
         </section>
 
-        {/* The guarantee, with its limit in the same block — never apart */}
+        {/* The guarantee, with its limit in the same block - never apart */}
         <section className="border-t border-brand-line bg-rose-50/30 py-16 sm:py-20">
           <div className="mx-auto max-w-3xl px-4">
             <h2 className="flex items-center gap-2 font-display text-2xl font-light tracking-tight sm:text-3xl">
@@ -273,7 +273,7 @@ export default async function PricingPage({
           </div>
         </section>
 
-        {/* How we run it — process as the substitute for a portfolio */}
+        {/* How we run it, process as the substitute for a portfolio */}
         <section className="border-t border-brand-line py-16 sm:py-20">
           <div className="mx-auto max-w-3xl px-4">
             <h2 className="font-display text-2xl font-light tracking-tight sm:text-3xl">

@@ -2,7 +2,7 @@
 // the concrete `SlideRecord[]` that lives in the `posts.slides` JSON
 // column.
 //
-// Every entry's `props` is fully resolved here — the slide components
+// Every entry's `props` is fully resolved here, the slide components
 // don't need to know about format plans, just how to render their
 // concrete props.
 

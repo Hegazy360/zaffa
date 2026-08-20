@@ -9,7 +9,7 @@ import { cn } from "@/lib/utils";
  * A confirmation dialog, replacing `window.confirm`.
  *
  * `window.confirm` was used at eleven call sites, several of them for
- * destructive actions — deleting a design, deleting an event, removing a
+ * destructive actions - deleting a design, deleting an event, removing a
  * review. It is the wrong tool for three separate reasons: it blocks the main
  * thread, it cannot be styled or translated (one call site asked "Remove this
  * recommendation?" in English regardless of locale), and its OS-drawn chrome
@@ -17,7 +17,7 @@ import { cn } from "@/lib/utils";
  *
  * `AlertDialog` rather than `Dialog`: the role is different. An alert dialog
  * traps focus, is not dismissible by clicking outside, and announces itself as
- * requiring a response — which is correct when the next click deletes
+ * requiring a response, which is correct when the next click deletes
  * something.
  */
 
@@ -51,7 +51,7 @@ function AlertDialogContent({
       {/* `left-1/2 -translate-x-1/2` is deliberately PHYSICAL, not the logical
           `start-1/2` used elsewhere. Centring is symmetric, but `start-1/2`
           resolves to `right: 50%` under RTL while the translate stays
-          physical — which put every dialog a full popup-width off-centre in
+          physical, which put every dialog a full popup-width off-centre in
           Arabic, the primary locale. That bug shipped once (ZAF-36); it is
           written correctly here from the first line, and
           `tests/rtl-centering.test.ts` scans for the broken pairing. */}
@@ -107,7 +107,7 @@ function AlertDialogFooter({
       data-slot="alert-dialog-footer"
       className={cn(
         // Column-reverse on mobile so the confirming action sits under the
-        // thumb, and the cancel above it — the reverse of reading order, on
+        // thumb, and the cancel above it - the reverse of reading order, on
         // purpose, because the destructive one should not be the easy one.
         "flex flex-col-reverse gap-2 sm:flex-row sm:justify-end",
         className,

@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { useVisionPackPricing } from "@/components/vision-pack/use-pricing";
 import { Rise } from "@/components/motion/rise";
 
-// Four AI-rendered examples produced on the platform — the "what's on your
+// Four AI-rendered examples produced on the platform, the "what's on your
 // moodboard" preview for the final invitation. Tile positions/rotations are
 // tuned for visual rhythm and don't depend on the specific image.
 const COLLAGE = [
@@ -66,7 +66,7 @@ export function BeginSection() {
           between the subtitle and the CTA in DOM order, so the visual lands
           before the call-to-action instead of being buried below the press
           line. On desktop the collage cell spans both rows of the right
-          column and the copy reads as a single centred column — pixel for
+          column and the copy reads as a single centred column, pixel for
           pixel the same as the original. */}
       <div className="container relative mx-auto grid max-w-7xl gap-y-10 px-4 pt-24 pb-24 sm:pt-32 sm:pb-32 md:pt-40 md:pb-44 lg:grid-cols-12 lg:gap-x-16 lg:gap-y-10">
         <div className="relative z-10 lg:col-span-7 lg:row-start-1 lg:self-end">
@@ -123,7 +123,7 @@ export function BeginSection() {
           <Rise as="div" delay={0.25}
           className="flex flex-col gap-3 sm:flex-row sm:items-center"
         >
-            {/* Primary free CTA — symmetrical with the hero so the
+            {/* Primary free CTA, symmetrical with the hero so the
                 conversion path is consistent top-to-bottom on the page. */}
             <Button
               variant="cta"

@@ -6,7 +6,7 @@
 // path the generator pipeline produces objects matching these types and
 // passes them straight to Prisma as `Prisma.InputJsonValue`.
 //
-// Keep this file pure data — no React, no Prisma imports — so it can be
+// Keep this file pure data - no React, no Prisma imports - so it can be
 // reused by both the server pipeline and the client UI without dragging
 // extra deps into either bundle.
 
@@ -52,7 +52,7 @@ export type SlideComponentName =
   | "CTASlide";
 
 /**
- * One slide in a post's carousel. `props` is intentionally permissive —
+ * One slide in a post's carousel. `props` is intentionally permissive -
  * each component's strict prop type is enforced where the registry is
  * looked up, not at the JSON boundary.
  */

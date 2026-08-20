@@ -24,7 +24,7 @@ interface ContactFormProps {
  * so each surface page can wrap it in whatever framing it likes
  * (LegalPage chrome, dedicated bug-report page, etc.).
  *
- * Submission is anonymous-friendly — visitors aren't required to be
+ * Submission is anonymous-friendly, visitors aren't required to be
  * signed in. The server applies a sliding-window rate limit and a
  * honeypot, so the form is safe to expose to the open web.
  */
@@ -37,7 +37,7 @@ export function ContactForm({ kind }: ContactFormProps) {
   const [subject, setSubject] = useState("");
   const [message, setMessage] = useState("");
   const [hp, setHp] = useState("");
-  // Auto-collected diagnostics for bug reports — page URL + UA. We
+  // Auto-collected diagnostics for bug reports, page URL + UA. We
   // capture them client-side so the support inbox always has the
   // context without the user having to type it.
   const [url, setUrl] = useState("");
@@ -65,7 +65,7 @@ export function ContactForm({ kind }: ContactFormProps) {
         subject: subject.trim() || undefined,
         message: message.trim(),
         kind,
-        // Only include diagnostics for bug reports — for plain contact
+        // Only include diagnostics for bug reports, for plain contact
         // they're unnecessary noise in the inbox.
         ...(kind === "bug_report"
           ? { url, userAgent }
@@ -149,7 +149,7 @@ export function ContactForm({ kind }: ContactFormProps) {
         </p>
       </div>
 
-      {/* Honeypot — kept outside the visible flow with `aria-hidden` and
+      {/* Honeypot, kept outside the visible flow with `aria-hidden` and
           `tabIndex=-1` so screen readers + keyboard users don't see it.
           Real bots will happily fill it in. */}
       <div

@@ -38,7 +38,7 @@ describe("quoteGuidanceFor", () => {
     const g = quoteGuidanceFor("EG")!;
     expect(g.currency).toBe("EGP");
     // Band 3 was 100_000 until publishing the table forced its edges to be
-    // stated. At the resulting floor of 650_000 that is 15.4% — outside the
+    // stated. At the resulting floor of 650_000 that is 15.4%, outside the
     // norm. See docs/pricing-published-2026-08.md.
     expect(g.bands.map((b) => b.fee)).toEqual([45_000, 65_000, 95_000]);
   });

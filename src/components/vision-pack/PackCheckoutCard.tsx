@@ -27,7 +27,7 @@ interface PackCheckoutCardProps {
   /** Optional path to bounce back to after Stripe success/cancel. */
   returnPath?: string;
   /**
-   * Highlight the card as the recommended option — adds a "Most
+   * Highlight the card as the recommended option, adds a "Most
    * popular" ribbon, a gradient border, and uses the filled gradient
    * CTA. Other cards get the outlined variant. Set true for the
    * higher-value tier on comparison surfaces.
@@ -123,7 +123,7 @@ export function PackCheckoutCard({
       </ul>
 
       {/* Stacking note: only relevant when planner match is part of
-          the tier — entry tier is a flat one-off with no marketplace
+          the tier, entry tier is a flat one-off with no marketplace
           fee. */}
       <p className="mt-5 text-xs leading-relaxed text-muted-foreground">
         {meta.includesPlannerMatch

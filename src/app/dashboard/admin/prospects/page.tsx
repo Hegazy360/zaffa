@@ -216,7 +216,7 @@ export default function AdminProspectsPage() {
             // Keyboard shortcut: "W" on a focused row fires WhatsApp send.
             // We listen at the ul level so any focused row Link bubbles up
             // here. Ignore when the user is typing in a form field that
-            // somehow bubbled (defensive — search input is outside this ul).
+            // somehow bubbled (defensive, search input is outside this ul).
             onKeyDown={(e) => {
               if (e.key !== "w" && e.key !== "W") return;
               if (e.metaKey || e.ctrlKey || e.altKey) return;
@@ -523,7 +523,7 @@ function ManualEntryDialog() {
                 }
                 className="h-9 w-full rounded-md border border-input bg-transparent px-3 text-sm"
               >
-                <option value="">—</option>
+                <option value="">-</option>
                 {VENDOR_CATEGORIES.map((c) => (
                   <option key={c} value={c}>
                     {c}

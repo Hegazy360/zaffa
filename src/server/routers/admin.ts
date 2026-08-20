@@ -90,7 +90,7 @@ export const adminRouter = router({
       },
     });
     // Per-planner. groupBy doesn't support relational keys directly, so we
-    // pull the underlying rows and bucket in JS — fine at our scale.
+    // pull the underlying rows and bucket in JS, fine at our scale.
     const rows = await prisma.payment.findMany({
       where: baseWhere,
       select: {
@@ -514,7 +514,7 @@ export const adminRouter = router({
     };
   }),
 
-  // Pending releases for one vendor — admin uses this to pick which rows to
+  // Pending releases for one vendor, admin uses this to pick which rows to
   // include in a single payout.
   vendorPending: protectedProcedure
     .input(z.object({ vendorId: z.string().uuid() }))
@@ -705,7 +705,7 @@ export const adminRouter = router({
 
   /**
    * Issue a full Stripe refund on a Vision Pack purchase and flip the
-   * row to `refunded`. No partial refunds — the pack is a packaged
+   * row to `refunded`. No partial refunds, the pack is a packaged
    * SKU, not an installment ledger. Does not gate on the
    * `isPackRefundable` heuristic (admin can override the tripwire).
    */
@@ -733,7 +733,7 @@ export const adminRouter = router({
       if (!pack.stripe_payment_intent_id) {
         throw new TRPCError({
           code: "BAD_REQUEST",
-          message: "Pack has no Stripe payment intent — nothing to refund.",
+          message: "Pack has no Stripe payment intent - nothing to refund.",
         });
       }
       if (pack.status === "refunded") {
@@ -796,7 +796,7 @@ export const adminRouter = router({
       ) {
         throw new TRPCError({
           code: "BAD_REQUEST",
-          message: "Nothing to top up — set at least one positive amount.",
+          message: "Nothing to top up - set at least one positive amount.",
         });
       }
       const pack = await prisma.visionPack.findUnique({
@@ -844,7 +844,7 @@ export const adminRouter = router({
     }),
 
   /**
-   * Vision Pack pricing — admin CRUD for the per-country override
+   * Vision Pack pricing, admin CRUD for the per-country override
    * table. The seed table in `src/lib/vision-pack-pricing.ts` is the
    * floor; rows here override on a per-(sku, country) basis at runtime,
    * no deploy required.
@@ -853,7 +853,7 @@ export const adminRouter = router({
    * the literal "DEFAULT" sentinel for the unmapped fallback. `sku` is
    * a SKU id from `PACK_SKUS` (defaults to the higher-tier Vision Pack
    * to keep legacy callers working). Amounts are stored in **minor
-   * units** (cents/piastres) — the admin form authors fractional major
+   * units** (cents/piastres), the admin form authors fractional major
    * units (e.g. `19.99`) and the page-level handler does the multiply
    * before invoking the upsert.
    */

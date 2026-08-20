@@ -16,7 +16,7 @@ export async function generateMetadata(): Promise<Metadata> {
   // Was a static English object, so an Arabic visitor's share of this page
   // previewed in English and carried no `og:locale` at all. `openGraph` is
   // replaced wholesale by Next, so the locale fields have to be spread in
-  // here rather than inherited from the root layout — the exact failure
+  // here rather than inherited from the root layout, the exact failure
   // documented in `i18n/config.ts`, which has already shipped once.
   const [locale, t] = await Promise.all([
     getLocale(),
@@ -37,13 +37,13 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 // ISR: refresh the gallery snapshot every 5 minutes. Public, indexable,
-// and cheap to render — a single batched DB hit serves the whole page.
+// and cheap to render, a single batched DB hit serves the whole page.
 export const revalidate = 300;
 
 interface GalleryItem {
   slug: string;
   publishedAt: Date | null;
-  /** Null when the couple has no name on file — the caller localizes the
+  /** Null when the couple has no name on file, the caller localizes the
    *  fallback, which used to be a hardcoded English string. */
   recipientName: string | null;
   heroImage: string | null;
@@ -100,7 +100,7 @@ async function loadGallery(limit = 24): Promise<GalleryItem[]> {
   // Two different "most recent" questions, and conflating them is why this
   // gallery was showing placeholder icons for a couple with fourteen renders.
   //
-  // The palette should come from their newest design — that is what they are
+  // The palette should come from their newest design, that is what they are
   // working on. The *image* has to come from their newest design **that
   // actually has a render**, which is frequently not the same one: the newest
   // design is often an empty draft opened and abandoned.
@@ -160,7 +160,7 @@ export default async function GalleryPage() {
   return (
     <div className="flex min-h-screen flex-col">
       <Navbar />
-      {/* CollectionPage over the microsites actually listed below — the item
+      {/* CollectionPage over the microsites actually listed below, the item
           list is built from the same query the page renders, so the markup
           cannot describe a gallery the visitor is not seeing. */}
       {items.length > 0 && (

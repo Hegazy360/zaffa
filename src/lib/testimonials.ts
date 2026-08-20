@@ -2,7 +2,7 @@
  * Real testimonials, and nothing else.
  *
  * This file is empty on purpose. Zaffa has not delivered its first weddings
- * yet, so there is nothing truthful to quote — and the homepage previously
+ * yet, so there is nothing truthful to quote - and the homepage previously
  * carried four stock headshots and an invented "4.9" precisely because an
  * empty section felt like something to fill. It is not. An empty section is
  * accurate; a filled one would be a lie on the page that asks couples to
@@ -12,7 +12,7 @@
  *
  *  1. The couple said it. Not a paraphrase, not a composite, not a rewrite.
  *  2. They gave permission to publish it, attributed as it appears here.
- *  3. `weddingDate` is in the past — we quote weddings we ran, not ones we
+ *  3. `weddingDate` is in the past - we quote weddings we ran, not ones we
  *     have been booked for.
  *  4. Quote them in the language they said it in, and translate only into
  *     the other locales, keeping the original in `locale`.
@@ -30,7 +30,7 @@ export interface Testimonial {
   quote: string;
   /** BCP-47 tag of the language the quote was given in. */
   locale: "en" | "ar" | "fr" | "de";
-  /** How they want to be credited — first names are fine, initials are not. */
+  /** How they want to be credited - first names are fine, initials are not. */
   attribution: string;
   /** Where the wedding happened, e.g. "Dubai" or "Cairo". */
   city: string;

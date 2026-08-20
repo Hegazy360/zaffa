@@ -24,7 +24,7 @@ export default function SettingsPage() {
 
   // Track which profile snapshot the local form was seeded from. When the
   // server returns a different one (first load, or after a fresh fetch), we
-  // re-derive the inputs without an effect — see https://react.dev/learn/you-might-not-need-an-effect#adjusting-some-state-when-a-prop-changes.
+  // re-derive the inputs without an effect, see https://react.dev/learn/you-might-not-need-an-effect#adjusting-some-state-when-a-prop-changes.
   const [seededFor, setSeededFor] = useState<string | null>(null);
   const [fullName, setFullName] = useState("");
   const [phone, setPhone] = useState("");

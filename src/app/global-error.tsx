@@ -4,14 +4,14 @@ import * as Sentry from "@sentry/nextjs";
 import { useEffect, useState } from "react";
 
 /**
- * The last-resort error page — it replaces the root layout entirely.
+ * The last-resort error page, it replaces the root layout entirely.
  *
  * That is what makes it awkward: there is no `NextIntlClientProvider` above
  * it, so `useTranslations` would throw, and no root `<html>` either, so this
  * component owns `lang` and `dir`. The previous version hardcoded
  * `<html lang="en">` with no `dir`, which meant an Arabic visitor hitting a
  * catastrophic error got a left-to-right English page from Next's default
- * error component — the worst possible moment to also lose the language.
+ * error component, the worst possible moment to also lose the language.
  *
  * The fix is to read the same `zaffa_locale` cookie the middleware sets, in an
  * effect (cookies are not available during the server render of this file),
@@ -61,8 +61,8 @@ export default function GlobalError({
 }: {
   error: Error & { digest?: string };
 }) {
-  // Server-render as `en`, then correct on mount. The alternative — reading
-  // the cookie during render — would produce a hydration mismatch on every
+  // Server-render as `en`, then correct on mount. The alternative - reading
+  // the cookie during render, would produce a hydration mismatch on every
   // non-English visit.
   const [locale, setLocale] = useState<Locale>("en");
 

@@ -8,7 +8,7 @@ import "@testing-library/jest-dom/vitest";
 
 afterEach(() => cleanup());
 
-// jsdom doesn't ship matchMedia or ResizeObserver — components from
+// jsdom doesn't ship matchMedia or ResizeObserver, components from
 // shadcn/Radix call them on mount.
 if (typeof window !== "undefined") {
   if (!window.matchMedia) {

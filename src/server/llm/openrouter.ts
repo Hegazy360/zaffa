@@ -7,14 +7,14 @@ import "server-only";
  * the chat widget would have been the fourth), each with its own auth-header
  * block and error shaping. Consolidated because the failure handling is the
  * part that matters and the part that drifted: non-2xx bodies must be
- * truncated into the error (OpenRouter's 4xx bodies explain the problem —
+ * truncated into the error (OpenRouter's 4xx bodies explain the problem -
  * the 402 credits message is how we found the account was empty), and a
  * non-JSON body must not surface as a bare SyntaxError.
  *
  * `OPENAI_API_KEY` is a misnomer kept for compatibility: it holds an
  * OpenRouter key (`sk-or-...`) and every existing env/deploy already sets it.
  *
- * Image generation stays in `src/server/ai/image-gen.ts` — its multimodal
+ * Image generation stays in `src/server/ai/image-gen.ts`, its multimodal
  * request/response shape is genuinely different.
  */
 

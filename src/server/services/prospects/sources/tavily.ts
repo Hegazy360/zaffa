@@ -1,6 +1,6 @@
 // Tavily web search adapter. Returns an array of `{ url, title, content }`
 // rows. We use Tavily because it's the cheapest legitimate source we can
-// wire — 1k free searches/month and a clean JSON API. Docs:
+// wire, 1k free searches/month and a clean JSON API. Docs:
 // https://docs.tavily.com/
 
 export interface TavilyResult {

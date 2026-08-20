@@ -11,7 +11,7 @@ import { cn } from "@/lib/utils";
 export type RenderFraming =
   /** Full image, no zoom. */
   | "default"
-  /** Cropped to a tighter detail — `object-cover` with `scale-110`. */
+  /** Cropped to a tighter detail, `object-cover` with `scale-110`. */
   | "detail"
   /** Pulled back with breathing room above and below. Useful for the
    *  "wide" variant in the `real_bride` format. */
@@ -25,7 +25,7 @@ interface RenderFrameProps {
   /**
    * When true, render at the locked carousel aspect (4:5). When false
    * (the default), the frame fills its parent and lets the parent set
-   * dimensions — useful for non-slide previews.
+   * dimensions, useful for non-slide previews.
    */
   lockAspect?: boolean;
   className?: string;

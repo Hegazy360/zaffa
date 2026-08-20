@@ -78,12 +78,12 @@ export function prospectDisplayName(p: ProspectNameInput): string {
 
   if (p.email) return p.email;
 
-  // Last resort — keep the raw value (even if generic) so the row isn't
+  // Last resort, keep the raw value (even if generic) so the row isn't
   // blank, otherwise a generic placeholder.
   return raw || "Untitled prospect";
 }
 
-// Single-character avatar initial — uses the resolved display name so the
+// Single-character avatar initial, uses the resolved display name so the
 // fallback letter matches the visible name, not the generic title.
 export function prospectInitial(p: ProspectNameInput): string {
   const name = prospectDisplayName(p);

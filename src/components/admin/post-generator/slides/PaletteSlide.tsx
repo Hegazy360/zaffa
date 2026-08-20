@@ -10,7 +10,7 @@ export interface PaletteSlideProps {
 type ColorRole = "DOMINANT" | "SUPPORTING" | "ACCENT";
 
 /**
- * Editorial palette specimen — five color cards weighted by role.
+ * Editorial palette specimen, five color cards weighted by role.
  *
  * The LLM-named palette comes in as [dominant, supporting, supporting,
  * accent, accent] (system-prompt convention). We map that hierarchy
@@ -20,7 +20,7 @@ type ColorRole = "DOMINANT" | "SUPPORTING" | "ACCENT";
  * a small role chip sits top-left over the raw color, and a cream
  * info card pinned bottom-left holds the name + hex. The cream card
  * makes color-name readability work regardless of how light or dark
- * the swatch is — no need for luminance math against five very
+ * the swatch is, no need for luminance math against five very
  * different background colors.
  */
 export function PaletteSlide({ palette, vibe }: PaletteSlideProps) {
@@ -33,7 +33,7 @@ export function PaletteSlide({ palette, vibe }: PaletteSlideProps) {
 
   return (
     <Slide className="bg-[#FAF6EE]">
-      {/* paper grain — subtle multiply pattern to give the slide depth */}
+      {/* paper grain, subtle multiply pattern to give the slide depth */}
       <div
         aria-hidden
         className="absolute inset-0 opacity-[0.04] mix-blend-multiply"
@@ -111,7 +111,7 @@ export function PaletteSlide({ palette, vibe }: PaletteSlideProps) {
 interface ColorCardProps {
   color: NamedColor;
   role: ColorRole;
-  /** Hero card — bumps the role chip + uses a slightly more dramatic info card. */
+  /** Hero card, bumps the role chip + uses a slightly more dramatic info card. */
   featured?: boolean;
   /** Tighter padding for the small accent cards on the bottom row. */
   compact?: boolean;

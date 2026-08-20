@@ -1,5 +1,5 @@
 // Synchronous, env-only feature flag API. Safe to import from anywhere
-// (server components, client components, edge runtime) — has zero runtime
+// (server components, client components, edge runtime) - has zero runtime
 // dependencies beyond `process.env`.
 //
 // For per-user PostHog evaluation use `isFlagEnabledFor` from
@@ -11,25 +11,25 @@
 //      a flag from Vercel settings without touching PostHog).
 //   2. The hard-coded `DEFAULTS` below.
 //
-// Naming: `FLAG_<UPPER_SNAKE>`. Defaults are kept conservative — flipping a
+// Naming: `FLAG_<UPPER_SNAKE>`. Defaults are kept conservative, flipping a
 // flag off should always be the safer choice in case PostHog is unreachable.
 
 export const FLAG_PREFIX = "FLAG_";
 
 export const KNOWN = {
-  // Public planner / vendor browse pages. Currently OFF — exposes the
+  // Public planner / vendor browse pages. Currently OFF, exposes the
   // commercially sensitive vendor catalog (pricing, portfolios) and the
   // full planner directory unauthenticated. Flip on (env override or
   // PostHog) once we want SEO-driven acquisition.
   publicBrowse: "PUBLIC_BROWSE",
-  // Admin verification toggle — flip off to hide the new toggle in
+  // Admin verification toggle, flip off to hide the new toggle in
   // /dashboard/admin/users/[id] without redeploying.
   plannerVerification: "PLANNER_VERIFICATION",
   // Onboarding wizard for planners + vendors. Off = old setup-needed
   // splash, on = multi-step wizard.
   onboardingWizard: "ONBOARDING_WIZARD",
   // Every planner/vendor-facing surface: their dashboards and the
-  // professional signup route. Currently OFF — the business pivoted to
+  // professional signup route. Currently OFF, the business pivoted to
   // serving the paying couple directly (they self-serve the AI packs, or
   // hire us and we assemble the package by hand), so the two-sided
   // marketplace is hidden rather than deleted. ~25 pages and 10 routers stay
@@ -39,11 +39,11 @@ export const KNOWN = {
   professionalSurfaces: "PROFESSIONAL_SURFACES",
   // Testimonials on the marketing pages. OFF until the first weddings are
   // delivered and real couples have said something we are allowed to quote.
-  // The section reads `src/lib/testimonials.ts`, which is empty on purpose —
+  // The section reads `src/lib/testimonials.ts`, which is empty on purpose -
   // so even flipping this on cannot produce an invented quote. See ZAF-45.
   testimonials: "TESTIMONIALS",
   // The published fee table on /pricing and the price line on the homepage.
-  // ON by default — D9 is a decision, not an experiment. The flag exists for
+  // ON by default - D9 is a decision, not an experiment. The flag exists for
   // one reason: /enquire and published pricing went live days apart, so the
   // with-price / without-price comparison cannot be reconstructed from deploy
   // history. Each enquiry records the flag state it was submitted under
@@ -52,7 +52,7 @@ export const KNOWN = {
   publishedPricing: "PUBLISHED_PRICING",
   // The AI chat widget (floating launcher + homepage section) AND its
   // backend: `chat.ask` refuses when this is off, which is the instant
-  // kill — the ISR'd homepage can lag a flag flip by up to 300s, but the
+  // kill - the ISR'd homepage can lag a flag flip by up to 300s, but the
   // procedure check cannot. OFF by default until the launch QA in en+ar
   // passes and the OpenRouter account has credits (ZAF-85).
   aiChat: "AI_CHAT",
@@ -61,17 +61,17 @@ export const KNOWN = {
 export type FlagKey = keyof typeof KNOWN;
 
 const DEFAULTS: Record<FlagKey, boolean> = {
-  // OFF — see comment on `publicBrowse` above.
+  // OFF, see comment on `publicBrowse` above.
   publicBrowse: false,
   plannerVerification: true,
   onboardingWizard: true,
-  // OFF — see comment on `professionalSurfaces` above.
+  // OFF, see comment on `professionalSurfaces` above.
   professionalSurfaces: false,
-  // OFF — see comment on `testimonials` above.
+  // OFF, see comment on `testimonials` above.
   testimonials: false,
-  // ON — see comment on `publishedPricing` above.
+  // ON, see comment on `publishedPricing` above.
   publishedPricing: true,
-  // OFF — see comment on `aiChat` above.
+  // OFF, see comment on `aiChat` above.
   aiChat: false,
 };
 
@@ -89,7 +89,7 @@ export function envOverride(key: FlagKey): boolean | null {
 }
 
 /**
- * Synchronous flag check — env override or static default only.
+ * Synchronous flag check, env override or static default only.
  * Use this in code paths that can't await (React render trees, hot loops).
  * For per-user / segmented rollouts, prefer `isFlagEnabledFor` from
  * `@/lib/flags-server`.

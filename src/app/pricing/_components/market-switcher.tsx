@@ -30,7 +30,7 @@ export async function MarketSwitcher({
     names = new Intl.DisplayNames([locale], { type: "region" });
   } catch {
     // An environment without region data degrades to the ISO code, which is
-    // still a correct label — just a colder one.
+    // still a correct label, just a colder one.
   }
 
   return (

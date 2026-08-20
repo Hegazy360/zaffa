@@ -6,8 +6,8 @@ import { Rise } from "@/components/motion/rise";
 
 // Sits between "How it works" and the marketplace teaser on the home page.
 // Closes the loop on the four steps by showing the *artefacts* a couple
-// walks away with — a private microsite at zaffa.ai/v/<slug> and a
-// printable lookbook PDF — and the audiences they're designed for
+// walks away with, a private microsite at zaffa.ai/v/<slug> and a
+// printable lookbook PDF, and the audiences they're designed for
 // (family + friends + every planner they speak to).
 
 const MICROSITE_PREVIEW_IMAGE = "/home/examples/hero.avif";
@@ -41,11 +41,11 @@ export async function ShareSection() {
             <Heart className="h-3.5 w-3.5" />
             {t("shareEyebrow")}
           </div>
-          {/* Demoted vs. HowItWorks/hero scale (text-4xl/5xl) — this
+          {/* Demoted vs. HowItWorks/hero scale (text-4xl/5xl), this
               section is now supporting proof, not a primary sell. Closer
               to TierComparisonSection's heading scale (clamp(1.875rem,
               4vw,2.75rem)) than to the primary-narrative sections above
-              it. Content unchanged, proportion only — see ZAF-18/ZAF-19. */}
+              it. Content unchanged, proportion only - see ZAF-18/ZAF-19. */}
           <h2 className="font-display text-balance text-3xl font-light leading-tight tracking-tight sm:text-4xl">
             {t("shareTitlePart1")}{" "}
             <span className="italic">{t("shareTitleItalic")}</span>{" "}
@@ -160,7 +160,7 @@ function ArtefactCard({
 
 // CSS-only browser-frame mock for the microsite. We deliberately avoid a
 // real screenshot so this stays in sync with the live microsite as it
-// evolves — the value being communicated is "a private, beautiful link",
+// evolves - the value being communicated is "a private, beautiful link",
 // not pixel-accurate UI.
 function MicrositePreview() {
   return (
@@ -230,7 +230,7 @@ function MicrositePreview() {
   );
 }
 
-// Stylized A4-ish PDF cover with a back page peeking — communicates
+// Stylized A4-ish PDF cover with a back page peeking, communicates
 // "printable lookbook" without committing to a specific PDF screenshot.
 function LookbookPreview() {
   return (

@@ -13,7 +13,7 @@ import { Rise } from "@/components/motion/rise";
 // filename listed below, then point the `screenshot` field at it and pass the
 // file's intrinsic dimensions (run `file public/home/how-it-works/<file>` if
 // you don't know them). The component renders the image at its natural
-// aspect ratio so nothing is cropped — no fixed 16:10 box. Until a screenshot
+// aspect ratio so nothing is cropped, no fixed 16:10 box. Until a screenshot
 // is wired up the step shows a clean "screenshot coming soon" placeholder.
 interface StepDef {
   id: "inspirations" | "palette" | "ai";
@@ -69,8 +69,8 @@ const STEPS: StepDef[] = [
 ];
 
 // There is deliberately no step 4. ZAF-20 reinstated one ("hand it to your
-// concierge"), but it restated `ConciergePillarsSection` — which sits
-// directly below and says the same thing at more length — and it was the one
+// concierge"), but it restated `ConciergePillarsSection` - which sits
+// directly below and says the same thing at more length, and it was the one
 // step with no screenshot, so it shipped a dashed placeholder printing an
 // internal repo path to visitors. This section now does one job: show the
 // free way in. What happens afterwards is the pillars section's job.
@@ -170,7 +170,7 @@ async function Screenshot({ screenshot, suggestedFilename, altKey }: ScreenshotP
   if (screenshot) {
     // Intrinsic-sized image: Next.js infers the aspect from width/height and
     // CSS scales the image to the container's width while preserving that
-    // aspect — no 16:10 box, no cropping. `max-h-[640px]` caps the portrait
+    // aspect - no 16:10 box, no cropping. `max-h-[640px]` caps the portrait
     // step 4 so it doesn't dominate the rest of the section vertically.
     return (
       <div className="overflow-hidden rounded-2xl border border-brand-line bg-white/70 shadow-glow-lg ring-1 ring-foreground/[0.04] backdrop-blur-sm">

@@ -32,7 +32,7 @@ const POLL_INTERVAL_MS = 1_500;
  * *specific* row until the webhook lands, then either auto-bounce to
  * the return path or render the editorial "you're in" panel.
  *
- * We deliberately do NOT use `visionPacks.current` here — most users
+ * We deliberately do NOT use `visionPacks.current` here, most users
  * already have an `active` free `wedding_free_taste_v1` pack from the
  * email-gate flow, so "the user's currently-active pack" returns
  * truthy the moment Stripe redirects back and would race the
@@ -113,7 +113,7 @@ export default function VenueDesignerWelcomePage() {
     }
   }, [ready, returnPath, router]);
 
-  // Funnel signal — fire TikTok CompletePayment exactly once per
+  // Funnel signal, fire TikTok CompletePayment exactly once per
   // mount, the moment the webhook confirmation lands. We use the
   // packId/upgradeId from the URL as the TikTok event_id so a future
   // server-side fire from the Stripe webhook (Events API) can dedupe
@@ -123,7 +123,7 @@ export default function VenueDesignerWelcomePage() {
   // app uses; matches what the buyer was charged in normal cases
   // (pricing rarely changes mid-flow). If we can't resolve the
   // tier price for any reason we still fire the event without
-  // value/currency so the funnel coverage stays intact — TikTok counts
+  // value/currency so the funnel coverage stays intact, TikTok counts
   // the conversion either way.
   const tiers = useTierPricing();
   const ttFiredRef = useRef(false);

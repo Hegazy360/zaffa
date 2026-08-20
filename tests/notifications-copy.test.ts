@@ -47,7 +47,7 @@ describe("getCopy", () => {
   it("falls back to English when the locale is unsupported (defensive)", () => {
     const copy = getCopy(
       "proposal_received",
-      "en", // explicit en — confirms no exception thrown for known type
+      "en", // explicit en - confirms no exception thrown for known type
       { plannerName: "X", eventTitle: "Y" },
     );
     expect(copy.title.length).toBeGreaterThan(0);

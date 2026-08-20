@@ -4,12 +4,12 @@
  * Two columns historically accepted base64 data URIs that bloat every
  * downstream read (marketing teaser, dashboards, message previews):
  *
- *   1. `venue_designs.thumbnail`           — predates the media table.
- *   2. `venue_design_media.url` (renders)  — the AI scene generator used
+ *   1. `venue_designs.thumbnail`, predates the media table.
+ *   2. `venue_design_media.url` (renders), the AI scene generator used
  *                                            to persist OpenRouter's
  *                                            inline response verbatim.
  *
- * Both writes are now plugged at the source — `VenueDesigner` saves
+ * Both writes are now plugged at the source, `VenueDesigner` saves
  * `thumbnail: null`, the scene generator uploads to Cloudinary before
  * returning, and `saveMedia` rejects `data:` URLs at the tRPC boundary.
  * This script drains the legacy data so the columns are uniformly clean
@@ -80,7 +80,7 @@ function requireEnv(name: string): string {
 // `sslmode=require` in the URL to full chain verification, which then
 // fails on the Supabase cert. The pg-recommended fix is to drop the
 // `sslmode` query param and pass `ssl: { rejectUnauthorized: false }` on
-// the pool config — that keeps the connection encrypted but skips chain
+// the pool config, that keeps the connection encrypted but skips chain
 // verification. Admin scripts run from a trusted operator machine and
 // the pool is short-lived, so this is an acceptable trade-off here (and
 // the same one every other Supabase admin tool makes). Don't do this in
@@ -156,7 +156,7 @@ async function planThumbnails(): Promise<ThumbnailPlan[]> {
 
 async function planMedia(): Promise<MediaPlan[]> {
   // We can't `LIKE 'data:%'` cheaply in a Prisma `where`, but we can pull
-  // every media row and filter in code — the table is small (one row per
+  // every media row and filter in code, the table is small (one row per
   // render, hundreds of rows at most). If this ever grows, switch to a raw
   // query with a `url LIKE 'data:%'` predicate.
   const rows = await prisma.venueDesignMedia.findMany({
@@ -266,7 +266,7 @@ async function main() {
         select: { url: true },
       });
       if (!fresh || !fresh.url.startsWith("data:")) {
-        // Already rotated by a concurrent run — nothing to do.
+        // Already rotated by a concurrent run, nothing to do.
         continue;
       }
       const cdnUrl = await uploadDataUri(fresh.url);

@@ -15,7 +15,7 @@ interface SignInFormProps {
   initialError?: string | null;
 }
 
-// See `client-signup-form.tsx` — only same-origin paths are honored.
+// See `client-signup-form.tsx`, only same-origin paths are honored.
 function sanitizeNext(raw: string | null): string {
   if (!raw) return "/dashboard";
   if (!raw.startsWith("/")) return "/dashboard";

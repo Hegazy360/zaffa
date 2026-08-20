@@ -158,14 +158,14 @@ export function PostMetadataSidebar({
       window.setTimeout(() => setJustCopied(false), 1500);
     } catch (err) {
       console.error("Copy failed", err);
-      toast.error("Copy failed — clipboard blocked by browser");
+      toast.error("Copy failed, clipboard blocked by browser");
     }
   };
 
   const handleDownloadZip = async () => {
     const ready = rasterizedUrls.filter(Boolean);
     if (ready.length === 0) {
-      toast.error("Nothing rasterized yet — click Render to HD first");
+      toast.error("Nothing rasterized yet, click Render to HD first");
       return;
     }
     const { default: JSZip } = await import("jszip");

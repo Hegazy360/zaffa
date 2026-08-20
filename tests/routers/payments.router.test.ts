@@ -36,7 +36,7 @@ const PLANNER_ID = randomUUID();
 
 function callerForUser(userId: string) {
   return paymentsRouter.createCaller({
-    // Cast around the supabase shape — the router only ever reads ctx.user.
+    // Cast around the supabase shape, the router only ever reads ctx.user.
     supabase: {} as never,
     user: { id: userId } as never,
   } as never);

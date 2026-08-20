@@ -287,24 +287,24 @@ export function VendorOnboardingWizard() {
               <dl className="divide-y divide-rose-100/70 rounded-xl border border-brand-line bg-rose-50/40">
                 <SummaryRow
                   label={t("wizardBusinessName")}
-                  value={businessName.trim() || "—"}
+                  value={businessName.trim() || "-"}
                 />
                 <SummaryRow
                   label={t("wizardCategoryLabel")}
                   value={
                     category
                       ? t(`wizardCategory_${category}` as const)
-                      : "—"
+                      : "-"
                   }
                 />
                 <SummaryRow
                   label={t("wizardBio")}
-                  value={bio.trim() || "—"}
+                  value={bio.trim() || "-"}
                   multiline
                 />
                 <SummaryRow
                   label={t("wizardLocation")}
-                  value={location.trim() || "—"}
+                  value={location.trim() || "-"}
                 />
                 <SummaryRow
                   label={t("wizardSpecialties")}

@@ -325,7 +325,7 @@ export const vendorEngagementsRouter = router({
         });
       }
 
-      // Planner-journey funnel — fire the request from the planner's
+      // Planner-journey funnel, fire the request from the planner's
       // distinctId. Item count + total amount help us segment quickly
       // (small experiments vs serious bookings).
       await trackServer(
@@ -345,7 +345,7 @@ export const vendorEngagementsRouter = router({
     }),
 
   // Vendor accepts or declines a pending request. Counter-offers are out of
-  // scope for v1 — the planner has to cancel + re-request to revise terms.
+  // scope for v1, the planner has to cancel + re-request to revise terms.
   vendorRespond: protectedProcedure
     .input(
       z.object({
@@ -415,7 +415,7 @@ export const vendorEngagementsRouter = router({
           : notifyVendorEngagementDeclined(args));
       }
 
-      // Vendor-journey funnel — track which way the vendor went so we
+      // Vendor-journey funnel, track which way the vendor went so we
       // can build acceptance-rate and time-to-respond metrics.
       await trackServer(
         ctx.user.id,
@@ -456,7 +456,7 @@ export const vendorEngagementsRouter = router({
         where: { id: engagement.id },
         data: { status: "completed", completed_at: new Date() },
       });
-      // Vendor-journey funnel — the engagement reaching "completed" is
+      // Vendor-journey funnel, the engagement reaching "completed" is
       // the closing-the-loop moment that unlocks the planner's review.
       // Tracked from the planner's distinctId (they're the caller); the
       // event still stitches into the engagement timeline by id.
@@ -467,7 +467,7 @@ export const vendorEngagementsRouter = router({
     }),
 
   // Either side can cancel before completion. If there are pending releases
-  // we refuse — the planner has to cancel those first so we don't strand
+  // we refuse, the planner has to cancel those first so we don't strand
   // money in limbo.
   cancel: protectedProcedure
     .input(

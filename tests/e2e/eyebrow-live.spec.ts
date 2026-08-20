@@ -6,7 +6,7 @@ import { test, expect } from "@playwright/test";
  * Wide letter-spacing breaks Arabic glyph joining: the letters stop connecting
  * and the word reads as loose shapes. It was live across ten homepage sections
  * with eight different hand-written tracking values. They are all
- * `text-eyebrow` now, which resets tracking under RTL — this asserts that on
+ * `text-eyebrow` now, which resets tracking under RTL - this asserts that on
  * the real page, in Arabic, for every one of them.
  */
 test("no eyebrow on the Arabic homepage carries letter-spacing", async ({

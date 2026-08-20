@@ -12,7 +12,7 @@ interface AuthCheckEmailProps {
   body?: string;
 }
 
-// Branded "we sent you a link" success state — used by both signup paths and
+// Branded "we sent you a link" success state, used by both signup paths and
 // the forgot-password flow (with overridden copy). Mirrors the editorial card
 // language from the marketing surfaces.
 export function AuthCheckEmail({ email, title, body }: AuthCheckEmailProps) {

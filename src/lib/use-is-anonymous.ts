@@ -7,7 +7,7 @@ import { createClient } from "@/lib/supabase/client";
  * Returns the visitor's `is_anonymous` flag (or null while resolving).
  *
  * Resolves locally from the Supabase JWT claims (no network round
- * trip — claims are verified against the project's cached JWK). Used
+ * trip, claims are verified against the project's cached JWK). Used
  * by client components that need to render anonymous-specific affordances
  * like the Cloudflare Turnstile widget on the Generate panel.
  */

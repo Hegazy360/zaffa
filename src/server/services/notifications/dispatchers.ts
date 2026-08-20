@@ -485,7 +485,7 @@ export function notifyVisionPackReady(args: {
     type: "vision_pack_ready",
     link: `/venue-designer`,
     // Title/body include `{packName}`, which must be in the
-    // recipient's locale — resolved per-recipient via the function
+    // recipient's locale, resolved per-recipient via the function
     // form of `vars`. `localizedPackName` mirrors the pack tier
     // labels used on the marketing surfaces.
     vars: (locale) => ({
@@ -564,7 +564,7 @@ export async function notifyEnquiryReceived(args: {
   });
 }
 
-// A couple approved their design — the warmest signal the funnel produces,
+// A couple approved their design - the warmest signal the funnel produces,
 // warmer than a form enquiry because they are reacting to a finished render
 // of their own wedding. Fan out to every admin; the deep link lands on the
 // enquiry the approval created, where the design is attached as the brief.

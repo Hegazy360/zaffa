@@ -29,7 +29,7 @@ export const revalidate = 3600;
  * This is the single most-shared surface in the product: a couple sends their
  * microsite to their family, and this image is what the family sees before
  * anyone taps. Until now the preview was the raw full-resolution Cloudinary
- * render — multiple megabytes, unbranded, and often cropped by the client into
+ * render - multiple megabytes, unbranded, and often cropped by the client into
  * a meaningless slice of a table.
  *
  * Now: the render on the right in a framed panel, their names and Zaffa on the
@@ -161,7 +161,7 @@ export default async function MicrositeOgImage({
                 sitting on it as a hard rectangle. */}
             <div
               style={{
-                // Explicit box rather than `inset: 0` — Satori does not
+                // Explicit box rather than `inset: 0`, Satori does not
                 // implement the `inset` shorthand and silently drops it, which
                 // left the photo meeting the plate as a hard rectangle.
                 position: "absolute",

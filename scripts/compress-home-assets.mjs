@@ -4,7 +4,7 @@
  * The directory is 14 MB. Every byte of it ships to a mobile visitor in the
  * Gulf on the first page they see: the how-it-works screenshots are PNGs
  * exported at full retina resolution (one is 2.3 MB) and displayed in a card
- * roughly 600px wide, and the collages are 2 MB PNGs of photographs — the one
+ * roughly 600px wide, and the collages are 2 MB PNGs of photographs - the one
  * format that is worst at photographs.
  *
  * What this does:
@@ -12,7 +12,7 @@
  *   - UI screenshots → AVIF too, but at a higher quality, because AVIF's
  *     ringing is visible on hard UI edges in a way it is not on foliage.
  * No WebP fallback on disk. Every consumer goes through `next/image`, which
- * re-encodes per request from the Accept header — a browser without AVIF
+ * re-encodes per request from the Accept header, a browser without AVIF
  * support gets a WebP from the optimizer, not from this directory. Shipping
  * both formats as sources doubled the repo weight for files nothing ever
  * requested.

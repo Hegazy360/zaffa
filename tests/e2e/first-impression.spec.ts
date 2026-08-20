@@ -4,7 +4,7 @@ import { test, expect } from "@playwright/test";
  * The states a visitor meets before anything else works.
  *
  * All three shipped English-only or unbranded, and none of them is reachable
- * from a normal happy-path test — a 404 only happens when something is already
+ * from a normal happy-path test, a 404 only happens when something is already
  * wrong, which is exactly when nobody is looking. These assertions are how a
  * regression here gets caught.
  */
@@ -34,7 +34,7 @@ test.describe("404", () => {
 
     // It keeps the chrome, so a lost visitor can carry on rather than being
     // handed a single "Go Home" button. Asserted on the banner landmark, not
-    // `navigation` — the navbar is a <header> and its desktop links are not
+    // `navigation`, the navbar is a <header> and its desktop links are not
     // yet wrapped in a <nav>, which ZAF-62 owns.
     await expect(page.getByRole("banner")).toBeVisible();
     await expect(page.getByRole("contentinfo")).toBeAttached();

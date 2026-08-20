@@ -5,7 +5,7 @@ import { getTranslations } from "next-intl/server";
 /**
  * Confirmation / failure screen reached via the one-click unsubscribe
  * link in transactional emails. Rendered even when the user isn't signed
- * in, so we keep it minimal and fully static — no DB calls, no auth
+ * in, so we keep it minimal and fully static - no DB calls, no auth
  * checks. The actual state flip happens in /api/unsubscribe before we
  * redirect here.
  */

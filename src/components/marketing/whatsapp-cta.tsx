@@ -11,8 +11,8 @@ import { whatsappLink } from "@/lib/contact-channels";
 /**
  * One tap into a conversation, with the first message already written.
  *
- * WhatsApp is the Gulf's default business channel — 85–90% penetration, and
- * the incumbent regional concierge is literally a WhatsApp service — so this
+ * WhatsApp is the Gulf's default business channel - 85-90% penetration, and
+ * the incumbent regional concierge is literally a WhatsApp service, so this
  * is not a fallback for people who dislike forms. For a good share of visitors
  * it is the path they would have chosen first, and the form is the fallback.
  *
@@ -23,7 +23,7 @@ import { whatsappLink } from "@/lib/contact-channels";
  *    Prefilling removes that, and the message arrives carrying context we
  *    would otherwise spend the first two replies asking for.
  *  - **The click is attributed.** "How many people tapped WhatsApp" is
- *    useless next to "which surface made them do it" — that is the number
+ *    useless next to "which surface made them do it", that is the number
  *    that tells us where the conversation actually starts.
  */
 
@@ -38,7 +38,7 @@ export type WhatsAppSurface =
 
 export function WhatsAppCta({
   surface,
-  /** Extra context appended to the prefilled message — a microsite URL, a
+  /** Extra context appended to the prefilled message - a microsite URL, a
    *  city, a reference. Kept short: WhatsApp shows the prefilled text in the
    *  compose box, and a wall of it looks like spam the visitor is being asked
    *  to send. */

@@ -27,7 +27,7 @@ export const paymentsRouter = router({
   conciergeForEvent: protectedProcedure
     .input(z.object({ eventId: z.string().uuid() }))
     .query(async ({ ctx, input }) => {
-      // Ownership is checked against the event, not the payment rows — a
+      // Ownership is checked against the event, not the payment rows - a
       // client may only ever see their own wedding's ledger.
       const event = await prisma.event.findFirst({
         where: { id: input.eventId, client_id: ctx.user.id },
@@ -110,7 +110,7 @@ export const paymentsRouter = router({
       const cancelUrl = `${baseUrl}/dashboard/client/event/${installment.event.id}?tab=payments&cancelled=${installment.id}`;
 
       // Look up the client's email so Stripe can email them a receipt
-      // automatically once the payment lands. This is a v1 receipt — VAT /
+      // automatically once the payment lands. This is a v1 receipt, VAT /
       // tax-compliant invoices ship in a follow-up. See README "Receipts".
       // Email lives on auth.users (not the public Profile row), so we read
       // it via $queryRaw rather than modelling the auth schema in Prisma.
@@ -133,7 +133,7 @@ export const paymentsRouter = router({
             price_data: {
               currency,
               product_data: {
-                name: `${platformName()} — ${installment.label}`,
+                name: `${platformName()} - ${installment.label}`,
                 description: installment.event.title,
               },
               unit_amount: toStripeAmount(amount, installment.currency),

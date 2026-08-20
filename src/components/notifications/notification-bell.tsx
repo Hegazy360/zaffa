@@ -18,7 +18,7 @@ import { useNotificationsRealtime } from "@/hooks/use-notifications";
  * the 10 most recent notifications, and a "mark all read" action. Clicking
  * a notification both marks it read and navigates to its deep-link.
  *
- * Only renders when we know the current user's id — we don't want an
+ * Only renders when we know the current user's id, we don't want an
  * empty bell icon next to the "Sign in" button for anonymous visitors.
  */
 export function NotificationBell({ userId }: { userId: string }) {

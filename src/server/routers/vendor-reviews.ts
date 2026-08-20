@@ -72,7 +72,7 @@ async function requireEngagementForReview(
 }
 
 export const vendorReviewsRouter = router({
-  // Reviews on the public-ish vendor profile (planner-side only — clients
+  // Reviews on the public-ish vendor profile (planner-side only, clients
   // don't see vendors). publicProcedure so it works in SSR contexts; access
   // gating happens in the consuming pages.
   forVendor: publicProcedure
@@ -94,7 +94,7 @@ export const vendorReviewsRouter = router({
       });
     }),
 
-  // Returns the caller's existing review for (vendor, engagement) or null —
+  // Returns the caller's existing review for (vendor, engagement) or null -
   // powers the "Leave a review" / "Edit your review" CTA on the engagement
   // detail page.
   mineForEngagement: protectedProcedure
@@ -118,7 +118,7 @@ export const vendorReviewsRouter = router({
 
   // Idempotent create-or-update. Same shape as reviews.upsert but keyed on
   // (author, vendor, engagement) so a planner who hires the same vendor
-  // twice gets two reviews — one per event.
+  // twice gets two reviews, one per event.
   upsert: protectedProcedure
     .input(
       z.object({
@@ -174,7 +174,7 @@ export const vendorReviewsRouter = router({
         return { review: r, wasCreated: !existing };
       });
 
-      // Only fire the notification on first-time creation — edits to
+      // Only fire the notification on first-time creation, edits to
       // existing reviews shouldn't spam the vendor every time a planner
       // fiddles with the rating.
       if (wasCreated) {
@@ -198,7 +198,7 @@ export const vendorReviewsRouter = router({
           });
         }
       }
-      // Couple/planner journey funnel — vendor reviews are authored by
+      // Couple/planner journey funnel, vendor reviews are authored by
       // planners (not couples), so the distinctId is the planner's
       // user id. Tracked on every upsert (create or edit).
       await trackServer(ctx.user.id, ANALYTICS_EVENTS.REVIEW_POSTED, {

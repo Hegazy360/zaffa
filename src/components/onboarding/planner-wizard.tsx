@@ -21,7 +21,7 @@ export function PlannerOnboardingWizard() {
   const utils = trpc.useUtils();
   const [step, setStep] = useState(1);
 
-  // Top-of-funnel signal — fires once when the wizard first renders so
+  // Top-of-funnel signal, fires once when the wizard first renders so
   // we can build a "started but never finished onboarding" cohort.
   useEffect(() => {
     track(ANALYTICS_EVENTS.ONBOARDING_STARTED, { role: "planner" });
@@ -239,16 +239,16 @@ export function PlannerOnboardingWizard() {
               <dl className="divide-y divide-rose-100/70 rounded-xl border border-brand-line bg-rose-50/40">
                 <SummaryRow
                   label={t("wizardBusinessName")}
-                  value={businessName.trim() || "—"}
+                  value={businessName.trim() || "-"}
                 />
                 <SummaryRow
                   label={t("wizardBio")}
-                  value={bio.trim() || "—"}
+                  value={bio.trim() || "-"}
                   multiline
                 />
                 <SummaryRow
                   label={t("wizardLocation")}
-                  value={location.trim() || "—"}
+                  value={location.trim() || "-"}
                 />
                 <SummaryRow
                   label={t("wizardSpecialties")}

@@ -49,7 +49,7 @@ export const notificationsRouter = router({
       });
     }),
 
-  // Just the count — cheap query the bell badge re-fetches every ~30s (and
+  // Just the count, cheap query the bell badge re-fetches every ~30s (and
   // on realtime postgres_changes events).
   unreadCount: protectedProcedure.query(async ({ ctx }) => {
     const count = await prisma.notification.count({

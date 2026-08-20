@@ -17,7 +17,7 @@ const installmentInputSchema = z.object({
   due_date: z.coerce.date().nullish(),
 });
 
-// Status set considered "open" — i.e. not yet collected — and therefore
+// Status set considered "open", i.e. not yet collected, and therefore
 // editable by an amendment or cancellable on switch/withdraw.
 const OPEN_STATUSES = ["pending", "awaiting_payment", "failed"] as const;
 
@@ -206,7 +206,7 @@ export const paymentSchedulesRouter = router({
       return result;
     }),
 
-  // Client confirms the proposed schedule — flips status to "active" and
+  // Client confirms the proposed schedule, flips status to "active" and
   // materialises one Payment row per installment. We also accept the parent
   // proposal so the two states can never drift; the UI calls this from a
   // single button.
@@ -419,7 +419,7 @@ export const paymentSchedulesRouter = router({
         });
       }
 
-      // Notify the *planner* when the client decides — otherwise we'd be
+      // Notify the *planner* when the client decides, otherwise we'd be
       // notifying the same person who clicked the button. Skipped if it's
       // the planner who accepted their own (rare but possible if the shape
       // of "who can decide" ever relaxes).

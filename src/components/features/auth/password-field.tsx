@@ -25,7 +25,7 @@ interface PasswordFieldProps {
 }
 
 // Length-based strength heuristic. We deliberately avoid a heavy zxcvbn
-// dependency — six characters is Supabase's default minimum and the bar is
+// dependency, six characters is Supabase's default minimum and the bar is
 // here to communicate "longer is better", not to enforce policy.
 function strengthFor(value: string): 0 | 1 | 2 | 3 | 4 {
   const len = value.length;

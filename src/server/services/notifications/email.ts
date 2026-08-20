@@ -20,7 +20,7 @@ interface RenderedEmail {
 
 /**
  * Assembles an on-brand HTML email plus a plain-text alternative.
- * Everything ships inline — mailbox renderers (Gmail mobile, Outlook
+ * Everything ships inline - mailbox renderers (Gmail mobile, Outlook
  * desktop) strip <style> blocks, so there is no stylesheet to rely on.
  * RTL-aware via the `dir` attribute, so the same template serves English
  * and Arabic without a second layout.
@@ -338,7 +338,7 @@ export function renderEmail(args: RenderEmailArgs): RenderedEmail {
 
   const leadMark = isArabic ? arabic : latin;
   const text = [
-    `${leadMark} — ${copy.eyebrow.toUpperCase()}`,
+    `${leadMark} - ${copy.eyebrow.toUpperCase()}`,
     "",
     copy.title,
     "",
@@ -347,7 +347,7 @@ export function renderEmail(args: RenderEmailArgs): RenderedEmail {
     "",
     `${copy.ctaLabel}: ${cta}`,
     "",
-    "—",
+    "-",
     chrome.tagline,
     chrome.location,
     "",
@@ -398,7 +398,7 @@ export async function sendNotificationEmail(args: SendArgs): Promise<boolean> {
     // happy (hitting Reply goes somewhere real) and avoids black-holing
     // genuine user responses.
     const replyTo = process.env.NOTIFICATION_REPLY_TO;
-    // Resend's SDK does NOT throw on API errors — it returns an { data,
+    // Resend's SDK does NOT throw on API errors - it returns an { data,
     // error } tuple. We must inspect `error` explicitly, otherwise every
     // rejected send (domain unverified, rate-limited, invalid payload,
     // etc.) silently looks like a success and nothing shows in the

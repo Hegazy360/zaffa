@@ -30,7 +30,7 @@ async function requirePlanner(userId: string) {
 
 export const plannerRouter = router({
   // Planner profile by id. Used on `/planners/[id]` and the dashboard
-  // event view's planner card. Authenticated only — the public browse
+  // event view's planner card. Authenticated only, the public browse
   // surface is currently gated behind the `publicBrowse` flag, so we
   // don't want this procedure callable by anonymous clients either.
   byId: protectedProcedure
@@ -66,7 +66,7 @@ export const plannerRouter = router({
   // Planner directory used by `/planners`. Supports a basic location
   // prefix match, a free-text query against business_name + bio, and an
   // optional `verifiedOnly` toggle. Cursor-paginated. Authenticated-only
-  // for the same reason as `byId` — the public surface is dark-shipped
+  // for the same reason as `byId`, the public surface is dark-shipped
   // behind the `publicBrowse` flag.
   list: protectedProcedure
     .input(
@@ -164,7 +164,7 @@ export const plannerRouter = router({
           where: { id: ctx.user.id },
           data: { role: "planner" },
         });
-        // Activation funnel — fired only on the no-profile → has-profile
+        // Activation funnel, fired only on the no-profile → has-profile
         // transition so re-saves don't repeatedly inflate the funnel.
         await trackServer(ctx.user.id, ANALYTICS_EVENTS.ONBOARDING_COMPLETED, {
           role: "planner",

@@ -9,7 +9,7 @@ export interface InspirationSlideProps {
 export function InspirationSlide({ imageUrls, vibe }: InspirationSlideProps) {
   return (
     <Slide className="bg-[#F5EFE6]">
-      {/* paper-banner header — solid cream so the title is always
+      {/* paper-banner header, solid cream so the title is always
           readable even when the collage runs hot at the top. */}
       <div className="absolute inset-x-0 top-0 z-10 bg-gradient-to-b from-[#FAF6EE] via-[#FAF6EE]/95 to-transparent px-16 pb-10 pt-16">
         <div className="flex items-baseline justify-between gap-4">

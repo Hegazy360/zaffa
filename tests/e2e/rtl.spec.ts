@@ -3,7 +3,7 @@ import {test, expect } from "@playwright/test";
 // RTL correctness assertions (ZAF-36; extended by ZAF-69).
 //
 // Arabic is the primary locale, and RTL bugs are invisible to anyone testing
-// in English — which is how every dialog in the product ended up sitting a
+// in English, which is how every dialog in the product ended up sitting a
 // full popup-width off-centre in Arabic without anyone noticing.
 
 const AR = { name: "zaffa_locale", value: "ar", path: "/" };
@@ -12,7 +12,7 @@ test.describe("RTL", () => {
   test("the shipped dialog is centred, in this direction", async ({ page }) => {
     // Measured on a **real** `<Dialog>`, not on a synthesised div carrying the
     // class pairing. The previous version of this test asserted the geometry
-    // of `left-1/2` versus `start-1/2` — which proved Tailwind's semantics and
+    // of `left-1/2` versus `start-1/2`, which proved Tailwind's semantics and
     // said nothing about which pairing the component ships. Re-introducing the
     // bug left it green. This one fails.
     await page.goto("/kitchen-sink", { waitUntil: "load" });

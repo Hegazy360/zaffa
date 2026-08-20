@@ -1,4 +1,4 @@
-// Vision Pack — per-country pricing.
+// Vision Pack, per-country pricing.
 //
 // Resolution order (all server-side, in `resolveVisionPackPricing`):
 //   1. `vision_pack_pricing[(sku, country_code = <ISO-2 from cookie>)]`
@@ -36,7 +36,7 @@ export interface VisionPackPrice {
  * Currencies whose smallest unit equals one major unit (no fractional
  * subdivision). Mirrors `ZERO_DECIMAL_CURRENCIES` in
  * `src/lib/payments.ts`. For these, the DB `amount` IS the major-unit
- * figure — both `formatPriceLabel` and the Stripe path skip the /100.
+ * figure, both `formatPriceLabel` and the Stripe path skip the /100.
  */
 const ZERO_DECIMAL_CURRENCIES: ReadonlySet<string> = new Set([
   "BIF", "CLP", "DJF", "GNF", "JPY", "KMF", "KRW", "MGA", "PYG",
@@ -63,24 +63,24 @@ function majorToMinor(amount: number, currency: string): number {
 type PerCountrySeed = Record<string, VisionPackPrice>;
 
 /**
- * Author the seed in major units for legibility — `99 USD`, `499 EGP` —
+ * Author the seed in major units for legibility - `99 USD`, `499 EGP` -
  * then convert to the minor-unit storage shape consumers see. Adding a
  * new country: drop another entry in the right SKU bucket; adding a new
  * SKU: add a top-level key here and a matching `PACK_SKUS` entry.
  *
  * 3-decimal currencies (KWD/BHD/OMR/JOD/IQD/LYD/TND) are intentionally
- * routed to USD via the default — Stripe's smallest-unit math for those
+ * routed to USD via the default, Stripe's smallest-unit math for those
  * has rounding constraints (must be a multiple of 10 fils/baisa) that
  * we don't want to encode into a public-pricing seed. Admins can still
  * override per country via the dashboard if needed.
  */
-// The free email-gated tier is intentionally absent from this seed —
+// The free email-gated tier is intentionally absent from this seed -
 // it's never sold through Stripe and `seedPricingFor` falls through to
 // the Design Pack as the default when an unknown SKU is requested.
 // `Partial<Record<PackSkuId, ...>>` lets the type system catch any
 // caller that does try to price the free tier.
 const SEED_AUTHORED: Partial<Record<PackSkuId, Record<string, { amount: number; currency: string }>>> = {
-  // ----- Design Pack — $19 USD default -----
+  // ----- Design Pack, $19 USD default -----
   // Lower-tier "design + microsite + PDF" pack. No planner/venue
   // matching included. Round whole-number retail across all markets
   // so the copy stays clean ("from $19" reads tighter than "from
@@ -98,7 +98,7 @@ const SEED_AUTHORED: Partial<Record<PackSkuId, Record<string, { amount: number; 
     CA: { amount: 19, currency: "USD" },
     DEFAULT: { amount: 19, currency: "USD" },
   },
-  // ----- Vision Pack — $99 USD default -----
+  // ----- Vision Pack, $99 USD default -----
   // Full pack with planner/venue matching. Same round-retail
   // convention as Design Pack.
   wedding_vision_pack_v1: {
@@ -163,7 +163,7 @@ function pickFromBucket(
  * matrix. Used as a fallback when the DB override layer doesn't have a
  * matching row. Pass `null`/`undefined` to get the global default for
  * the requested SKU. Defaults to the Design Pack (lowest tier) when no
- * SKU is supplied — that's the price quoted on the home page hero.
+ * SKU is supplied, that's the price quoted on the home page hero.
  */
 export function seedPricingFor(
   countryCode: string | null | undefined,
@@ -187,11 +187,11 @@ export function seedPricingFor(
  *    round prices like `$19` and `EGP 499` print without trailing
  *    `.00` to keep retail copy clean.
  *  - Zero-decimal currencies (JPY, KRW, …) always print without
- *    fractions — `Intl` would honor that automatically but we pin the
+ *    fractions, `Intl` would honor that automatically but we pin the
  *    digits explicitly so the output stays stable across runtimes.
  *
  * Falls back to `"<currency> <amount>"` if Intl rejects the pair (rare,
- * but defensive — e.g. an invalid currency code from a hand-edited DB row).
+ * but defensive, e.g. an invalid currency code from a hand-edited DB row).
  */
 export function formatPriceLabel(
   price: VisionPackPrice,
@@ -232,7 +232,7 @@ export function normalizeCountryCode(
   return trimmed;
 }
 
-/** Iterate every (sku, country) seed pair — used by the admin panel's
+/** Iterate every (sku, country) seed pair - used by the admin panel's
  * "seed reference" view to list prices that aren't yet overridden. */
 export function listSeedPrices(): Array<{
   sku: PackSkuId;

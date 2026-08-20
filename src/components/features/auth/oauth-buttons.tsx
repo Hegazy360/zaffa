@@ -10,7 +10,7 @@ import {
   type OAuthPromotableRole,
 } from "@/lib/auth/pending-role";
 
-// Inline Google "G" mark — keeps brand fidelity without pulling in a new
+// Inline Google "G" mark, keeps brand fidelity without pulling in a new
 // icon package (lucide ships a generic Chrome browser icon instead).
 function GoogleIcon({ className }: { className?: string }) {
   return (
@@ -48,7 +48,7 @@ interface OAuthButtonsProps {
   // OAuth silently end up registered as clients.
   intendedRole?: OAuthPromotableRole | null;
   // When true, OAuth requires `intendedRole` to be selected before it can
-  // be used — disables the button until the caller supplies a role.
+  // be used, disables the button until the caller supplies a role.
   // Used on the professional sign-up form so a planner/vendor can't
   // accidentally fall through the role picker by clicking Google first.
   requireRole?: boolean;

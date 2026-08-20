@@ -53,6 +53,6 @@ test("the microsite hero is not a raw full-resolution render", async ({
       ).length,
   );
   // A Cloudinary URL with no srcset is a raw render being shipped at full
-  // resolution — the thing this ticket exists to remove.
+  // resolution, the thing this ticket exists to remove.
   expect(raw).toBe(0);
 });

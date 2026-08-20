@@ -22,13 +22,13 @@ export type NavUser = {
 /**
  * Locally-verified current user lookup. Reads the access-token cookie,
  * verifies the JWT signature against the project's published JWK
- * (ES256/RS256 — fetched once and cached by supabase-js), and returns
+ * (ES256/RS256 - fetched once and cached by supabase-js), and returns
  * the slim user shape. Returns null for anonymous visitors.
  *
  * IMPORTANT: this does NOT hit the Supabase Auth API, so it's roughly
- * 0ms after the first call (vs. ~100–200ms per `auth.getUser()` from
+ * 0ms after the first call (vs. ~100-200ms per `auth.getUser()` from
  * MENA → eu-west-1). Use it anywhere a network round-trip per request
- * is wasteful — middleware, layout guards, navbar shells, etc.
+ * is wasteful - middleware, layout guards, navbar shells, etc.
  *
  * For sensitive checks where you need the *latest* revocation state
  * (e.g. just-changed password, just-deleted account), prefer

@@ -1,11 +1,11 @@
 /**
  * Seeds the public Vision Pack gallery with the hand-curated examples
- * defined in `src/server/seed-data/vision-packs.ts`. Idempotent — re-runs
+ * defined in `src/server/seed-data/vision-packs.ts`. Idempotent, re-runs
  * upsert by `microsite_slug`, so a dev can iterate on the seed file and
  * re-run without ending up with duplicates.
  *
  * Each entry creates:
- *   - a Profile (couple) — with a deterministic UUID derived from the seed key
+ *   - a Profile (couple), with a deterministic UUID derived from the seed key
  *   - a VenueDesign for that profile, including media rows
  *   - a VisionPack with status=fulfilled, microsite_public=true,
  *     microsite_published_at=now
@@ -46,7 +46,7 @@ function uuidFromKey(key: string): string {
 
 /**
  * These packs are fictional couples illustrated with stock photography, and
- * the seeder marks them `microsite_public = true` — which puts them straight
+ * the seeder marks them `microsite_public = true`, which puts them straight
  * into /gallery and into the homepage's proof strip. That is precisely the
  * fabricated social proof ZAF-45 removed, so it must not be one stray command
  * away from coming back.
@@ -54,7 +54,7 @@ function uuidFromKey(key: string): string {
  * There is no local database in this project: `.env.local` points at the
  * production Supabase instance, so "don't run it against prod" cannot be
  * enforced by inspecting the connection string. An explicit opt-in is the
- * honest guard — a developer who wants demo content still gets it, but only
+ * honest guard - a developer who wants demo content still gets it, but only
  * by saying so out loud.
  */
 function assertSeedingAllowed(): void {
@@ -64,7 +64,7 @@ function assertSeedingAllowed(): void {
       "Refusing to seed: these are fictional couples with stock photography,",
       "and this seeder publishes them to the public gallery.",
       "",
-      "There is no separate local database here — .env.local points at the",
+      "There is no separate local database here - .env.local points at the",
       "live project, so seeding writes fake couples to the real gallery.",
       "",
       "If you genuinely want them, re-run with ALLOW_FICTIONAL_SEED=1.",
@@ -76,7 +76,7 @@ function assertSeedingAllowed(): void {
 async function main() {
   assertSeedingAllowed();
 
-  // Avoid touching auth.users — these gallery rows are display-only.
+  // Avoid touching auth.users, these gallery rows are display-only.
   // We need the public.profiles FK to be satisfied; the easiest path is
   // to create a matching auth.users row first via raw SQL with the same
   // id, then the public.profiles row inserts cleanly. The trigger that
@@ -93,7 +93,7 @@ async function main() {
     // 1) Insert a stub auth.users row so the FK on public.profiles holds.
     //    Conflict-on-id keeps re-runs idempotent. We only set the minimum
     //    columns required by the trigger. The email is fictional and the
-    //    password hash is a no-op string — these rows can never sign in
+    //    password hash is a no-op string, these rows can never sign in
     //    because the auth path is never invoked for them.
     await prisma.$executeRawUnsafe(
       `insert into auth.users (id, instance_id, email, encrypted_password, raw_user_meta_data, raw_app_meta_data, aud, role, created_at, updated_at, email_confirmed_at)
@@ -123,7 +123,7 @@ async function main() {
     });
 
     // 3) Venue design (with references + media). Idempotent on (user_id,
-    //    name) — for v1 we let multiple runs write the same design name
+    //    name), for v1 we let multiple runs write the same design name
     //    by deleting + recreating.
     await prisma.venueDesign.deleteMany({
       where: { user_id: userId, name: seed.design.name },
@@ -156,7 +156,7 @@ async function main() {
       },
     });
 
-    // 4) VisionPack — fulfilled status with the curated slug. Public so
+    // 4) VisionPack, fulfilled status with the curated slug. Public so
     //    it shows up in /gallery.
     const existing = await prisma.visionPack.findUnique({
       where: { microsite_slug: seed.micrositeSlug },

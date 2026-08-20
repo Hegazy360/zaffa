@@ -27,7 +27,7 @@ interface PageProps {
 
 /**
  * Magic-link reveal page. The visitor lands here after clicking the
- * confirmation link in the email-gate email — by the time this
+ * confirmation link in the email-gate email, by the time this
  * component mounts, the Supabase `verifyOtp` call has flipped them
  * from anonymous to permanent, so `getRenderById` (a protectedProcedure)
  * sees the same user id that owns the render.
@@ -35,7 +35,7 @@ interface PageProps {
  * Two halves:
  *   - The render itself (watermarked for free-tier users, clean for
  *     paid).
- *   - An inline `PackCheckoutPanel` upsell — the same pack summary /
+ *   - An inline `PackCheckoutPanel` upsell, the same pack summary /
  *     includes list / Stripe CTA that powers the modal paywall, but
  *     rendered flush on the page so the visitor doesn't have to
  *     bounce through a second selector to commit.
@@ -57,7 +57,7 @@ function RevealInner({ renderId }: { renderId: string }) {
   const { data: render, isLoading } =
     trpc.venueDesigns.getRenderById.useQuery({ id: renderId });
 
-  // TikTok purchase funnel — the reveal page is the canonical
+  // TikTok purchase funnel, the reveal page is the canonical
   // "product detail" surface for paid Vision Packs. It shows the
   // user's render alongside the tier comparison cards (which trigger
   // `AddToCart`/`InitiateCheckout` further down the funnel), so
@@ -207,7 +207,7 @@ function RevealInner({ renderId }: { renderId: string }) {
               `startCheckout` (permanent users) or routes through
               `/auth/signup` (anonymous), preserving `/r/{renderId}`
               as the `returnPath` so they land back here after Stripe
-              — one click commits, no modal in between. There used to
+              - one click commits, no modal in between. There used to
               be a two-card tier comparison here; with a single SKU a
               lone card in a 2-col grid read as "the other option is
               missing", so the layout is a centered single card. */}

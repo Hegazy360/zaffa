@@ -8,7 +8,7 @@ import { create } from "zustand";
  * mounted from the root layout, and the homepage AskZaffa section's
  * suggested-question chips. Both call `open()`; the panel is the single
  * view. Messages live here rather than in the panel so closing and
- * reopening keeps the thread — in-memory only, so a full reload starts a
+ * reopening keeps the thread - in-memory only, so a full reload starts a
  * fresh conversation (matching the server, where Turnstile is
  * per-conversation).
  */

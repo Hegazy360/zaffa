@@ -30,7 +30,7 @@ const VENUE_REC_SKU = "wedding_vision_pack_v1";
 
 /**
  * Couple-facing "Recommended venues" card. Lives on the event Overview
- * tab. Only renders for higher-tier Vision Pack events — Design Pack
+ * tab. Only renders for higher-tier Vision Pack events, Design Pack
  * customers don't see it because that SKU doesn't include venue
  * matching.
  *
@@ -44,7 +44,7 @@ const VENUE_REC_SKU = "wedding_vision_pack_v1";
 export function RecommendedVenuesCard({ eventId, packSku }: Props) {
   const t = useTranslations("visionPack");
   const utils = trpc.useUtils();
-  // Only fetch when the event qualifies — saves a query for every
+  // Only fetch when the event qualifies, saves a query for every
   // Design-Pack-only customer scrolling the dashboard.
   const enabled = packSku === VENUE_REC_SKU;
   const { data: recs, isLoading } = trpc.venues.myRecommendationsForEvent.useQuery(
@@ -135,7 +135,7 @@ export function RecommendedVenuesCard({ eventId, packSku }: Props) {
                     {rec.venue.capacity_max ? (
                       <p className="flex items-center gap-1 text-xs text-muted-foreground">
                         <Users className="size-3" />
-                        {rec.venue.capacity_min ?? 0}–{rec.venue.capacity_max}{" "}
+                        {rec.venue.capacity_min ?? 0}-{rec.venue.capacity_max}{" "}
                         {t("venueRecsGuests")}
                       </p>
                     ) : null}

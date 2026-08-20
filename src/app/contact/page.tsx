@@ -10,7 +10,7 @@ import {
 
 export const metadata: Metadata = {
   title: "Contact",
-  description: "Get in touch with the Zaffa team — support, partnerships, press.",
+  description: "Get in touch with the Zaffa team - support, partnerships, press.",
 };
 
 export default async function ContactPage() {
@@ -44,7 +44,7 @@ export default async function ContactPage() {
         </li>
         <li className="flex items-start gap-3 rounded-2xl border border-brand-line bg-white/80 p-4">
           {/* Brand-coloured WhatsApp glyph kept inline for the same
-              reason as in the footer — single consumer, no need for an
+              reason as in the footer - single consumer, no need for an
               icon-library entry. */}
           <svg
             viewBox="0 0 24 24"

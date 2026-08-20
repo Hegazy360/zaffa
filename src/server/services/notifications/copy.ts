@@ -5,7 +5,7 @@ export type Locale = "en" | "ar";
 export interface NotificationFact {
   /** Short, uppercase-ready label (e.g. "Event", "Amount", "Due"). */
   label: string;
-  /** Rendered value — already localized/formatted by buildFacts. */
+  /** Rendered value, already localized/formatted by buildFacts. */
   value: string;
 }
 
@@ -77,7 +77,7 @@ const CATALOG: Record<
   planner_assigned: {
     en: {
       title: "{plannerName} is now planning {eventTitle}",
-      body: "Nice — {plannerName} has been confirmed as the planner for {eventTitle}. Say hi and start sharing your vision.",
+      body: "Nice - {plannerName} has been confirmed as the planner for {eventTitle}. Say hi and start sharing your vision.",
       ctaLabel: "Open the event",
       eyebrow: "Planner confirmed",
     },
@@ -161,13 +161,13 @@ const CATALOG: Record<
   payment_due_reminder: {
     en: {
       title: "Payment of {amount} due {dueDate}",
-      body: "Heads up — your installment of {amount} for {eventTitle} is due on {dueDate}.",
+      body: "Heads up - your installment of {amount} for {eventTitle} is due on {dueDate}.",
       ctaLabel: "Pay now",
       eyebrow: "Payment reminder",
     },
     ar: {
       title: "قسط بقيمة {amount} مستحقّ في {dueDate}",
-      body: "تذكير — قسط بقيمة {amount} لمناسبة {eventTitle} مستحقّ في {dueDate}.",
+      body: "تذكير - قسط بقيمة {amount} لمناسبة {eventTitle} مستحقّ في {dueDate}.",
       ctaLabel: "ادفع الآن",
       eyebrow: "تذكير بالدفع",
     },
@@ -205,13 +205,13 @@ const CATALOG: Record<
   proposal_accepted: {
     en: {
       title: "{clientName} accepted your proposal",
-      body: "Congrats — your proposal on {eventTitle} was accepted. Say hi and start planning.",
+      body: "Congrats - your proposal on {eventTitle} was accepted. Say hi and start planning.",
       ctaLabel: "Open event",
       eyebrow: "Proposal accepted",
     },
     ar: {
       title: "قَبِل {clientName} عرضك",
-      body: "تهانينا — قُبل عرضك لمناسبة {eventTitle}. رحّب بالعميل وابدأ التنظيم.",
+      body: "تهانينا - قُبل عرضك لمناسبة {eventTitle}. رحّب بالعميل وابدأ التنظيم.",
       ctaLabel: "فتح المناسبة",
       eyebrow: "قبول العرض",
     },
@@ -407,13 +407,13 @@ const CATALOG: Record<
   vision_pack_ready: {
     en: {
       title: "Your {packName} is ready",
-      body: "Your pack is unlocked. Head to the designer and start generating — every render, video, and the lookbook are all included. Your generation window is open for the next {days} days.",
+      body: "Your pack is unlocked. Head to the designer and start generating - every render, video, and the lookbook are all included. Your generation window is open for the next {days} days.",
       ctaLabel: "Open the designer",
       eyebrow: "{packName}",
     },
     ar: {
       title: "{packName} جاهزة لكم",
-      body: "تمّ فتح باقتك. ادخل المصمّم وابدأ التوليد — كل الصور والفيديوهات والكتيّب متضمَّنة. نافذتك مفتوحة لمدة {days} يومًا.",
+      body: "تمّ فتح باقتك. ادخل المصمّم وابدأ التوليد - كل الصور والفيديوهات والكتيّب متضمَّنة. نافذتك مفتوحة لمدة {days} يومًا.",
       ctaLabel: "افتح المصمّم",
       eyebrow: "{packName}",
     },
@@ -437,17 +437,17 @@ const CATALOG: Record<
 
   // ----- Ops: full-service enquiry -----
   // Admin-facing, so the Arabic here is فصحى rather than the colloquial the
-  // marketing surfaces use — this is an internal, commitment-adjacent alert.
+  // marketing surfaces use - this is an internal, commitment-adjacent alert.
   enquiry_received: {
     en: {
       title: "{fullName} wants us to run their wedding",
-      body: "A full-service enquiry came in from {fullName} — {city}, {guests}. Reply on {channel} before the trail goes cold.",
+      body: "A full-service enquiry came in from {fullName} - {city}, {guests}. Reply on {channel} before the trail goes cold.",
       ctaLabel: "Open the enquiry",
       eyebrow: "New enquiry",
     },
     ar: {
       title: "{fullName} يريد أن نتولّى تنظيم زفافه",
-      body: "وصل طلب خدمة كاملة من {fullName} — {city}، {guests}. تواصل معه عبر {channel} قبل أن يفتر الاهتمام.",
+      body: "وصل طلب خدمة كاملة من {fullName} - {city}، {guests}. تواصل معه عبر {channel} قبل أن يفتر الاهتمام.",
       ctaLabel: "فتح الطلب",
       eyebrow: "طلب جديد",
     },
@@ -459,13 +459,13 @@ const CATALOG: Record<
   // Their design arrives attached to the enquiry as the brief.
   design_approved: {
     en: {
-      title: "{coupleName} approved their design — they want this wedding",
+      title: "{coupleName} approved their design - they want this wedding",
       body: "{coupleName} approved “{designName}”. Their render is the brief; open the enquiry and reach out while they're still looking at it.",
       ctaLabel: "Open the enquiry",
       eyebrow: "Design approved",
     },
     ar: {
-      title: "اعتمد {coupleName} التصميم — يريدون هذا الزفاف",
+      title: "اعتمد {coupleName} التصميم - يريدون هذا الزفاف",
       body: "اعتمد {coupleName} تصميم «{designName}». التصميم نفسه هو ملخّص الطلب؛ افتح الطلب وتواصل معهم وهم ما زالوا متحمّسين.",
       ctaLabel: "فتح الطلب",
       eyebrow: "تصميم معتمد",
@@ -488,7 +488,7 @@ export function formatCopy(tpl: string, vars: CopyVars): string {
 /**
  * Email chrome strings (tagline, footer locator, secondary links, legal
  * footnote). Kept in-code alongside the rest of the notification
- * vocabulary so the template layer stays fully self-contained — no
+ * vocabulary so the template layer stays fully self-contained, no
  * request context needed when rendered from cron jobs, workers, or
  * standalone scripts that don't have `cookies()` available.
  */
@@ -583,7 +583,7 @@ function str(v: string | number | undefined): string {
  * when the type shouldn't surface a facts strip (e.g. message previews
  * already read as a block of body text).
  *
- * No caller changes required — every branch only consumes vars that the
+ * No caller changes required, every branch only consumes vars that the
  * existing dispatchers are known to pass.
  */
 export function buildFacts(
@@ -740,7 +740,7 @@ export function buildFacts(
       ]);
 
     case "message_received":
-      // Message preview is already the body copy — a facts strip here
+      // Message preview is already the body copy, a facts strip here
       // would be noise.
       return undefined;
 

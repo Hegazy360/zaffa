@@ -189,7 +189,7 @@ export const payoutsRouter = router({
 
   // Detailed list of paid-not-yet-paid-out installments. Useful both for
   // the planner's earnings page and for the admin payout form. We surface
-  // disputed/refunded rows too — the UI shows them with a "held" badge so
+  // disputed/refunded rows too, the UI shows them with a "held" badge so
   // the planner understands why they aren't included in `availableNow`.
   pendingInstallments: protectedProcedure.query(async ({ ctx }) => {
     const planner = await requirePlanner(ctx.user.id);
@@ -216,7 +216,7 @@ export const payoutsRouter = router({
     });
   }),
 
-  // Soft "ping" — just sets a flag in admin's view. We don't persist
+  // Soft "ping", just sets a flag in admin's view. We don't persist
   // requests separately yet; the admin page surfaces every planner with a
   // positive pending balance regardless. This mutation is idempotent and
   // returns the current balance so the UI can show a confirmation.
@@ -241,7 +241,7 @@ export const payoutsRouter = router({
           message: "No pending balance to request",
         });
       }
-      // Planner-journey funnel — fired on each request even though the
+      // Planner-journey funnel, fired on each request even though the
       // request itself isn't persisted. The admin queue still shows
       // every planner with a balance, so this captures intent rather
       // than state.

@@ -1,7 +1,7 @@
 import { getLocale, getTranslations } from "next-intl/server";
 import { OG_CONTENT_TYPE, OG_SIZE, brandCard } from "@/lib/og";
 
-export const alt = "Zaffa — one team for the whole wedding";
+export const alt = "Zaffa, one team for the whole wedding";
 export const size = OG_SIZE;
 export const contentType = OG_CONTENT_TYPE;
 
@@ -13,7 +13,7 @@ export const contentType = OG_CONTENT_TYPE;
  * chat thread's own background and the cool ink is what makes the rose read.
  *
  * Copy comes from the same `marketing` namespace as the page, so a WhatsApp
- * preview and the page it opens never disagree — and an Arabic share of an
+ * preview and the page it opens never disagree, and an Arabic share of an
  * Arabic page previews in Arabic.
  *
  * The headline is composed as two explicit short lines rather than one

@@ -15,7 +15,7 @@ import QRCode from "qrcode";
 // Chromium has to start before it can print. A warm instance renders in a
 // second or two; a cold one takes longer, and timing out mid-download would
 // look to the customer like the artefact they paid for is broken. Raised to
-// 120 when the lookbook grew from ~15 to ~25 pages (ZAF-79) — the images are
+// 120 when the lookbook grew from ~15 to ~25 pages (ZAF-79), the images are
 // also served print-sized now, which is the bigger lever.
 export const maxDuration = 120;
 
@@ -98,7 +98,7 @@ function referencesOf(value: unknown): RefBuckets {
  * (the refund tripwire) so we can't refund after the user has the
  * artefact in hand.
  *
- * Returns 404 for non-recipients (intentionally — we don't leak the
+ * Returns 404 for non-recipients (intentionally, we don't leak the
  * existence of the pack to other authenticated users).
  */
 export async function GET(_req: Request, { params }: RouteParams) {
@@ -130,14 +130,14 @@ export async function GET(_req: Request, { params }: RouteParams) {
   if (pack.status !== "active" && pack.status !== "fulfilled") {
     return NextResponse.json({ error: "pack_inactive" }, { status: 409 });
   }
-  // Free-tier packs only entitle the email-gated render — the lookbook
+  // Free-tier packs only entitle the email-gated render, the lookbook
   // PDF is a paid-pack feature. The share panel disables the button
   // client-side; this guard catches anyone hand-crafting a request.
   if (isFreePack(pack.sku)) {
     return NextResponse.json({ error: "free_tier_not_allowed" }, { status: 403 });
   }
 
-  // Latest design — same heuristic the microsite uses.
+  // Latest design, same heuristic the microsite uses.
   const design = await prisma.venueDesign.findFirst({
     where: { user_id: pack.recipient!.id },
     orderBy: { updated_at: "desc" },
@@ -162,15 +162,15 @@ export async function GET(_req: Request, { params }: RouteParams) {
   }
 
   // Rendered by headless Chromium rather than react-pdf. react-pdf cannot
-  // shape Arabic — joined words come out malformed and the lam-alef ligature
-  // is mangled (ZAF-61's spike) — and this is a paid artefact in a market that
+  // shape Arabic, joined words come out malformed and the lam-alef ligature
+  // is mangled (ZAF-61's spike), and this is a paid artefact in a market that
   // reads Arabic. Chromium shapes, does bidi, and mirrors RTL correctly.
   let buffer: Buffer;
   try {
     const locale = await getLocale();
 
     // The microsite back page: URL + QR, generated as a data URL here so
-    // the print document makes no network request for it — this file's
+    // the print document makes no network request for it, this file's
     // history is exactly what happens when a print-time fetch fails.
     const micrositeUrl = pack.microsite_slug
       ? `${siteUrl()}/v/${pack.microsite_slug}`

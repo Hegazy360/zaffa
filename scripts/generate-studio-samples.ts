@@ -7,14 +7,14 @@
  * Writes PNGs to `public/home/studio/` under the `studioAssetPath`
  * naming convention (minus the extension); `compress-home-assets.mjs`
  * then emits the sibling AVIFs that ship. The PNG sources are
- * gitignored — only the AVIFs are committed.
+ * gitignored, only the AVIFs are committed.
  *
  * Usage:
  *   npx dotenvx run --env-file=.env.local -- npx tsx scripts/generate-studio-samples.ts
  *   ... --only=garden_romance__noir_emerald     # re-roll one bad cell
  *
  * Idempotent by default: skips cells whose PNG already exists (pass
- * --force to regenerate everything). Cells run sequentially — the image
+ * --force to regenerate everything). Cells run sequentially, the image
  * model is the bottleneck and parallel calls just trip rate limits.
  */
 

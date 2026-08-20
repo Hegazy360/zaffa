@@ -7,7 +7,7 @@ import { join } from "node:path";
  *
  * `motion.div initial={{ opacity: 0 }}` renders into the server response as
  * `style="opacity:0"`. The section is then invisible until the JavaScript
- * bundle loads, hydrates, and an IntersectionObserver fires — on a slow
+ * bundle loads, hydrates, and an IntersectionObserver fires - on a slow
  * connection that is a blank page where the pitch should be, and if the bundle
  * fails it is a blank page permanently. The hero already learned this and
  * moved to CSS; ZAF-60 moved the other seventeen.
@@ -48,7 +48,7 @@ describe("entrance animations never hide server-rendered copy", () => {
     }
     expect(
       offenders,
-      `Use <Rise> instead — it renders visible and animates only once JS is live:\n${offenders.join("\n")}`,
+      `Use <Rise> instead - it renders visible and animates only once JS is live:\n${offenders.join("\n")}`,
     ).toEqual([]);
   });
 
@@ -58,7 +58,7 @@ describe("entrance animations never hide server-rendered copy", () => {
       "utf8",
     );
     // The reveal is pure CSS now. A "use client" or a hook here would drag
-    // every section that uses it back into the client bundle — the whole
+    // every section that uses it back into the client bundle, the whole
     // reason most of the homepage is server-rendered.
     //
     // Comments are stripped first: this file's header *describes* the
@@ -80,7 +80,7 @@ describe("entrance animations never hide server-rendered copy", () => {
     // This is the guarantee, and it is entirely positional: `.rise` must get
     // its animation ONLY inside `@supports (animation-timeline: view())`.
     // `riseIn` starts at `opacity: 0`, so a `.rise` rule outside that block
-    // would hide real copy in every browser that cannot run the animation —
+    // would hide real copy in every browser that cannot run the animation -
     // which is the exact failure this whole file exists to prevent, just
     // arriving via CSS instead of via framer-motion.
     const guardStart = css.indexOf("@supports (animation-timeline: view())");
@@ -107,7 +107,7 @@ describe("entrance animations never hide server-rendered copy", () => {
     expect(inside).toMatch(/\.rise\s*\{/);
     expect(
       outside,
-      "`.rise` must not be styled outside the @supports guard — unsupported browsers would render the copy invisible",
+      "`.rise` must not be styled outside the @supports guard - unsupported browsers would render the copy invisible",
     ).not.toMatch(/\.rise\s*\{/);
   });
 });

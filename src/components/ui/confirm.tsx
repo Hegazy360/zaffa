@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/alert-dialog";
 
 /**
- * `await confirm({...})` — a drop-in shape for `window.confirm`.
+ * `await confirm({...})`, a drop-in shape for `window.confirm`.
  *
  * The eleven `window.confirm` call sites all read
  * `if (window.confirm(msg)) { destroy() }`. Anything that forces those to be
@@ -52,7 +52,7 @@ export function ConfirmProvider({ children }: { children: React.ReactNode }) {
     });
   }, []);
 
-  // Settle the promise exactly once, whichever way the dialog closes —
+  // Settle the promise exactly once, whichever way the dialog closes -
   // including Escape and a backdrop dismissal, which `onOpenChange` reports
   // and a naive button-only handler would leave hanging forever.
   const settle = React.useCallback(

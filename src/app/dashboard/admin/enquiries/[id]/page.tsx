@@ -89,7 +89,7 @@ export default function EnquiryDetailPage({
   const guidance = quoteGuidanceFor(e.country);
   const wa = waLinkFor(
     e.phone,
-    `Hi ${e.full_name.split(" ")[0]}, it's Zaffa — thank you for telling us about your wedding.`,
+    `Hi ${e.full_name.split(" ")[0]}, it's Zaffa - thank you for telling us about your wedding.`,
   );
 
   return (
@@ -127,7 +127,7 @@ export default function EnquiryDetailPage({
 
       <div className="grid gap-6 lg:grid-cols-3">
         <div className="space-y-6 lg:col-span-2">
-          {/* Pipeline moves. Only legal transitions render — the router
+          {/* Pipeline moves. Only legal transitions render, the router
               rejects the rest, so the UI never offers a dead button. */}
           <section className="rounded-2xl border border-brand-line p-4">
             <h2 className="text-sm font-medium">Move it along</h2>
@@ -166,7 +166,7 @@ export default function EnquiryDetailPage({
                   {guidance.bands.map((b, i) => (
                     <li key={i}>
                       <bdi>
-                        {money(b.budgetFrom, guidance.currency)}–
+                        {money(b.budgetFrom, guidance.currency)}-
                         {money(b.budgetTo, guidance.currency)} → fee{" "}
                         <strong className="text-foreground">
                           {money(b.fee, guidance.currency)}
@@ -182,7 +182,7 @@ export default function EnquiryDetailPage({
               </div>
             ) : (
               <p className="mt-2 text-xs text-muted-foreground">
-                No band table for this market — quote bespoke. Currency defaults
+                No band table for this market, quote bespoke. Currency defaults
                 to {currency}.
               </p>
             )}
@@ -190,7 +190,7 @@ export default function EnquiryDetailPage({
             {!e.event_id ? (
               <div className="mt-4">
                 <p className="text-xs text-muted-foreground">
-                  Create the event first — the quote attaches to it.
+                  Create the event first, the quote attaches to it.
                 </p>
                 <Button
                   size="sm"
@@ -230,7 +230,7 @@ export default function EnquiryDetailPage({
                       className="mt-1"
                     />
                     <p className="mt-1 text-xs text-muted-foreground">
-                      25–50% is the industry norm.
+                      25-50% is the industry norm.
                     </p>
                   </div>
                 </div>
@@ -340,7 +340,7 @@ export default function EnquiryDetailPage({
                 <li key={n.id} className="border-s-2 border-brand-line ps-3">
                   <p className="text-sm">{n.body}</p>
                   <p className="mt-0.5 text-xs text-muted-foreground">
-                    {n.author?.full_name ?? "—"} ·{" "}
+                    {n.author?.full_name ?? "-"} ·{" "}
                     {format(new Date(n.created_at), "d MMM, HH:mm")}
                   </p>
                 </li>
@@ -395,18 +395,18 @@ export default function EnquiryDetailPage({
                     ? format(new Date(e.event_date), "d MMM yyyy")
                     : e.date_flexible
                       ? "Still deciding"
-                      : "—"}
+                      : "-"}
                 </dd>
               </div>
               <div>
                 <dt className="text-xs text-muted-foreground">Guests</dt>
-                <dd>{e.guest_band ?? "—"}</dd>
+                <dd>{e.guest_band ?? "-"}</dd>
               </div>
               <div>
                 <dt className="text-xs text-muted-foreground">Budget band</dt>
                 <dd>
                   <bdi>
-                    {e.budget_band ?? "—"}
+                    {e.budget_band ?? "-"}
                     {e.budget_currency ? ` ${e.budget_currency}` : ""}
                   </bdi>
                 </dd>
@@ -423,7 +423,7 @@ export default function EnquiryDetailPage({
                 <Sparkles className="size-3.5 text-rose-600" />
                 Their designs
               </h2>
-              {/* The render is the brief for design_approved leads —
+              {/* The render is the brief for design_approved leads -
                   the operator should see the wedding, not just a name. */}
               {e.design?.thumbnail && (
                 <Link
@@ -454,7 +454,7 @@ export default function EnquiryDetailPage({
                         e.design.guest_count ? `${e.design.guest_count} guests` : null,
                       ]
                         .filter(Boolean)
-                        .join(" · ") || "— attached to this enquiry"}
+                        .join(" · ") || "- attached to this enquiry"}
                     </span>
                   </li>
                 )}

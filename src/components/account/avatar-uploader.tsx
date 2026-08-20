@@ -21,7 +21,7 @@ interface AvatarUploaderProps {
  * Drop-in avatar control. Renders the current avatar (or initials), and
  * a "Change" button that uploads a chosen file to /api/upload/avatar.
  * The endpoint validates the user, transforms the image, and persists the
- * resulting URL on the profile — this component just refreshes the
+ * resulting URL on the profile, this component just refreshes the
  * profile cache after success.
  */
 export function AvatarUploader({

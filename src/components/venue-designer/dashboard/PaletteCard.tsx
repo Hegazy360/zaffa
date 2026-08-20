@@ -103,7 +103,7 @@ export function PaletteCard() {
                 <span className="font-mono text-xs">{color}</span>
                 {/*
                   Bumped to a 28px hit target so the X is comfortable
-                  on touch — the previous 0.5 padding around a 12px
+                  on touch, the previous 0.5 padding around a 12px
                   icon landed under 20px effective hit area.
                 */}
                 <button

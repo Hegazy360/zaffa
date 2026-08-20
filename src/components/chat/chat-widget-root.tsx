@@ -19,7 +19,7 @@ import { ANALYTICS_EVENTS } from "@/lib/analytics-events";
  * The denylist keeps it off working surfaces: dashboards (admin included),
  * the designer (its own focused flow, plus Turnstile already lives there),
  * auth/checkout (money in motion), the reveal/microsite share surfaces,
- * and /enquire (the chat's own handoff target — a chat bubble on the form
+ * and /enquire (the chat's own handoff target, a chat bubble on the form
  * it points to is a loop).
  */
 const HIDDEN_PREFIXES = [

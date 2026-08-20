@@ -8,7 +8,7 @@ export interface FinalRenderSlideProps {
   /** When set, overlays a small palette strip on the bottom of the slide. */
   paletteOverlay?: NamedPalette;
   /**
-   * Three-word lowercase caption — used by `three_words` format. Each
+   * Three-word lowercase caption, used by `three_words` format. Each
    * word renders on its own line over the bottom gradient.
    */
   threeWordCaption?: string;

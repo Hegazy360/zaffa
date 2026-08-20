@@ -114,7 +114,7 @@ export default function PlannerDashboardPage() {
               {t("plannerWelcome", { name: firstName })}
             </h1>
             <p className="max-w-lg text-pretty text-sm text-muted-foreground sm:text-base">
-              {planner.business_name} — {t("plannerSubtitle")}
+              {planner.business_name}, {t("plannerSubtitle")}
             </p>
           </div>
           <Button
@@ -145,7 +145,7 @@ export default function PlannerDashboardPage() {
             value={
               stats?.reviewCount
                 ? decimalToNumber(stats.avgRating).toFixed(1)
-                : "—"
+                : "-"
             }
             icon={<Star className="size-4 text-amber-500" />}
             sublabel={tPlanner("reviewsCount", {

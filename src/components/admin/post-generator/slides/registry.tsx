@@ -1,7 +1,7 @@
 // Single source of truth mapping a `SlideComponentName` (stored in the
 // `slides` JSON column) to its React component.
 //
-// The carousel preview AND the rasterizer both go through this map —
+// The carousel preview AND the rasterizer both go through this map -
 // nobody else should `import` slide components directly.
 
 import type { ComponentType } from "react";
@@ -33,7 +33,7 @@ export interface SlidePropsByName {
 
 /**
  * Render a slide record by looking up the component via the registry.
- * Returns `null` for unknown component names (defensive — should never
+ * Returns `null` for unknown component names (defensive, should never
  * happen in practice since the DB is the only writer).
  */
 export function RenderSlideRecord({ record }: { record: SlideRecord }) {

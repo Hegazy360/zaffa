@@ -30,7 +30,7 @@ function sanitizeNext(raw: string | null): string {
 }
 
 // Default sign-up surface for couples / clients planning an event. Role is
-// hard-coded to "client" — professional planners and vendors live on a
+// hard-coded to "client", professional planners and vendors live on a
 // dedicated route (/auth/signup/professional) so the headline and copy can
 // speak directly to them without a generic role-picker step in the middle.
 export function ClientSignUpForm() {
@@ -121,7 +121,7 @@ export function ClientSignUpForm() {
       // `isAnon` told us to call `updateUser` but the user is already
       // permanent and already has this exact email + password set,
       // Supabase rejects with `same_password`. From the visitor's POV
-      // they're already signed up with these credentials — refresh
+      // they're already signed up with these credentials, refresh
       // the session and send them on instead of dead-ending them with
       // a "New password should be different from the old password"
       // error they can't reasonably resolve.
@@ -141,7 +141,7 @@ export function ClientSignUpForm() {
       }
 
       // `user_already_exists` doesn't always mean "you have an
-      // account" — it also fires when the email is still parked on an
+      // account", it also fires when the email is still parked on an
       // abandoned anonymous session from a previous free-render
       // attempt that never confirmed. Try to reclaim it and retry once
       // before dead-ending the visitor with a confusing error.
@@ -172,13 +172,13 @@ export function ClientSignUpForm() {
       role: "client",
       via: isAnon ? "anon_upgrade" : "email_password",
     });
-    // TikTok activation funnel — `CompleteRegistration` is the
+    // TikTok activation funnel, `CompleteRegistration` is the
     // standard event TikTok Ads Manager surfaces for Lead / Sign-up
     // optimization objectives. Without firing a standard event here
     // TikTok shows "Custom events and page view events cannot be
     // used as optimization events" when the advertiser tries to
     // build a campaign around signups. Fires regardless of whether
-    // the email-confirmation step is on or off — the user has
+    // the email-confirmation step is on or off, the user has
     // submitted valid credentials, which matches TikTok's
     // definition of the event.
     ttTrack(TIKTOK_EVENTS.COMPLETE_REGISTRATION, {
@@ -217,8 +217,8 @@ export function ClientSignUpForm() {
       // `is_anonymous: true` for a beat even though the user record on
       // the server is already permanent. That stale claim used to dump
       // us into the "check your inbox" branch even with Confirm email
-      // OFF. Trust `result.data.user.is_anonymous` instead — it comes
-      // straight from the response — and force a session refresh so
+      // OFF. Trust `result.data.user.is_anonymous` instead, it comes
+      // straight from the response, and force a session refresh so
       // downstream middleware + tRPC calls see the new claims.
       const upgraded = result.data.user?.is_anonymous === false;
       canProceed = upgraded;

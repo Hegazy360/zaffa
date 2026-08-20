@@ -19,7 +19,7 @@ interface PageProps {
 }
 
 /**
- * Loads the public microsite payload for `/v/<slug>`. Public — no auth,
+ * Loads the public microsite payload for `/v/<slug>`. Public - no auth,
  * no per-request cookies. Returns null when the slug doesn't resolve to
  * an active/fulfilled pack.
  */
@@ -110,7 +110,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       // No `images` here on purpose. Setting them would override the
       // `opengraph-image.tsx` file convention in this folder, which is what
       // used to happen: the share preview was the raw full-resolution
-      // Cloudinary render — a megabyte or more, unbranded, and routinely
+      // Cloudinary render - a megabyte or more, unbranded, and routinely
       // cropped by the chat client into a meaningless slice of a table.
       // WhatsApp also declines to fetch preview images much over ~300 KB, so
       // the most-shared surface in the product often previewed as nothing.

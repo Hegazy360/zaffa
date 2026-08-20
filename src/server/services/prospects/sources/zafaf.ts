@@ -1,4 +1,4 @@
-// zafaf.net — the largest Arabic wedding directory in the region. Each
+// zafaf.net, the largest Arabic wedding directory in the region. Each
 // country lives on its own subdomain (egypt.zafaf.net, saudi-arabia.zafaf.net,
 // …). We default to Egypt; admins can override the country with `country:`
 // prefix in the query (e.g. "country:saudi-arabia photographers").
@@ -162,7 +162,7 @@ export async function zafafDiscover(
 
   const unique = Array.from(new Set(vendorLinks)).slice(0, cap);
   if (unique.length === 0) {
-    // Empty is a valid result, not a failure — let the run complete with 0
+    // Empty is a valid result, not a failure - let the run complete with 0
     // prospects. The admin can see the source URL on the run row and try a
     // different category if they want.
     return [];

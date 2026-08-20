@@ -17,7 +17,7 @@ function getBaseUrl() {
   return `http://localhost:3000`;
 }
 
-// 4xx tRPC errors are not transient — retrying just multiplies the round-trip
+// 4xx tRPC errors are not transient, retrying just multiplies the round-trip
 // cost and floods the dev server. We still retry once on 5xx/network errors.
 const NON_RETRY_CODES = new Set([
   "BAD_REQUEST",
@@ -41,7 +41,7 @@ function shouldRetry(failureCount: number, error: unknown): boolean {
 export function Providers({ children }: { children: React.ReactNode }) {
   // base-ui reads direction from context, not from the DOM's `dir`. Without
   // this provider its positioning and arrow-key logic assume LTR even when
-  // <html dir="rtl"> — subtly wrong for our primary locale.
+  // <html dir="rtl">, subtly wrong for our primary locale.
   const locale = useLocale();
   const direction = isRtlLocale(locale) ? "rtl" : "ltr";
 

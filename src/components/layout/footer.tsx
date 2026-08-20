@@ -112,7 +112,7 @@ export async function Footer() {
                     target="_blank"
                     rel="noopener noreferrer me"
                     aria-label={
-                      ariaSuffix ? `${t(labelKey)} — ${ariaSuffix}` : t(labelKey)
+                      ariaSuffix ? `${t(labelKey)}, ${ariaSuffix}` : t(labelKey)
                     }
                     className="inline-flex size-9 items-center justify-center rounded-full border border-brand-line bg-white/80 text-rose-700 transition hover:border-rose-200 hover:bg-rose-50"
                   >

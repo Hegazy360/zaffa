@@ -68,14 +68,14 @@ async function uploadBlobToCloudinary(
  *
  * Why: `html-to-image` walks the DOM and calls `toCanvas`. Plain `<img>`
  * tags loaded without `crossOrigin="anonymous"` taint the canvas, which
- * makes the subsequent `toDataURL("image/png")` throw a SecurityError —
+ * makes the subsequent `toDataURL("image/png")` throw a SecurityError -
  * silently from the user's POV because it bubbles as a generic
  * exception. Pre-inlining via `fetch` (which Cloudinary serves with
  * permissive CORS) bypasses the taint entirely.
  *
  * We mutate the DOM in place, but the slide tree only lives in the
  * hidden 1080x1350 mount on the post detail page so this isn't visible
- * to the user. Idempotent — already-inlined `data:` URLs are skipped.
+ * to the user. Idempotent, already-inlined `data:` URLs are skipped.
  */
 async function inlineImagesAsDataUrls(root: HTMLElement): Promise<void> {
   const imgs = Array.from(root.querySelectorAll("img"));
@@ -108,7 +108,7 @@ async function inlineImagesAsDataUrls(root: HTMLElement): Promise<void> {
           });
         }
       } catch (err) {
-        // Don't fail the whole rasterization for one missing image —
+        // Don't fail the whole rasterization for one missing image -
         // the slide will just snapshot with a blank/broken tile in
         // that spot. Logged so the operator can dig in.
         console.warn(
@@ -123,7 +123,7 @@ async function inlineImagesAsDataUrls(root: HTMLElement): Promise<void> {
 
 // Cloudinary's free tier rejects uploads larger than 10 MB ("File size
 // too large, upgrade plan..."). We stay a comfortable margin under that
-// cap — multipart envelope adds ~1 KB and we'd rather degrade gracefully
+// cap, multipart envelope adds ~1 KB and we'd rather degrade gracefully
 // than fail outright on a single slide.
 const MAX_UPLOAD_BYTES = 9 * 1024 * 1024;
 
@@ -134,7 +134,7 @@ interface RasterTier {
   type: "image/png" | "image/jpeg";
   /** Only used for JPEG. */
   quality?: number;
-  /** Human label used when every tier fails — kept short for the error. */
+  /** Human label used when every tier fails, kept short for the error. */
   label: string;
 }
 
@@ -144,7 +144,7 @@ interface RasterTier {
  * at 2x, then drop pixel ratio to 1.5x and 1x with progressively lower
  * JPEG quality. The 1x JPEG@0.7 floor is essentially guaranteed to fit
  * under 10 MB even for the busiest photo-heavy slide (typical size:
- * 250–600 KB).
+ * 250-600 KB).
  *
  * Why not start lower? PNG@2x is sharper than anything else on retina
  * phones, and most slides (palette / CTA / lookbook) do fit. Only
@@ -190,7 +190,7 @@ const BASE_RASTER_OPTIONS = {
  * a Cloudinary-hosted JPEG anyway.
  *
  * We deliberately avoid `toPng`/`toJpeg` (which return data URLs) so
- * we never round-trip through `fetch(dataUrl)` — the app's CSP forbids
+ * we never round-trip through `fetch(dataUrl)`, the app's CSP forbids
  * `connect-src data:`.
  */
 export async function rasterizeAndUpload(

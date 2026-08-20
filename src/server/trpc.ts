@@ -21,7 +21,7 @@ export type TRPCUser = {
 } | null;
 
 interface CreateTRPCContextArgs {
-  /** The fetch Request when called via the route handler — used to read
+  /** The fetch Request when called via the route handler, used to read
    *  per-request signals like the country cookie or geo headers without
    *  importing `next/headers` deep inside individual procedures. */
   req?: Request;
@@ -31,7 +31,7 @@ export async function createTRPCContext(args: CreateTRPCContextArgs = {}) {
   const supabase = await createClient();
   // `getClaims()` verifies the JWT signature locally against the project's
   // published JWK (cached after the first fetch). No Supabase Auth API
-  // round-trip per request — saves ~100–200ms per tRPC batch from outside
+  // round-trip per request, saves ~100-200ms per tRPC batch from outside
   // the EU. For procedures that need the *latest* user state (e.g. just-
   // changed email), call `supabase.auth.getUser()` ad-hoc inside the
   // procedure instead of pulling it through the shared context.
@@ -67,7 +67,7 @@ export const protectedProcedure = t.procedure.use(async ({ ctx, next }) => {
 
 /**
  * Like `protectedProcedure`, but rejects anonymous Supabase users. Use
- * this for any mutation that must not be reachable by guests — account
+ * this for any mutation that must not be reachable by guests, account
  * deletion, billing changes, planner/vendor signup, etc. The anonymous
  * flow is intentionally scoped to the venue designer's render path and
  * the email-upgrade mutation.

@@ -103,7 +103,7 @@ function buildPrompt(
   const palettePart = input.palette.colors.length
     ? `Color palette: ${input.palette.colors.join(", ")}${
         input.palette.name ? ` (${input.palette.name})` : ""
-      }. Apply this palette across linens, florals, candles, lighting tone, and decor accents — every surface should feel coordinated, not arbitrary.`
+      }. Apply this palette across linens, florals, candles, lighting tone, and decor accents - every surface should feel coordinated, not arbitrary.`
     : "Choose a tasteful, coherent palette inspired by the references and apply it consistently across linens, florals, and decor.";
 
   const grouped: Record<ReferenceCategory, number[]> = {
@@ -135,17 +135,17 @@ function buildPrompt(
 
     `Camera and composition: wide-angle lens (24-28mm equivalent), positioned at a slightly elevated standing height (approximately 2 meters off the ground), tilted gently downward in a three-quarter perspective. Far enough back to show the entire room or space in one frame, close enough that table settings, floral arrangements, place settings, and lighting fixtures all read clearly. Leading lines along the table runs draw the eye toward the focal point (sweetheart table, ceremony arch, or stage) in the middle ground. ${settingInfo.backdrop}.`,
 
-    `Lighting and atmosphere: ${settingInfo.lighting}. Soft natural depth of field with the foreground tables in crisp focus and the far end of the venue gently softened. Editorial magazine-spread quality — clean, balanced, aspirational.`,
+    `Lighting and atmosphere: ${settingInfo.lighting}. Soft natural depth of field with the foreground tables in crisp focus and the far end of the venue gently softened. Editorial magazine-spread quality - clean, balanced, aspirational.`,
 
     palettePart,
 
     refLines
-      ? `The host has provided the following inspiration images. Treat each one strictly as a stylistic mood reference for its category — adopt its colors, materials, textures, density, and mood for that part of the scene only. Do not paste, copy, reproduce them literally, or include them as cutouts. The output must be a single unified photograph of one venue, not a collage:\n${refLines}`
+      ? `The host has provided the following inspiration images. Treat each one strictly as a stylistic mood reference for its category - adopt its colors, materials, textures, density, and mood for that part of the scene only. Do not paste, copy, reproduce them literally, or include them as cutouts. The output must be a single unified photograph of one venue, not a collage:\n${refLines}`
       : "",
 
     notesPart,
 
-    `Important constraints: the venue is empty — NO people, NO guests, NO waitstaff anywhere in the frame. The composition must showcase the design itself. Avoid: text, captions, watermarks, logos, multiple panels, side-by-side comparisons, fisheye distortion, extreme top-down bird's-eye angles, miniature/tilt-shift effects, harsh flash, motion blur, low-resolution artifacts, oversaturated colors. Output exactly one photograph, no variations.`,
+    `Important constraints: the venue is empty - NO people, NO guests, NO waitstaff anywhere in the frame. The composition must showcase the design itself. Avoid: text, captions, watermarks, logos, multiple panels, side-by-side comparisons, fisheye distortion, extreme top-down bird's-eye angles, miniature/tilt-shift effects, harsh flash, motion blur, low-resolution artifacts, oversaturated colors. Output exactly one photograph, no variations.`,
   ]
     .filter(Boolean)
     .join("\n\n");
@@ -169,7 +169,7 @@ export async function renderScene(input: RenderSceneInput) {
 
   const prompt = buildPrompt(input, ordered);
 
-  // Returns `{ imageUrl, publicId, text }` — the caller (`ai.renderScene`
+  // Returns `{ imageUrl, publicId, text }` - the caller (`ai.renderScene`
   // procedure) uses `publicId` to derive the tier-aware response URL
   // (watermarked for free tier, clean for paid tiers).
   return generateImage({

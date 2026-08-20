@@ -9,7 +9,7 @@ export const dynamic = "force-dynamic";
 // One curated editorial image, shared with the marketing hero so the auth
 // surfaces feel like the same atelier the visitor just left.
 //
-// This was a hotlink to i.pinimg.com — somebody else's photograph, served off
+// This was a hotlink to i.pinimg.com - somebody else's photograph, served off
 // somebody else's CDN, as the first thing a couple sees when handing us their
 // wedding. Three separate problems: we did not own the rights, Pinterest can
 // break or swap the URL at any time, and the image did not show our own work.
@@ -56,7 +56,7 @@ export default async function AuthLayout({
       </header>
 
       <div className="relative z-10 grid flex-1 grid-cols-1 lg:grid-cols-2">
-        {/* Left atelier panel — desktop only. Anchored editorial image with a
+        {/* Left atelier panel, desktop only. Anchored editorial image with a
             rose/amber wash, brand mark, tagline and the same trust line the
             marketing hero carries. */}
         <aside className="relative hidden overflow-hidden lg:block">
@@ -110,7 +110,7 @@ export default async function AuthLayout({
           </div>
         </aside>
 
-        {/* Right form panel — children render the page-specific eyebrow,
+        {/* Right form panel - children render the page-specific eyebrow,
             headline and form. Layout owns the spacing + atmosphere. */}
         <main className="relative flex flex-1 items-center justify-center px-4 pb-16 pt-6 sm:px-6 lg:px-12 lg:pt-12">
           <div className="w-full max-w-md">{children}</div>

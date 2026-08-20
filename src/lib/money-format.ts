@@ -2,7 +2,7 @@
  * Money formatting, with Arabic pinned to Latin digits.
  *
  * Decision D11: every money surface renders Latin numerals in Arabic, while
- * Eastern Arabic numerals stay everywhere else. The reason is comparison —
+ * Eastern Arabic numerals stay everywhere else. The reason is comparison -
  * these figures sit next to Stripe receipts, bank statements and vendor
  * invoices, none of which will ever render ٤٥٬٠٠٠, and a reader checking one
  * against the other should not have to transliterate. The currency symbol
@@ -23,7 +23,7 @@ export function moneyLocaleTag(locale: string): string {
 /**
  * Currency-formatted amount in major units.
  *
- * Falls back to `CODE 45,000` if the runtime rejects the currency — an
+ * Falls back to `CODE 45,000` if the runtime rejects the currency - an
  * unknown ISO code should degrade to a legible number, never throw inside a
  * render.
  */
@@ -66,7 +66,7 @@ export function formatMoneyDate(
  * Money is pinned to Latin digits in Arabic; everything else keeps the
  * Eastern Arabic numerals the rest of the Arabic copy is written in. That
  * second half is easy to get wrong by accident, because CLDR's numbering
- * system for the bare `ar` locale is *latn* — `Intl.NumberFormat("ar")`
+ * system for the bare `ar` locale is *latn*, `Intl.NumberFormat("ar")`
  * returns "1", not "١". A step badge formatted with the raw UI locale
  * therefore renders Latin digits next to prose containing ١١٫٨٪, which reads
  * as a bug rather than a decision.
@@ -78,7 +78,7 @@ export function uiLocaleTag(locale: string): string {
   return locale === "ar" ? "ar-EG" : locale;
 }
 
-/** Counts, positions, step numbers — anything numeric that is not money. */
+/** Counts, positions, step numbers - anything numeric that is not money. */
 export function formatCount(
   value: number,
   locale: string,

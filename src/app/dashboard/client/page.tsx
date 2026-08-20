@@ -66,7 +66,7 @@ export default function ClientDashboardPage() {
   const { data: events, isLoading: eventsLoading } =
     trpc.events.list.useQuery();
 
-  // Approval is a lead ("I want this wedding — contact me"), not an event
+  // Approval is a lead ("I want this wedding - contact me"), not an event
   // factory: it creates a design_approved enquiry the concierge follows up
   // on. The EnquiryStatusCard above reads enquiries.mine, so invalidating it
   // makes the "we're on it" state appear without a navigation.

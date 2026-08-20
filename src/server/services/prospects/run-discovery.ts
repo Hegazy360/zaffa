@@ -28,7 +28,7 @@ import { zafafDiscover } from "./sources/zafaf";
 import { weddingfulDiscover } from "./sources/weddingful";
 import type { RawRow } from "./sources/types";
 
-// Discovery "depth" — admin-tunable knob that scales per-source limits and
+// Discovery "depth", admin-tunable knob that scales per-source limits and
 // optionally fans a single query out into LLM-generated variants. Higher
 // depth = more API spend + more LLM calls in exchange for broader coverage.
 export type DiscoveryDepth = "quick" | "standard" | "deep";
@@ -177,7 +177,7 @@ async function fetchRows(
   const limits = DEPTH[depth];
   switch (source) {
     case ProspectSource.web: {
-      // Tavily caps at 20 results per call — to go deeper we generate
+      // Tavily caps at 20 results per call, to go deeper we generate
       // LLM-driven query variants and union the results, deduping by URL.
       const queries = [query, ...(await tryExpand(query, "web", limits.webVariants))];
       const seen = new Set<string>();
@@ -211,10 +211,10 @@ async function fetchRows(
       // single billed run regardless of how many hashtags we add.
       //
       // To keep finding NEW prospects on repeat runs we layer two tricks:
-      //   1. `onlyPostsNewerThan` — pulls only posts since our last run,
+      //   1. `onlyPostsNewerThan` - pulls only posts since our last run,
       //      so quick/standard keep surfacing freshly-active creators
       //      without paying to re-scan the same hashtag page.
-      //   2. mention-snowball — second profile-mode pass on `@mentions`
+      //   2. mention-snowball, second profile-mode pass on `@mentions`
       //      harvested from primary captions, with `excludeHandles`
       //      filtering out leads already in our DB. This naturally
       //      rotates through the long tail of cross-tagged vendors
@@ -243,7 +243,7 @@ async function fetchRows(
       });
     }
     case ProspectSource.tiktok: {
-      // Same self-rotating loop as IG — see its branch for the rationale.
+      // Same self-rotating loop as IG, see its branch for the rationale.
       // TikTok's hashtag/search modes don't accept a date cursor, but the
       // snowball pass (profile mode) does, so we feed the cursor to that
       // pass to keep it focused on recent activity. The exclude-list is
@@ -317,7 +317,7 @@ async function fetchRows(
 
 // Rate-limit safety: refuse to spin up another run for the same
 // (source, query) inside the cooldown window. We trust the DB for state
-// (no Redis dep) — completed/running rows from the recent past block.
+// (no Redis dep), completed/running rows from the recent past block.
 const COOLDOWN_MS = 15 * 60 * 1000;
 
 async function isOnCooldown(
@@ -348,7 +348,7 @@ export interface RunDiscoveryResult {
 
 export interface RunDiscoveryOptions {
   // Skip the per-(source, query, depth) cooldown. Admin-initiated retries
-  // pass this — the cooldown only exists to keep the cron from hammering
+  // pass this, the cooldown only exists to keep the cron from hammering
   // sources, not to block deliberate human action.
   bypassCooldown?: boolean;
 }
@@ -360,7 +360,7 @@ export async function runDiscovery(
   const run = await prisma.discoveryRun.findUnique({ where: { id: runId } });
   if (!run) throw new Error(`DiscoveryRun ${runId} not found`);
   if (run.status !== DiscoveryRunStatus.queued) {
-    // Already in flight or done — bail.
+    // Already in flight or done, bail.
     return {
       prospectsFound: run.prospects_found,
       prospectsNew: run.prospects_new,
@@ -422,7 +422,7 @@ export async function runDiscovery(
           });
           continue;
         }
-        // (source, source_id) uniqueness — we may also have seen this exact
+        // (source, source_id) uniqueness - we may also have seen this exact
         // url in a prior run; upsert handles that.
         await prisma.prospect.upsert({
           where: {

@@ -51,7 +51,7 @@ const purchasableSkuSchema = z.enum(
 /**
  * Read the recipient's currently-active pack, if any. Returns null when
  * none exists. Used by the paywall, the designer header, and the success
- * page. Treats both `active` and `fulfilled` as "the user has a pack" —
+ * page. Treats both `active` and `fulfilled` as "the user has a pack" -
  * fulfilled means they used everything but the assets are still theirs
  * (microsite, lookbook).
  */
@@ -69,7 +69,7 @@ export const visionPacksRouter = router({
   /**
    * Returns the recipient's currently-active pack along with derived
    * flags the UI cares about (renders left, days left, expired). Null
-   * when the user has never bought a pack — the UI uses that to gate
+   * when the user has never bought a pack, the UI uses that to gate
    * the marketing CTA.
    */
   current: protectedProcedure.query(async ({ ctx }) => {
@@ -116,7 +116,7 @@ export const visionPacksRouter = router({
    * Targeted post-checkout poll. The success page lands at
    * `/venue-designer/welcome?pack=<id>[&upgrade=<id>]` and needs to
    * watch *that specific* pack/upgrade row flip from `pending_payment`
-   * to `active`, not "the user's currently-active pack" — otherwise a
+   * to `active`, not "the user's currently-active pack" - otherwise a
    * pre-existing free `wedding_free_taste_v1` (or a previously active
    * paid pack on the upgrade path) makes `current` return `active`
    * immediately and the success page bounces the user to the return
@@ -224,7 +224,7 @@ export const visionPacksRouter = router({
    * supports it but we don't expose it through this mutation yet.
    *
    * Only purchasable SKUs (`wedding_design_pack_v1` and
-   * `wedding_vision_pack_v1`) are accepted here — the free SKU is
+   * `wedding_vision_pack_v1`) are accepted here, the free SKU is
    * granted server-side via `ensureFreePack` and never sold.
    */
   startCheckout: nonAnonymousProcedure
@@ -235,7 +235,7 @@ export const visionPacksRouter = router({
           // Design Pack so legacy CTAs that never passed a SKU still
           // resolve to a valid SKU.
           sku: purchasableSkuSchema.optional(),
-          // Optional: where to bounce back to after success/cancel — lets
+          // Optional: where to bounce back to after success/cancel, lets
           // the gallery, microsite, and marketing pages all share the
           // same checkout flow.
           returnPath: z.string().max(500).optional(),
@@ -245,7 +245,7 @@ export const visionPacksRouter = router({
     .mutation(async ({ ctx, input }) => {
       // Block stacking: if the user already has an active *paid* pack,
       // send them there instead of charging twice. Free packs do not
-      // count as "active" for this check — buying a paid tier should
+      // count as "active" for this check, buying a paid tier should
       // always be available even when the free render hasn't been used
       // yet (free pack stays as historical state once paid is granted).
       // Window-expired packs also don't count.
@@ -266,7 +266,7 @@ export const visionPacksRouter = router({
 
       // Resolve per-country pricing from the geo cookie/header. Falls
       // back to the global default when the visitor is in an unmapped
-      // market — the seed always provides a USD floor.
+      // market, the seed always provides a USD floor.
       const country = resolveCountryFromRequest(ctx.req);
       const pricing = await resolveVisionPackPricing(country, skuId);
 
@@ -276,7 +276,7 @@ export const visionPacksRouter = router({
           buyer_user_id: ctx.user.id,
           recipient_user_id: ctx.user.id,
           status: "pending_payment",
-          // `amount` is in minor units (e.g. 1999 for $19.99) — see
+          // `amount` is in minor units (e.g. 1999 for $19.99), see
           // schema comment on VisionPack.amount.
           amount: pricing.amount,
           currency: pricing.currency,
@@ -322,7 +322,7 @@ export const visionPacksRouter = router({
             price_data: {
               currency: pricing.currency.toLowerCase(),
               product_data: {
-                name: `${platformName()} — ${skuMeta.name}`,
+                name: `${platformName()} - ${skuMeta.name}`,
                 description: `${skuMeta.quotas.renders} renders, ${skuMeta.quotas.videos} videos, lookbook & microsite${venueDescriptor}${plannerDescriptor}. ${skuMeta.durationDays}-day window.`,
               },
               // DB amounts are already in Stripe's smallest-currency
@@ -392,7 +392,7 @@ export const visionPacksRouter = router({
         data: {
           microsite_public: input.isPublic,
           // Toggling on an unpublished microsite implicitly publishes it
-          // — that's the recipient's expectation when they flip the
+          //, that's the recipient's expectation when they flip the
           // switch.
           microsite_published_at:
             input.isPublic && !pack.microsite_published_at
@@ -404,7 +404,7 @@ export const visionPacksRouter = router({
 
   /**
    * Marks `lookbook_downloaded_at` on first download. Used by the
-   * refund tripwire — once this is set, refunds are off (per
+   * refund tripwire - once this is set, refunds are off (per
    * `isPackRefundable`).
    */
   recordLookbookDownload: protectedProcedure
@@ -430,7 +430,7 @@ export const visionPacksRouter = router({
 
   /**
    * Public microsite read by slug. Returns the minimal shape the
-   * `/v/<slug>` page needs. Always public — the route is the share
+   * `/v/<slug>` page needs. Always public, the route is the share
    * surface, so no auth is required. `microsite_public` only controls
    * whether the row appears in the gallery feed, not whether the slug
    * resolves.
@@ -461,7 +461,7 @@ export const visionPacksRouter = router({
       if (!pack.recipient) return null;
 
       // Pull the latest design for the recipient so we have media, palette,
-      // references, style notes — i.e. the pack's actual visual content.
+      // references, style notes - i.e. the pack's actual visual content.
       const design = await prisma.venueDesign.findFirst({
         where: { user_id: pack.recipient.id },
         orderBy: { updated_at: "desc" },
@@ -502,11 +502,11 @@ export const visionPacksRouter = router({
  *
  * Returns the loaded pack on success. Throws `FORBIDDEN PACK_REQUIRED`
  * when no usable pack exists. The atomic decrement happens AFTER the
- * AI call succeeds (see `consumeQuota`) — gating here, billing on the
+ * AI call succeeds (see `consumeQuota`) - gating here, billing on the
  * way out.
  *
  * The free email-gated tier (`wedding_free_taste_v1`) participates in
- * the same quota plumbing — `requireActivePack` doesn't distinguish
+ * the same quota plumbing, `requireActivePack` doesn't distinguish
  * tiers. Callers that want tier-specific behaviour (e.g. videos blocked
  * on free) inspect `pack.sku` on the returned row.
  */
@@ -586,7 +586,7 @@ export async function ensureFreePack(userId: string) {
       buyer_user_id: userId,
       recipient_user_id: userId,
       status: "active",
-      // No Stripe linkage — amount in minor units is zero and the
+      // No Stripe linkage, amount in minor units is zero and the
       // currency column stays at its schema default (EGP). Display
       // helpers never format the free pack price; `amount === 0` is
       // the canonical signal.
@@ -645,7 +645,7 @@ export async function consumeQuota(
  * Webhook side-effect for `checkout.session.completed`. Flips a
  * pending-payment pack into `active`, sets the generation window,
  * issues the microsite slug, and (for self-purchase) marks the pack as
- * redeemed. Idempotent — safe to call twice.
+ * redeemed. Idempotent, safe to call twice.
  */
 export async function activatePackFromCheckout(args: {
   packId: string;
@@ -706,7 +706,7 @@ export async function activatePackFromCheckout(args: {
 
 /**
  * Webhook side-effect for `checkout.session.expired`. Reverts the pack
- * to a state where the user can retry a fresh checkout — i.e. deletes
+ * to a state where the user can retry a fresh checkout, i.e. deletes
  * the pending row so they don't see "you already have a pack" on retry.
  */
 export async function expirePendingCheckout(packId: string): Promise<void> {
@@ -727,7 +727,7 @@ export async function expirePendingCheckout(packId: string): Promise<void> {
  *     generation window both start from the most recent payment
  *   - re-activates a `fulfilled` pack (quota delta is fresh capacity)
  *
- * Idempotent — short-circuits if the upgrade row is already `active`
+ * Idempotent, short-circuits if the upgrade row is already `active`
  * so webhook retries are safe.
  */
 export async function activateUpgradeFromCheckout(args: {
@@ -750,7 +750,7 @@ export async function activateUpgradeFromCheckout(args: {
   const fromMeta = getPackSku(upgrade.from_sku);
   const toMeta = getPackSku(upgrade.to_sku);
   if (!fromMeta || !toMeta) {
-    // Unknown SKUs — fail loudly into the webhook logger but don't
+    // Unknown SKUs, fail loudly into the webhook logger but don't
     // throw so Stripe doesn't retry endlessly. An ops alert in
     // `cron.upgrade.unknown_sku` can be wired up separately.
     return;
@@ -790,7 +790,7 @@ export async function activateUpgradeFromCheckout(args: {
         // row for audit.
         paid_at: now,
         expires_at: expiresAt,
-        // A `fulfilled` pack regains capacity from the upgrade —
+        // A `fulfilled` pack regains capacity from the upgrade -
         // re-activate so the user can keep generating.
         status: "active",
       },

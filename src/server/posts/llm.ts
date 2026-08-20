@@ -2,12 +2,12 @@
 //
 // Three responsibilities:
 //
-//   1. namePalette()        — given a vibe, return a 5-color NamedPalette
+//   1. namePalette() - given a vibe, return a 5-color NamedPalette
 //                              (poetic per-color names + hex). Used when
 //                              the admin doesn't supply one.
-//   2. generateCaptionAndTags() — write the Instagram caption + 5 hashtags
+//   2. generateCaptionAndTags(), write the Instagram caption + 5 hashtags
 //                              following the Zaffa voice.
-//   3. generateThreeWords() — produce three short evocative words for the
+//   3. generateThreeWords(), produce three short evocative words for the
 //                              `three_words` format slides.
 //
 // All calls go through OpenRouter using OPENAI_API_KEY (same auto-detect
@@ -57,14 +57,15 @@ Output strictly JSON:
 }
 
 Rules:
+- Never use an em dash or en dash. A comma, a full stop, or a plain hyphen instead.
 - Title Case (capitalize each significant word). No punctuation. No emoji.
   Examples: "Cairo Rooftop", "Tuscan Garden", "Wadi Rum Tent",
   "Pampas Grass Dusk", "Neutral Linen Minimalism".
 - 2-3 words. Concrete enough to Pinterest-search, evocative enough to
   inspire image-gen.
-- AVOID anything in the "recent_vibes" list provided by the user — pick
+- AVOID anything in the "recent_vibes" list provided by the user, pick
   something visually distinct from those, not a synonym.
-- Don't translate or use Arabic script — romanized place names are fine.
+- Don't translate or use Arabic script, romanized place names are fine.
 - Skip generic single words ("Wedding", "Romantic", "Elegant"); the vibe
   should imply a setting, era, fabric, or atmosphere.`;
 
@@ -99,11 +100,11 @@ export async function generateVibe(
         }),
       },
     ],
-    // High temperature — variety is the whole point.
+    // High temperature, variety is the whole point.
     1.05,
   );
 
-  // Preserve case so headlines and Pinterest searches both work — strip
+  // Preserve case so headlines and Pinterest searches both work, strip
   // trailing punctuation only.
   const vibe = (out.vibe ?? "")
     .trim()
@@ -137,13 +138,14 @@ Output strictly JSON in this shape:
 }
 
 Rules:
+- Never use an em dash or en dash. A comma, a full stop, or a plain hyphen instead.
 - "name" is Title Case, no quotes, no punctuation. 2-4 words.
 - Each color "name" is 1-3 Title-Case words, evocative but tasteful
   (e.g. "Rose Dust", "Verdigris", "Champagne", "Umber", "Smoked Olive").
-  Avoid cliches ("Blush Pink", "Navy Blue") — surprise the eye.
+  Avoid cliches ("Blush Pink", "Navy Blue") - surprise the eye.
 - "hex" is a 6-digit hex with leading "#".
 - The 5 colors must work together: 1 dominant, 2 supporting, 2 accents.
-- The palette as a whole should evoke the vibe — not literal colors of
+- The palette as a whole should evoke the vibe, not literal colors of
   the place but the feeling of it.
 - Output ONLY the JSON object, no prose.`;
 
@@ -188,9 +190,9 @@ export async function namePalette(input: { vibe: string }): Promise<NamedPalette
 // ---------- Caption + hashtags ----------
 
 const CAPTION_SYSTEM = `You are the in-house copywriter for Zaffa, a wedding
-planning brand. The voice is editorial, intimate, confident — like a
+planning brand. The voice is editorial, intimate, confident - like a
 Cereal Magazine spread crossed with a stylist's voice note. Use proper
-sentence case and real punctuation: periods, commas, em-dashes (—),
+sentence case and real punctuation: periods, commas, em-dashes (-),
 colons. Short sentences, then one long one for rhythm. No hype words
 ("stunning", "obsessed", "OMG"). No exclamation marks. No emoji.
 
@@ -207,29 +209,29 @@ Output strictly JSON:
 Caption rules:
 - Sentence case. Real punctuation. NO exclamation marks. NO emoji.
 - 3-4 short paragraphs separated by a single blank line ("\\n\\n").
-- Paragraph 1: hook — a single concrete image or sensory line that lands
+- Paragraph 1: hook, a single concrete image or sensory line that lands
   the vibe (e.g. "Olive trees, slow shadows, a long linen runner.").
-- Paragraph 2: the design intent — what the couple cares about, what
+- Paragraph 2: the design intent - what the couple cares about, what
   the palette does, what the format proves. Treat the couple's first
   names as a once-mentioned detail, not the subject.
 - Paragraph 3: a soft brand line about Zaffa designing weddings around
   a vibe rather than a checklist.
 - Final line: a quiet call to action that matches the format. Examples:
-  "Save this one." / "We're designing more of these — DM 'lookbook'." /
+  "Save this one." / "We're designing more of these, DM 'lookbook'." /
   "This is what we mean by a brief." / "Three weeks from vibe to plan."
 - Don't list every color literally. Name one or two if it adds rhythm.
 - Don't translate the vibe phrase. Don't define jargon.
 
-Hashtag rules — EXACTLY 5 entries, in this order:
-  1. broad        — wedding/event-design at large (e.g. "weddinginspo",
+Hashtag rules - EXACTLY 5 entries, in this order:
+  1. broad - wedding/event-design at large (e.g. "weddinginspo",
                      "weddingaesthetic")
-  2. vibe-specific — tied to the vibe ("tuscanwedding", "riadwedding")
-  3. community     — the couple/planner community ("egyptianbride",
+  2. vibe-specific - tied to the vibe ("tuscanwedding", "riadwedding")
+  3. community - the couple/planner community ("egyptianbride",
                      "menabride", "weddingplannerlife")
-  4. cultural      — when applicable to the vibe (e.g. "arabwedding",
+  4. cultural - when applicable to the vibe (e.g. "arabwedding",
                      "ifyoukno"); if not applicable, supply another
                      community-flavor tag
-  5. zaffa-adjacent — brand-aligned ("zaffabrief", "zaffaesthetic",
+  5. zaffa-adjacent - brand-aligned ("zaffabrief", "zaffaesthetic",
                      "designedwithzaffa")
 
 Hashtags are lowercase, no spaces, no punctuation, ascii letters and
@@ -282,18 +284,19 @@ export async function generateCaptionAndTags(
 
 const THREE_WORDS_SYSTEM = `You produce short evocative captions for a 3-slide
 wedding-design carousel called "three_words". Given a vibe and a palette,
-return three captions — one per slide.
+return three captions, one per slide.
 
 Output strictly JSON:
 { "captions": [string, string, string] }
 
 Rules:
+- Never use an em dash or en dash. A comma, a full stop, or a plain hyphen instead.
 - EXACTLY 3 entries.
 - Each is EXACTLY 3 Title-Case words separated by single spaces. No
   punctuation. No emoji. (e.g. "Olive, Linen, Light", "Slow Morning
-  Ritual" — but render as Title Case without commas: "Olive Linen Light",
+  Ritual" - but render as Title Case without commas: "Olive Linen Light",
   "Slow Morning Ritual".)
-- Together they read as a triptych — one feeling per slide, escalating
+- Together they read as a triptych - one feeling per slide, escalating
   toward the closing CTA slide.
 - Lean editorial and sensory, not literal.`;
 

@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils";
  * Empty states were hand-rolled 38 times, and they had drifted into two
  * different jobs: some explain and invite, most just say "No results". The
  * first empty state a couple sees is often the first thing the product says
- * to them unprompted, so the shape here forces the useful version — a reason
+ * to them unprompted, so the shape here forces the useful version - a reason
  * and a way forward, not a shrug.
  *
  * `action` is deliberately a node rather than a label/href pair: about half

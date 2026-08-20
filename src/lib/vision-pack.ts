@@ -1,4 +1,4 @@
-// Vision Pack — shared SKU registry, quotas, and lifecycle helpers used
+// Vision Pack - shared SKU registry, quotas, and lifecycle helpers used
 // by both the tRPC routers and the Stripe webhook. Centralised so the
 // paywall, the checkout SKU, and the refund tripwire all reference the
 // same numbers.
@@ -6,12 +6,12 @@
 // To add a new tier, append an entry to `PACK_SKUS` here, seed prices
 // for it in `src/lib/vision-pack-pricing.ts` (`SEED_PRICING[sku]`), and
 // update the EN/AR copy under `marketing.tier*` / `visionPack.*` in
-// `messages/*.json`. No DB migration is needed — `VisionPack.sku` is a
+// `messages/*.json`. No DB migration is needed, `VisionPack.sku` is a
 // free-form text column.
 
 /** Generation window in days from `paid_at` / `redeemed_at`. */
 export const VISION_PACK_WINDOW_DAYS = 60;
-/** Refund tripwire — full refund window from `paid_at`. */
+/** Refund tripwire, full refund window from `paid_at`. */
 export const VISION_PACK_REFUND_HOURS = 24;
 /** Default platform fee % shown in the pack-vs-marketplace stacking copy. */
 export const VISION_PACK_DEFAULT_PLATFORM_FEE_PCT = 8;
@@ -46,9 +46,9 @@ export interface PackSku {
  *     not-yet-paid) users via `ensureFreePack`. Never sold through
  *     Stripe; `amount=0`.
  *   - **Design Pack** (`wedding_design_pack_v1`): the $19 starter
- *     tier — design + microsite + PDF, no planner/venue matching.
+ *     tier - design + microsite + PDF, no planner/venue matching.
  *   - **Vision Pack** (`wedding_vision_pack_v1`): the $99 full
- *     pack — bigger quotas, planner marketplace, plus
+ *     pack - bigger quotas, planner marketplace, plus
  *     Zaffa-curated venue recommendations on the couple's event page.
  *
  * Stamped onto every `VisionPack` row at checkout time so individual
@@ -71,7 +71,7 @@ export const PACK_SKUS = {
     name: "Design Pack",
     // The one pack sold today. When the Vision Pack retired from sale
     // (2026-08-20 consolidation) its quotas folded down into this tier at
-    // the entry price — the pack is the customer-acquisition engine for
+    // the entry price, the pack is the customer-acquisition engine for
     // the concierge, not the business, so the cheapest tier gets the full
     // experience. Existing rows were backfilled to match (quotas are
     // stamped per-row at checkout, not read live from this registry).
@@ -81,7 +81,7 @@ export const PACK_SKUS = {
     durationDays: VISION_PACK_WINDOW_DAYS,
   },
   // RETIRED FROM SALE (2026-08-20). The registry entry stays because
-  // historic rows stamp this SKU and must keep resolving — names on the
+  // historic rows stamp this SKU and must keep resolving, names on the
   // welcome page, admin views, and the still-live upgrade webhook branch
   // for any in-flight Stripe session. Do not delete; do not re-add to
   // PURCHASABLE_PACK_SKUS.
@@ -118,7 +118,7 @@ export const PACK_SKU_ORDER: readonly PackSkuId[] = [
   "wedding_design_pack_v1",
 ];
 
-/** SKUs with seed/DB pricing worth displaying — the purchasable pack plus
+/** SKUs with seed/DB pricing worth displaying, the purchasable pack plus
  *  the retired Vision Pack, whose historic prices the admin editor must
  *  keep showing (existing rows reference them). */
 export const PRICED_PACK_SKUS: readonly PackSkuId[] = [
@@ -177,7 +177,7 @@ export function isFreePack(skuId: string | null | undefined): boolean {
  *
  * Kept here next to the SKU registry so adding a new tier only
  * touches one file. Mirrors `marketing.tier.<sku>.eyebrow` in
- * `messages/*.json` — keep them in sync if you change either side.
+ * `messages/*.json`, keep them in sync if you change either side.
  */
 const PACK_DISPLAY_NAMES: Record<PackSkuId, { en: string; ar: string }> = {
   wedding_free_taste_v1: { en: "Free Taste", ar: "التجربة المجانية" },
@@ -198,7 +198,7 @@ export function localizedPackName(
 /**
  * Generate a URL-safe slug for the public microsite. Combined with the
  * `microsite_slug @unique` constraint at the DB level, collision risk is
- * negligible for v1 traffic levels — but we still retry a few times on
+ * negligible for v1 traffic levels, but we still retry a few times on
  * the (very unlikely) collision before giving up.
  *
  * Pattern: 10 chars from a Crockford-style alphabet (no 0/O, 1/I/L
@@ -238,7 +238,7 @@ export interface RefundEligibilityInputs {
   status: string;
   /**
    * Minor-units paid amount on the pack row. Used to short-circuit
-   * refunds for the free tier — there's nothing to refund.
+   * refunds for the free tier, there's nothing to refund.
    */
   amount: number;
   /**
@@ -252,7 +252,7 @@ export interface RefundEligibilityInputs {
 
 export function isPackRefundable(p: RefundEligibilityInputs): boolean {
   if (p.status !== "active" && p.status !== "fulfilled") return false;
-  // The free email-gated tier is never refundable — `amount === 0` means
+  // The free email-gated tier is never refundable, `amount === 0` means
   // we never charged anything to refund.
   if (p.amount === 0) return false;
   const effectivePaidAt = p.latest_paid_at ?? p.paid_at;

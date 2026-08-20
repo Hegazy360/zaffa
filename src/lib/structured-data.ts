@@ -6,7 +6,7 @@
  *  1. **Only claim what the page shows.** Structured data that describes
  *     something a visitor cannot see is what Google penalises, and it is also
  *     just untrue. Every property below maps to something rendered.
- *  2. **No `Product`/`AggregateRating` anywhere.** We have no ratings — the
+ *  2. **No `Product`/`AggregateRating` anywhere.** We have no ratings, the
  *     invented "4.9" was removed from the UI in ZAF-45 and must not reappear
  *     as markup, where it would be *more* damaging: a rich result showing
  *     stars we made up is a manual action waiting to happen. `Offer` appears
@@ -36,7 +36,7 @@ export function organizationLd(description: string) {
     name: SITE_NAME,
     url: siteUrl(),
     description,
-    // Paris is where the company is, and saying so is part of the pitch —
+    // Paris is where the company is, and saying so is part of the pitch -
     // French experience, working wherever the wedding is.
     address: {
       "@type": "PostalAddress",

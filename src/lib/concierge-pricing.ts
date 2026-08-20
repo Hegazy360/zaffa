@@ -4,7 +4,7 @@
  * This encodes `docs/pricing-full-service.md` so the numbers live in one place
  * instead of in an operator's head. It feeds three surfaces that must never
  * disagree: the quote panel in the enquiry CRM, the budget chips in the intake
- * wizard, and — as of ZAF-48 — the public `/pricing` table.
+ * wizard, and - as of ZAF-48 - the public `/pricing` table.
  *
  * That last one is a reversal. This module used to say the model was never
  * exposed publicly, on the reasoning that no single price fits Cairo and Dubai
@@ -15,7 +15,7 @@
  * The model, in one line: from a single per-market input `E` (the event budget
  * at which full service becomes a realistic purchase), derive three geometric
  * bands. Every fee is exactly 15% at the bottom of its band and 10% at the
- * top, so the whole ladder sits inside the verified 10–15% planner-fee norm by
+ * top, so the whole ladder sits inside the verified 10-15% planner-fee norm by
  * construction, in any market, without anyone doing arithmetic.
  */
 
@@ -66,7 +66,7 @@ export interface MarketGuidance {
   /** Entry budget the bands derive from. */
   entryBudget: number;
   bands: QuoteBand[];
-  /** Published ceiling — above this we quote bespoke, but the buyer knows a
+  /** Published ceiling - above this we quote bespoke, but the buyer knows a
    *  ceiling exists, which is what makes "it depends" tolerable. */
   cap: number;
 }
@@ -75,7 +75,7 @@ export interface MarketGuidance {
  * Markets we have researched well enough to quote from a table. `E` is set
  * from that market's realistic mid-to-upscale event budget.
  *
- * Everything else is deliberately absent rather than guessed — an unlisted
+ * Everything else is deliberately absent rather than guessed, an unlisted
  * country gets a bespoke quote, never a wrong number. The founder's rule is
  * that we never turn a client away by country, not that we pretend to know
  * every market's pricing.
@@ -96,7 +96,7 @@ const MARKETS: Readonly<Record<string, { currency: string; entryBudget: number; 
 const PUBLISHED_FEES: Readonly<Record<string, [number, number, number]>> = {
   // Egypt band 3 was 100_000 until 2026-08-20. Publishing the table meant
   // publishing band *edges*, and at the resulting band-3 floor of 650_000 a
-  // fee of 100_000 is 15.4% — outside the norm this model exists to stay
+  // fee of 100_000 is 15.4%, outside the norm this model exists to stay
   // inside. 95_000 is 14.6% there and exactly 10% at 950_000.
   EG: [45_000, 65_000, 95_000],
   AE: [30_000, 45_000, 65_000],
@@ -106,7 +106,7 @@ const PUBLISHED_FEES: Readonly<Record<string, [number, number, number]>> = {
  * Published band edges: `[floor, ceiling]` per band, in market currency.
  *
  * The derived model steps budgets at 1.5× (E, 1.5E, 2.25E, 3.375E), which
- * produces edges like EGP 1,012,500 — a fine internal boundary and an
+ * produces edges like EGP 1,012,500 - a fine internal boundary and an
  * unpublishable one. These are the legible equivalents, derived as
  * `fee / 0.15` to `fee / 0.10`, with each band starting exactly where the
  * previous ends so the table has no gaps for a reader to fall into.
@@ -148,7 +148,7 @@ export function deriveBands(entryBudget: number): QuoteBand[] {
 /**
  * Quote guidance for a market, or `null` when we have no table for it.
  *
- * A `null` here is not a refusal — it means "quote this one bespoke". The
+ * A `null` here is not a refusal, it means "quote this one bespoke". The
  * caller (the admin quote panel) renders that state explicitly.
  */
 export function quoteGuidanceFor(
@@ -179,7 +179,7 @@ export function quoteGuidanceFor(
   };
 }
 
-/** Every market we can quote from a table — for admin UI affordances. */
+/** Every market we can quote from a table, for admin UI affordances. */
 export function pricedMarkets(): string[] {
   return Object.keys(MARKETS);
 }
@@ -191,7 +191,7 @@ export function pricedMarkets(): string[] {
  *
  * Derived from the same `E` so the wizard and the quote panel never disagree
  * about what "medium" means in a given market. Unpriced markets fall back to a
- * USD ladder — deliberately coarse, because its only job is to tell the
+ * USD ladder - deliberately coarse, because its only job is to tell the
  * operator roughly where the conversation starts.
  */
 export interface BudgetBandOption {

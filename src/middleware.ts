@@ -15,14 +15,14 @@ import {
   normalizeCountryCode,
 } from "@/lib/vision-pack-pricing";
 
-// 1 year — country doesn't change often, and a stale entry only impacts
+// 1 year - country doesn't change often, and a stale entry only impacts
 // pricing display (the resolved price is computed server-side per-request,
 // so a cookie outliving a real geo move just delays the price update by
 // at most one cookie cycle).
 const COUNTRY_COOKIE_MAX_AGE = 60 * 60 * 24 * 365;
 
 // Routes the `publicBrowse` flag controls. When the flag is off, anything
-// matching this regex is rejected at the edge with a real 404 — calling
+// matching this regex is rejected at the edge with a real 404, calling
 // `notFound()` from the page itself ends up rendering the not-going-live UI with
 // the response status the middleware set (200), so we short-circuit at the
 // edge to get the correct status code on the wire.
@@ -32,13 +32,13 @@ const PUBLIC_BROWSE_ROUTE = /^\/(planners|vendors)(\/.*)?$/;
 // Same edge-404 treatment and the same reason: these are authenticated
 // dashboards, so `notFound()` inside the layout would still render behind a
 // 200. Kept as a separate regex from PUBLIC_BROWSE_ROUTE because the two
-// flags are independent — public browse is about SEO acquisition, this is
+// flags are independent - public browse is about SEO acquisition, this is
 // about the pivot to a client-only product.
 const PROFESSIONAL_ROUTE =
   /^\/(dashboard\/(planner|vendor)|auth\/signup\/professional)(\/.*)?$/;
 
 // The design-token scratch page. It guards itself with `notFound()` on
-// NODE_ENV, and that guard works — production serves none of its content — but
+// NODE_ENV, and that guard works - production serves none of its content - but
 // it answers **200**, because a middleware response's status takes precedence
 // over a page's `notFound()`. A soft 404 is worse than a hard one: it is
 // indexable, and it tells a crawler the URL is real. Gated here for the same
@@ -52,8 +52,8 @@ const DEV_ONLY_ROUTE = /^\/kitchen-sink(\/.*)?$/;
 //   - /auth/*            → redirect away to dashboard when already signed in
 //                          (except /auth/reset-password, which the recovery
 //                          flow needs to reach with a temporary session)
-// Every other route — marketing, public browse, sitemaps, robots, error
-// pages — can skip the `supabase.auth.getUser()` round-trip entirely.
+// Every other route - marketing, public browse, sitemaps, robots, error
+// pages, can skip the `supabase.auth.getUser()` round-trip entirely.
 // Keeping this in sync with `updateSession` is the only correctness
 // requirement; if you add a gated route there, add it here too.
 const AUTH_AWARE_ROUTE = /^\/(dashboard|venue-designer|auth)(\/.*)?$/;
@@ -112,7 +112,7 @@ const HIDDEN_ROUTE_404_BODY = `<!doctype html>
 </main></body></html>`;
 
 // Parse an Accept-Language header into an ordered list of language tags.
-// We don't pull in `negotiator` — Accept-Language is simple enough that a
+// We don't pull in `negotiator`, Accept-Language is simple enough that a
 // 5-line parser is cheaper than a dep.
 function parseAcceptLanguage(header: string): string[] {
   return header
@@ -127,7 +127,7 @@ function parseAcceptLanguage(header: string): string[] {
 }
 
 export async function middleware(request: NextRequest) {
-  // Pre-launch site password — runs before everything else so unauthenticated
+  // Pre-launch site password, runs before everything else so unauthenticated
   // visitors never touch supabase or downstream services.
   const gated = checkSitePassword(request);
   if (gated) return gated;
@@ -179,9 +179,9 @@ export async function middleware(request: NextRequest) {
     });
   }
 
-  // The Supabase session round-trip costs 100–500ms and is only needed
+  // The Supabase session round-trip costs 100-500ms and is only needed
   // for the auth-aware routes above. Everything else (marketing, sitemap,
-  // robots, /api/* — though /api/* is excluded by the matcher anyway) can
+  // robots, /api/* - though /api/* is excluded by the matcher anyway) can
   // skip it. Big TTFB win for the marketing home and other public pages.
   const response = AUTH_AWARE_ROUTE.test(request.nextUrl.pathname)
     ? await updateSession(request)

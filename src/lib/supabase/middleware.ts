@@ -29,7 +29,7 @@ export async function updateSession(request: NextRequest) {
   // signature locally against the project's published JWK (cached after the
   // first call) instead of round-tripping to https://*.supabase.co/auth/v1
   // for every request. Middleware fires on every navigation + every static-
-  // adjacent fetch, so this saves ~100–200ms / request from outside Europe.
+  // adjacent fetch, so this saves ~100-200ms / request from outside Europe.
   const { data: claimsData } = await supabase.auth.getClaims();
   let user = claimsData?.claims
     ? {
@@ -66,7 +66,7 @@ export async function updateSession(request: NextRequest) {
     const { data: anon, error: anonErr } =
       await supabase.auth.signInAnonymously();
     if (anonErr || !anon.user) {
-      // Anonymous sign-in disabled or transient failure — fall through
+      // Anonymous sign-in disabled or transient failure, fall through
       // to the signin page so the visitor isn't left on a broken render.
       const url = request.nextUrl.clone();
       url.pathname = "/auth/signin";

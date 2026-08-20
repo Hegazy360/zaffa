@@ -13,7 +13,7 @@ import { ttTrack, TIKTOK_EVENTS } from "@/lib/tiktok";
 
 interface EmailGateOverlayProps {
   /**
-   * Cloudinary-watermarked render URL — shown blurred behind the gate
+   * Cloudinary-watermarked render URL, shown blurred behind the gate
    * card so the visitor sees there's actually a result waiting.
    */
   watermarkedImageUrl: string;
@@ -36,7 +36,7 @@ type Stage = "form" | "submitting" | "sent" | "already_used" | "error";
 
 /**
  * Email gate shown right after a free-tier render completes. Single
- * field — email only. On submit:
+ * field, email only. On submit:
  *   1. Server-side: `auth.requestEmailUpgrade` locks the email globally,
  *      records the capture, and pushes to Resend Audiences.
  *   2. Client-side: `supabase.auth.updateUser({ email })` sends the
@@ -76,7 +76,7 @@ export function EmailGateOverlay({
           renderId: renderId ?? undefined,
           turnstileToken: turnstileToken ?? undefined,
         });
-        // TikTok lead funnel — fire `SubmitForm` the moment the
+        // TikTok lead funnel, fire `SubmitForm` the moment the
         // server-side capture lands (lock acquired + Resend Audience
         // push queued). This is the canonical "lead captured"
         // moment in the funnel; the subsequent Supabase upgrade is
@@ -88,7 +88,7 @@ export function EmailGateOverlay({
           renderId ?? undefined,
         );
       } catch (err) {
-        // Single-use Turnstile tokens — reset for the next attempt.
+        // Single-use Turnstile tokens, reset for the next attempt.
         setTurnstileToken(null);
         setTurnstileResetKey((k) => k + 1);
         const message = err instanceof Error ? err.message : String(err);
@@ -132,7 +132,7 @@ export function EmailGateOverlay({
       if (supabaseError) {
         // The lock + capture event already landed, but Supabase
         // couldn't dispatch the email. Surface a retry but don't
-        // un-claim the lock — the reconcile cron handles cleanup.
+        // un-claim the lock, the reconcile cron handles cleanup.
         setStage("error");
         toast.error(supabaseError.message || t("genericErrorTitle"));
         return;
@@ -142,7 +142,7 @@ export function EmailGateOverlay({
       // already permanent. Skip the inbox-check ceremony and reveal
       // the (still watermarked, free-tier) render directly.
       if (data?.user && data.user.is_anonymous === false) {
-        // TikTok activation funnel — only fire `CompleteRegistration`
+        // TikTok activation funnel, only fire `CompleteRegistration`
         // when the user is actually permanent. With Confirm-email
         // ON the upgrade only resolves after they click the magic
         // link, so we leave the event unfired in that branch and
@@ -173,7 +173,7 @@ export function EmailGateOverlay({
 
   return (
     <div className="relative overflow-hidden rounded-2xl border border-rose-200/70 bg-card shadow-xl">
-      {/* Blurred preview backdrop — fills whatever final height the
+      {/* Blurred preview backdrop, fills whatever final height the
           container ends up at. The form below determines that height,
           so the card is never clipped on short viewports. */}
       <div

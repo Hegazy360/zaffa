@@ -29,7 +29,7 @@ export interface TierPrice {
  * placeholder.
  *
  * For surfaces that need both tiers (paywall, comparison block) use
- * `useTierPricing` below — it shares the same underlying query so we
+ * `useTierPricing` below, it shares the same underlying query so we
  * never round-trip twice on the same page.
  */
 export function useVisionPackPricing(): {
@@ -71,7 +71,7 @@ export function useTierPricing(_focus: PackSkuId = DEFAULT_PACK_SKU): {
   const { data, isLoading } = trpc.visionPacks.pricing.useQuery(
     {},
     {
-      // Pricing rarely changes mid-session — staleTime caps cross-component
+      // Pricing rarely changes mid-session, staleTime caps cross-component
       // refetches when several CTAs render on the same page.
       staleTime: 5 * 60 * 1000,
     },

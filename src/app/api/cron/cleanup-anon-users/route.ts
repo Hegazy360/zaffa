@@ -14,7 +14,7 @@ import { getSupabaseAdmin } from "@/lib/supabase/admin";
  * Retention window: 14 days. Long enough to catch a returning visitor
  * who confirmed the email a few days late, short enough that abuse
  * accumulation stays bounded. Anon users who DID upgrade
- * (`is_anonymous=false`) are never touched — the cleanup is keyed off
+ * (`is_anonymous=false`) are never touched, the cleanup is keyed off
  * the mirrored flag on `profiles`.
  *
  * Configure in `vercel.json`:
@@ -36,7 +36,7 @@ export async function GET(req: Request) {
   const cutoff = new Date();
   cutoff.setUTCDate(cutoff.getUTCDate() - RETENTION_DAYS);
 
-  // Chat transcripts age out at 90 days — they exist as a prompt-tuning
+  // Chat transcripts age out at 90 days, they exist as a prompt-tuning
   // corpus and an abuse trail, not a permanent record. Cascade removes
   // the messages. Rides this cron rather than its own entry because a
   // daily sweep is a daily sweep.
@@ -55,7 +55,7 @@ export async function GET(req: Request) {
   // Anon users that haven't claimed an email yet AND haven't even
   // hit the gate (no `free_render_email`). Email-claimed-but-not-
   // confirmed rows are also fair game because the lock falls away
-  // with the row — a fresh visitor with the same email can try
+  // with the row, a fresh visitor with the same email can try
   // again. The free-render uniqueness constraint is a fairness
   // signal, not a permanent ban.
   const stale = await prisma.profile.findMany({

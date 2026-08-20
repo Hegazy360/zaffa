@@ -29,7 +29,7 @@ export interface ResolvedVisionPackPricing extends VisionPackPrice {
   sku: PackSkuId;
   /** ISO-2 country code we believe the visitor is in, or null if unknown. */
   country: string | null;
-  /** Where the price came from — useful for logs + the admin dashboard. */
+  /** Where the price came from, useful for logs + the admin dashboard. */
   source:
     | "country_override"
     | "default_override"
@@ -67,7 +67,7 @@ export function resolveCountryFromRequest(
  * Resolve the effective price for a given country code + SKU. Looks up
  * the DB override layer first, falls back to the seed matrix.
  *
- * Caller convention: pass `null` if the country signal is unknown —
+ * Caller convention: pass `null` if the country signal is unknown -
  * we'll return the global default from whichever layer wins. Don't
  * normalise here; that's the caller's job. Defaults to the entry-tier
  * Design Pack so the home page hero/metadata don't have to know about

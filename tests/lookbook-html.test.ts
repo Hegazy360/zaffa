@@ -7,7 +7,7 @@ import arMessages from "../messages/ar.json";
  *
  * The failures this guards are the ones the react-pdf version actually
  * shipped: Arabic that cannot render, a hardcoded `en-US` date, English
- * strings in every locale, and fonts fetched from a CDN at render time — where
+ * strings in every locale, and fonts fetched from a CDN at render time - where
  * an outage does not degrade the PDF, it replaces every glyph with Helvetica,
  * which for Arabic is tofu.
  */
@@ -200,7 +200,7 @@ describe("renderLookbookHtml", () => {
     // the category as its section heading.
     expect(html).toContain(enMessages.lookbook.category.overall_vibe);
     expect(html).toContain(enMessages.lookbook.category.flowers);
-    // Attribution is customer/third-party text — must pass esc().
+    // Attribution is customer/third-party text, must pass esc().
     expect(html).not.toContain('<b>"someone"</b>');
     expect(html).toContain("&lt;b&gt;");
   });
@@ -232,7 +232,7 @@ describe("renderLookbookHtml", () => {
     currentMessages = enMessages;
     const html = await renderLookbookHtml(data, "en");
     expect(html).toContain(enMessages.lookbook.makeItRealTitle);
-    // REPLY_WITHIN_HOURS is interpolated — the number must appear.
+    // REPLY_WITHIN_HOURS is interpolated, the number must appear.
     expect(html).toMatch(/24\s*hours|within 24/i);
     expect(html).toContain("wa.me");
   });

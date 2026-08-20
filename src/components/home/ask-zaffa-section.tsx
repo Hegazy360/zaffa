@@ -8,7 +8,7 @@ import { track } from "@/lib/analytics";
 import { ANALYTICS_EVENTS } from "@/lib/analytics-events";
 
 /**
- * The homepage's visible invitation to the chat — a floating bubble alone
+ * The homepage's visible invitation to the chat, a floating bubble alone
  * is furniture; this band is the introduction. Pure entry affordance: the
  * chips open the global widget (mounted by the root layout) with the
  * question pre-sent, so there is no second chat instance and this section

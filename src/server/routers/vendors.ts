@@ -56,10 +56,10 @@ export const vendorsRouter = router({
     });
   }),
 
-  // Vendor profile by id — used by the planner-side browse + detail pages
+  // Vendor profile by id, used by the planner-side browse + detail pages
   // and also the planner-event vendor card. Includes catalog + reviews so
   // those pages can render in a single round-trip. Gated to authenticated
-  // users only — public access to the vendor catalog is currently disabled
+  // users only, public access to the vendor catalog is currently disabled
   // (see the `publicBrowse` flag in `src/lib/flags.ts`).
   byId: protectedProcedure
     .input(z.object({ id: z.string().uuid() }))
@@ -90,7 +90,7 @@ export const vendorsRouter = router({
 
   // Planner-side / public browse. Supports a category filter, location prefix
   // match, and a free-text query that runs against business_name + bio.
-  // Authenticated only — the public `/vendors` page is currently dark-shipped
+  // Authenticated only, the public `/vendors` page is currently dark-shipped
   // behind the `publicBrowse` flag, so we don't want this exposed unauthed
   // either.
   search: protectedProcedure
@@ -135,7 +135,7 @@ export const vendorsRouter = router({
       const hasMore = items.length > input.take;
       const trimmed = hasMore ? items.slice(0, -1) : items;
 
-      // Planner-journey funnel — only fire on the first page of results
+      // Planner-journey funnel, only fire on the first page of results
       // (no cursor) to avoid double-counting infinite-scroll pagination.
       // Captures the search shape so we can later see which filters are
       // actually used.
@@ -334,7 +334,7 @@ export const vendorsRouter = router({
             available: input.available,
           },
         });
-        // Vendor activation funnel — every new service is a step toward
+        // Vendor activation funnel, every new service is a step toward
         // a complete catalog. Captured against the vendor's distinctId.
         await trackServer(ctx.user.id, ANALYTICS_EVENTS.SERVICE_ADDED, {
           service_id: created.id,

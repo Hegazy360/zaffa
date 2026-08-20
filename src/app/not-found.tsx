@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 /**
  * 404, in the reader's language.
  *
- * Was entirely hardcoded English — "Page Not Found", "Go Home" — served to
+ * Was entirely hardcoded English - "Page Not Found", "Go Home" - served to
  * Arabic, French and German visitors alike, on the one page where somebody is
  * already confused. It is a server component, so `getTranslations` resolves
  * the same locale the rest of the site is using.

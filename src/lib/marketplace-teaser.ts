@@ -7,9 +7,9 @@ import { sizeFromGuestCount, type Size } from "@/types/venue-designer";
  * Anonymized teaser for an open brief. Designed to be public-safe: every
  * identifying field (couple's name, exact date, venue, budget, exact title,
  * references, style notes) is stripped before it leaves the server. Budget
- * isn't exposed even as a coarse band — couples don't want their spend
+ * isn't exposed even as a coarse band, couples don't want their spend
  * tier visible to anonymous visitors. What remains is enough to make a
- * planner curious and a client believe the platform is busy — and nothing
+ * planner curious and a client believe the platform is busy, and nothing
  * more.
  */
 export interface PublicBriefTeaser {
@@ -57,7 +57,7 @@ function eventMonthIso(date: Date | null | undefined): string | null {
   if (!date) return null;
   const d = new Date(date);
   if (Number.isNaN(d.getTime())) return null;
-  // First-of-month — the consumer formats the month/year locale-aware. Using
+  // First-of-month, the consumer formats the month/year locale-aware. Using
   // an ISO date keeps the wire payload stable.
   return new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), 1)).toISOString();
 }
@@ -120,7 +120,7 @@ async function fetchMarketplaceTeaserUncached(): Promise<MarketplaceTeaserData> 
             orderBy: { approved_at: "desc" },
             take: 1,
             // The marketing surface deliberately reads only `media[0].url`
-            // — every render uploaded through the AI pipeline lives in
+            //, every render uploaded through the AI pipeline lives in
             // Cloudinary, so we get a stable CDN URL we can safely embed
             // and cache. The legacy `thumbnail` column on `venue_designs`
             // can hold inline `data:` URIs from a removed write path; we
@@ -170,7 +170,7 @@ async function fetchMarketplaceTeaserUncached(): Promise<MarketplaceTeaserData> 
       teasers,
     };
   } catch (err) {
-    // The marketing surfaces are public — never let a DB hiccup kill the
+    // The marketing surfaces are public, never let a DB hiccup kill the
     // page. The component degrades to its empty state. Logged so the
     // failure is debuggable: silent fallbacks are exactly what made
     // a Prisma TLS regression look like "the events list just disappeared"

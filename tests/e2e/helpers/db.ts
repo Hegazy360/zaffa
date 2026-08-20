@@ -37,7 +37,7 @@ export async function closeTestDb(): Promise<void> {
 
 /**
  * Fetches the `PlannerProfile.id` for the E2E planner user. This is the key
- * scoping id for every other test query — `planner_id` on events, proposals,
+ * scoping id for every other test query - `planner_id` on events, proposals,
  * schedules, payments, payouts all reference `PlannerProfile.id`, NOT the
  * auth user id.
  *
@@ -163,7 +163,7 @@ export interface VisionPackRow {
  * a pack. Used by `pack-path.spec.ts` to wait on webhook activation.
  *
  * The query joins on `auth.users` because that's where Supabase stores
- * the email column — `profiles` only carries the canonical user id.
+ * the email column, `profiles` only carries the canonical user id.
  */
 export async function getVisionPackByRecipient(
   email: string,
@@ -314,7 +314,7 @@ export interface ConciergeInstallment {
 }
 
 /**
- * Schedule-less payments for an event — the concierge ledger.
+ * Schedule-less payments for an event, the concierge ledger.
  *
  * Selecting the fee columns deliberately: on this lane they must stay null,
  * which is what marks the row as first-party revenue rather than a

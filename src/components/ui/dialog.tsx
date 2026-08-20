@@ -53,7 +53,7 @@ function DialogContent({
       {/* `left-1/2 -translate-x-1/2` is deliberately PHYSICAL, not the
           logical `start-1/2` used everywhere else. Centering is symmetric,
           but `start-1/2` resolves to `right: 50%` under RTL while the
-          translate stays physical — which put every dialog a full popup-width
+          translate stays physical, which put every dialog a full popup-width
           off-centre in Arabic, our primary locale. */}
       <DialogPrimitive.Popup
         data-slot="dialog-content"

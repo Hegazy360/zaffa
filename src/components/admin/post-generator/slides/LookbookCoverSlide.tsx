@@ -11,7 +11,7 @@ export interface LookbookCoverSlideProps {
 
 /**
  * Mockup of a printed lookbook resting on a table. Built entirely from
- * CSS — no prop assets — so any post can use this slide without an
+ * CSS, no prop assets, so any post can use this slide without an
  * extra image-gen step. The render gets composited as the cover image
  * in the foreground.
  */
@@ -32,7 +32,7 @@ export function LookbookCoverSlide({
             "radial-gradient(ellipse at 30% 18%, rgba(255,255,255,0.55), transparent 60%)",
         }}
       />
-      {/* paper grain — subtle */}
+      {/* paper grain, subtle */}
       <div
         aria-hidden
         className="absolute inset-0 opacity-[0.06] mix-blend-multiply"

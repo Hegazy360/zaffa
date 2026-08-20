@@ -16,8 +16,8 @@ import { useChatStore, type ChatBubble } from "@/stores/chat-store";
 /**
  * The chat conversation view. Loaded on first open via next/dynamic.
  *
- * Transport is a non-streaming tRPC mutation — replies are capped at ~350
- * tokens, so the UX problem is a 2–5s wait, solved with an optimistic user
+ * Transport is a non-streaming tRPC mutation, replies are capped at ~350
+ * tokens, so the UX problem is a 2-5s wait, solved with an optimistic user
  * bubble + typing placeholder rather than streaming (which would be the
  * codebase's first and only streaming surface).
  *
@@ -45,7 +45,7 @@ export function ChatPanel() {
 
   // The Turnstile challenge is needed only for the conversation's first
   // message from a visitor without a permanent account (mirrors the
-  // server). `isAnon` is null while unknown — treat unknown as needing it,
+  // server). `isAnon` is null while unknown - treat unknown as needing it,
   // the server is the judge anyway.
   const needsTurnstile = !store.conversationId && isAnon !== false;
 
@@ -111,7 +111,7 @@ export function ChatPanel() {
     [ask, busy, locale, scrollToEnd, store, t, turnstileToken],
   );
 
-  // A homepage chip queued a question — send it once the panel is up.
+  // A homepage chip queued a question, send it once the panel is up.
   // Guarded by a ref so StrictMode's double effect can't double-send.
   const seedFired = useRef(false);
   useEffect(() => {
@@ -187,7 +187,7 @@ export function ChatPanel() {
         )}
       </div>
 
-      {/* The human escape hatch — always visible, every failure lands here. */}
+      {/* The human escape hatch - always visible, every failure lands here. */}
       <div className="flex items-center gap-3 border-t border-brand-line px-4 py-2.5">
         <a
           href={whatsappLink(t("whatsappPrefill"))}
@@ -323,7 +323,7 @@ function Bubble({
           <button
             type="button"
             onClick={() => {
-              // Drop the error bubble AND the failed user message —
+              // Drop the error bubble AND the failed user message -
               // `send` re-appends both, so keeping either would duplicate.
               store.removeLast();
               store.removeLast();

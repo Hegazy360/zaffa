@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { WhatsAppCta } from "@/components/marketing/whatsapp-cta";
 import { Rise } from "@/components/motion/rise";
 
-// The Whole Wedding (الزفّة الكاملة) — the full-service plan, where Zaffa
+// The Whole Wedding (الزفّة الكاملة) - the full-service plan, where Zaffa
 // runs the wedding instead of handing the couple a tool. See ZAF-25 (scope
 // and pricing), ZAF-26 (name and copy), ZAF-27 (this presentation).
 //
@@ -14,27 +14,27 @@ import { Rise } from "@/components/motion/rise";
 // 1. **It is not in `PACK_SKUS`.** It isn't sold through Stripe and shows no
 //    price, so it has no SKU. Adding one risks a single line in
 //    `PACK_SKU_ORDER` silently rendering it as a third `TierCard` with a
-//    Stripe checkout button — a "Tell us about your wedding" button that
+//    Stripe checkout button, a "Tell us about your wedding" button that
 //    opens Stripe is the worst outcome available here.
 //
-// 2. **It shows no price at all, on purpose.** The fee is 10–15% of a
+// 2. **It shows no price at all, on purpose.** The fee is 10-15% of a
 //    wedding budget, and budgets across our markets differ by ~20× (Egypt
-//    EGP 150k–400k, Dubai AED 400k–900k+). Any single figure is wrong
-//    somewhere, and a percentage puts the couple's own budget on a meter —
+//    EGP 150k-400k, Dubai AED 400k-900k+). Any single figure is wrong
+//    somewhere, and a percentage puts the couple's own budget on a meter -
 //    the exact anxiety this plan sells relief from. How we actually quote is
 //    documented in `docs/pricing-full-service.md`.
 //
 // 3. **No feature checklist.** The packs use ticks because comparison is
 //    their pitch. This plan's pitch is *stop comparing, we've got it*, so it
 //    uses a dot-separated run of nouns (the pattern from `begin-section.tsx`)
-//    — you can't tick off a list you can only feel the length of.
+//, you can't tick off a list you can only feel the length of.
 //
 // Its own section rather than a third column in `TierComparisonSection`:
 // that component maps off `useTierPricing().ordered` (priced SKUs only),
 // hardcodes `md:grid-cols-2`, and its CTA calls `usePackCheckoutAction()`
 // straight into Stripe. None of those survive an enquiry-led tier.
 // Covered items come from the catalog as one pipe-delimited string rather
-// than hardcoded English — they are content, and Arabic needs its own list
+// than hardcoded English - they are content, and Arabic needs its own list
 // (and its own ordering) rather than a translated word-for-word run.
 function parseCovers(raw: string): string[] {
   return raw
@@ -81,7 +81,7 @@ export async function WholeWeddingSection() {
           className="mx-auto max-w-3xl text-center"
         >
           {/* `rtl:tracking-normal` because wide letter-spacing breaks Arabic
-              glyph joining — the letters stop connecting and the word comes
+              glyph joining, the letters stop connecting and the word comes
               apart. Live in several older sections; fixed here, raised
               separately rather than folded into this ticket. */}
           <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/[0.06] px-4 py-1.5 text-eyebrow text-rose-100 backdrop-blur-md">
@@ -96,7 +96,7 @@ export async function WholeWeddingSection() {
           </p>
         </Rise>
 
-        {/* What's covered — nouns, not ticks. */}
+        {/* What's covered - nouns, not ticks. */}
         <Rise as="div" delay={0.1}
           className="mx-auto mt-12 flex max-w-3xl flex-wrap items-center justify-center gap-x-4 gap-y-2 text-sm text-muted-foreground sm:gap-x-5"
         >
@@ -145,7 +145,7 @@ export async function WholeWeddingSection() {
                   now makes the same honest argument (Cairo and Dubai are not
                   the same wedding) and resolves it with a published fee per
                   market instead of with silence. The table itself stays on
-                  /pricing — three rows per market at the top of a funnel makes
+                  /pricing, three rows per market at the top of a funnel makes
                   the decision harder, not easier. */}
               <p className="text-pretty text-sm leading-relaxed text-muted-foreground">
                 {t("priceParagraph")}

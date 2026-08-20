@@ -45,7 +45,7 @@ export const aiRouter = router({
         ]),
         setting: z.enum(["indoor", "outdoor", "tent"]),
         size: z.enum(["intimate", "medium", "large"]),
-        // Optional precise count — when present, the scene generator uses
+        // Optional precise count - when present, the scene generator uses
         // it verbatim in the layout descriptor instead of the bucket sample.
         guestCount: z.number().int().min(2).max(10000).nullish(),
         palette: z.object({
@@ -64,7 +64,7 @@ export const aiRouter = router({
       // Bot protection on anonymous Generate. Verified BEFORE we mint
       // a free pack so a captcha failure can't burn a quota slot or
       // create stray DB rows. Paid users (`is_anonymous=false` and
-      // already past the email gate at signup) are exempt — they've
+      // already past the email gate at signup) are exempt, they've
       // committed money, they're not bot traffic.
       if (ctx.user.is_anonymous) {
         const ip = ctx.req ? ipFromRequest(ctx.req) : null;
@@ -87,7 +87,7 @@ export const aiRouter = router({
       // PACK_WINDOW_EXPIRED) to surface the right modal.
       const pack = await requireActivePack(ctx.user.id, "render");
       // Per-hour burst cap + per-day cost ceiling. Even on a paid pack
-      // these stay — they're independent abuse protection (a single user
+      // these stay, they're independent abuse protection (a single user
       // shouldn't cost us $100 of OpenAI in five minutes regardless of
       // whether they paid 499 EGP).
       await enforceTrpcMany(
@@ -107,7 +107,7 @@ export const aiRouter = router({
 
       // Free-tier extra protection: a per-IP limiter that catches anyone
       // spinning up fresh anonymous Supabase users to dodge the per-user
-      // quota. Doesn't apply to paid packs — those users have already
+      // quota. Doesn't apply to paid packs, those users have already
       // committed.
       //
       // Throws the stable `FREE_RENDER_RATE_LIMITED` reason code (not a
@@ -135,14 +135,14 @@ export const aiRouter = router({
 
       // Tier-aware response: free-tier renders get the watermarked
       // signed Cloudinary URL; paid tiers see the clean asset. After
-      // an upgrade the same row's `imageUrl` flips automatically — no
+      // an upgrade the same row's `imageUrl` flips automatically, no
       // re-render required (see `venueDesigns.list` / `getById`).
       const imageUrl =
         isFreePack(pack.sku) && publicId
           ? watermarkedUrl(publicId)
           : cleanUrl;
 
-      // Couple-journey funnel — every successful AI render is a step
+      // Couple-journey funnel, every successful AI render is a step
       // toward a finished design. Tracking the input shape (event type,
       // setting, palette size) lets us compare conversion across config.
       await trackServer(ctx.user.id, ANALYTICS_EVENTS.DESIGN_RENDER_GENERATED, {
@@ -156,7 +156,7 @@ export const aiRouter = router({
       });
 
       return {
-        // Clean URL (server-side persistence) — kept on the returned
+        // Clean URL (server-side persistence), kept on the returned
         // shape for the `venueDesigns.saveMedia` follow-up which stores
         // it in the DB so future paid views resolve directly.
         cleanImageUrl: cleanUrl,
@@ -164,7 +164,7 @@ export const aiRouter = router({
         // What the client should render right now.
         imageUrl,
         text: result.text,
-        // True iff the visitor is currently on the free tier — the UI
+        // True iff the visitor is currently on the free tier, the UI
         // mounts the email gate when this is set.
         watermarked: isFreePack(pack.sku),
         // SKU on the active pack at the time of render. Lets the
@@ -232,7 +232,7 @@ export const aiRouter = router({
       );
       const result = await startVideoGeneration(input);
       await consumeQuota(pack.id, "video");
-      // Fired on the start of generation — completion is async/polled,
+      // Fired on the start of generation - completion is async/polled,
       // and the user-perceived moment of "I asked for a video" is here.
       await trackServer(ctx.user.id, ANALYTICS_EVENTS.DESIGN_VIDEO_GENERATED, {
         event_type: input.context?.eventType ?? null,

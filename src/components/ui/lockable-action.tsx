@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils";
  * Wraps a disabled action with a hover-revealed hint tooltip.
  *
  * The base `Button` primitive applies `disabled:pointer-events-none` in
- * its Tailwind variant, which kills hover events on the button — so a
+ * its Tailwind variant, which kills hover events on the button - so a
  * native `title=""` attribute never fires for disabled controls (and
  * doesn't surface on touch devices regardless). This wrapper uses a
  * tiny CSS tooltip driven by `group-hover/locked`: the parent span
@@ -14,10 +14,10 @@ import { cn } from "@/lib/utils";
  * pass through the disabled child.
  *
  * `align` controls horizontal anchoring relative to the wrapped child:
- *   - "start" (default): tooltip extends toward inline-end — best for
+ *   - "start" (default): tooltip extends toward inline-end, best for
  *     buttons at the inline-start edge of their row, where a centered
  *     tooltip would overflow the container.
- *   - "end": tooltip extends toward inline-start — best for buttons in
+ *   - "end": tooltip extends toward inline-start, best for buttons in
  *     a right-aligned cluster (e.g. action rows with `ms-auto`).
  *
  * Touch users and screen readers should still be served by an inline

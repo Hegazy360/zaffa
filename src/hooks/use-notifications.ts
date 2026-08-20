@@ -15,7 +15,7 @@ import { trpc } from "@/lib/trpc";
  *   2. Pop a transient Sonner toast surfacing the same title/body so the
  *      user sees it even while on another page.
  *
- * The hook is idempotent — mount it once anywhere in the dashboard tree
+ * The hook is idempotent, mount it once anywhere in the dashboard tree
  * (typically in Navbar) and it handles teardown on unmount.
  */
 export function useNotificationsRealtime(userId: string | null | undefined) {

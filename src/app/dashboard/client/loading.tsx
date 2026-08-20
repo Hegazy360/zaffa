@@ -4,8 +4,8 @@ import { Skeleton, SkeletonRegion } from "@/components/ui/skeleton";
 /**
  * The dashboard's shape, before the dashboard.
  *
- * Without this the route fell through to the root `loading.tsx` — a spinner in
- * the middle of an otherwise empty screen — and then jumped into a two-section
+ * Without this the route fell through to the root `loading.tsx`, a spinner in
+ * the middle of an otherwise empty screen, and then jumped into a two-section
  * layout when the payload arrived. A skeleton that matches the real grid means
  * nothing moves when the content lands, which is the whole point; a generic
  * grey box would be a spinner with extra steps.

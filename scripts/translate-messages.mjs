@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // Mirror messages/en.json into messages/<locale>.json using OpenAI. Only
-// keys that are missing or newly added in EN are translated — already
+// keys that are missing or newly added in EN are translated, already
 // translated keys are kept as-is so manual polish doesn't get clobbered.
 //
 // Usage:
@@ -102,12 +102,12 @@ const SYSTEM_PROMPT = `You are a professional product copywriter for Zaffa, a we
 
 Translate the provided English UI strings into ${
   target === "ar"
-    ? `Egyptian Arabic carried on a فصحى spine — the register a real Egyptian brand writes in, not a textbook.
+    ? `Egyptian Arabic carried on a فصحى spine - the register a real Egyptian brand writes in, not a textbook.
 
 Concretely, for Arabic:
-- Lean colloquial Egyptian for anything conversational (headlines, body copy, CTAs): "إحنا معاكم", "نظبّط", "مفيش اختيار غلط", "بنعمل إيه". Keep فصحى for structure and for anything formal — legal copy, field labels, error states.
+- Lean colloquial Egyptian for anything conversational (headlines, body copy, CTAs): "إحنا معاكم", "نظبّط", "مفيش اختيار غلط", "بنعمل إيه". Keep فصحى for structure and for anything formal - legal copy, field labels, error states.
 - Address the couple in the plural (إنتوا / -كم). Do not switch to masculine or feminine singular mid-catalog.
-- Contractions and everyday words beat elevated synonyms. If a sentence would sound stilted read aloud to a friend, it is wrong — even if it is grammatically immaculate.
+- Contractions and everyday words beat elevated synonyms. If a sentence would sound stilted read aloud to a friend, it is wrong - even if it is grammatically immaculate.
 - Never produce a literal word-for-word rendering of the English. Say what the English means, the way an Egyptian would say it.`
     : `the ${target} locale`
 }.
@@ -115,14 +115,14 @@ Concretely, for Arabic:
 Rules:
 - The product is called "Zaffa". ${
   target === "ar"
-    ? 'In Arabic it is always written "زفّة" — never "زفافا", "زافا", or any other spelling, and never translated to the common noun "زفاف" (wedding). Treat زفّة as grammatically feminine, matching the rest of the catalog.'
-    : 'Keep it as "Zaffa" verbatim — never translate or transliterate it.'
+    ? 'In Arabic it is always written "زفّة" - never "زفافا", "زافا", or any other spelling, and never translated to the common noun "زفاف" (wedding). Treat زفّة as grammatically feminine, matching the rest of the catalog.'
+    : 'Keep it as "Zaffa" verbatim, never translate or transliterate it.'
 }
 - Preserve every ICU placeholder verbatim, e.g. {email}, {min}, {count}. Do not translate, rename, or reformat them.
 - Preserve any HTML-like tags such as <strong> or <link> verbatim. Do not add new tags.
-- Keep the tone elegant and concise — these are UI labels, button text, headers, helper copy.
+- Keep the tone elegant and concise - these are UI labels, button text, headers, helper copy.
 - Prefer culturally appropriate phrasing over literal translation. For wedding/event verbs, choose words that feel native to a high-end planner.
-- Output JSON only, in the schema { "translations": ["...","..."] } — one entry per input string in order. Do NOT include the source strings or any extra commentary.`;
+- Output JSON only, in the schema { "translations": ["...","..."] } - one entry per input string in order. Do NOT include the source strings or any extra commentary.`;
 
 // Batch in groups so we keep prompt size reasonable while still leveraging
 // the model's context window. 25 strings/batch keeps each request well

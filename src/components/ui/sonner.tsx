@@ -7,7 +7,7 @@ const Toaster = ({ ...props }: ToasterProps) => {
   return (
     <Sonner
       // Pinned light, deliberately. This previously read the theme from
-      // next-themes — but no ThemeProvider is mounted anywhere in the app, so
+      // next-themes - but no ThemeProvider is mounted anywhere in the app, so
       // the hook fell back to "system" and Sonner honoured the OS preference.
       // The result was dark toasts floating over a permanently-light product
       // for every user on OS dark mode. Zaffa ships one light theme; its

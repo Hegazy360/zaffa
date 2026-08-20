@@ -87,7 +87,7 @@ export default async function ProfessionalSignUpPage({ searchParams }: PageProps
         </p>
       </div>
 
-      {/* Live wall of open briefs — the "why join now" pitch. Anonymized
+      {/* Live wall of open briefs, the "why join now" pitch. Anonymized
           server-side; the cards just tease the platform's pulse. Streamed
           via Suspense so the form below is interactive immediately. */}
       <Suspense

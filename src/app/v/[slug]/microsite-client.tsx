@@ -158,7 +158,7 @@ export function Microsite({
 
   return (
     <main className="flex-1">
-        {/* Hero band — full-bleed render with the names in display type. */}
+        {/* Hero band, full-bleed render with the names in display type. */}
         <section className="relative isolate overflow-hidden bg-rose-50/30">
           <div
             aria-hidden
@@ -311,7 +311,7 @@ export function Microsite({
           </section>
         )}
 
-        {/* Mood board (references) — grouped by category so the eye has
+        {/* Mood board (references), grouped by category so the eye has
             handles to grab onto, matching the planner marketplace view. */}
         {totalRefs > 0 && (
           <section className="mx-auto max-w-6xl px-6 py-16 sm:py-20">

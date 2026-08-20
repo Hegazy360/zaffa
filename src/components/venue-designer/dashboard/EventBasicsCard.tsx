@@ -57,7 +57,7 @@ export function EventBasicsCard() {
     label: t(item.labelKey),
   }));
 
-  // Mirrors the hint text under the size buckets we used to render — gives
+  // Mirrors the hint text under the size buckets we used to render, gives
   // the couple a sense of what their number means for layout (and what the
   // AI will translate it into) without overwhelming them.
   const sizeBucket = guestCount != null ? sizeFromGuestCount(guestCount) : null;

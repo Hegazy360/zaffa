@@ -1,4 +1,4 @@
-// Venues — admin-curated directory + per-event recommendations.
+// Venues, admin-curated directory + per-event recommendations.
 //
 // Two surfaces share one router:
 //   - Admin (CRUD + recommend/unrecommend): operations team curates the
@@ -257,7 +257,7 @@ export const venuesRouter = router({
     }),
 
   /** Append an image URL to a venue. The actual upload lives in the
-   *  `/api/upload/venue-image` route — this just records the URL. */
+   *  `/api/upload/venue-image` route, this just records the URL. */
   adminAddImage: protectedProcedure
     .input(
       z.object({
@@ -322,7 +322,7 @@ export const venuesRouter = router({
     .mutation(async ({ ctx, input }) => {
       await assertAdmin(ctx.user.id);
       // Ensure the event exists before creating the recommendation row
-      // — surfaces a clearer error than the FK violation.
+      //, surfaces a clearer error than the FK violation.
       const event = await prisma.event.findUnique({
         where: { id: input.eventId },
         select: { id: true },
@@ -409,7 +409,7 @@ export const venuesRouter = router({
       });
     }),
 
-  /** Couple clicked "I'm interested" — stamp the timestamp and ping ops. */
+  /** Couple clicked "I'm interested", stamp the timestamp and ping ops. */
   expressInterest: protectedProcedure
     .input(z.object({ recommendationId: z.string().uuid() }))
     .mutation(async ({ ctx, input }) => {
@@ -428,7 +428,7 @@ export const venuesRouter = router({
       if (rec.event.client_id !== ctx.user.id) {
         throw new TRPCError({ code: "FORBIDDEN" });
       }
-      // Idempotent — clicking twice is a no-op for ops, the timestamp
+      // Idempotent - clicking twice is a no-op for ops, the timestamp
       // doesn't move and we don't spawn duplicate notifications.
       if (rec.interested_at) return { ok: true, alreadyInterested: true };
 
@@ -454,7 +454,7 @@ export const venuesRouter = router({
           coupleName: profile?.full_name ?? "A couple",
         });
       } catch (err) {
-        // Don't fail the user-facing mutation on a notification glitch —
+        // Don't fail the user-facing mutation on a notification glitch -
         // the recommendation row is already updated.
         reportError("venues.expressInterest.notify_failed", err, {
           recommendationId: rec.id,

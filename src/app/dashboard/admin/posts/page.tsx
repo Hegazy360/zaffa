@@ -56,7 +56,7 @@ export default function AdminPostsPage() {
             </h1>
             <p className="max-w-xl text-xs text-muted-foreground sm:text-sm">
               Generated Instagram / TikTok carousels, awaiting triage.
-              Publishing here is a status flip — actual posting still
+              Publishing here is a status flip, actual posting still
               happens manually from a phone.
             </p>
           </div>

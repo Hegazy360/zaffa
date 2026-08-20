@@ -3,7 +3,7 @@
 //
 // We can't use the same upload-stream pattern as `/api/upload/avatar`
 // here because the rasterized PNG is generated in the browser (via
-// `html-to-image`) and would be MB-sized — streaming it back through
+// `html-to-image`) and would be MB-sized, streaming it back through
 // our server is wasteful and serverless-unfriendly. Instead we hand the
 // client a signed payload and let the browser POST directly to
 // Cloudinary's REST endpoint.

@@ -27,7 +27,7 @@ import { useConfirm } from "@/components/ui/confirm";
  * (`/dashboard/admin/venues/new`); existing venues open in
  * `/dashboard/admin/venues/[id]`.
  *
- * The directory is admin-curated for v1 — no venue self-serve flow yet.
+ * The directory is admin-curated for v1, no venue self-serve flow yet.
  * The schema's nullable `user_id` keeps the door open for v2 without a
  * follow-up migration.
  */
@@ -146,7 +146,7 @@ export default function AdminVenuesPage() {
                       {venue.capacity_max ? (
                         <>
                           {" · "}
-                          {venue.capacity_min ?? 0}–{venue.capacity_max} guests
+                          {venue.capacity_min ?? 0}-{venue.capacity_max} guests
                         </>
                       ) : null}
                     </p>

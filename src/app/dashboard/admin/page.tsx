@@ -103,7 +103,7 @@ export default function AdminOverview() {
               value={
                 kpis.data.proposals.avgDaysToAccept > 0
                   ? f.number(kpis.data.proposals.avgDaysToAccept)
-                  : "—"
+                  : "-"
               }
               spark={kpis.data.proposals.spark}
               icon={<TrendingUp className="size-4" />}

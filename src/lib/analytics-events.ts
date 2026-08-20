@@ -1,5 +1,5 @@
 // All PostHog event names live here so call sites can't typo. Importable
-// from anywhere (server, client, edge) — it's just strings, no runtime
+// from anywhere (server, client, edge) - it's just strings, no runtime
 // dependencies.
 //
 // Naming convention: `noun.verb_in_past_tense`, snake_case, lower-case.

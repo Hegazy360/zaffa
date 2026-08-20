@@ -2,7 +2,7 @@ import { getTranslations } from "next-intl/server";
 import { Building2, ShieldCheck, Sparkles, Users, type LucideIcon } from "lucide-react";
 import { Rise } from "@/components/motion/rise";
 
-// The one new UI surface in the ZAF-18/ZAF-19 homepage rebrand — sits
+// The one new UI surface in the ZAF-18/ZAF-19 homepage rebrand, sits
 // between `HowItWorks` (which ends at the reinstated step 4, "hand it to
 // your concierge") and `ShareSection` (demoted to supporting proof). This
 // is the "then we take over" payoff: three *parallel* capabilities, not
@@ -13,7 +13,7 @@ import { Rise } from "@/components/motion/rise";
 // the page for the same concepts (Users = planner matching, also used in
 // `how-it-works.tsx` step 4 and `tier-comparison-section.tsx`; Building2 =
 // vetted venue/vendor sourcing, also used in `tier-comparison-section.tsx`).
-// `ShieldCheck` is new to the page — the "we're the buffer" idea has no
+// `ShieldCheck` is new to the page, the "we're the buffer" idea has no
 // existing visual precedent to reuse.
 interface Pillar {
   id: "match" | "handle" | "source";

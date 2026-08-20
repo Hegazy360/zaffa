@@ -4,7 +4,7 @@ import { createClient } from "@supabase/supabase-js";
  * Server-only Supabase client signed with the service role key. Bypasses
  * RLS so it can perform admin actions like deleting auth.users rows.
  *
- * NEVER import this module from a client component — the service role key
+ * NEVER import this module from a client component, the service role key
  * has full access. Re-throws on missing env in production.
  */
 let cached: ReturnType<typeof createClient> | null = null;

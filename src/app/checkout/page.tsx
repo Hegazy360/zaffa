@@ -20,12 +20,12 @@ import { minorToMajor } from "@/lib/vision-pack-pricing";
  * sign-up form pushes them to `/checkout?sku=...` once Supabase returns
  * a session (or finishes the email-confirm round trip). We immediately
  * fire `visionPacks.startCheckout` and replace the location with the
- * Stripe URL — the visitor sees a brief "redirecting…" card and never
+ * Stripe URL, the visitor sees a brief "redirecting…" card and never
  * has to re-click "Buy".
  *
  * Same page also serves direct deep-links from any future surface that
  * wants to send a logged-in user straight to checkout (e.g. a "Resume
- * checkout" reminder email) — anyone landing here without auth gets
+ * checkout" reminder email), anyone landing here without auth gets
  * bounced to `/auth/signin?next=/checkout?sku=...`.
  */
 export default function CheckoutLandingPage() {

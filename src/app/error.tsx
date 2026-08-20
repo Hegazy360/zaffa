@@ -13,7 +13,7 @@ export default function Error({
 }) {
   // Surface the error to whatever observability tooling is wired into
   // window in production. We deliberately do NOT show `error.message`
-  // to the user — server messages can leak query fragments / stack
+  // to the user, server messages can leak query fragments / stack
   // traces that aren't safe for an unauthenticated viewer. Show the
   // Next.js `digest` (an opaque id) instead so support can correlate.
   const t = useTranslations("errors");

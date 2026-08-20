@@ -32,7 +32,7 @@ export function ogLocale(locale: string): string {
   return isLocale(locale) ? ogLocales[locale] : ogLocales[defaultLocale];
 }
 
-/** Every other OG locale — for `openGraph.alternateLocale`. */
+/** Every other OG locale, for `openGraph.alternateLocale`. */
 export function alternateOgLocales(locale: string): string[] {
   const current = ogLocale(locale);
   return Object.values(ogLocales).filter((l) => l !== current);
@@ -42,7 +42,7 @@ export function alternateOgLocales(locale: string): string[] {
  * Shared `openGraph` locale fields.
  *
  * NOTE: Next.js **replaces** `openGraph` wholesale when a page defines its
- * own — it does not deep-merge with the layout's. So any page that sets
+ * own, it does not deep-merge with the layout's. So any page that sets
  * `openGraph` must spread this in itself, or its share cards silently lose
  * the locale tag. That is exactly how `og:locale` went missing from the home
  * page while the root layout looked correct.
@@ -77,7 +77,7 @@ export const localeLabels: Record<Locale, string> = {
 //
 // Only countries with a non-default mapping are listed; anything missing
 // falls through to `defaultLocale`. The user can always override via
-// the navbar switcher — that path writes the cookie, which is then
+// the navbar switcher - that path writes the cookie, which is then
 // preserved on every subsequent request.
 //
 // Maghreb countries (DZ, MA, TN, LY) have both Arabic and French as
@@ -110,7 +110,7 @@ export const COUNTRY_TO_LOCALE: Readonly<Record<string, Locale>> = {
   YE: "ar",
   // French-speaking countries + French overseas territories. We
   // include BE and LU here because Dutch and Luxembourgish aren't
-  // shipped — French is the best of the supported options for those
+  // shipped, French is the best of the supported options for those
   // visitors. Switzerland (CH) is mapped to German below (the majority
   // language, ~62%) rather than French.
   FR: "fr",

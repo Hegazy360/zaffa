@@ -14,7 +14,7 @@ vi.mock("@/lib/logger", () => ({
 vi.mock("@/lib/posthog", () => ({ captureServer: vi.fn(), trackServer: vi.fn() }));
 vi.mock("@/lib/rate-limit", () => ({ enforceTrpcMany: vi.fn(), enforceTrpc: vi.fn() }));
 
-// `resend` is deliberately null here — this is the exact misconfiguration that
+// `resend` is deliberately null here, this is the exact misconfiguration that
 // used to make the old contact-form path return success while dropping the
 // lead entirely. The enquiry must still persist.
 vi.mock("@/lib/resend", () => ({ resend: null }));
@@ -66,7 +66,7 @@ describe("enquiries.submit", () => {
     expect(prismaMock.enquiry.create).toHaveBeenCalledTimes(1);
   });
 
-  it("writes the row BEFORE notifying — ordering is the guarantee", async () => {
+  it("writes the row BEFORE notifying - ordering is the guarantee", async () => {
     const order: string[] = [];
     prismaMock.enquiry.create.mockImplementationOnce((() => {
       order.push("create");
@@ -87,7 +87,7 @@ describe("enquiries.submit", () => {
   it("fakes success and writes nothing when the honeypot is filled", async () => {
     const res = await caller(null).submit({ ...VALID, hp: "" } as never);
     expect(res.ok).toBe(true);
-    // An empty string is what a real browser submits — that must still persist.
+    // An empty string is what a real browser submits, that must still persist.
     expect(prismaMock.enquiry.create).toHaveBeenCalledTimes(1);
   });
 

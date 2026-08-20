@@ -22,7 +22,7 @@ import {
 /**
  * The sample studio: the homepage hero IS the product.
  *
- * A visitor restyles a sample wedding by tapping a setting or a palette —
+ * A visitor restyles a sample wedding by tapping a setting or a palette -
  * every cell is a real render the live pipeline produced from that exact
  * palette preset, swapped from a pre-generated AVIF. No session, no AI
  * call, no wait. The CTA then carries their picks into
@@ -32,17 +32,17 @@ import {
  * Two things here are load-bearing for how fast the page feels:
  *
  *  - **One image on first load.** Only the default cell is in the initial
- *    DOM, as the priority image — it is the page's LCP element. Stacking
+ *    DOM, as the priority image - it is the page's LCP element. Stacking
  *    the others at `opacity: 0` would still download them, and an
  *    idle-time warm-up (the first version) fired immediately on a fast
  *    connection and pulled 692 KB before the reader had touched anything.
- *    The rest now mount on the first sign of intent — a pointer entering
- *    the controls, or focus reaching them — so a tap is instant but a
+ *    The rest now mount on the first sign of intent, a pointer entering
+ *    the controls, or focus reaching them - so a tap is instant but a
  *    reader who never interacts pays nothing.
  *  - **Fixed-aspect stage.** Swaps are CLS-zero, and the crossfade is an
  *    onLoad-gated CSS opacity transition, instant under reduced motion.
  *
- * Entrance motion is `.hero-rise` CSS, never framer `initial opacity:0` —
+ * Entrance motion is `.hero-rise` CSS, never framer `initial opacity:0` -
  * that blanks the server HTML until hydration. The stage carries
  * `data-visual-mask` because the assets regenerate; the controls and
  * headline stay asserted in the visual net.
@@ -74,7 +74,7 @@ export function SampleStudioHero({
 
   const [vibe, setVibe] = useState(DEFAULT_VIBE);
   const [palette, setPalette] = useState(DEFAULT_PALETTE);
-  // The visible cell lags the selected one until the target has pixels — the
+  // The visible cell lags the selected one until the target has pixels, the
   // crossfade never shows an empty frame. Loaded-ness lives in a ref (not
   // state) because a warm-up load must not re-render, and `onLoad` fires only
   // once per image: selecting an already-loaded cell has to resolve
@@ -139,12 +139,12 @@ export function SampleStudioHero({
           </div>
 
           {/* The headline is a headline. It used to end with "Restyle this
-              one." — an instruction wedged into the sentence, which read as
+              one." - an instruction wedged into the sentence, which read as
               a third clause of the title rather than as something to do.
               The instruction now lives next to the thing it refers to. */}
           {/* `rtl:leading-*` is not decoration: Arabic sets taller than Latin
-              at the same font-size — ascenders and the deep descenders on
-              ك/ج need the room — and at 1.02 the two lines of the Arabic
+              at the same font-size, ascenders and the deep descenders on
+              ك/ج need the room, and at 1.02 the two lines of the Arabic
               headline physically overlapped. Latin keeps the tight display
               leading it was designed with. */}
           <h1
@@ -153,7 +153,7 @@ export function SampleStudioHero({
           >
             {t("studioTitlePart1")}{" "}
             {/* `rtl:not-italic`: there is no italic in Arabic typography, so
-                the browser synthesises one by skewing the glyphs — which
+                the browser synthesises one by skewing the glyphs, which
                 pushes them outside their inline box and, under
                 `background-clip: text`, shears the leading letter clean off.
                 Latin keeps the real italic the display face ships. */}
@@ -225,7 +225,7 @@ export function SampleStudioHero({
                 palette swatches to the far edge of a wide column, so the two
                 halves of a single control read as unrelated. */}
             <div className="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-end sm:gap-8">
-              {/* Setting — a segmented control. The previous version gave every
+              {/* Setting, a segmented control. The previous version gave every
                   chip its own border AND a selection ring at a slightly
                   different radius, which read as a doubled, fuzzy outline.
                   One track, one moving highlight, no per-item border. */}
@@ -257,7 +257,7 @@ export function SampleStudioHero({
                 </div>
               </div>
 
-              {/* Palette — paint swatches. The name of the selected one is
+              {/* Palette, paint swatches. The name of the selected one is
                   spelled out, so the dots are never the only clue about what
                   the render is supposed to be showing. */}
               <div>

@@ -255,7 +255,7 @@ export default function AdminUserDetailPage({
                             Number(p.quote_amount),
                             p.quote_currency,
                           )
-                        : "—"}
+                        : "-"}
                     </span>
                   </li>
                 ))}

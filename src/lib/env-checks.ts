@@ -33,7 +33,7 @@ export function assertProductionEnv(): void {
   if (missing.length > 0) {
     const joined = missing.join(", ");
     throw new Error(
-      `[zaffa] Refusing to boot — missing required production env vars: ${joined}`,
+      `[zaffa] Refusing to boot - missing required production env vars: ${joined}`,
     );
   }
 }

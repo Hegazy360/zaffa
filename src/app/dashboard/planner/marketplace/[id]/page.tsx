@@ -84,8 +84,8 @@ export default function BriefDetailPage() {
     onError: (e) => toast.error(e.message),
   });
 
-  // Planner-journey funnel — fired the first time the brief actually
-  // resolves. The mutationless query alone isn't a "view" — we wait for
+  // Planner-journey funnel, fired the first time the brief actually
+  // resolves. The mutationless query alone isn't a "view", we wait for
   // the data so cancelled / forbidden loads don't pollute the count.
   useEffect(() => {
     if (!brief) return;
@@ -213,7 +213,7 @@ export default function BriefDetailPage() {
                       {t("scheduleConflictBlocked", {
                         start: formatBriefDate(c.start_date),
                         end: formatBriefDate(c.end_date),
-                        reason: c.reason ? ` — ${c.reason}` : "",
+                        reason: c.reason ? ` - ${c.reason}` : "",
                       })}
                     </li>
                   ) : (
@@ -284,7 +284,7 @@ export default function BriefDetailPage() {
                   if (!design) return null;
                   // Only show videos generated from the displayed render.
                   // Legacy videos (parent_id === null) only appear when the
-                  // design has a single render — otherwise we can't tell
+                  // design has a single render, otherwise we can't tell
                   // which render they belong to.
                   const renders = design.media.filter(
                     (m) => m.type === "render"
@@ -731,7 +731,7 @@ function ProposalForm({
     const total = Number(quote) || 0;
     if (total <= 0) return;
     setInstallments(makeTemplateRows(template, total, DEFAULT_LABELS, installmentN));
-    // We deliberately omit `installments` from deps — including it would
+    // We deliberately omit `installments` from deps, including it would
     // create a render loop because we're the writer.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [quote, template]);

@@ -8,7 +8,7 @@ import { test, expect } from "@playwright/test";
  *  - A card whose whole surface is clickable but whose anchor is not reachable
  *    by tab, or is reachable with no visible focus. The link-overlay pattern
  *    (a real anchor with an absolutely-inset ::after, and the ring on the
- *    card) is what makes it work — and it also keeps middle-click and
+ *    card) is what makes it work, and it also keeps middle-click and
  *    long-press-share working, which matters in a WhatsApp culture.
  *  - Active navigation state communicated by colour alone. `aria-current` is
  *    the single source of truth now, with the styling driven by it, so the
@@ -24,7 +24,7 @@ test("every gallery card is reachable by keyboard and shows focus", async ({
   test.skip(count === 0, "no published gallery items");
 
   // Tab until the first card has focus, then confirm something visible marks
-  // it — a ring on the card or an outline on the anchor.
+  // it, a ring on the card or an outline on the anchor.
   let focused = false;
   for (let i = 0; i < 40 && !focused; i++) {
     await page.keyboard.press("Tab");

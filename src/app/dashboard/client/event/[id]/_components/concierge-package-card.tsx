@@ -12,7 +12,7 @@ import { formatMoney, formatMoneyDate } from "@/lib/money-format";
  *
  * Reads the schedule-less `Payment` rows written by `enquiries.createQuote`.
  * `SchedulePanel` can't serve this: it's welded to `PaymentSchedule`, which
- * requires a proposal and a planner — neither exists on this lane.
+ * requires a proposal and a planner, neither exists on this lane.
  *
  * Renders nothing at all when there is no package, so it can sit
  * unconditionally on the event page for every client.
@@ -47,7 +47,7 @@ export function ConciergePackageCard({ eventId }: { eventId: string }) {
             >
               <div className="min-w-0">
                 <p className="flex items-center gap-2 text-sm font-medium">
-                  {p.label ?? "—"}
+                  {p.label ?? "-"}
                   {isPaid && (
                     <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-xs text-emerald-700">
                       <Check className="size-3" />

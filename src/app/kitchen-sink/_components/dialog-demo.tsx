@@ -15,7 +15,7 @@ import {
  *
  * The distinction matters: `rtl.spec.ts` used to assert the *geometry* of the
  * class pairing on a synthesised div, which proved that `left-1/2` centres and
- * `start-1/2` does not — but not which of the two the component actually uses.
+ * `start-1/2` does not, but not which of the two the component actually uses.
  * Re-introducing the bug left that test green.
  */
 export function DialogDemo() {

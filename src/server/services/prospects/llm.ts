@@ -2,10 +2,10 @@
 // same OPENAI_API_KEY the rest of the app already uses (auto-detected from
 // the `sk-or-...` prefix). Two responsibilities:
 //
-//   1. extractContact() — given a free-text bio + page snippet, pull out
+//   1. extractContact() - given a free-text bio + page snippet, pull out
 //      structured contact info, classify (planner/vendor + category), and
-//      score the lead 0–100.
-//   2. draftMessage() — render an outreach draft by asking the LLM for
+//      score the lead 0-100.
+//   2. draftMessage(), render an outreach draft by asking the LLM for
 //      two short personalization slots (first name + a single concrete
 //      detail) and substituting them, plus the signup URL, into the
 //      template body verbatim. The model never rewrites the pitch.
@@ -66,6 +66,7 @@ Schema:
 }
 
 Rules:
+- Never use an em dash or en dash. A comma, a full stop, or a plain hyphen instead.
 - Treat "wedding planner", "event planner", "event design", "بلانر", or "أتيليه" as planner.
 - Treat photographers, videographers, florists, caterers, DJs, singers, decorators, makeup artists, dress designers, venues, vintage car rental, etc. as vendors with the matching vendor_category.
 - For ambiguous personal accounts, return prospect_type "unknown".
@@ -85,7 +86,7 @@ export async function extractContact(input: {
     { role: "system", content: EXTRACT_SYSTEM },
     { role: "user", content: userPrompt },
   ]);
-  // Defensive normalization — coerce out-of-range values into the schema.
+  // Defensive normalization, coerce out-of-range values into the schema.
   return {
     email: out.email ?? null,
     whatsapp: out.whatsapp ?? null,
@@ -107,12 +108,12 @@ export async function extractContact(input: {
 
 // We no longer ask the LLM to regenerate the message body. The template
 // body is sent verbatim; the LLM only fills two small personalization
-// slots ([الاسم], [حاجة محددة]) and we substitute them — plus the
-// signup URL — server-side. Cheaper, faster, and impossible for the
+// slots ([الاسم], [حاجة محددة]) and we substitute them - plus the
+// signup URL - server-side. Cheaper, faster, and impossible for the
 // model to drop or reword the pitch.
 const SLOT_SYSTEM = `You extract two short personalization slots for a
 cold-outreach message about an Egyptian event-planning marketplace. Return
-JSON only — no prose, no markdown.
+JSON only - no prose, no markdown.
 
 Schema:
 {
@@ -140,9 +141,9 @@ Schema:
                           //   - Only fall back to "صديقي" if
                           //     display_name is empty or pure noise
                           //     (e.g. "user_8273", "????").
-  "specific":   string    // 2–6 words, Egyptian Arabic, naming ONE
+  "specific":   string    // 2-6 words, Egyptian Arabic, naming ONE
                           //   concrete thing about their work that you
-                          //   can verify from the bio/summary/facts —
+                          //   can verify from the bio/summary/facts -
                           //   a city, a vibe, a recent project, a
                           //   specialty, a signature look. Examples:
                           //   "تنظيم الأفراح في الساحل", "تصميم
@@ -152,7 +153,7 @@ Schema:
 
 Hard rules:
 - Never invent facts. When unsure, use the fallback values above.
-- Keep "specific" short (2–6 words) and lowercase-style, no trailing
+- Keep "specific" short (2-6 words) and lowercase-style, no trailing
   punctuation.
 - Output strictly valid JSON with exactly those two string fields.`;
 
@@ -164,7 +165,7 @@ export interface DraftedMessage {
 // Generates N alternative phrasings of a discovery query so we can
 // fan out beyond the per-call result cap of providers like Tavily.
 // We ask the LLM to vary geography (cities/regions in Egypt), language
-// (English/Arabic), and phrasing — without drifting off-topic.
+// (English/Arabic), and phrasing - without drifting off-topic.
 export async function expandQueryVariants(input: {
   query: string;
   source: string; // "web" | "instagram" | ...
@@ -256,7 +257,7 @@ function renderTemplate(
 
 // Cheap heuristic fallback used when the LLM call fails or returns junk.
 // Tries to mirror the SLOT_SYSTEM rules: real person → first name, brand
-// → cleaned brand (first 1–2 meaningful words, descriptors stripped),
+// → cleaned brand (first 1-2 meaningful words, descriptors stripped),
 // pure noise → "صديقي".
 const BRAND_DESCRIPTORS = new Set([
   "for", "and", "the",
@@ -341,7 +342,7 @@ export async function draftMessage(input: {
     };
   } catch {
     // If the LLM is down or rate-limited, still produce a usable draft
-    // from the template — the operator can edit before sending.
+    // from the template, the operator can edit before sending.
     slots = heuristicSlots(input.prospect);
   }
 

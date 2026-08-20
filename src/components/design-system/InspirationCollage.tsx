@@ -25,7 +25,7 @@ export type CollageVariant =
   | "moodboard"
   /** 2x2 grid (4 tiles) used by the `palette-test` HookSlide. */
   | "fourUp"
-  /** Single full-bleed tile — useful when only one image is supplied. */
+  /** Single full-bleed tile, useful when only one image is supplied. */
   | "single";
 
 interface InspirationCollageProps {
@@ -86,7 +86,7 @@ export function InspirationCollage({
     );
   }
 
-  // "moodboard" — pinned-postcard collage. The grid is positioned
+  // "moodboard", pinned-postcard collage. The grid is positioned
   // absolutely so rotations don't push neighbors around.
   return (
     <div

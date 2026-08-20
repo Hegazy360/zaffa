@@ -65,7 +65,7 @@ export default function VenueDesignerGalleryPage() {
   useEffect(() => {
     if (isAnon) router.replace("/venue-designer/new");
   }, [isAnon, router]);
-  // Only the navbar chrome cares about the tier now — approval doesn't.
+  // Only the navbar chrome cares about the tier now, approval doesn't.
   // Free-pack users keep the chrome-less feel of the try-it-free flow.
   const onFreeTier = !pack || isFreePack(pack.sku);
 
@@ -73,7 +73,7 @@ export default function VenueDesignerGalleryPage() {
     onSuccess: () => utils.venueDesigns.list.invalidate(),
   });
 
-  // Approval is a lead ("I want this wedding — contact me"), free on every
+  // Approval is a lead ("I want this wedding - contact me"), free on every
   // tier. The old events.createFromDesign path was Vision-Pack-gated because
   // it opened the hidden planner marketplace.
   const approveMutation = trpc.venueDesigns.approve.useMutation({
@@ -198,7 +198,7 @@ export default function VenueDesignerGalleryPage() {
             {pack ? (
               <VisionPackQuotaBadge />
             ) : null}
-            {/* The "New design" CTA is always available now — anonymous
+            {/* The "New design" CTA is always available now, anonymous
                 visitors get a free render via the auto-granted free pack,
                 and authenticated users without a pack either get the same
                 free entitlement or hit the email gate after the render
@@ -408,7 +408,7 @@ export default function VenueDesignerGalleryPage() {
 
                     {/* "Open event" survives for legacy designs already
                         linked to an event; otherwise approval is open to
-                        every permanent account — it files the lead the
+                        every permanent account, it files the lead the
                         concierge follows up on. */}
                     {design.event_id ? (
                       <button

@@ -125,7 +125,7 @@ export function GenerateRenderPanel({ designId }: GenerateRenderPanelProps) {
     },
   });
 
-  // Past renders for this design — fetched once and kept fresh by invalidating
+  // Past renders for this design, fetched once and kept fresh by invalidating
   // after each save/delete. TRPC + react-query dedupe with the parent query in
   // VenueDesigner so this is effectively free.
   const { data: design } = trpc.venueDesigns.getById.useQuery(
@@ -153,7 +153,7 @@ export function GenerateRenderPanel({ designId }: GenerateRenderPanelProps) {
   } | null>(null);
 
   // Turnstile bot-check token, only collected from anonymous visitors.
-  // For paid users we don't render the widget — the server-side
+  // For paid users we don't render the widget, the server-side
   // verifier also short-circuits on `is_anonymous=false` so they never
   // see the captcha.
   const isAnon = useIsAnonymous();
@@ -222,7 +222,7 @@ export function GenerateRenderPanel({ designId }: GenerateRenderPanelProps) {
       }
 
       // When the render came back watermarked, the visitor is on the
-      // free tier — pop the email gate. The gate component overlays the
+      // free tier, pop the email gate. The gate component overlays the
       // blurred preview and stays until they enter an email (which
       // sends the magic link + records the capture). When the
       // saveMedia mutation resolves we patch in the renderId so the
@@ -239,7 +239,7 @@ export function GenerateRenderPanel({ designId }: GenerateRenderPanelProps) {
       utils.visionPacks.current.invalidate();
     },
     onError: (err) => {
-      // Turnstile tokens are single-use — even when the failure was on
+      // Turnstile tokens are single-use, even when the failure was on
       // a different layer, force a refresh so the next attempt has a
       // fresh challenge ready.
       setTurnstileToken(null);
@@ -472,7 +472,7 @@ export function GenerateRenderPanel({ designId }: GenerateRenderPanelProps) {
                 )}
                 {summaryParts.length > 0 ? (
                   <>
-                    {" — "}
+                    {", "}
                     {t("summaryRefSuffix", {
                       parts: summaryParts.join(", "),
                       totalRefs,
@@ -480,7 +480,7 @@ export function GenerateRenderPanel({ designId }: GenerateRenderPanelProps) {
                   </>
                 ) : (
                   <span className="text-muted-foreground">
-                    {" — "}
+                    {", "}
                     {t("summaryNoRefs")}
                   </span>
                 )}
@@ -518,8 +518,8 @@ export function GenerateRenderPanel({ designId }: GenerateRenderPanelProps) {
               Timing hint sits beneath the CTA rather than inside the
               button label. Keeping it outside means the button stays
               short and tappable on phones (no two-line wrap), while the
-              expectation-setting copy stays visible the whole time —
-              before, during, and after the request — instead of only
+              expectation-setting copy stays visible the whole time -
+              before, during, and after the request - instead of only
               flashing in the loading state.
             */}
             <p className="-mt-2 text-center text-xs text-muted-foreground">
@@ -563,7 +563,7 @@ export function GenerateRenderPanel({ designId }: GenerateRenderPanelProps) {
                   />
                 ) : resultImage ? (
                   <>
-                    {/* Natural aspect — this is the render the visitor just
+                    {/* Natural aspect, this is the render the visitor just
                         waited for, and cropping it would be absurd. */}
                     <MediaImage
                       src={resultImage}
@@ -601,7 +601,7 @@ export function GenerateRenderPanel({ designId }: GenerateRenderPanelProps) {
               {/* Free-tier limits explainer. Sits above the action row so
                   the disabled "Generate again" / "Make it alive" buttons
                   read as intentional rather than broken. We can't rely on
-                  `title` tooltips here — browsers swallow hover events on
+                  `title` tooltips here, browsers swallow hover events on
                   disabled controls, and titles don't surface on touch
                   devices at all. */}
               {onFreeTier && (
@@ -615,8 +615,8 @@ export function GenerateRenderPanel({ designId }: GenerateRenderPanelProps) {
                 desktop-preferred order (Generate-again → Make-alive →
                 Download). On phones we flip the container to
                 `flex-col-reverse` so the primary CTA (Download) ends
-                up at the top — closest to the thumb after scrolling
-                in to look at the render — followed by Make-alive
+                up at the top, closest to the thumb after scrolling
+                in to look at the render, followed by Make-alive
                 and finally the destructive "Generate again". This
                 avoids any reliance on per-item `order-X` (which
                 wouldn't make it through LockableAction's conditional
@@ -698,7 +698,7 @@ export function GenerateRenderPanel({ designId }: GenerateRenderPanelProps) {
           )}
 
         {/* Past-renders gallery is permanent-account chrome. Anonymous
-            (email-gated) visitors don't get to browse — exposing
+            (email-gated) visitors don't get to browse, exposing
             thumbnails here would let them skip the gate by clicking
             an old render after a refresh. The auto-hydration effect
             above re-establishes the gate for them instead. */}

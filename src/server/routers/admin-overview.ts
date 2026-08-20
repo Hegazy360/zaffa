@@ -88,7 +88,7 @@ export const adminOverviewRouter = router({
     ] = await Promise.all([
       // Anonymous venue-designer visitors who never confirmed an email
       // get a `profiles` row too (role defaults to "client"), so they
-      // must be excluded here — otherwise every abandoned free-render
+      // must be excluded here, otherwise every abandoned free-render
       // session inflates the user counts.
       prisma.profile.findMany({
         where: { is_anonymous: false },
@@ -480,7 +480,7 @@ export const adminOverviewRouter = router({
       await assertAdmin(ctx.user.id);
       const limit = input?.limit ?? 50;
       const where = {
-        // Exclude never-confirmed anonymous free-render sessions — see
+        // Exclude never-confirmed anonymous free-render sessions, see
         // the same exclusion in `kpis` above.
         is_anonymous: false,
         ...(input?.role ? { role: input.role } : {}),

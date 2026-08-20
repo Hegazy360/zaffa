@@ -7,7 +7,7 @@ import { test, expect } from "@playwright/test";
  * RTL resolves to `right: 50%` while `-translate-x-1/2` stays physical, which
  * puts the popup a full width off-centre. It is invisible to anyone testing in
  * English, and `tests/rtl-centering.test.ts` only proves the source does not
- * contain the broken pairing — it cannot prove the result is centred.
+ * contain the broken pairing, it cannot prove the result is centred.
  *
  * So this measures the rendered popup against the viewport, in both
  * directions, and also checks that Escape resolves the promise rather than
@@ -32,7 +32,7 @@ for (const [locale, dir] of [
     await page.getByRole("button", { name: "Open confirm" }).click();
     const popup = page.locator('[data-slot="alert-dialog-content"]');
     await expect(popup).toBeVisible();
-    // Let the open animation settle before measuring — a zoom-in transform
+    // Let the open animation settle before measuring, a zoom-in transform
     // mid-flight reports a box that is neither the start nor the end.
     await page.waitForTimeout(400);
 
@@ -51,7 +51,7 @@ test("Escape resolves the confirm promise instead of hanging", async ({
   await expect(page.locator('[data-slot="alert-dialog-content"]')).toBeVisible();
 
   await page.keyboard.press("Escape");
-  // If the promise never settled, `last` would stay at its placeholder — which
+  // If the promise never settled, `last` would stay at its placeholder - which
   // is exactly what a button-only handler would have produced.
   await expect(page.getByText("last: cancelled")).toBeVisible();
 });

@@ -184,7 +184,7 @@ export const eventsRouter = router({
       });
       // Fan a "new event in your area" notification the moment the venue
       // is first set on an event with an approved design. Swapping venues
-      // also re-fans because the dedupe key is (planner, event) — any
+      // also re-fans because the dedupe key is (planner, event) - any
       // previously-notified planners are skipped.
       const venueChanged =
         rest.venue !== undefined &&
@@ -253,7 +253,7 @@ export const eventsRouter = router({
         }),
       ]);
 
-      // Couple-journey funnel — swapping the approved design counts as a
+      // Couple-journey funnel, swapping the approved design counts as a
       // re-approval moment. Couples often iterate on this before locking.
       await trackServer(ctx.user.id, ANALYTICS_EVENTS.DESIGN_APPROVED, {
         event_id: input.eventId,

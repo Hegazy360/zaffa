@@ -1,8 +1,8 @@
 /**
- * Money path — the single critical-flow E2E that protects Zaffa's revenue
+ * Money path, the single critical-flow E2E that protects Zaffa's revenue
  * pipeline end-to-end:
  *
- *   1. Client approves a venue design — files a design_approved lead
+ *   1. Client approves a venue design, files a design_approved lead
  *   2. Admin converts the lead into a real event in the CRM
  *   3. Planner discovers it on the marketplace and sends a proposal with
  *      a two-installment schedule
@@ -64,7 +64,7 @@ test.describe("money path: design → proposal → stripe pay → admin payout",
     const stamp = Date.now();
     ctx.designName = `Playwright Wedding ${stamp}`;
     ctx.coverLetter =
-      "E2E cover letter — Playwright-generated proposal for the money-path suite. " +
+      "E2E cover letter, Playwright-generated proposal for the money-path suite. " +
       `Run stamp ${stamp}. Covers venue styling, coordination, and day-of support.`;
 
     // Cache the planner's PlannerProfile.id so the admin payout step can
@@ -107,7 +107,7 @@ test.describe("money path: design → proposal → stripe pay → admin payout",
         await nameInput.waitFor({ state: "visible", timeout: 15_000 });
         await nameInput.fill(ctx.designName);
         // Blur so the onChange handler propagates synchronously before we
-        // click Save — avoids a race where the first save POST ships with
+        // click Save, avoids a race where the first save POST ships with
         // the stale default name.
         await nameInput.press("Tab");
 
@@ -120,7 +120,7 @@ test.describe("money path: design → proposal → stripe pay → admin payout",
         });
       });
 
-      await test.step("approve the design — it files a lead, not an event", async () => {
+      await test.step("approve the design - it files a lead, not an event", async () => {
         // The pivot reshaped approval: no pack gate, no event creation.
         // Approving writes a design_approved Enquiry the concierge follows
         // up on; the event is created by the admin when the conversation
@@ -131,7 +131,7 @@ test.describe("money path: design → proposal → stripe pay → admin payout",
         await approveBtn.waitFor({ state: "visible", timeout: 10_000 });
         await approveBtn.click();
         // The header CTA flips to the approved state once the mutation
-        // settles — that's the observable success signal.
+        // settles, that's the observable success signal.
         await expect(
           page.getByRole("button", { name: /approved/i }),
         ).toBeVisible({ timeout: 20_000 });
@@ -192,7 +192,7 @@ test.describe("money path: design → proposal → stripe pay → admin payout",
     try {
       await test.step("open the marketplace and pick the brief we just created", async () => {
         await page.goto("/dashboard/planner/marketplace");
-        // Cards link to /dashboard/planner/marketplace/<eventId> — targeting by
+        // Cards link to /dashboard/planner/marketplace/<eventId>, targeting by
         // href avoids matching on the design title (which might appear in two
         // places on the page, e.g. recent + filtered).
         const card = page.locator(
@@ -211,7 +211,7 @@ test.describe("money path: design → proposal → stripe pay → admin payout",
           .getByRole("button", { name: /write a proposal/i })
           .click();
 
-        // The dialog title is "Propose for {title}" — wait for a known form
+        // The dialog title is "Propose for {title}", wait for a known form
         // field rather than the title so we don't couple to the locale.
         const coverField = page.locator("#cover");
         await coverField.waitFor({ state: "visible", timeout: 10_000 });
@@ -280,7 +280,7 @@ test.describe("money path: design → proposal → stripe pay → admin payout",
           .first()
           .click();
         // The button is replaced by a disabled "Accepted" state; poll the DB
-        // instead of chasing UI copy — this is what test 4 depends on anyway.
+        // instead of chasing UI copy, this is what test 4 depends on anyway.
         await expect
           .poll(
             () => getScheduleStatus(ctx.eventId, ctx.plannerProfileId),
@@ -299,7 +299,7 @@ test.describe("money path: design → proposal → stripe pay → admin payout",
           .click();
 
         await page.waitForURL(/checkout\.stripe\.com/, { timeout: 45_000 });
-        // Stripe's hosted Checkout is a heavy SPA — wait for the submit
+        // Stripe's hosted Checkout is a heavy SPA, wait for the submit
         // button testid before we even try to fill fields, otherwise we race
         // against hydration.
         await page
@@ -311,7 +311,7 @@ test.describe("money path: design → proposal → stripe pay → admin payout",
         // `.fill()`, which manifests in CI as an apparently-clicked Pay
         // button that never submits ("REQUIRED" label appears). Click to
         // focus and `pressSequentially` (real keystrokes) is the reliable
-        // path — slower, but the whole Stripe step is dominated by network.
+        // path - slower, but the whole Stripe step is dominated by network.
         const email = page
           .locator('input[type="email"], input[name="email"]')
           .first();
@@ -361,7 +361,7 @@ test.describe("money path: design → proposal → stripe pay → admin payout",
 
         await page.getByTestId("hosted-payment-submit-button").click();
 
-        // Don't chase Stripe's redirect URL back to our app — on CI, the
+        // Don't chase Stripe's redirect URL back to our app - on CI, the
         // round-trip through `checkout.stripe.com` sometimes loses the
         // Supabase session cookie and lands on /auth/signin. The webhook
         // firing against our Next server is the real source of truth for
@@ -383,7 +383,7 @@ test.describe("money path: design → proposal → stripe pay → admin payout",
       });
 
       await test.step("UI reflects the paid status", async () => {
-        // Open the payments tab from a fresh page — the browser returned
+        // Open the payments tab from a fresh page, the browser returned
         // from Stripe may have landed on /auth/signin due to SameSite-cookie
         // behavior on cross-site redirects. Reloading the storage state and
         // navigating directly is always valid because the session itself is
@@ -444,7 +444,7 @@ test.describe("money path: design → proposal → stripe pay → admin payout",
         await dialog.waitFor({ state: "visible", timeout: 10_000 });
 
         // The installment list inside the dialog is populated by a lazy tRPC
-        // query — wait until at least one checkbox is present before acting.
+        // query, wait until at least one checkbox is present before acting.
         const dialogCheckboxes = dialog.locator('input[type="checkbox"]');
         await expect
           .poll(() => dialogCheckboxes.count(), { timeout: 10_000 })
@@ -453,7 +453,7 @@ test.describe("money path: design → proposal → stripe pay → admin payout",
         const n = await dialogCheckboxes.count();
         for (let i = 0; i < n; i += 1) {
           const cb = dialogCheckboxes.nth(i);
-          // `.check()` with force:true — we know the input is visible and
+          // `.check()` with force:true, we know the input is visible and
           // interactive (the whole dialog is mounted & focused), but we want
           // to bypass width-zero/scroll-parent actionability false-positives.
           await cb.check({ force: true });

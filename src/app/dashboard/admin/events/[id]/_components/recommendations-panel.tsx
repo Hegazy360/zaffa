@@ -129,7 +129,7 @@ export function RecommendationsPanel({ eventId }: { eventId: string }) {
                     {rec.venue.capacity_max ? (
                       <>
                         {" · "}
-                        {rec.venue.capacity_min ?? 0}–{rec.venue.capacity_max}{" "}
+                        {rec.venue.capacity_min ?? 0}-{rec.venue.capacity_max}{" "}
                         guests
                       </>
                     ) : null}
@@ -266,7 +266,7 @@ function RecommendDialog({ eventId }: { eventId: string }) {
                         {hit.capacity_max ? (
                           <>
                             {" · "}
-                            {hit.capacity_min ?? 0}–{hit.capacity_max}
+                            {hit.capacity_min ?? 0}-{hit.capacity_max}
                           </>
                         ) : null}
                       </p>
@@ -285,7 +285,7 @@ function RecommendDialog({ eventId }: { eventId: string }) {
               id="note"
               value={note}
               onChange={(e) => setNote(e.target.value)}
-              placeholder="Why this venue fits — palette, vibe, capacity, anything personal."
+              placeholder="Why this venue fits - palette, vibe, capacity, anything personal."
               rows={3}
             />
           </div>

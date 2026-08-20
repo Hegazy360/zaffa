@@ -19,13 +19,13 @@ import { jsonLdScript, serviceLd } from "@/lib/structured-data";
 import { pricedMarkets } from "@/lib/concierge-pricing";
 
 // Metadata deliberately carries no price (asking for money before the
-// visitor knows what we do was tested and lost — see the hero's history).
+// visitor knows what we do was tested and lost, see the hero's history).
 // Rewritten around the instant-studio promise when the sample studio
-// became the hero, and moved onto i18n keys — it was hardcoded English
+// became the hero, and moved onto i18n keys - it was hardcoded English
 // before, on a page whose primary market reads Arabic.
 export async function generateMetadata(): Promise<Metadata> {
   // Next.js replaces `openGraph` wholesale rather than merging with the root
-  // layout, so the locale fields have to be spread in here too — without this
+  // layout, so the locale fields have to be spread in here too - without this
   // the home page emits no og:locale at all.
   const locale = await getLocale();
   const t = await getTranslations("marketing");
@@ -56,7 +56,7 @@ export default async function HomePage() {
       <Navbar />
       {/* Service, not Product: we sell a service and have no ratings. An
           AggregateRating here would be the invented "4.9" ZAF-45 deleted,
-          reappearing as markup — where it is worse, because a rich result
+          reappearing as markup - where it is worse, because a rich result
           showing stars we made up is a manual action waiting to happen. */}
       <script
         type="application/ld+json"
@@ -74,47 +74,47 @@ export default async function HomePage() {
       <main className="flex-1">
         {/* The hero IS the product: a sample wedding the visitor restyles
             live, then carries into the designer. Proof is a server
-            component passed into the client hero as a slot — the figures
+            component passed into the client hero as a slot, the figures
             have to be real, so they are read at request time rather than
             hardcoded. */}
         <SampleStudioHero socialProof={<HeroSocialProof />} />
 
-        {/* How it works — four steps with screenshots, ending in the
+        {/* How it works - four steps with screenshots, ending in the
             handoff to the concierge (step 4) */}
         <HowItWorks />
 
-        {/* What your concierge does — the "then we take over" identity
+        {/* What your concierge does, the "then we take over" identity
             statement. Sits right after the AI-flow walkthrough so the
             handoff (step 4) and the payoff land back-to-back. */}
         <ConciergePillarsSection />
 
-        {/* The Whole Wedding — the full-service plan. Sits immediately after
+        {/* The Whole Wedding, the full-service plan. Sits immediately after
             the pillars because the pillars ask "so what do we actually do?"
             and answer "the whole thing"; this is the next sentence, naming
             the plan that does it. Deliberately *above* the two artefact
             packs: leading with the packs after that promise would contradict
-            the hero. Its own section rather than a third tier card — see the
+            the hero. Its own section rather than a third tier card, see the
             header comment in the component for why. */}
         <WholeWeddingSection />
 
-        {/* The artefacts — what you walk away with: a private microsite
+        {/* The artefacts, what you walk away with: a private microsite
             and a printable lookbook PDF, designed for the audiences that
             matter (family, friends, every planner you meet). Demoted to
             supporting proof (smaller heading scale, tighter rhythm) now
             that the concierge pillars carry the primary identity
-            statement — see ZAF-18/ZAF-19. */}
-        {/* Renders nothing until real couples have said something real —
+            statement, see ZAF-18/ZAF-19. */}
+        {/* Renders nothing until real couples have said something real -
             both the flag and the empty data source gate it. */}
         <TestimonialsSection />
 
         <ShareSection />
 
-        {/* Ask Zaffa — the chat's visible invitation. Rendered only when
+        {/* Ask Zaffa, the chat's visible invitation. Rendered only when
             the aiChat flag is on, so the section and the floating widget
             appear and disappear together. */}
         {isFlagEnabled("aiChat") && <AskZaffaSection />}
 
-        {/* Tier comparison — sits *after* the artefacts walkthrough so
+        {/* Tier comparison, sits *after* the artefacts walkthrough so
             visitors see the full feature set before the price split.
             Surfaces both SKUs side-by-side with localized pricing.
             Lazily fetches per-country pricing from the same tRPC

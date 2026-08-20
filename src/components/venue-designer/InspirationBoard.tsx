@@ -54,7 +54,7 @@ const CATEGORY_ICONS: Record<ReferenceCategory, LucideIcon> = {
 
 // Maps each category to its translation keys living in the `designer` namespace
 // (already used by the designer flow, so the language is identical for couples
-// and planners — there's only one definition of "what does flowers mean").
+// and planners, there's only one definition of "what does flowers mean").
 const CATEGORY_LABEL_KEYS: Record<ReferenceCategory, string> = {
   overall_vibe: "categoryOverallVibe",
   tables: "categoryTables",

@@ -3,7 +3,7 @@
 // each one, and return the visible text for the LLM extractor.
 //
 // This replaces a previous attempt at hardcoded "weddingful / cairoweddings
-// / eternalweddings" support — those domains don't exist as wedding
+// / eternalweddings" support, those domains don't exist as wedding
 // directories. Instead we expose a flexible URL-driven mode so admins can
 // point at any list page they discover (a Google search result, a blog
 // "best 10 photographers in cairo" article, an Instagram top-creators
@@ -63,7 +63,7 @@ export async function genericDirectoryDiscover(
   if (listUrl.toLowerCase().startsWith("url:")) listUrl = listUrl.slice(4).trim();
   if (!/^https?:\/\//.test(listUrl)) {
     throw new Error(
-      `Directory query must be a full URL starting with http(s):// — got "${listUrl}".`,
+      `Directory query must be a full URL starting with http(s):// - got "${listUrl}".`,
     );
   }
 
@@ -93,7 +93,7 @@ export async function genericDirectoryDiscover(
 
   const unique = Array.from(linkSet).slice(0, input.maxItems ?? 25);
   // Empty is a valid result. The page may be JS-rendered or just doesn't
-  // match our heuristics — surface that as 0 prospects rather than a hard
+  // match our heuristics, surface that as 0 prospects rather than a hard
   // failure so the admin can move on.
   if (unique.length === 0) return [];
 

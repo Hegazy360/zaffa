@@ -5,9 +5,9 @@
 // Event names match TikTok's web-pixel spec exactly (case-sensitive) so
 // the Ads Manager dashboard recognizes them as *standard* events
 // available for campaign optimization. Custom event names work but
-// bypass that optimisation entirely — TikTok shows the warning
+// bypass that optimisation entirely, TikTok shows the warning
 // "Custom events and page view events cannot be used as optimization
-// events" when no standard events have hit the pixel yet — so we
+// events" when no standard events have hit the pixel yet, so we
 // deliberately only expose the standard set here.
 //
 // Vertical (purchase) funnel coverage:
@@ -20,7 +20,7 @@
 // optimize toward, even for visitors who never reach the Stripe path.
 //
 // `value` is in MAJOR currency units (e.g. 99 USD, not 9900 cents) per
-// TikTok's spec — convert minor-units amounts via
+// TikTok's spec, convert minor-units amounts via
 // `minorToMajor(amount, currency)` from `vision-pack-pricing.ts` before
 // passing them in.
 //
@@ -34,7 +34,7 @@ export const TIKTOK_EVENTS = {
   ADD_TO_CART: "AddToCart",
   INITIATE_CHECKOUT: "InitiateCheckout",
   COMPLETE_PAYMENT: "CompletePayment",
-  // Activation / lead funnel — paired with the purchase funnel so
+  // Activation / lead funnel, paired with the purchase funnel so
   // campaigns optimizing for "Lead" or "Sign-up" objectives have a
   // real standard event to land on. `SubmitForm` fires on
   // intermediate captures (e.g. the email gate); `CompleteRegistration`
@@ -83,7 +83,7 @@ declare global {
  *  - called from SSR / a server component
  *  - `ttq` failed to load (ad-blockers, network errors)
  *
- * Errors are swallowed — analytics must never break a render.
+ * Errors are swallowed, analytics must never break a render.
  */
 export function ttTrack(
   event: TikTokEvent,

@@ -32,28 +32,28 @@ import { LockableAction } from "@/components/ui/lockable-action";
 import { LookbookDownloadButton } from "./lookbook-download-button";
 
 interface Props {
-  /** Owner of this design — used to wire the find-planner CTA to a saved design. */
+  /** Owner of this design, used to wire the find-planner CTA to a saved design. */
   designId?: string;
 }
 
 /**
  * Per-design "share & finish" surface that lives at the end of the
  * designer flow. Replaces the old microsite/find-planner cards in
- * /dashboard/client/settings — couples shouldn't have to leave the
+ * /dashboard/client/settings, couples shouldn't have to leave the
  * design they're working on to publish it, download it, or take it to
  * a planner.
  *
  * Three sections share one card:
- *   1. Microsite — publish + share URL (with public/private toggle).
- *   2. Lookbook PDF — download (stamps the refund tripwire on first hit).
- *   3. Find a planner — hands off to the existing marketplace flow.
+ *   1. Microsite, publish + share URL (with public/private toggle).
+ *   2. Lookbook PDF, download (stamps the refund tripwire on first hit).
+ *   3. Find a planner, hands off to the existing marketplace flow.
  *
  * The component fetches the recipient's pack itself; it returns null
  * when there's no pack so the designer step renders nothing extra for
  * users who haven't purchased yet (the paywall handles that case).
  *
  * The parent `GenerateStep` only mounts this panel after the first
- * render lands, so we can assume there's always renderable media here —
+ * render lands, so we can assume there's always renderable media here -
  * no empty-state branch to worry about.
  */
 export function ShareAndFinishPanel({ designId }: Props) {
@@ -75,7 +75,7 @@ export function ShareAndFinishPanel({ designId }: Props) {
     onError: (err) => toast.error(err.message),
   });
 
-  // "This is the one" — approval files the lead the concierge follows up
+  // "This is the one", approval files the lead the concierge follows up
   // on. Replaces the old findPlanner marketplace handoff, which was gated
   // by SKU and pointed at surfaces that now 404.
   const { data: design } = trpc.venueDesigns.getById.useQuery(
@@ -96,12 +96,12 @@ export function ShareAndFinishPanel({ designId }: Props) {
 
   const isPublished = Boolean(pack.microsite_published_at);
   const slug = pack.microsite_slug;
-  // Free-tier packs grant the email-gated render only — the lookbook
+  // Free-tier packs grant the email-gated render only, the lookbook
   // PDF and microsite stay paid-pack features. Microsite is already
   // implicitly gated because `ensureFreePack` doesn't allocate a slug;
   // the lookbook needs an explicit flag.
   const onFreeTier = isFreePack(pack.sku);
-  // Resolve origin client-side only — typical SSR safety dance.
+  // Resolve origin client-side only, typical SSR safety dance.
   const origin =
     typeof window !== "undefined" ? window.location.origin : "https://zaffa.ai";
   const url = slug ? `${origin}/v/${slug}` : null;
@@ -227,7 +227,7 @@ export function ShareAndFinishPanel({ designId }: Props) {
           )}
         </Section>
 
-        {/* Lookbook — paid-pack feature. Free-tier packs see a disabled
+        {/* Lookbook, paid-pack feature. Free-tier packs see a disabled
             button + upgrade hint, mirroring how the microsite section
             handles the missing slug. */}
         <Section
@@ -264,7 +264,7 @@ export function ShareAndFinishPanel({ designId }: Props) {
           )}
         </Section>
 
-        {/* "This is the one" — every tier can approve; it files the lead
+        {/* "This is the one", every tier can approve; it files the lead
             the concierge follows up on. Replaces the old SKU-gated
             find-a-planner marketplace handoff. */}
         <Section

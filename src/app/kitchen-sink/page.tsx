@@ -8,8 +8,8 @@ import { DialogDemo } from "./_components/dialog-demo";
  *
  * Design tokens are invisible until something uses them, which means a broken
  * one is discovered by a customer rather than by us. This renders the whole
- * set — colours, gradients, shadows, radii, type scale, the dark plate, the
- * RTL eyebrow reset — so a change to `globals.css` can be looked at directly
+ * set - colours, gradients, shadows, radii, type scale, the dark plate, the
+ * RTL eyebrow reset, so a change to `globals.css` can be looked at directly
  * instead of hunted for across forty pages.
  *
  * Never in production: it is a development instrument, it would be indexed,
@@ -143,26 +143,26 @@ export default function KitchenSink() {
         </div>
         <input
           className="w-64 rounded-field border border-border px-3 py-2 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
-          placeholder="Focus me — the ring should be rose"
+          placeholder="Focus me, the ring should be rose"
         />
       </section>
 
       <section className="surface-dark space-y-4 rounded-plate p-8">
         <h2 className="text-eyebrow text-surface-dark-muted">
-          .surface-dark — a surface, not a theme
+          .surface-dark - a surface, not a theme
         </h2>
         <p className="font-display text-headline font-light">
           Everything inside remaps.
         </p>
         <p className="text-sm text-muted-foreground">
-          Muted copy, border below, card above — all from the same semantic
+          Muted copy, border below, card above - all from the same semantic
           variables, no `dark:` variant anywhere.
         </p>
         <div className="rounded-card border border-border bg-card p-4 text-sm">
           A card on the plate.
         </div>
         {/* The focus ring has to stay visible against the gradient itself,
-            not just against the plate behind it — tab to these. */}
+            not just against the plate behind it, tab to these. */}
         <div className="flex flex-wrap gap-3">
           <Button variant="cta" size="xl">
             The money button, on dark
@@ -188,7 +188,7 @@ export default function KitchenSink() {
           Eyebrow tracking in RTL
         </h2>
         {/* The letters below must stay joined. Tracking on Arabic breaks glyph
-            joining and the word falls apart — the reset is inside the utility
+            joining and the word falls apart, the reset is inside the utility
             so it cannot be forgotten. */}
         <p dir="rtl" className="text-eyebrow text-brand-strong">
           فريق واحد لفرح كامل

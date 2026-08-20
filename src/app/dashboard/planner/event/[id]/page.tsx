@@ -78,7 +78,7 @@ function decimalToNumber(value: unknown): number {
   return 0;
 }
 
-// Module-level cached "now" for the days-until widget — same pattern as the
+// Module-level cached "now" for the days-until widget, same pattern as the
 // client event page so we don't blow the React update depth.
 let cachedNow = 0;
 const nowListeners = new Set<() => void>();
@@ -255,7 +255,7 @@ export default function PlannerEventDetailPage() {
                 label={t("statDaysToGo")}
                 value={
                   daysUntil == null
-                    ? "—"
+                    ? "-"
                     : daysUntil < 0
                       ? t("pastValue")
                       : `${daysUntil}`
@@ -263,14 +263,14 @@ export default function PlannerEventDetailPage() {
               />
               <Stat
                 label={t("statBudget")}
-                value={budget > 0 ? f.currency(budget) : "—"}
+                value={budget > 0 ? f.currency(budget) : "-"}
               />
               <Stat
                 label={t("statPaid")}
                 value={
                   totalAll > 0
                     ? `${Math.round((totalPaid / totalAll) * 100)}%`
-                    : "—"
+                    : "-"
                 }
                 hint={
                   totalAll > 0
@@ -500,7 +500,7 @@ function OverviewTab({ event }: { event: OverviewEventProps }) {
               <p className="font-medium">
                 {decimalToNumber(event.budget) > 0
                   ? f.currency(decimalToNumber(event.budget))
-                  : "—"}
+                  : "-"}
               </p>
             </DetailRow>
             <DetailRow label={t("detailStatus")}>
@@ -626,7 +626,7 @@ function DesignTab({ design }: { design: DesignSnapshot | null }) {
 
   return (
     <div className="space-y-6">
-      {/* Inspiration first — so the planner sees what the couple is reaching
+      {/* Inspiration first, so the planner sees what the couple is reaching
           for, by category, before the polished AI output. The render only
           shows what the model interpreted; the inspiration is what the
           couple actually meant. */}

@@ -19,7 +19,7 @@ if (typeof window !== "undefined") {
     posthog.init(key, {
       api_host: host,
       // Auto pageviews would fire on every render in the App Router because
-      // there's no real "page navigation" event — we send pageviews manually
+      // there's no real "page navigation" event, we send pageviews manually
       // from PageviewTracker below using the Next.js router hooks.
       capture_pageview: false,
       capture_pageleave: true,
@@ -90,7 +90,7 @@ function AuthIdentitySync() {
     // Use getClaims() instead of getUser(): we only need id/email/name
     // for analytics identity, and getClaims verifies the JWT locally
     // against the project's JWK rather than round-tripping to
-    // /auth/v1/user. Saves ~100–200ms on first paint per session.
+    // /auth/v1/user. Saves ~100-200ms on first paint per session.
     void supabase.auth.getClaims().then(({ data }) => {
       if (!mounted) return;
       const claims = data?.claims;
@@ -115,7 +115,7 @@ function AuthIdentitySync() {
           name: user.user_metadata?.full_name as string | undefined,
         });
         setUserId(user.id);
-        // Funnel signal — fired only when the auth event is a real sign-in
+        // Funnel signal, fired only when the auth event is a real sign-in
         // (SIGNED_IN / TOKEN_REFRESHED) and we haven't already announced
         // this user in this tab.
         if (

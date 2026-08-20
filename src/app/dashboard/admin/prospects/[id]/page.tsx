@@ -211,7 +211,7 @@ export default function ProspectDetailPage({
           <p className="mt-3 text-xs text-muted-foreground">
             {t("contactedAtVia", {
               when: f.relativeTime(p.contacted_at),
-              via: p.contacted_via ?? "—",
+              via: p.contacted_via ?? "-",
             })}
           </p>
         )}

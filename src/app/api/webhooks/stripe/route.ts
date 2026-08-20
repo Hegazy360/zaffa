@@ -54,7 +54,7 @@ const HANDLED = new Set([
 // Suffix we append to `dispute_status` when Stripe has actually pulled funds
 // out of our balance. Using a colon-suffix keeps the underlying Stripe status
 // (`needs_response`, `under_review`, etc.) intact so the existing UI keeps
-// working — the suffix is purely additive context for admin payouts.
+// working, the suffix is purely additive context for admin payouts.
 const FUNDS_WITHDRAWN_SUFFIX = ":funds_withdrawn";
 
 /**
@@ -102,7 +102,7 @@ async function handleConciergeInstallmentCompleted(
       if (typeof latest === "string") chargeId = latest;
       else if (latest && typeof latest === "object") chargeId = latest.id;
     } catch {
-      // Non-fatal — the charge id is only needed for refund handling.
+      // Non-fatal, the charge id is only needed for refund handling.
     }
   }
 
@@ -118,7 +118,7 @@ async function handleConciergeInstallmentCompleted(
   });
 
   // Advance the enquiry once the DEPOSIT lands. Paying the deposit is what
-  // acceptance means on this plan — there is no separate accept step.
+  // acceptance means on this plan, there is no separate accept step.
   const enquiryId = session.metadata?.enquiryId;
   if (enquiryId) {
     const enquiry = await prisma.enquiry.findUnique({
@@ -193,7 +193,7 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
       if (typeof latest === "string") chargeId = latest;
       else if (latest && typeof latest === "object") chargeId = latest.id;
     } catch {
-      // Non-fatal — we'll just skip the charge id.
+      // Non-fatal, we'll just skip the charge id.
     }
   }
 
@@ -289,7 +289,7 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
 // `awaiting_payment` forever. Reverting to `pending` re-enables the
 // "Pay now" button so the client can retry.
 async function handleCheckoutExpired(session: Stripe.Checkout.Session) {
-  // Same dispatch as the completed handler — Vision Pack expirations
+  // Same dispatch as the completed handler, Vision Pack expirations
   // delete the abandoned pending row so the user can start a fresh
   // checkout without seeing "you already have a pack".
   if (session.metadata?.kind === VISION_PACK_CHECKOUT_KIND) {
@@ -331,7 +331,7 @@ async function handleCheckoutExpired(session: Stripe.Checkout.Session) {
 //  - generate the public microsite slug
 //  - fire the "your pack is ready" notification + email
 //
-// Idempotent — the underlying `activatePackFromCheckout` short-circuits
+// Idempotent, the underlying `activatePackFromCheckout` short-circuits
 // if the pack is already past `pending_payment`, so a webhook retry is
 // a no-op.
 async function handleVisionPackCheckoutCompleted(
@@ -400,7 +400,7 @@ async function handleVisionPackCheckoutCompleted(
 //  - bump pack SKU + add quota delta (`activateUpgradeFromCheckout`)
 //  - refund + generation windows reset to the new `paid_at`
 //
-// Idempotent — replaying this event after the first success is a
+// Idempotent, replaying this event after the first success is a
 // no-op because `activateUpgradeFromCheckout` short-circuits on a
 // row that's already `active`.
 async function handleVisionPackUpgradeCompleted(
@@ -439,7 +439,7 @@ async function handleVisionPackUpgradeCompleted(
     await notifyVisionPackReady({
       recipientUserId: upgrade.pack.recipient_user_id,
       packId: upgrade.pack_id,
-      // After an upgrade `to_sku` is the pack's new tier — that's
+      // After an upgrade `to_sku` is the pack's new tier, that's
       // the one the customer just paid for and the one the email
       // should call out.
       skuId: upgrade.to_sku,
@@ -447,7 +447,7 @@ async function handleVisionPackUpgradeCompleted(
     });
   }
 
-  // Funnel signal — separate event property so we can tell upgrades
+  // Funnel signal, separate event property so we can tell upgrades
   // apart from first-purchases in the analytics view.
   if (upgrade?.pack) {
     const amountMajor = upgrade.amount_charged
@@ -483,7 +483,7 @@ async function handlePaymentFailed(pi: Stripe.PaymentIntent) {
   if (updated.count === 0) return;
 
   // Let the client know so they can retry with a different method. We only
-  // hit this branch when the payment actually transitioned — idempotent
+  // hit this branch when the payment actually transitioned, idempotent
   // webhook replays are a no-op.
   const installment = await prisma.payment.findUnique({
     where: { id: installmentId },
@@ -541,7 +541,7 @@ async function handleChargeFailed(charge: Stripe.Charge) {
 // Refund handling: every Stripe refund object becomes one PaymentRefund
 // row, even on partial refunds. We aggregate the refunded total and only
 // flip the installment to "refunded" once it equals (or exceeds) the
-// original gross — otherwise it goes to "partially_refunded" so the UI
+// original gross, otherwise it goes to "partially_refunded" so the UI
 // can show remaining balance. Also computes the delta vs `refunded_amount`
 // so admin-initiated refunds (which already flagged the row) don't double
 // count when the webhook arrives.
@@ -659,12 +659,12 @@ async function handleDisputeClosed(dispute: Stripe.Dispute) {
   });
 }
 
-// Async checkout failure (bank redirects, BNPL, SEPA — anything where
+// Async checkout failure (bank redirects, BNPL, SEPA - anything where
 // Checkout returns "processing" and finalises later). Mirrors the
 // PaymentIntent failure path so the client can retry with a different
 // method instead of being stuck in `awaiting_payment`.
 async function handleAsyncPaymentFailed(session: Stripe.Checkout.Session) {
-  // Vision pack: same treatment as `expired` — drop the pending row so
+  // Vision pack: same treatment as `expired`, drop the pending row so
   // the user can start a fresh checkout without seeing "you already have
   // a pack". No notification because the user already saw the failure on
   // the Stripe page.
@@ -673,7 +673,7 @@ async function handleAsyncPaymentFailed(session: Stripe.Checkout.Session) {
     if (packId) await expirePendingCheckout(packId);
     return;
   }
-  // Upgrade async failure — flag the pending upgrade row so the UI
+  // Upgrade async failure, flag the pending upgrade row so the UI
   // can offer a retry.
   if (session.metadata?.kind === VISION_PACK_UPGRADE_CHECKOUT_KIND) {
     const upgradeId = session.metadata?.upgradeId;
@@ -716,7 +716,7 @@ async function handleAsyncPaymentFailed(session: Stripe.Checkout.Session) {
   }
 }
 
-// Explicit `payment_intent.canceled` — different from `checkout.expired`
+// Explicit `payment_intent.canceled`, different from `checkout.expired`
 // (idle timeout) and from `payment_failed` (declined). Stripe support /
 // admin tools can fire this; we mirror it locally so the row doesn't
 // stay parked in `awaiting_payment` forever.
@@ -734,7 +734,7 @@ async function handlePaymentIntentCanceled(pi: Stripe.PaymentIntent) {
 }
 
 // `charge.refund.updated` covers the rare case where a refund object
-// changes state after issue — most commonly a refund failing to settle on
+// changes state after issue, most commonly a refund failing to settle on
 // a bank-side failure. We walk the parent payment back from
 // `refunded`/`partially_refunded` if Stripe reverses the refund.
 async function handleRefundUpdated(refund: Stripe.Refund) {
@@ -743,7 +743,7 @@ async function handleRefundUpdated(refund: Stripe.Refund) {
     select: { payment_id: true, amount: true },
   });
   if (!ledgerRow) {
-    // Refund created externally / before our code ran — nothing to update.
+    // Refund created externally / before our code ran, nothing to update.
     return;
   }
 
@@ -782,7 +782,7 @@ async function handleRefundUpdated(refund: Stripe.Refund) {
   });
 }
 
-// `charge.dispute.updated` fires whenever the dispute's stage changes —
+// `charge.dispute.updated` fires whenever the dispute's stage changes -
 // we just mirror Stripe's status string. Dedupes when the value didn't
 // actually change so we don't churn `updated_at`.
 async function handleDisputeUpdated(dispute: Stripe.Dispute) {
@@ -835,7 +835,7 @@ async function handleDisputeFundsWithdrawn(dispute: Stripe.Dispute) {
     chargeId,
     disputeId: dispute.id,
   });
-  // Re-notify the planner — funds being yanked is materially different
+  // Re-notify the planner, funds being yanked is materially different
   // from "a dispute was opened" and they need to know to stop counting it.
   const plannerUserId = row.schedule?.planner?.user_id;
   if (plannerUserId) {
@@ -872,7 +872,7 @@ async function handleDisputeFundsReinstated(dispute: Stripe.Dispute) {
   });
 }
 
-// `radar.early_fraud_warning.*` — Stripe's heads-up that a chargeback is
+// `radar.early_fraud_warning.*`, Stripe's heads-up that a chargeback is
 // likely. We don't yet model EFWs as their own table; surfacing through
 // the same dispute notification path lets the planner act proactively
 // (e.g. issue a refund before it becomes a real chargeback).
@@ -961,7 +961,7 @@ export async function POST(request: Request) {
       case "checkout.session.completed":
       case "checkout.session.async_payment_succeeded":
         // Async-method success behaves identically to the sync happy path
-        // — by the time this event lands the funds have actually settled.
+        //, by the time this event lands the funds have actually settled.
         await handleCheckoutCompleted(
           event.data.object as Stripe.Checkout.Session
         );
@@ -1026,7 +1026,7 @@ export async function POST(request: Request) {
       eventType: event.type,
       eventId: event.id,
     });
-    // Roll back the dedupe row so Stripe's retry can re-attempt — the
+    // Roll back the dedupe row so Stripe's retry can re-attempt, the
     // alternative (silent black hole) is worse than the small risk of
     // duplicate side effects on a transient failure.
     await prisma.stripeWebhookEvent

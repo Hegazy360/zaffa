@@ -44,7 +44,7 @@ export function LocaleSwitcher({
     startTransition(async () => {
       await setLocaleCookie(next);
       // Best-effort persist; we don't block the UI on it. Anonymous users
-      // will simply 401 here, which is fine — the cookie is what matters.
+      // will simply 401 here, which is fine - the cookie is what matters.
       setLocaleMutation.mutate({ locale: next }, { onError: () => {} });
       router.refresh();
     });

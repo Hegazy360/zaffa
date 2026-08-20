@@ -55,7 +55,7 @@ export function MarketplaceTeaser({
   const isHome = variant === "home";
   const isSignup = variant === "planner-signup";
 
-  // No live briefs at all — render a small "early access" copy block on the
+  // No live briefs at all, render a small "early access" copy block on the
   // home page, and skip the section entirely on the planner sign-up so we
   // don't lead with an empty wall.
   if (visible.length === 0 && data.total_open === 0) {
@@ -312,7 +312,7 @@ function BriefCard({
           className="absolute inset-0 bg-gradient-to-b from-black/0 via-black/15 to-black/55"
         />
 
-        {/* Lock chip — the central "this is hidden" affordance. */}
+        {/* Lock chip, the central "this is hidden" affordance. */}
         <div className="absolute inset-0 flex items-center justify-center">
           <span className="inline-flex items-center gap-1.5 rounded-full border border-white/30 bg-black/40 px-3 py-1.5 text-xs font-medium text-white backdrop-blur-md">
             <Lock className="size-3" />
@@ -320,7 +320,7 @@ function BriefCard({
           </span>
         </div>
 
-        {/* Top-left chip: event type — the only piece of info we expose
+        {/* Top-left chip: event type, the only piece of info we expose
             up front, since the enum itself isn't identifying. */}
         <div className="absolute start-3 top-3 inline-flex items-center rounded-full bg-white/90 px-2.5 py-0.5 text-eyebrow font-medium text-rose-700 backdrop-blur-sm">
           {eventTypeLabel}
@@ -342,7 +342,7 @@ function BriefCard({
 
       <div className="flex flex-1 flex-col gap-2 p-4">
         {/* Real `dt`/`dd` pairs. It was a `<dl>` wrapping bare divs, which axe
-            flags — but the deeper problem is that each label existed only as
+            flags, but the deeper problem is that each label existed only as
             an icon, so a screen reader announced two values with nothing to
             say what they were. The `dt` is visually hidden, not absent. */}
         <dl className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-foreground/85">

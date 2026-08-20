@@ -71,11 +71,11 @@ export async function runActorSync(
     );
   }
   if (!Array.isArray(data)) {
-    // Could be { error: { ... } } or some unexpected shape — surface it.
+    // Could be { error: { ... } } or some unexpected shape, surface it.
     const obj = data as { error?: { type?: string; message?: string } };
     if (obj?.error) {
       throw new Error(
-        `Apify ${opts.actor} actor error: ${obj.error.type ?? "unknown"} — ${obj.error.message ?? "(no message)"}` +
+        `Apify ${opts.actor} actor error: ${obj.error.type ?? "unknown"}, ${obj.error.message ?? "(no message)"}` +
           (apifyRunId ? ` (run=${apifyRunId})` : ""),
       );
     }
@@ -83,7 +83,7 @@ export async function runActorSync(
       `Apify ${opts.actor} returned non-array body: ${text.slice(0, 300)}`,
     );
   }
-  // When the dataset is empty, double-check the actor run's actual status —
+  // When the dataset is empty, double-check the actor run's actual status -
   // Apify will happily return `[]` from a sync call even if the actor was
   // FAILED, ABORTED, or hit a "no credits" / soft-blocked state. We surface
   // any of those as real errors so the run row doesn't show a misleading
@@ -122,7 +122,7 @@ export async function runActorSync(
 }
 
 // Lightweight helper for the rate-limit cooldown. We persist a hash like
-// `apify:<source>:<query>` in the DiscoveryRun table — but for now we lean
+// `apify:<source>:<query>` in the DiscoveryRun table, but for now we lean
 // on (source, source_id) uniqueness and the discovery router's per-call
 // gating. This stub leaves room for a Redis-backed cooldown later.
 export function cooldownKey(source: string, query: string): string {

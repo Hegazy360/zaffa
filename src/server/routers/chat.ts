@@ -22,20 +22,20 @@ import {
 } from "@/lib/contact-channels";
 
 /**
- * The homepage AI concierge — answers "what is Zaffa, what does it cost,
+ * The homepage AI concierge - answers "what is Zaffa, what does it cost,
  * how does it work" in the visitor's language.
  *
  * This is the app's only public, unauthenticated LLM surface, and `/` is
  * deliberately session-free (never add it to the middleware's
- * AUTH_AWARE_ROUTE — that TTFB cost was explicitly optimized away). The
+ * AUTH_AWARE_ROUTE, that TTFB cost was explicitly optimized away). The
  * defense stack, in order:
  *
- *   1. `aiChat` flag — PRECONDITION_FAILED when off. The instant kill:
+ *   1. `aiChat` flag, PRECONDITION_FAILED when off. The instant kill:
  *      the ISR'd homepage can lag a flag flip by 300s; this cannot.
  *   2. Turnstile on the FIRST message of a conversation for callers
  *      without a permanent session (same posture as `ai.renderScene`).
  *   3. Upstash per-IP buckets (burst + daily). These fail OPEN when
- *      Upstash is down, so —
+ *      Upstash is down, so -
  *   4. A Postgres-backed global daily cap: count today's assistant
  *      messages. Not optional; it is the only bound that cannot fail
  *      open, because it lives in the same database the reply is written
@@ -43,7 +43,7 @@ import {
  *
  * Grounding is entirely server-side: a product-knowledge prompt plus the
  * visitor's own market prices resolved through the same helpers the
- * paywall uses — an LLM quoting prices from a static prompt would be
+ * paywall uses, an LLM quoting prices from a static prompt would be
  * wrong in most markets.
  */
 
@@ -59,13 +59,13 @@ const messageSchema = z.object({
 });
 
 function productKnowledge(locale: string): string {
-  return `You are Zaffa's assistant on zaffa.ai — a wedding platform. Brand name in Arabic is زفّة (never زفافا or زافا).
+  return `You are Zaffa's assistant on zaffa.ai, a wedding platform. Brand name in Arabic is زفّة (never زفافا or زافا).
 
 WHAT ZAFFA IS
 - Couples design their wedding visually with AI: pick a palette and style, add inspiration, and get photorealistic renders of their actual reception.
 - Two ways to use Zaffa:
-  1. The Design Pack (self-serve, one-time payment, not a subscription): 20 photoreal renders across 3 styles, 2 short cinematic videos, a printable PDF lookbook, and a private shareable microsite. Starts with a FREE render — no card needed.
-  2. The Whole Wedding (full concierge): Zaffa runs the entire wedding end to end — venue, vendors, budget, coordination. Priced per wedding after one call; the fee table is published on /pricing. The couple tells us about their day at /enquire.
+  1. The Design Pack (self-serve, one-time payment, not a subscription): 20 photoreal renders across 3 styles, 2 short cinematic videos, a printable PDF lookbook, and a private shareable microsite. Starts with a FREE render - no card needed.
+  2. The Whole Wedding (full concierge): Zaffa runs the entire wedding end to end - venue, vendors, budget, coordination. Priced per wedding after one call; the fee table is published on /pricing. The couple tells us about their day at /enquire.
 - Approving a design is free: it tells our team "this is the one" and we contact the couple about making it real.
 - We operate globally with UAE/Gulf emphasis, based in Paris, and never turn a couple away by country. We speak Arabic, English, and French.
 - A human replies on WhatsApp (${WHATSAPP_NUMBER_DISPLAY}) within ${REPLY_WITHIN_HOURS} hours.
@@ -73,11 +73,12 @@ WHAT ZAFFA IS
 STYLE
 - Answer in the visitor's language (their locale is "${locale}"). For Arabic: warm, natural, Egyptian-leaning colloquial for general questions; switch to clear فصحى when quoting prices or commitments.
 - 2-4 short sentences. Warm, concrete, never salesy. No emoji spam (one at most).
+- Never use an em dash or en dash. Use a comma, a full stop, or a plain hyphen. Long dashes read as machine-written, and this is customer-facing copy.
 - If they seem ready to talk or ask something you cannot answer, point them to the WhatsApp button or "Tell us about your wedding" (/enquire) right below this chat.
 
 HARD RULES
-- Prices: quote ONLY the figures in the PRICING block below — they are already localized to this visitor's market. Never invent prices, discounts, or currencies for other markets; if asked about another market, say prices adapt per market and point to /pricing.
-- Never mention planner or vendor marketplaces, planner matching, or vendor signup — those do not exist on Zaffa.
+- Prices: quote ONLY the figures in the PRICING block below - they are already localized to this visitor's market. Never invent prices, discounts, or currencies for other markets; if asked about another market, say prices adapt per market and point to /pricing.
+- Never mention planner or vendor marketplaces, planner matching, or vendor signup - those do not exist on Zaffa.
 - Never invent testimonials, review scores, or customer counts.
 - You are an AI assistant; if asked, say so. Do not collect payment details or passwords. Politely decline questions unrelated to weddings or Zaffa.`;
 }
@@ -87,7 +88,7 @@ async function pricingBlock(country: string | null, locale: string): Promise<str
   const major = minorToMajor(pack.amount, pack.currency);
   const packMeta = PACK_SKUS[DEFAULT_PACK_SKU];
   const lines = [
-    `PRICING (visitor market: ${country ?? "unknown — global default"})`,
+    `PRICING (visitor market: ${country ?? "unknown - global default"})`,
     `- Design Pack: ${major} ${pack.currency.toUpperCase()} one-time (${packMeta.quotas.renders} renders / ${packMeta.quotas.styles} styles / ${packMeta.quotas.videos} videos + lookbook + microsite). The first render is free.`,
   ];
   const guidance = quoteGuidanceFor(country);
@@ -95,7 +96,7 @@ async function pricingBlock(country: string | null, locale: string): Promise<str
     const bands = guidance.bands
       .map(
         (b) =>
-          `budget ${b.budgetFrom.toLocaleString("en-US")}–${
+          `budget ${b.budgetFrom.toLocaleString("en-US")}-${
             b.budgetTo ? b.budgetTo.toLocaleString("en-US") : "+"
           } ${guidance.currency} → flat fee ${b.fee.toLocaleString("en-US")} ${guidance.currency}`,
       )
@@ -105,11 +106,11 @@ async function pricingBlock(country: string | null, locale: string): Promise<str
     );
   } else {
     lines.push(
-      `- The Whole Wedding (full concierge): quoted bespoke for this market after one call — see /pricing and /enquire.`,
+      `- The Whole Wedding (full concierge): quoted bespoke for this market after one call - see /pricing and /enquire.`,
     );
   }
   // The locale matters to the model only for digit style; keep figures in
-  // Latin digits — D11 pins Latin digits on money in Arabic too.
+  // Latin digits, D11 pins Latin digits on money in Arabic too.
   void locale;
   return lines.join("\n");
 }
@@ -135,7 +136,7 @@ export const chatRouter = router({
       const ip = ctx.req ? ipFromRequest(ctx.req) : null;
 
       // Turnstile once per conversation for visitors without a permanent
-      // account. Signed-in (non-anonymous) users are past the email gate —
+      // account. Signed-in (non-anonymous) users are past the email gate -
       // they are not bot traffic.
       const isFirstMessage = !input.conversationId;
       const hasPermanentAccount = !!ctx.user && !ctx.user.is_anonymous;
@@ -172,7 +173,7 @@ export const chatRouter = router({
       }
 
       // Conversation row first, then the user's message BEFORE the model
-      // call — an LLM failure must still leave the question on record.
+      // call, an LLM failure must still leave the question on record.
       const conversation = input.conversationId
         ? await prisma.chatConversation.findUnique({
             where: { id: input.conversationId },

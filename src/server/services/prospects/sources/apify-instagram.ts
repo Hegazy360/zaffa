@@ -1,5 +1,5 @@
 // Instagram source (Apify). We use `apify/instagram-scraper` which accepts
-// `directUrls` — a list of full Instagram URLs (hashtag pages, profiles,
+// `directUrls` - a list of full Instagram URLs (hashtag pages, profiles,
 // location pages). The legacy `hashtags` / `search` shorthand is silently
 // ignored by the current actor version, which manifests as runs that
 // terminate in ~3s with 0 items and the actor log message
@@ -58,12 +58,12 @@ interface IgItem {
 }
 
 export interface InstagramDiscoverInput {
-  // Primary query — either a hashtag (without #) or a username/handle for
+  // Primary query, either a hashtag (without #) or a username/handle for
   // profile mode. We always pass it; `extraQueries` adds more URLs to the
   // same actor run (no extra cost vs N separate runs).
   query: string;
   type?: "hashtag" | "search";
-  // Posts to pull per URL — note: Apify's free-tier hashtag scraper caps
+  // Posts to pull per URL, note: Apify's free-tier hashtag scraper caps
   // at one page (~18 posts), so this only matters for paid plans.
   resultsLimit?: number;
   // Additional related queries to scrape in the same actor invocation.
@@ -122,7 +122,7 @@ function buildUrl(query: string, kind: "hashtag" | "search"): string | null {
     const tag = normalizeHashtag(query);
     if (!tag) return null;
     // The hashtag itself goes inside `(\/.*)?$` so URL-encoded Unicode is
-    // fine — Apify's regex only validates the first segment ("explore").
+    // fine, Apify's regex only validates the first segment ("explore").
     return `https://www.instagram.com/explore/tags/${encodeURIComponent(tag)}/`;
   }
   // For a free-text "search" we treat the query as a username/handle.
@@ -222,7 +222,7 @@ function harvestMentionHandles(
 // field. We always pass ISO since we have a Date.
 function formatNewerThan(d: Date | undefined): string | undefined {
   if (!d) return undefined;
-  // Don't accept absurdly-recent cursors (< 5 min ago) — that often means
+  // Don't accept absurdly-recent cursors (< 5 min ago), that often means
   // the user hammered the retry button and we'd otherwise return 0 posts
   // for the primary pass and rely entirely on the snowball. Backing off to
   // 5 min ensures the primary scrape still picks up some content.
@@ -258,7 +258,7 @@ export async function instagramDiscover(
   if (directUrls.length === 0) {
     throw new Error(
       kind === "search"
-        ? `Instagram profile lookup needs a valid handle (letters, digits, "." or "_") — got "${input.query}". Try a hashtag query instead, e.g. "weddingplanneregypt".`
+        ? `Instagram profile lookup needs a valid handle (letters, digits, "." or "_") - got "${input.query}". Try a hashtag query instead, e.g. "weddingplanneregypt".`
         : `Instagram hashtag lookup got an empty/invalid query: "${input.query}".`,
     );
   }
@@ -298,7 +298,7 @@ export async function instagramDiscover(
     for (const h of input.excludeHandles ?? []) {
       exclude.add(h.toLowerCase());
     }
-    // Don't snowball into the queries themselves — they're already in
+    // Don't snowball into the queries themselves, they're already in
     // directUrls (or are hashtags, not handles).
     for (const q of allQueries) {
       const h = q.toLowerCase().replace(/^[#@]/, "").trim();
@@ -336,7 +336,7 @@ export async function instagramDiscover(
           byUser.set(row.handle, row);
         }
       } catch (err) {
-        // Snowball failures shouldn't kill the run — the primary results
+        // Snowball failures shouldn't kill the run, the primary results
         // are already collected.
         console.warn(`[discovery/instagram] snowball pass failed:`, err);
       }

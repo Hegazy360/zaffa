@@ -6,7 +6,7 @@ const DEFAULT_PLATFORM_FEE_PCT = 8;
 
 /**
  * Default platform fee % used when a schedule doesn't specify one. Sourced
- * from PLATFORM_FEE_PCT (server) — lives in lib so both routers and UI fee
+ * from PLATFORM_FEE_PCT (server), lives in lib so both routers and UI fee
  * previews share the same number.
  */
 export function getDefaultPlatformFeePct(): number {

@@ -75,11 +75,11 @@ function buildVideoPrompt(ctx: VideoSceneContext): string {
     : "";
 
   return [
-    `Cinematic, atmospheric video walkthrough of this exact ${ctx.eventType} venue, in the style of a high-end venue showcase reel — anamorphic 2.39 cinematic feel, shallow depth of field, soft film grain, warm cinematic color grade with slightly lifted blacks.`,
+    `Cinematic, atmospheric video walkthrough of this exact ${ctx.eventType} venue, in the style of a high-end venue showcase reel - anamorphic 2.39 cinematic feel, shallow depth of field, soft film grain, warm cinematic color grade with slightly lifted blacks.`,
 
     `Camera motion: ${motion}`,
 
-    `The venue is unoccupied — absolutely no people, no guests, no waitstaff, no human figures, no silhouettes, no shadows of figures. The composition stays focused entirely on the design itself: the tables, florals, lighting, decor, and architecture.`,
+    `The venue is unoccupied - absolutely no people, no guests, no waitstaff, no human figures, no silhouettes, no shadows of figures. The composition stays focused entirely on the design itself: the tables, florals, lighting, decor, and architecture.`,
 
     `Subtle micro-motion across the scene: ${atmosphere}.`,
 
@@ -103,7 +103,7 @@ export async function startVideoGeneration(input: StartVideoInput) {
 
   const prompt = input.context
     ? buildVideoPrompt(input.context)
-    : "Cinematic atmospheric walkthrough of this empty event venue — no people, no guests. Smooth forward dolly at chest height, warm cinematic color grade, candles flickering, fabric swaying gently. No ascending or descending. Avoid any human figures.";
+    : "Cinematic atmospheric walkthrough of this empty event venue - no people, no guests. Smooth forward dolly at chest height, warm cinematic color grade, candles flickering, fabric swaying gently. No ascending or descending. Avoid any human figures.";
 
   const body: Record<string, unknown> = {
     model: VIDEO_MODEL,

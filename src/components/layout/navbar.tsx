@@ -41,7 +41,7 @@ interface NavbarProps {
   /**
    * Pre-resolved current user from the server. When provided, the navbar
    * renders the avatar / NotificationBell on the very first paint instead
-   * of waiting for a client-side auth round-trip — which means
+   * of waiting for a client-side auth round-trip, which means
    * NotificationBell's tRPC queries fire in the same batch as the page's
    * own queries instead of a tick later. Pass `null` for pages where you
    * already know the visitor is anonymous; omit entirely on pages that
@@ -54,7 +54,7 @@ interface NavbarProps {
 export function Navbar({ initialUser }: NavbarProps = {}) {
   const [open, setOpen] = useState(false);
   // If the server told us who the user is, we're authoritative on first
-  // render — no loading flicker. If `initialUser` was omitted (undefined),
+  // render - no loading flicker. If `initialUser` was omitted (undefined),
   // start in the loading state and resolve client-side via `getClaims()`.
   const [user, setUser] = useState<NavUser | null>(initialUser ?? null);
   const [loading, setLoading] = useState(initialUser === undefined);
@@ -69,7 +69,7 @@ export function Navbar({ initialUser }: NavbarProps = {}) {
 
     // Only run the client-side lookup when the server didn't already
     // populate `initialUser`. `getClaims()` verifies the JWT signature
-    // locally via the project's published JWK (cached) — no round-trip
+    // locally via the project's published JWK (cached), no round-trip
     // to Supabase Auth, unlike `getUser()`.
     if (initialUser === undefined) {
       void supabase.auth.getClaims().then(({ data }) => {
@@ -165,7 +165,7 @@ export function Navbar({ initialUser }: NavbarProps = {}) {
           </span>
         </Link>
 
-        {/* Desktop auth area — single primary CTA points at the venue designer
+        {/* Desktop auth area, single primary CTA points at the venue designer
             (the only product surface), with sign-in/avatar alongside. */}
         <div className="hidden items-center gap-3 md:flex">
           <LocaleSwitcher />
@@ -375,7 +375,7 @@ export function Navbar({ initialUser }: NavbarProps = {}) {
 }
 
 /**
- * Notifications entry inside the mobile sheet — links to the full inbox
+ * Notifications entry inside the mobile sheet, links to the full inbox
  * and shows a small unread count badge. Kept as a Link (not a dropdown)
  * so it works reliably inside the Sheet on touch devices.
  */

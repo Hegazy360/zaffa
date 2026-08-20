@@ -25,7 +25,7 @@ const SOURCE_VALUES = Object.values(ProspectSource).filter(
 
 export const discoveryRouter = router({
   // Curated seed query library admins can fire with one click. Editable
-  // later — for now we hardcode Egyptian-relevant defaults.
+  // later, for now we hardcode Egyptian-relevant defaults.
   seedQueries: protectedProcedure.query(async ({ ctx }) => {
     await assertAdmin(ctx.user.id);
     return [
@@ -214,7 +214,7 @@ export const discoveryRouter = router({
         },
       });
       if (input.runNow) {
-        // Don't await — let the UI poll. We swallow errors here since they
+        // Don't await, let the UI poll. We swallow errors here since they
         // are persisted on the run row. Admin-initiated runs bypass the
         // cooldown (which only exists to throttle the background cron).
         runDiscovery(run.id, { bypassCooldown: true }).catch(() => {
@@ -254,7 +254,7 @@ export const discoveryRouter = router({
           prospects_new: 0,
         },
       });
-      // Explicit admin retry — skip the cooldown that's only meant to throttle
+      // Explicit admin retry, skip the cooldown that's only meant to throttle
       // the background cron worker.
       runDiscovery(input.id, { bypassCooldown: true }).catch(() => {
         /* see DB row for error */

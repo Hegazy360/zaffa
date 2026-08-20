@@ -40,7 +40,7 @@ const ROLES: Role[] = [
 for (const role of ROLES) {
   setup(`authenticate ${role.name}`, async ({ page }) => {
     // The auth pages live under (auth)/auth in the App Router. Adjust the
-    // selectors here if the form ever changes — these are the stable test
+    // selectors here if the form ever changes, these are the stable test
     // ids from the editorial split-screen redesign.
     await page.goto("/auth/signin");
 
@@ -48,7 +48,7 @@ for (const role of ROLES) {
     await page.getByLabel(/^password$/i).fill(role.password);
     await page.getByRole("button", { name: /^sign in$/i }).click();
 
-    // Sign-in lands on the role's dashboard — wait until the URL changes
+    // Sign-in lands on the role's dashboard, wait until the URL changes
     // off the auth page before persisting cookies.
     await page.waitForURL(/\/dashboard/, { timeout: 30_000 });
     await expect(page).toHaveURL(/\/dashboard/);

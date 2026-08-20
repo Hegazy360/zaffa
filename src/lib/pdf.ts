@@ -8,13 +8,13 @@ import path from "node:path";
  * This replaces `@react-pdf/renderer` for the lookbook, and the reason is not
  * aesthetic. react-pdf **cannot shape Arabic**: a torture test (ZAF-61) showed
  * joined words rendering malformed, the lam-alef ligature mangled, and stray
- * Latin glyphs — ®, Ä, Œ — substituted where Arabic letters belong. Isolated
+ * Latin glyphs - ®, Ä, Œ - substituted where Arabic letters belong. Isolated
  * letters, which need no shaping, came out fine, which rules out the font and
  * points squarely at the text engine. The lookbook is a *paid* artefact in a
  * market that reads Arabic, so that is not a defect we can style around.
  *
  * Chromium shapes Arabic, does bidi, and handles RTL layout correctly, for
- * free — and it is the same engine the microsite already renders in, so the
+ * free - and it is the same engine the microsite already renders in, so the
  * PDF can look like the product rather than like a second implementation of
  * it.
  *
@@ -41,7 +41,7 @@ let cachedFontCss: string | null = null;
  *
  * The previous implementation fetched fonts from jsDelivr at render time. In a
  * paid artefact that is a live dependency on a third party: a CDN blip does
- * not degrade the PDF, it silently swaps every glyph for Helvetica — and for
+ * not degrade the PDF, it silently swaps every glyph for Helvetica - and for
  * Arabic, Helvetica has no glyphs at all, so it produces tofu. Inlining also
  * means the function needs no network access to render, which is what makes
  * "works offline" testable rather than aspirational.
@@ -100,7 +100,7 @@ export async function htmlToPdf(html: string): Promise<Buffer> {
 
   try {
     const page = await browser.newPage();
-    // `networkidle0` would wait for requests the document does not make — the
+    // `networkidle0` would wait for requests the document does not make, the
     // fonts are inlined and the images are remote but preloaded by the
     // template, so `load` plus an explicit image wait is both faster and more
     // deterministic.

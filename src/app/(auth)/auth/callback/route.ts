@@ -52,7 +52,7 @@ async function reconcilePendingRole(): Promise<void> {
   const pendingCookie = cookieStore.get(PENDING_ROLE_COOKIE);
   if (!pendingCookie) return;
 
-  // Always clear the cookie — it's one-shot intent, regardless of whether
+  // Always clear the cookie - it's one-shot intent, regardless of whether
   // we actually end up promoting. If we leave it lying around it could
   // bleed into a later OAuth round-trip from the same browser.
   cookieStore.set(PENDING_ROLE_COOKIE, "", { path: "/", maxAge: 0 });

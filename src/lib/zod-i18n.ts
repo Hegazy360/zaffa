@@ -3,15 +3,15 @@ import type { ZodErrorMap } from "zod";
 /**
  * Zod's messages, in the reader's language.
  *
- * Zod ships English strings — "String must contain at least 2 character(s)",
- * "Invalid email" — and a form that renders `issue.message` shows those to an
+ * Zod ships English strings - "String must contain at least 2 character(s)",
+ * "Invalid email", and a form that renders `issue.message` shows those to an
  * Arabic reader verbatim. Worse, they are written for developers: "Expected
  * string, received number" is a correct description of a bug and a useless
  * thing to say to someone trying to book a wedding.
  *
  * This maps the issue codes we actually produce onto the `errors` namespace.
  * Anything unmapped falls through to a single generic translated line rather
- * than to Zod's English — a vague message in the right language beats a
+ * than to Zod's English, a vague message in the right language beats a
  * precise one in the wrong language, on a form.
  *
  * Usage: build it with a `t` from `useTranslations("errors")` (or

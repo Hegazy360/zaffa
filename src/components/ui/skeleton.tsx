@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils";
  * page does not jump when content arrives, and it tells the reader *what* is
  * coming. A spinner says "wait"; a skeleton says "your designs are loading,
  * there are about six of them, in a grid". Only useful when it matches the
- * real layout — a generic grey box is a spinner with extra steps.
+ * real layout, a generic grey box is a spinner with extra steps.
  *
  * `animate-pulse` is deliberate: `globals.css` exempts `.animate-pulse` and
  * `.animate-spin` from the reduced-motion reset, because freezing a loading

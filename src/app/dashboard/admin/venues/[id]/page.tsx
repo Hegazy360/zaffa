@@ -61,13 +61,13 @@ const EMPTY_FORM: VenueFormState = {
 
 /**
  * Single-page editor for a venue. Handles both create (`/new`) and
- * update (`/<id>`) — the route param drives the mode. After a
+ * update (`/<id>`), the route param drives the mode. After a
  * successful create, we navigate to the freshly-created venue's
  * editor URL so the photo manager works without a full page reload.
  *
  * Photo management uses `/api/admin/venues/upload-image` to push the
  * blob to Cloudinary and `venues.adminAddImage` to record the URL on
- * the venue. Removing an image just calls `adminRemoveImage` — we
+ * the venue. Removing an image just calls `adminRemoveImage`, we
  * don't bother purging Cloudinary, since orphaned media has no PII
  * and is cheap.
  */

@@ -43,7 +43,7 @@ export function CTASlide({
           {headline}
         </h1>
         <p className="mt-12 font-display text-[28px] font-light italic tracking-wide text-stone-700">
-          We design weddings around a feeling — not a checklist.
+          We design weddings around a feeling, not a checklist.
         </p>
         <p className="mt-10 font-display text-3xl font-medium tracking-[0.02em] text-rose-700">
           {subline}

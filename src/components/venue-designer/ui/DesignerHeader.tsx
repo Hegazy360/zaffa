@@ -42,7 +42,7 @@ export function DesignerHeader({
   // Approval is a lead, not a feature unlock: any permanent account can
   // approve, whatever their pack tier. The three-tier gate that used to
   // live here (hidden / locked-upgrade / active) existed to sell the
-  // planner marketplace, which is hidden — it surfaced to a real client
+  // planner marketplace, which is hidden - it surfaced to a real client
   // as a raw PACK_TIER_NO_PLANNER_MATCH toast. Anonymous visitors still
   // don't see the button: an approval without contact details is
   // unactionable, and the email gate is where they acquire one.
@@ -73,7 +73,7 @@ export function DesignerHeader({
     <div className="flex flex-col gap-2 rounded-xl border bg-background/90 px-3 py-2 shadow-sm backdrop-blur-sm md:flex-row md:items-center md:gap-3 md:py-1.5">
       {/* Row A on mobile: back + title input + inline save status pill;
           same row on desktop. The "My Designs" gallery is a permanent-
-          account feature — anon visitors only ever work on the one
+          account feature, anon visitors only ever work on the one
           in-progress design we minted for their session, so the back
           button is hidden to keep the flow linear. */}
       <div className="flex min-w-0 flex-1 items-center gap-2 md:gap-3">
@@ -101,7 +101,7 @@ export function DesignerHeader({
           placeholder={t("designNamePlaceholder")}
         />
 
-        {/* Save status. Now visible on mobile too — collapsed to a
+        {/* Save status. Now visible on mobile too, collapsed to a
             single icon (no text) so it doesn't fight the title input
             for space; widens to icon + label from `md` onward. */}
         <div

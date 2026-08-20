@@ -30,7 +30,7 @@ interface QuickSendWhatsappProps {
 // One-click pipeline:
 //   1. (re)hydrate the WhatsApp draft if missing
 //   2. open https://web.whatsapp.com/send?phone=…&text=… in a new tab
-//      (NOT wa.me, NOT api.whatsapp.com — see note below)
+//      (NOT wa.me, NOT api.whatsapp.com - see note below)
 //   3. also stage the body on the clipboard as a fallback (one Cmd+V away
 //      if anything still looks off in the compose box)
 //   4. flip status -> contacted (contacted_via=whatsapp)
@@ -38,7 +38,7 @@ interface QuickSendWhatsappProps {
 // Why web.whatsapp.com/send and not wa.me / api.whatsapp.com:
 //   - wa.me is a redirect shortener whose server rewrites the URL to
 //     api.whatsapp.com. During that rewrite it can only handle
-//     characters in the BMP — any 4-byte UTF-8 sequence (most emojis:
+//     characters in the BMP, any 4-byte UTF-8 sequence (most emojis:
 //     🌸 U+1F338, 🎁 U+1F381, ✅ via dingbats etc.) gets replaced with
 //     U+FFFD ("�") and percent-encoded as `%EF%BF%BD` in the redirect
 //     target. Verified by inspecting the actual redirect URL on this app.
@@ -50,7 +50,7 @@ interface QuickSendWhatsappProps {
 //     handles encodeURIComponent'd UTF-8 (including 4-byte emojis)
 //     correctly. Only caveat: if you ever want this to deep-link into
 //     the mobile WhatsApp app, switch back to api.whatsapp.com/send/
-//     — but on the founder's desktop prospecting flow this is the
+//, but on the founder's desktop prospecting flow this is the
 //     fastest path.
 //
 // The `window.open` happens *synchronously* on click with an `about:blank`
@@ -85,7 +85,7 @@ export function QuickSendWhatsapp({
   const disabled = !digits || busy;
 
   async function handleClick(e: React.MouseEvent) {
-    // We're often nested inside a Link in the list view — don't navigate.
+    // We're often nested inside a Link in the list view, don't navigate.
     e.preventDefault();
     e.stopPropagation();
     if (disabled) return;
@@ -107,25 +107,25 @@ export function QuickSendWhatsapp({
 
       // Belt-and-braces: stage the raw body on the clipboard so the user
       // can paste a clean copy if anything in the URL-prefilled compose
-      // box still looks off. Failures are silent — clipboard isn't
+      // box still looks off. Failures are silent, clipboard isn't
       // available in private windows or insecure contexts, but the URL
       // path below works regardless.
       try {
         await navigator.clipboard.writeText(body);
       } catch {
-        /* swallow — clipboard is best-effort */
+        /* swallow, clipboard is best-effort */
       }
 
       const url = `https://web.whatsapp.com/send?phone=${digits}&text=${encodeURIComponent(body)}&type=phone_number&app_absent=0`;
       if (win && !win.closed) {
         win.location.href = url;
       } else {
-        // Popup blocked — fall back to top-level navigation so the user
+        // Popup blocked, fall back to top-level navigation so the user
         // still ends up at WhatsApp Web with the draft prefilled.
         window.location.href = url;
       }
 
-      // Best effort — don't block the UX on this. The badge will catch up
+      // Best effort, don't block the UX on this. The badge will catch up
       // on next list refresh.
       markContactedM.mutate({ prospectId, channel: "whatsapp" });
       onSent?.();

@@ -63,7 +63,7 @@ export default function AdminPostDetailPage({ params }: PageProps) {
       if (failCount === 0) {
         toast.success(`${okCount} slide${okCount === 1 ? "" : "s"} rendered to HD`);
       } else if (okCount > 0) {
-        toast.warning(`${okCount} ok, ${failCount} failed — see console`);
+        toast.warning(`${okCount} ok, ${failCount} failed - see console`);
       }
     } finally {
       setIsRasterizing(false);

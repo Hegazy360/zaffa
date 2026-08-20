@@ -19,7 +19,7 @@ interface VisionPackPaywallProps {
   onOpenChange: (open: boolean) => void;
   /**
    * Why the paywall is open. Drives the headline copy:
-   *  - REQUIRED          -> "Unlock generation" (default — never bought)
+   *  - REQUIRED          -> "Unlock generation" (default, never bought)
    *  - QUOTA_RENDERS     -> "You've used all your renders"
    *  - QUOTA_VIDEOS      -> "You've used all your videos"
    *  - WINDOW_EXPIRED    -> "Your generation window has closed"
@@ -36,8 +36,8 @@ interface VisionPackPaywallProps {
  * Editorial paywall modal that fronts the entire AI generation surface.
  *
  * Owns the dialog chrome (hero band with reason-driven headline +
- * scrollable body) and delegates the actual buyable surface — tier
- * picker, what's included, stacking note, CTA — to
+ * scrollable body) and delegates the actual buyable surface, tier
+ * picker, what's included, stacking note, CTA - to
  * `PackCheckoutPanel`. The same panel is rendered inline on
  * `/r/[renderId]` so we don't have two parallel implementations of the
  * "buy a pack" UX drifting apart.
@@ -55,7 +55,7 @@ export function VisionPackPaywall({
   const tierPricing = useTierPricing();
   // The body copy embeds a price for the default tier (so the headline
   // mentions a concrete amount). The picker inside the panel can still
-  // flip selection — this is just the lead-in.
+  // flip selection, this is just the lead-in.
   const previewPrice = tierPricing.bySku[defaultSku ?? "wedding_design_pack_v1"];
 
   const titleKey =
@@ -89,7 +89,7 @@ export function VisionPackPaywall({
         scrolling so the CTA stays pinned and visible at every height.
       */}
       <DialogContent className="sm:max-w-lg p-0 gap-0 overflow-hidden grid-rows-[auto_1fr] max-h-[calc(100dvh-2rem)]">
-        {/* Hero band — mirrors the email template eyebrow + headline */}
+        {/* Hero band, mirrors the email template eyebrow + headline */}
         <div className="relative bg-gradient-to-br from-rose-50/80 via-white to-amber-50/60 px-6 pt-7 pb-5">
           <div className="inline-flex items-center gap-1.5 rounded-full border border-rose-200/70 bg-white/80 px-3 py-1 text-eyebrow font-medium text-rose-700 backdrop-blur-sm">
             <Sparkles className="size-3" />
@@ -104,7 +104,7 @@ export function VisionPackPaywall({
         </div>
 
         {/* Scrollable body. `min-h-0` is required so the grid's 1fr row
-            can actually shrink below its content's intrinsic height —
+            can actually shrink below its content's intrinsic height -
             without it `overflow-y-auto` is a no-op. */}
         <div className="min-h-0 overflow-y-auto overscroll-contain">
           <PackCheckoutPanel

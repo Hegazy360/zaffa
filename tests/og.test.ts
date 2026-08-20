@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { ogRtlLine, stripArabicMarks } from "@/lib/og";
 
 /**
- * These guard a workaround, not a feature — which is exactly why they matter.
+ * These guard a workaround, not a feature - which is exactly why they matter.
  * Satori has no bidi: it shapes each Arabic word correctly but lays the words
  * out left to right, so an Arabic headline renders as the sentence backwards.
  * `ogRtlLine` reverses the word sequence to compensate. If someone later
@@ -25,7 +25,7 @@ describe("ogRtlLine", () => {
 
   it("keeps punctuation attached to its word", () => {
     // The full stop must travel with the word it terminates, so it lands on
-    // the left of that word — where a full stop belongs in RTL.
+    // the left of that word, where a full stop belongs in RTL.
     expect(ogRtlLine("في كل حاجة.", true)).toBe("حاجة. كل في");
   });
 

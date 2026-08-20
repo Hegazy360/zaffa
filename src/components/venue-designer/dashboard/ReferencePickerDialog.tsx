@@ -49,7 +49,7 @@ async function fileToDataUrl(file: File): Promise<string> {
   });
 }
 
-// One strong noun per category — these read well on Pinterest and avoid
+// One strong noun per category, these read well on Pinterest and avoid
 // the redundancy of the previous templates ("table setting tablescape",
 // "florals centerpiece tablescape"). Order in the final query is:
 //   `<style notes> <setting> <event> <category>`
@@ -86,8 +86,8 @@ const CATEGORY_LABEL_KEY: Record<ReferenceCategory, string> = {
   venue_decor: "categoryVenueDecor",
 };
 
-// Plain title case — capitalize every whitespace-separated word. Good
-// enough for our 3–5 word search queries; we don't bother with the
+// Plain title case, capitalize every whitespace-separated word. Good
+// enough for our 3-5 word search queries; we don't bother with the
 // "of/and/the" lowercase rules a copywriter would use.
 function toTitleCase(value: string): string {
   return value
@@ -303,7 +303,7 @@ export function ReferencePickerDialog({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       {/*
-        Mobile-first sizing. On phones (<sm) we go full-bleed — the
+        Mobile-first sizing. On phones (<sm) we go full-bleed, the
         dialog occupies the entire dynamic viewport, drops its rounded
         corners and ring, and behaves like a native sheet so users get
         the maximum tap area for the inspiration grid and don't fight
@@ -378,7 +378,7 @@ export function ReferencePickerDialog({
             {/*
               Sticky search row so the query stays reachable while
               browsing long Pinterest result grids on a phone. We
-              intentionally don't `autoFocus` the input — on mobile
+              intentionally don't `autoFocus` the input, on mobile
               that would slam the soft keyboard up before the user has
               even seen the pre-filled query, which is the most useful
               thing about this surface.

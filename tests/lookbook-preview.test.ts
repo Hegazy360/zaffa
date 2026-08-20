@@ -4,7 +4,7 @@ import enMessages from "../messages/en.json";
 import arMessages from "../messages/ar.json";
 
 /**
- * Not an assertion — a generator. Writes the real template through the real
+ * Not an assertion, a generator. Writes the real template through the real
  * Chromium path so the artefact a customer pays for can be looked at, in both
  * directions, rather than inferred from unit tests. Skipped unless
  * `LOOKBOOK_PREVIEW=1`.
@@ -40,7 +40,7 @@ beforeAll(async () => {
 const IMG = "https://res.cloudinary.com/dz0tdjoqj/image/upload/v1778150961/zaffa-renders/juqkmgfqyz4obopj6ihk.jpg";
 
 // Worst-case shape on purpose: every category populated, near the reference
-// cap, the full 16-render cap, notes, QR page — the document whose cold
+// cap, the full 16-render cap, notes, QR page - the document whose cold
 // render time the route timeout has to survive.
 const refs = (n: number) =>
   Array.from({ length: n }, (_, i) => ({

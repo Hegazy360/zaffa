@@ -15,8 +15,8 @@ export const PACK_ERROR_REASONS = {
   /**
    * Anonymous-only: the per-IP free-render limiter rejected. Pops the
    * paywall so the visitor sees the upgrade options inline instead of
-   * a dead-end toast. Not a true "pack" reason — it predates the user
-   * ever owning a pack — but it routes through the same surface
+   * a dead-end toast. Not a true "pack" reason, it predates the user
+   * ever owning a pack, but it routes through the same surface
    * because the resolution is identical (buy a pack to continue).
    */
   RATE_LIMITED_FREE: "FREE_RENDER_RATE_LIMITED",

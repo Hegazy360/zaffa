@@ -21,7 +21,7 @@ describe("isPackRefundable (refund tripwire)", () => {
     microsite_published_at: null,
     lookbook_downloaded_at: null,
     status: "active",
-    amount: 1999, // $19.99 in minor units — paid tier
+    amount: 1999, // $19.99 in minor units - paid tier
   };
 
   it("returns true within the refund window when no tripwires fired", () => {
@@ -35,8 +35,8 @@ describe("isPackRefundable (refund tripwire)", () => {
   });
 
   it("uses latest_paid_at over paid_at when both are set (upgrade flow)", () => {
-    // Original purchase was 30 hours ago — past the 24h window from
-    // paid_at alone — but the upgrade happened 2 hours ago, so the
+    // Original purchase was 30 hours ago, past the 24h window from
+    // paid_at alone - but the upgrade happened 2 hours ago, so the
     // refund window is open.
     const oldPaidAt = new Date(Date.now() - 30 * 60 * 60 * 1000);
     const recentUpgradeAt = new Date(Date.now() - 2 * 60 * 60 * 1000);
@@ -68,7 +68,7 @@ describe("isPackRefundable (refund tripwire)", () => {
   });
 
   it("returns false past the refund window cutoff", () => {
-    // 25h ago — beyond the 24h window.
+    // 25h ago, beyond the 24h window.
     const tooLate = new Date(
       Date.now() - (VISION_PACK_REFUND_HOURS + 1) * 60 * 60 * 1000,
     );
@@ -119,7 +119,7 @@ describe("generateMicrositeSlug", () => {
     for (let i = 0; i < 25; i++) {
       const slug = generateMicrositeSlug();
       expect(slug).toHaveLength(10);
-      // Crockford-ish alphabet (no 0/O/1/I/L) — keep the regex permissive
+      // Crockford-ish alphabet (no 0/O/1/I/L), keep the regex permissive
       // but still url-safe.
       expect(slug).toMatch(/^[a-z2-9]+$/);
     }

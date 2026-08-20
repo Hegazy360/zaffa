@@ -45,7 +45,7 @@ afterEach(() => {
 describe("GET /api/cron/payment-reminders", () => {
   it("rejects unauthenticated callers when CRON_SECRET is set", async () => {
     process.env.CRON_SECRET = "shh";
-    // NODE_ENV is typed as readonly by node — use a runtime cast so the
+    // NODE_ENV is typed as readonly by node, use a runtime cast so the
     // assertProductionEnv guard sees the production env.
     (process.env as Record<string, string>).NODE_ENV = "production";
 
@@ -80,7 +80,7 @@ describe("GET /api/cron/payment-reminders", () => {
       due_date: new Date("2020-01-01"),
       event: { id: randomUUID(), title: "Birthday", client_id: randomUUID() },
     };
-    // findMany is called twice (due, then overdue) — sequence the mocks.
+    // findMany is called twice (due, then overdue) - sequence the mocks.
     prismaMock.payment.findMany
       .mockResolvedValueOnce([dueRow] as never)
       .mockResolvedValueOnce([overdueRow] as never);

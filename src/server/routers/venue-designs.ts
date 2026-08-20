@@ -42,7 +42,7 @@ const eventTypeSchema = z.enum([
 ]);
 const settingSchema = z.enum(["indoor", "outdoor", "tent"]);
 const sizeSchema = z.enum(["intimate", "medium", "large"]);
-// Mirrors GUEST_COUNT_MIN / GUEST_COUNT_MAX in the client types — kept as a
+// Mirrors GUEST_COUNT_MIN / GUEST_COUNT_MAX in the client types, kept as a
 // literal so we don't pull a client module into the server bundle.
 const guestCountSchema = z.number().int().min(2).max(10000);
 
@@ -59,7 +59,7 @@ function deriveSize(count: number | null | undefined): "intimate" | "medium" | "
 /**
  * Resolve the user's most recent active/fulfilled pack so we know
  * whether to serve clean or watermarked URLs for their media. Cached
- * once per call (not memoized across requests — pack state mutates).
+ * once per call (not memoized across requests, pack state mutates).
  */
 async function loadActivePackForUser(userId: string) {
   return prisma.visionPack.findFirst({
@@ -76,7 +76,7 @@ async function loadActivePackForUser(userId: string) {
  * Pick the URL to serve for a given media row given the user's current
  * pack tier. Free tier sees the watermarked Cloudinary transformation;
  * paid tiers see the clean asset. Rows without a `cloudinary_public_id`
- * (legacy + provider-hosted) always serve the stored URL — we can't
+ * (legacy + provider-hosted) always serve the stored URL, we can't
  * derive a watermark without the public id.
  */
 function urlForTier(
@@ -91,11 +91,11 @@ function urlForTier(
 
 export const venueDesignsRouter = router({
   /**
-   * "I want this wedding — contact me."
+   * "I want this wedding, contact me."
    *
    * Approval used to be `events.createFromDesign`, gated on the Vision Pack
    * SKU because it opened the planner marketplace. The marketplace is hidden
-   * now, so that gate was selling a door that 404s — and it surfaced to real
+   * now, so that gate was selling a door that 404s - and it surfaced to real
    * clients as a raw `PACK_TIER_NO_PLANNER_MATCH` toast. Under the concierge
    * model, approving a design is a *lead*, not a feature unlock: it must be
    * free for anyone with a permanent account. Pack buyers who only want the
@@ -106,7 +106,7 @@ export const venueDesignsRouter = router({
    * where anonymous visitors acquire one.
    *
    * Shape mirrors `enquiries.submit`: the Enquiry row is written FIRST and
-   * every side effect after it (admin fan-out, analytics) is best-effort —
+   * every side effect after it (admin fan-out, analytics) is best-effort -
    * an email outage must never lose the warmest lead the funnel produces.
    */
   approve: nonAnonymousProcedure
@@ -128,7 +128,7 @@ export const venueDesignsRouter = router({
         if (!design) {
           throw new TRPCError({ code: "NOT_FOUND", message: "Design not found" });
         }
-        // Already approved — hand back the existing lead so the UI can show
+        // Already approved, hand back the existing lead so the UI can show
         // the same "we're on it" state without creating a duplicate.
         const existing = await prisma.enquiry.findFirst({
           where: { design_id: input.designId, source: "design_approved" },
@@ -215,7 +215,7 @@ export const venueDesignsRouter = router({
           event_id: true,
           approved_at: true,
           _count: { select: { media: true } },
-          // Latest generated render for this design — used as the card hero
+          // Latest generated render for this design, used as the card hero
           // thumbnail. We filter to "render" because videos can't be cheaply
           // poster-extracted on the server.
           media: {
@@ -358,7 +358,7 @@ export const venueDesignsRouter = router({
       const created = await prisma.venueDesign.create({
         data: { ...data, user_id: ctx.user.id },
       });
-      // Couple-journey funnel — top of the design step. We only fire on
+      // Couple-journey funnel, top of the design step. We only fire on
       // first save (no `id` in input) so re-saves don't re-count.
       await trackServer(ctx.user.id, ANALYTICS_EVENTS.DESIGN_CREATED, {
         design_id: created.id,
@@ -383,7 +383,7 @@ export const venueDesignsRouter = router({
       z.object({
         design_id: z.string().uuid(),
         type: z.enum(["render", "video"]),
-        // Must be a CDN URL — we explicitly reject inline `data:` URIs here
+        // Must be a CDN URL, we explicitly reject inline `data:` URIs here
         // because storing multi-MB base64 strings in `venue_design_media.url`
         // bloats every downstream read (marketing teaser, message previews,
         // dashboards). Both the AI scene generator and the video generator

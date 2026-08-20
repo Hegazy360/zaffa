@@ -272,7 +272,7 @@ function TemplateDialog({ template }: { template?: Template }) {
               >
                 {CATEGORIES.map((c) => (
                   <option key={c} value={c}>
-                    {c || "—"}
+                    {c || "-"}
                   </option>
                 ))}
               </select>

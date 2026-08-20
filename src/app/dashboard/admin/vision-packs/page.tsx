@@ -177,7 +177,7 @@ function PackRow({ row }: { row: PackRowItem }) {
   const t = useTranslations("admin");
   const f = useFormatters();
   const statusKey = row.status as StatusFilter;
-  // VisionPack.amount is stored in minor units (cents/piastres) — convert
+  // VisionPack.amount is stored in minor units (cents/piastres), convert
   // before handing to the locale-aware currency formatter so e.g. 1999
   // renders as "$19.99" instead of "$1,999".
   const amountLabel = f.currency(

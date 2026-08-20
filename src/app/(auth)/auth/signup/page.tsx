@@ -36,7 +36,7 @@ export default async function SignUpPage() {
       </Suspense>
 
       {/* Quiet detour for planners and vendors. We deliberately keep it muted
-          so the client journey stays the obvious default — and hide it
+          so the client journey stays the obvious default, and hide it
           entirely while the professional surfaces are off, since the
           destination 404s at the edge and linking to it would be a dead end. */}
       {isFlagEnabled("professionalSurfaces") ? (

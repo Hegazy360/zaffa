@@ -339,7 +339,7 @@ function PricingDialog({ editing, onClose, onSave, saving }: PricingDialogProps)
   const [currency, setCurrency] = useState("");
   const [notes, setNotes] = useState("");
 
-  // Re-seed inputs whenever the editing target changes — equivalent to a
+  // Re-seed inputs whenever the editing target changes, equivalent to a
   // "key on identity" pattern but lighter than blowing away the whole
   // dialog on each open.
   const seededFor = isOpen

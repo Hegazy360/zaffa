@@ -16,7 +16,7 @@ export interface HookSlideProps {
   variant: HookVariant;
   /** Used by `default` and `chaosToClarity` ("after"). */
   renderUrl?: string;
-  /** Used by `chaosToClarity` ("before") — falls back to first inspiration image. */
+  /** Used by `chaosToClarity` ("before"), falls back to first inspiration image. */
   beforeUrl?: string;
   /** 4 image URLs for the `fourUp` variant. */
   fourUpUrls?: string[];
@@ -62,7 +62,7 @@ function DefaultHook({ renderUrl, headline, subline }: HookSlideProps) {
           className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/85 via-black/55 to-transparent"
         />
         <div className="relative">
-          {/* small italic eyebrow above the title — adds editorial rhythm */}
+          {/* small italic eyebrow above the title, adds editorial rhythm */}
           <p
             className="mb-4 font-display text-[18px] font-light italic leading-none tracking-[0.04em] text-rose-200/90"
             style={OVERLAY_SUBTEXT_SHADOW}

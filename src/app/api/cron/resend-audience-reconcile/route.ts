@@ -9,12 +9,12 @@ import { addToAudience } from "@/lib/resend";
  * it into the Resend Audience on the inline `auth.requestEmailUpgrade`
  * call. The inline push can fail for a handful of reasons that don't
  * matter to the visitor (Resend API outage, transient rate-limit,
- * `RESEND_AUDIENCE_ID` only configured later) — the gate succeeds and
+ * `RESEND_AUDIENCE_ID` only configured later), the gate succeeds and
  * the email lock holds, but the address never made the nurture list.
  *
  * Selection criteria:
- *   - `status = 'pending'`             — push hasn't been confirmed
- *   - `resend_synced_at IS NULL`       — never made it across the wire
+ *   - `status = 'pending'`, push hasn't been confirmed
+ *   - `resend_synced_at IS NULL`, never made it across the wire
  *
  * On success we flip the row to `status='sent'` and stamp
  * `resend_synced_at`. The `/auth/confirm` route later flips
@@ -28,7 +28,7 @@ import { addToAudience } from "@/lib/resend";
  *   { "path": "/api/cron/resend-audience-reconcile", "schedule": "0 4 * * *" }
  *
  * Scheduled once a day because Vercel Hobby plans cap cron frequency
- * at daily. Inline push at capture time is still the primary path —
+ * at daily. Inline push at capture time is still the primary path -
  * this cron is the retry safety net, so a 24-hour worst-case lag from
  * capture to Resend is fine. If we move to Pro/Enterprise the
  * schedule can be tightened to hourly (`0 * * * *`).
@@ -76,7 +76,7 @@ export async function GET(req: Request) {
       });
       if (!ok) {
         // RESEND_AUDIENCE_ID still unconfigured. No point retrying
-        // every minute — bail and let a future deploy that flips the
+        // every minute, bail and let a future deploy that flips the
         // env var pick it back up.
         break;
       }

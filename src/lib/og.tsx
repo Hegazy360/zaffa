@@ -7,7 +7,7 @@ import { reportError } from "@/lib/logger";
  * Shared pieces of the Open Graph image system.
  *
  * The growth loop for this product is a link pasted into WhatsApp. Until now
- * that link previewed as a bare title with no image — or, on a microsite, as
+ * that link previewed as a bare title with no image - or, on a microsite, as
  * the couple's raw full-resolution Cloudinary render, which is both a slow
  * preview and an unbranded one. These images are the artefact that actually
  * travels.
@@ -15,7 +15,7 @@ import { reportError } from "@/lib/logger";
  * Fonts are vendored into the repo rather than fetched from Google at request
  * time: an OG image that renders only when fonts.gstatic.com is reachable will
  * silently degrade to Satori's fallback exactly when a share is happening.
- * WOFF, not WOFF2 — Satori does not read WOFF2.
+ * WOFF, not WOFF2 - Satori does not read WOFF2.
  */
 
 export const OG_SIZE = { width: 1200, height: 630 } as const;
@@ -25,7 +25,7 @@ export const OG_PHOTO_CONTENT_TYPE = "image/jpeg";
 /**
  * WhatsApp will not fetch a link preview image much over ~300 KB, and a
  * preview that never loads is this whole system failing silently. Cards that
- * are mostly flat colour compress fine as the PNG `ImageResponse` produces —
+ * are mostly flat colour compress fine as the PNG `ImageResponse` produces -
  * the root card lands around 150 KB. A card with a photograph in it does not:
  * the microsite card came out at 1 MB.
  *
@@ -33,7 +33,7 @@ export const OG_PHOTO_CONTENT_TYPE = "image/jpeg";
  *
  * That is deliberate, and it is the second attempt. The first used `sharp`,
  * the obvious tool, which worked perfectly in dev and then failed in
- * production twice with `ERR_DLOPEN_FAILED: libvips-cpp.so.8.18.3` — its
+ * production twice with `ERR_DLOPEN_FAILED: libvips-cpp.so.8.18.3`, its
  * native sibling package is not reliably present in a serverless bundle, and
  * neither npm's optional-dependency handling nor file tracing fixed it. A
  * native module for one image conversion, on the growth-critical path, is not
@@ -101,13 +101,13 @@ const FONT_DIR = path.join(process.cwd(), "src/assets/fonts");
  * Font data for an ImageResponse, chosen by locale.
  *
  * Arabic needs an Arabic face: Fraunces has no Arabic coverage, so an Arabic
- * headline rendered with it comes out as tofu boxes — a share card worse than
+ * headline rendered with it comes out as tofu boxes, a share card worse than
  * no share card. Latin locales get Fraunces, the site's own display face.
  *
  * The Arabic face is **Cairo, not Reem Kufi**, even though Reem Kufi is the
- * site's Arabic display font. Satori's shaper rejects Reem Kufi outright —
+ * site's Arabic display font. Satori's shaper rejects Reem Kufi outright -
  * `lookupType: 5 - substFormat: 1 is not yet supported`, a contextual
- * substitution table it does not implement — and returns a 500 rather than
+ * substitution table it does not implement, and returns a 500 rather than
  * degrading. Cairo shapes correctly, and it is already the site's Arabic body
  * face, so the card stays in the family. If Satori gains that lookup type,
  * this is a one-line change back.
@@ -158,7 +158,7 @@ export function OgWordmark({ color = OG_CREAM }: { color?: string }) {
  * Verified against the bundled renderer with a deliberately unambiguous probe
  * ("ا ب ت ث ج"): every glyph came out left-to-right, with and without
  * `direction: "rtl"` on the container. Satori shapes *within* a word correctly
- * — letters join, and their internal order is right-to-left — but it lays the
+ * - letters join, and their internal order is right-to-left - but it lays the
  * words themselves out in logical order, left to right. An Arabic headline
  * therefore renders as a sentence read backwards, which on a share card is
  * worse than no card at all.
@@ -175,7 +175,7 @@ export function OgWordmark({ color = OG_CREAM }: { color?: string }) {
  * `whiteSpace: "nowrap"`. That is why the cards below compose their headlines
  * from explicit short lines rather than one long string.
  *
- * It is also wrong for mixed-direction text — a Latin name or a number inside
+ * It is also wrong for mixed-direction text, a Latin name or a number inside
  * an Arabic sentence would move to the wrong side. The cards keep Latin
  * fragments (a couple's name) in their own element rather than inline.
  */
@@ -189,15 +189,15 @@ export function ogRtlLine(text: string, isRtl: boolean): string {
  *
  * Satori attaches marks by advance width rather than by the font's mark-anchor
  * tables, so a shadda on "بتتجوّزوا" lands over the wrong letter and reads as
- * a rendering fault. Harakat are optional in modern Arabic orthography — the
- * word is correctly spelled without them — so dropping them costs nothing on
+ * a rendering fault. Harakat are optional in modern Arabic orthography, the
+ * word is correctly spelled without them, so dropping them costs nothing on
  * a share card and removes a visible glitch.
  *
  * Card copy only. The site's own copy keeps its marks, where the browser
  * positions them properly.
  *
- * U+064B–U+0652 harakat, U+0653–U+0655 hamza marks, U+0670 dagger alif,
- * U+06D6–U+06ED Quranic annotation marks.
+ * U+064B-U+0652 harakat, U+0653-U+0655 hamza marks, U+0670 dagger alif,
+ * U+06D6-U+06ED Quranic annotation marks.
  */
 export function stripArabicMarks(text: string): string {
   return text.replace(/[\u064B-\u0655\u0670\u06D6-\u06ED]/g, "");
@@ -207,7 +207,7 @@ export function stripArabicMarks(text: string): string {
  * The brand card: dark plate, two headline lines, an eyebrow, a gradient rule.
  *
  * Shared by the root card and by `/r/[renderId]`, which deliberately shows
- * this instead of the render it is about — that render is behind a magic link,
+ * this instead of the render it is about - that render is behind a magic link,
  * and a link preview is fetched by every server the link passes through. A
  * private render leaking into WhatsApp's and Slack's preview caches is a
  * privacy bug, not a missed branding opportunity.
@@ -243,7 +243,7 @@ export async function brandCard({
         }}
       >
         {/* The glow. Two soft radials rather than a blur filter, which Satori
-            does not implement — and the inset is spread in conditionally
+            does not implement, and the inset is spread in conditionally
             rather than set to "auto", which Satori rejects outright. */}
         <div
           style={{

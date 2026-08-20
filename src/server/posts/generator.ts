@@ -4,13 +4,13 @@
 //   1. Pick format / vibe / palette (auto-pick when not supplied,
 //      weighted toward MENA + the higher-converting formats).
 //   2. Fetch + mirror Pinterest inspiration images.
-//   3. Generate N renders (4:5 portrait) — N depends on the format.
+//   3. Generate N renders (4:5 portrait), N depends on the format.
 //   4. Generate a caption + 5 hashtags via the Zaffa-voice LLM helper.
 //      For the `three_words` format, also generate the three-word
 //      triptych captions.
 //   5. Compose the slide list per the format plan.
 //   6. Persist as `pending`. The admin reviews and rasterizes from the
-//      detail page later — generation is fire-and-forget.
+//      detail page later, generation is fire-and-forget.
 
 import { prisma } from "@/lib/prisma";
 import {
@@ -65,7 +65,7 @@ export async function generatePost(
   // for the vibe.
   const palette: NamedPalette = input.palette ?? (await namePalette({ vibe }));
 
-  // Inspiration FIRST — we use the URLs as references for the renders
+  // Inspiration FIRST, we use the URLs as references for the renders
   // so the model sees the moodboard.
   const { imageUrls: inspirationImageUrls } = await fetchInspiration({
     vibe,
@@ -94,7 +94,7 @@ export async function generatePost(
       : Promise.resolve<[string, string, string] | undefined>(undefined),
   ]);
 
-  // Hook copy — kept simple here; can be elaborated later via a
+  // Hook copy, kept simple here; can be elaborated later via a
   // dedicated LLM call if we want format-specific hook variants.
   const hookHeadline =
     format === "palette_test"
@@ -141,7 +141,7 @@ export async function generatePost(
  * Ask the LLM for a fresh vibe, biased to avoid the last ~30 posts'
  * vibes so the feed doesn't repeat itself. Falls back to a small
  * baked-in fallback list only if the LLM call throws (network outage,
- * key missing in local dev, etc.) — the goal is to never block
+ * key missing in local dev, etc.) - the goal is to never block
  * generation on the vibe step.
  */
 async function pickFreshVibe(): Promise<string> {
@@ -154,7 +154,7 @@ async function pickFreshVibe(): Promise<string> {
     });
     recentVibes = recent.map((r) => r.vibe).filter(Boolean);
   } catch {
-    // Non-fatal — empty list is fine, the LLM just won't dedupe.
+    // Non-fatal - empty list is fine, the LLM just won't dedupe.
   }
   try {
     const out = await generateVibe({ recentVibes });
@@ -168,7 +168,7 @@ async function pickFreshVibe(): Promise<string> {
 }
 
 /**
- * Last-ditch vibe pool. Only used when the LLM call fails — keep it
+ * Last-ditch vibe pool. Only used when the LLM call fails, keep it
  * short on purpose so we lean on the LLM for variety.
  */
 const FALLBACK_VIBES = [

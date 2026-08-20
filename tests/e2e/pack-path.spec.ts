@@ -1,5 +1,5 @@
 /**
- * Pack path — the second critical flow E2E that protects the Wedding
+ * Pack path, the second critical flow E2E that protects the Wedding
  * Vision Pack revenue lane:
  *
  *   1. A signed-in client kicks off Vision Pack checkout from the
@@ -8,11 +8,11 @@
  *      microsite slug.
  *   3. The welcome page polls `visionPacks.current`, sees `active`, and
  *      auto-redirects into the designer.
- *   4. The recipient toggles the microsite public from settings — this
+ *   4. The recipient toggles the microsite public from settings, this
  *      stamps `microsite_published_at` (the refund tripwire), and the
  *      public `/v/<slug>` route renders without auth.
  *
- * AI generation itself is NOT exercised here — it requires real OpenAI
+ * AI generation itself is NOT exercised here, it requires real OpenAI
  * keys and is covered by router-level Vitest specs against the
  * `requireActivePack` / `consumeQuota` helpers. This spec proves the
  * money-flow + microsite-publish surface of the pack lane end-to-end.
@@ -50,7 +50,7 @@ test.describe("pack path: pay → activate → publish microsite", () => {
   });
 
   test("client buys a Vision Pack via Stripe Checkout", async ({ browser }) => {
-    // Stripe checkout + webhook round-trip — match the money-path budget.
+    // Stripe checkout + webhook round-trip, match the money-path budget.
     test.setTimeout(180_000);
 
     const browserCtx = await browser.newContext({ storageState: CLIENT_STATE });
@@ -59,7 +59,7 @@ test.describe("pack path: pay → activate → publish microsite", () => {
       await test.step("trigger pack checkout from the venue-designer marketing surface", async () => {
         await page.goto("/venue-designer");
         // The marketing banner (shown to signed-in users without a pack)
-        // exposes the buy CTA, which opens the paywall panel — now a
+        // exposes the buy CTA, which opens the paywall panel - now a
         // single-pack summary (ZAF-78), not a tier picker.
         const buyCta = page
           .getByRole("button", { name: /unlock|get yours|buy/i })
@@ -71,7 +71,7 @@ test.describe("pack path: pay → activate → publish microsite", () => {
         const dialog = page.getByRole("dialog");
         await dialog.waitFor({ state: "visible", timeout: 10_000 });
         await dialog
-          .getByRole("button", { name: /—|sign up|get/i })
+          .getByRole("button", { name: /-|sign up|get/i })
           .last()
           .click();
         await page.waitForURL(/checkout\.stripe\.com/, { timeout: 45_000 });
@@ -183,7 +183,7 @@ test.describe("pack path: pay → activate → publish microsite", () => {
         await page.goto("/dashboard/client/settings");
         // The microsite card has a Public/Private toggle button with one
         // of those two literal labels. Click whichever one moves us to
-        // "Public" (idempotent — already public still passes).
+        // "Public" (idempotent, already public still passes).
         const toggle = page
           .getByRole("button", { name: /^(public|private)$/i })
           .first();
@@ -214,7 +214,7 @@ test.describe("pack path: pay → activate → publish microsite", () => {
         try {
           const res = await anonPage.goto(`/v/${ctx.slug}`);
           expect(res?.status(), "anonymous fetch returns 200").toBe(200);
-          // Some recognizable Vision Pack copy on the public page —
+          // Some recognizable Vision Pack copy on the public page -
           // pick something stable (the "Create your" CTA copy).
           await expect(anonPage.locator("body")).toContainText(/create/i, {
             timeout: 15_000,

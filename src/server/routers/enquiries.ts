@@ -17,7 +17,7 @@ import { isFlagEnabled } from "@/lib/flags";
 
 
 /**
- * Full-service enquiries — the only inbound channel for "The Whole Wedding".
+ * Full-service enquiries, the only inbound channel for "The Whole Wedding".
  *
  * The ordering inside `submit` is the whole point of this router. Before it
  * existed the flagship tier's pipeline was a single Resend email that returned
@@ -61,23 +61,23 @@ function escapeHtml(value: string): string {
     .replace(/'/g, "&#39;");
 }
 
-/** Acknowledgement copy. فصحى on the Arabic side — this is a money surface. */
+/** Acknowledgement copy. فصحى on the Arabic side, this is a money surface. */
 function ackBody(locale: string | null | undefined, name: string) {
   const ar = locale === "ar";
   return ar
     ? {
-        subject: "وصلنا طلبكم — زفّة",
+        subject: "وصلنا طلبكم - زفّة",
         html: `<p>أهلًا ${escapeHtml(name)}،</p>
 <p>وصلنا طلبكم بخصوص تنظيم زفافكم بالكامل، وسنعود إليكم قريبًا عبر واتساب لنتحدّث عن يومكم.</p>
 <p>لا شيء يبدأ قبل أن تروا السعر وتوافقوا عليه.</p>
-<p>— فريق زفّة</p>`,
+<p>- فريق زفّة</p>`,
       }
     : {
-        subject: "We've got your enquiry — Zaffa",
+        subject: "We've got your enquiry - Zaffa",
         html: `<p>Hi ${escapeHtml(name)},</p>
 <p>We've received your enquiry about running your whole wedding, and we'll be in touch shortly on WhatsApp to talk about your day.</p>
 <p>Nothing starts until you've seen the price and said yes.</p>
-<p>— The Zaffa team</p>`,
+<p>- The Zaffa team</p>`,
       };
 }
 
@@ -106,7 +106,7 @@ export const enquiriesRouter = router({
           designId: z.string().uuid().optional(),
           source: SOURCE.default("whole_wedding_home"),
           locale: z.string().trim().max(5).optional(),
-          // Honeypot — invisible in the rendered form, so a non-empty value
+          // Honeypot - invisible in the rendered form, so a non-empty value
           // means a bot. We fake success rather than erroring so it stops
           // retrying, exactly as the contact form does.
           hp: z.string().max(0).optional(),
@@ -174,8 +174,8 @@ export const enquiriesRouter = router({
         await notifyEnquiryReceived({
           enquiryId: enquiry.id,
           fullName: input.fullName,
-          city: input.city ?? input.country ?? "—",
-          guests: input.guestBand ?? "—",
+          city: input.city ?? input.country ?? "-",
+          guests: input.guestBand ?? "-",
           channel: input.preferredChannel,
         });
       } catch (err) {
@@ -264,7 +264,7 @@ export const enquiriesRouter = router({
           budget_currency: true,
           source: true,
           created_at: true,
-          // The render chip that marks a design_approved lead in the inbox —
+          // The render chip that marks a design_approved lead in the inbox -
           // this lead type IS the render, so the row should show it.
           design: { select: { id: true, thumbnail: true } },
         },
@@ -273,7 +273,7 @@ export const enquiriesRouter = router({
       return { items, nextCursor };
     }),
 
-  /** Counts per status — drives the pipeline tabs without a second round-trip. */
+  /** Counts per status, drives the pipeline tabs without a second round-trip. */
   counts: protectedProcedure.query(async ({ ctx }) => {
     await assertAdmin(ctx.user.id);
     const rows = await prisma.enquiry.groupBy({
@@ -290,8 +290,8 @@ export const enquiriesRouter = router({
    *
    * The one number that has to be watched after publishing our fee: showing a
    * price is expected to reduce enquiry *volume* while raising the share that
-   * are real. Volume alone would read as the page failing. `quoteWorthy` —
-   * the share of a week's enquiries that reached `quote_sent` or beyond — is
+   * are real. Volume alone would read as the page failing. `quoteWorthy` -
+   * the share of a week's enquiries that reached `quote_sent` or beyond, is
    * the number that should rise while volume falls. If both fall, the page is
    * wrong.
    *
@@ -319,7 +319,7 @@ export const enquiriesRouter = router({
       });
 
       // Reaching a quote is the bar. Everything downstream of `quote_sent`
-      // counts too — a lead that went straight to `accepted` was obviously
+      // counts too, a lead that went straight to `accepted` was obviously
       // quote-worthy, and a status ladder should never punish speed.
       const QUOTED: ReadonlySet<string> = new Set([
         "quote_sent",
@@ -404,7 +404,7 @@ export const enquiriesRouter = router({
               name: true,
               event_type: true,
               created_at: true,
-              // For design_approved leads the render is the brief — show it.
+              // For design_approved leads the render is the brief, show it.
               thumbnail: true,
               setting: true,
               size: true,
@@ -490,7 +490,7 @@ export const enquiriesRouter = router({
    * Turn an accepted enquiry into a real Event the couple can see.
    *
    * Matches an existing Profile by the enquiry's user link first, then by
-   * email, and only creates an account as a last resort — a couple who already
+   * email, and only creates an account as a last resort - a couple who already
    * has a Zaffa account from the free render must not end up with a second
    * one, or their designs and their wedding live in different places.
    */
@@ -548,7 +548,7 @@ export const enquiriesRouter = router({
         data: {
           client_id: clientId,
           title: enquiry.city
-            ? `${enquiry.full_name} — ${enquiry.city}`
+            ? `${enquiry.full_name}, ${enquiry.city}`
             : enquiry.full_name,
           event_type: "wedding",
           event_date: enquiry.event_date,
@@ -594,7 +594,7 @@ export const enquiriesRouter = router({
    * `Payment` rows with `schedule_id = null` are an explicitly supported shape
    * ("legacy manual ledger rows"), which lets the concierge lane reuse the
    * existing refund, dispute and reminder machinery without touching
-   * `PaymentSchedule` — that model requires a proposal and a planner, both of
+   * `PaymentSchedule` - that model requires a proposal and a planner, both of
    * which belong to the marketplace we just hid.
    *
    * The amounts are ZAFFA'S FEE ONLY. Vendor money stays vendor-direct until
@@ -660,7 +660,7 @@ export const enquiriesRouter = router({
       const link = await createInstallmentLink({
         installmentId: deposit.id,
         enquiryId: enquiry.id,
-        label: `Zaffa — deposit for ${enquiry.full_name}`,
+        label: `Zaffa - deposit for ${enquiry.full_name}`,
         amount: input.depositAmount,
         currency: input.currency,
       });
@@ -718,7 +718,7 @@ export const enquiriesRouter = router({
       const link = await createInstallmentLink({
         installmentId: row.id,
         enquiryId: enquiry?.id ?? null,
-        label: `Zaffa — ${row.label ?? "payment"}${enquiry ? ` for ${enquiry.full_name}` : ""}`,
+        label: `Zaffa - ${row.label ?? "payment"}${enquiry ? ` for ${enquiry.full_name}` : ""}`,
         amount: Number(row.amount),
         currency: row.currency,
       });

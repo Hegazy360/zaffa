@@ -48,7 +48,7 @@ const prisma = new PrismaClient({
 });
 
 // A representative demo set. Covers the three roles + the shared
-// `message_received` type. Intentionally short — run with --type to
+// `message_received` type. Intentionally short, run with --type to
 // exercise every enum value individually.
 //
 // Each entry carries realistic `vars` so the rendered copy (title,
@@ -83,7 +83,7 @@ const DEMO_SEQUENCE: Array<{
     vars: {
       senderName: "Nour, your planner",
       preview:
-        "\u201cHey! Quick question about the floral palette — would you be open to a softer blush instead of coral?\u201d",
+        "\u201cHey! Quick question about the floral palette - would you be open to a softer blush instead of coral?\u201d",
     },
   },
   {
@@ -102,7 +102,7 @@ const DEMO_SEQUENCE: Array<{
       plannerName: "Nada Hassan",
       engagementTitle: "Full-service floral (ceremony + reception)",
       totalAmount: "EGP 48,500",
-      eventTitle: "Mariam & Youssef — Sep 14",
+      eventTitle: "Mariam & Youssef - Sep 14",
     },
   },
 ];
@@ -213,7 +213,7 @@ const DEMO_VARS: Record<NotificationType, SeedVars> = {
     plannerName: "Nada Hassan",
     engagementTitle: "Full-service floral (ceremony + reception)",
     totalAmount: "EGP 48,500",
-    eventTitle: "Mariam & Youssef — Sep 14",
+    eventTitle: "Mariam & Youssef - Sep 14",
   },
   engagement_cancelled: {
     plannerName: "Nada Hassan",
@@ -232,7 +232,7 @@ const DEMO_VARS: Record<NotificationType, SeedVars> = {
   message_received: {
     senderName: "Nour, your planner",
     preview:
-      "\u201cHey! Quick question about the floral palette — would you be open to a softer blush instead of coral?\u201d",
+      "\u201cHey! Quick question about the floral palette - would you be open to a softer blush instead of coral?\u201d",
   },
   venue_lead_opened: {
     coupleName: "Layla & Adam",
@@ -243,7 +243,7 @@ const DEMO_VARS: Record<NotificationType, SeedVars> = {
   enquiry_received: {
     fullName: "Noor & Faisal",
     city: "Dubai",
-    guests: "150–200 guests",
+    guests: "150-200 guests",
     channel: "WhatsApp",
   },
   design_approved: {

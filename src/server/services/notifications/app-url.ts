@@ -2,13 +2,13 @@
  * Resolve the canonical base URL for the current deployment. Used to build
  * absolute CTA links inside transactional emails. Order of precedence:
  *
- *   1. NEXT_PUBLIC_APP_URL              (explicit override — required when
+ *   1. NEXT_PUBLIC_APP_URL              (explicit override, required when
  *                                        you're on a custom domain not yet
  *                                        registered in Vercel, or you want
  *                                        emails from preview builds to link
  *                                        to production on purpose).
  *   2. VERCEL_PROJECT_PRODUCTION_URL    (auto-set on Vercel to the stable
- *                                        production domain — custom domain
+ *                                        production domain, custom domain
  *                                        if one is attached, otherwise the
  *                                        `<project>.vercel.app` URL). This
  *                                        is what we want for email links so

@@ -2,7 +2,7 @@
  * One-off: rename the three E2E fixture users in prod so they don't stand
  * out as "E2E …" in the admin user list. Looks them up by email through
  * Supabase admin (so we don't depend on a stable UUID) and updates the
- * matching `profiles.full_name`. Idempotent — safe to re-run.
+ * matching `profiles.full_name`. Idempotent, safe to re-run.
  *
  * Run: `npx dotenvx run --env-file=.env.local -- npx tsx scripts/rename-e2e-users.ts`
  */

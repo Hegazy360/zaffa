@@ -7,7 +7,7 @@ import Script from "next/script";
 // PageviewTracker via `ttq.page()` so we don't need a second router hook
 // here.
 //
-// Renders nothing — and skips the script entirely — when
+// Renders nothing, and skips the script entirely, when
 // NEXT_PUBLIC_TIKTOK_PIXEL_ID is unset (CI, tests, local without a key).
 export function TikTokPixel() {
   const id = process.env.NEXT_PUBLIC_TIKTOK_PIXEL_ID;

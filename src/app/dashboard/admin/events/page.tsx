@@ -6,13 +6,13 @@ import { VISION_PACK_SKU_ID } from "@/lib/vision-pack";
 import { format } from "date-fns";
 
 /**
- * Admin event list — lists events with a higher-tier Vision Pack so
+ * Admin event list, lists events with a higher-tier Vision Pack so
  * the operator can curate venue recommendations for them. Lower-tier
  * (Design Pack) events don't appear because that SKU has no venue
  * recommendations product on top.
  *
  * Server component because the data is small (recent events) and
- * doesn't change on user interaction — clicking through goes to the
+ * doesn't change on user interaction, clicking through goes to the
  * per-event recommendations editor.
  */
 export default async function AdminEventsPage() {
@@ -22,7 +22,7 @@ export default async function AdminEventsPage() {
   // join via vision_packs rather than filtering by status so admins
   // can recommend venues even for a pack that's still pending payment
   // (the recommendation will surface as soon as the couple's pack
-  // activates). Capped at 100 — old events get archived from the queue.
+  // activates). Capped at 100, old events get archived from the queue.
   const events = await prisma.event.findMany({
     where: {
       vision_packs: { some: { sku: VISION_PACK_SKU_ID } },
