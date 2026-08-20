@@ -23,6 +23,7 @@ import { Skeleton, SkeletonRegion } from "@/components/ui/skeleton";
 import { useFormatters } from "@/lib/use-formatters";
 import type { EventStatus, EventType } from "@/types";
 import { EmptyState } from "@/components/ui/empty-state";
+import { MediaImage } from "@/components/ui/media-image";
 
 interface NormalizedPalette {
   colors: string[];
@@ -180,11 +181,12 @@ export default function ClientDashboardPage() {
                     >
                       <div className="relative aspect-[4/3] overflow-hidden bg-muted">
                         {heroImage ? (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img
+                          <MediaImage
                             src={heroImage}
                             alt={design.name}
-                            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+                            fill
+                            sizes="card"
+                            className="transition-transform duration-500 group-hover:scale-[1.03]"
                           />
                         ) : (
                           <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-rose-50 via-rose-50/60 to-amber-50">
@@ -333,11 +335,12 @@ function EventCard({ event }: { event: EventListItem }) {
     >
       <div className="relative aspect-[16/9] overflow-hidden bg-gradient-to-br from-rose-50 to-amber-50/60">
         {heroImage ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
+          <MediaImage
             src={heroImage}
             alt={event.title}
-            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+            fill
+            sizes="card"
+            className="transition-transform duration-500 group-hover:scale-[1.03]"
           />
         ) : (
           <div className="flex h-full items-center justify-center">

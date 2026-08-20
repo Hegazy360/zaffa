@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { useTranslations } from "next-intl";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
+import { MediaImage } from "@/components/ui/media-image";
 
 interface AvatarUploaderProps {
   /** Current avatar URL (or null for the placeholder). */
@@ -71,11 +72,13 @@ export function AvatarUploader({
   return (
     <div className="flex items-center gap-4">
       {currentUrl ? (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img
+        <MediaImage
           src={currentUrl}
           alt={displayName}
-          className="size-16 rounded-full object-cover ring-1 ring-rose-200/60"
+          width={64}
+          height={64}
+          sizes="thumb"
+          className="size-16 rounded-full ring-1 ring-rose-200/60"
         />
       ) : (
         <div className="grid size-16 place-items-center rounded-full bg-gradient-to-br from-rose-200 to-amber-200 text-xl font-semibold text-rose-800">

@@ -13,6 +13,7 @@ import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 
 import { useFormatters } from "@/lib/use-formatters";
+import { MediaImage } from "@/components/ui/media-image";
 export default function MessagesInboxPage() {
   const f = useFormatters();
   const tc = useTranslations("client");
@@ -71,11 +72,13 @@ export default function MessagesInboxPage() {
                 >
                   <div className="size-16 shrink-0 overflow-hidden rounded-xl bg-gradient-to-br from-rose-50 to-amber-50/60">
                     {row.thumbnail ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
+                      <MediaImage
                         src={row.thumbnail}
                         alt={row.title}
-                        className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.05]"
+                        width={64}
+                        height={64}
+                        sizes="thumb"
+                        className="h-full w-full transition-transform duration-500 group-hover:scale-[1.05]"
                       />
                     ) : (
                       <div className="grid h-full place-items-center">

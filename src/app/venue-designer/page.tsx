@@ -28,6 +28,7 @@ import { useIsAnonymous } from "@/lib/use-is-anonymous";
 import { isFreePack } from "@/lib/vision-pack";
 import { Skeleton, SkeletonRegion } from "@/components/ui/skeleton";
 import { useConfirm } from "@/components/ui/confirm";
+import { MediaImage } from "@/components/ui/media-image";
 
 interface NormalizedPalette {
   colors: string[];
@@ -329,11 +330,12 @@ export default function VenueDesignerGalleryPage() {
                 >
                   <div className="relative aspect-[4/3] overflow-hidden bg-muted">
                     {heroImage ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
+                      <MediaImage
                         src={heroImage}
                         alt={design.name}
-                        className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+                        fill
+                        sizes="card"
+                        className="transition-transform duration-500 group-hover:scale-[1.03]"
                       />
                     ) : (
                       <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-rose-50 via-rose-50/60 to-amber-50">

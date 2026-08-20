@@ -37,6 +37,7 @@ import { isFreePack, packAllowsVideo } from "@/lib/vision-pack";
 import { VisionPackUpgradeCta } from "@/components/vision-pack/VisionPackUpgradeCta";
 import { LockableAction } from "@/components/ui/lockable-action";
 import { useConfirm } from "@/components/ui/confirm";
+import { MediaImage } from "@/components/ui/media-image";
 
 interface GenerateRenderPanelProps {
   designId?: string;
@@ -563,11 +564,16 @@ export function GenerateRenderPanel({ designId }: GenerateRenderPanelProps) {
                   />
                 ) : resultImage ? (
                   <>
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
+                    {/* Natural aspect — this is the render the visitor just
+                        waited for, and cropping it would be absurd. */}
+                    <MediaImage
                       src={resultImage}
                       alt={t("renderedAlt")}
-                      className="h-auto w-full"
+                      width={1600}
+                      height={900}
+                      sizes="half"
+                      priority
+                      className="h-auto w-full object-contain"
                     />
                     {view === "video-pending" && (
                       <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/45 via-black/10 to-transparent" />
@@ -747,11 +753,11 @@ export function GenerateRenderPanel({ designId }: GenerateRenderPanelProps) {
                         }}
                       />
                     ) : (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
+                      <MediaImage
                         src={item.url}
                         alt={t("pastRenderAlt")}
-                        className="h-full w-full object-cover"
+                        fill
+                        sizes="thumb"
                       />
                     )}
                     <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/55 via-black/0 to-transparent opacity-0 transition-opacity group-hover:opacity-100" />

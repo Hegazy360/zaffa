@@ -22,6 +22,7 @@ import { trpc } from "@/lib/trpc";
 import { useFormatters } from "@/lib/use-formatters";
 import { cn } from "@/lib/utils";
 import { useConfirm } from "@/components/ui/confirm";
+import { MediaImage } from "@/components/ui/media-image";
 
 interface MediaGalleryDialogProps {
   open: boolean;
@@ -186,11 +187,13 @@ export function MediaGalleryDialog({
                   className="max-h-full max-w-full object-contain sm:max-h-[55vh]"
                 />
               ) : (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
+                <MediaImage
                   src={selected.url}
                   alt={t("renderedVenueAlt")}
-                  className="max-h-full max-w-full object-contain sm:max-h-[55vh]"
+                  width={1600}
+                  height={900}
+                  sizes="half"
+                  className="max-h-full w-auto max-w-full object-contain sm:max-h-[55vh]"
                 />
               )}
             </div>
@@ -240,11 +243,11 @@ export function MediaGalleryDialog({
                         }}
                       />
                     ) : (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
+                      <MediaImage
                         src={item.url}
                         alt={t("renderedVenueAlt")}
-                        className="w-full h-full object-cover"
+                        fill
+                        sizes="thumb"
                       />
                     )}
                     <div className="absolute top-1.5 start-1.5">
