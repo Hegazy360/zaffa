@@ -27,6 +27,10 @@ export const ANALYTICS_EVENTS = {
   CHAT_MESSAGE_SENT: "chat.message_sent",
   CHAT_REPLY_FAILED: "chat.reply_failed",
   CHAT_HANDOFF_CLICKED: "chat.handoff_clicked",
+  // The sample-studio hero: chip interactions and the handoff into the
+  // real designer with the picked style carried along.
+  STUDIO_CHIP_SELECTED: "studio.chip_selected",
+  STUDIO_HANDOFF_CLICKED: "studio.handoff_clicked",
   // Fired with a `surface` property, because "how many people tapped
   // WhatsApp" is useless next to "which page made them do it".
   WHATSAPP_CTA_CLICKED: "whatsapp.cta_clicked",

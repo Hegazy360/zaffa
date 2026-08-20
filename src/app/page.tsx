@@ -1,10 +1,9 @@
 import type { Metadata } from "next";
 import { getLocale } from "next-intl/server";
 import { openGraphLocaleFields } from "@/i18n/config";
-import { Suspense } from "react";
 import { Navbar } from "@/components/layout/navbar";
 import { Footer } from "@/components/layout/footer";
-import { HeroEditorial } from "@/components/home/hero-editorial";
+import { SampleStudioHero } from "@/components/home/sample-studio-hero";
 import { HeroSocialProof } from "@/components/home/hero-social-proof";
 import { HowItWorks } from "@/components/home/how-it-works";
 import { ConciergePillarsSection } from "@/components/home/concierge-pillars-section";
@@ -12,11 +11,6 @@ import { WholeWeddingSection } from "@/components/home/whole-wedding-section";
 import { ShareSection } from "@/components/home/share-section";
 import { TestimonialsSection } from "@/components/home/testimonials-section";
 import { BeginSection } from "@/components/home/begin-section";
-import {
-  MarketplaceTeaserSection,
-  MarketplaceTeaserSkeleton,
-} from "@/components/home/marketplace-teaser-section";
-
 import { TierComparisonSection } from "@/components/home/tier-comparison-section";
 import { AskZaffaSection } from "@/components/home/ask-zaffa-section";
 import { isFlagEnabled } from "@/lib/flags";
@@ -24,26 +18,24 @@ import { getTranslations } from "next-intl/server";
 import { jsonLdScript, serviceLd } from "@/lib/structured-data";
 import { pricedMarkets } from "@/lib/concierge-pricing";
 
-// Metadata deliberately carries no price. It used to open with "from $19",
-// which was the first thing anyone saw in a search result or a shared link —
-// and it contradicted the page it was describing: the hero stopped leading
-// with the AI tool and the price tag on purpose, because asking for money
-// before the visitor knows what we do was losing them. The tier comparison
-// still shows real, per-country pricing further down the page.
+// Metadata deliberately carries no price (asking for money before the
+// visitor knows what we do was tested and lost — see the hero's history).
+// Rewritten around the instant-studio promise when the sample studio
+// became the hero, and moved onto i18n keys — it was hardcoded English
+// before, on a page whose primary market reads Arabic.
 export async function generateMetadata(): Promise<Metadata> {
   // Next.js replaces `openGraph` wholesale rather than merging with the root
   // layout, so the locale fields have to be spread in here too — without this
   // the home page emits no og:locale at all.
   const locale = await getLocale();
+  const t = await getTranslations("marketing");
   return {
-    title: "Zaffa — Getting married? We've got all of it.",
-    description:
-      "The planner, the venue, the vendors — and the hundred things nobody warned you about. Zaffa handles the whole wedding. Start with a free look at your day.",
+    title: t("homeMetaTitle"),
+    description: t("homeMetaDescription"),
     alternates: { canonical: "/" },
     openGraph: {
-      title: "Zaffa — Getting married? We've got all of it.",
-      description:
-        "We find you the right planner, deal with the back-and-forth, and only send you vendors we'd use ourselves. See your day first — free, in about thirty seconds.",
+      title: t("homeMetaTitle"),
+      description: t("homeMetaOgDescription"),
       url: "/",
       type: "website",
       ...openGraphLocaleFields(locale),
@@ -80,11 +72,12 @@ export default async function HomePage() {
       />
 
       <main className="flex-1">
-        {/* What the platform is */}
-        {/* Proof is a server component passed into the client hero as a
-            slot — the figures have to be real, so they are read at request
-            time rather than hardcoded. */}
-        <HeroEditorial socialProof={<HeroSocialProof />} />
+        {/* The hero IS the product: a sample wedding the visitor restyles
+            live, then carries into the designer. Proof is a server
+            component passed into the client hero as a slot — the figures
+            have to be real, so they are read at request time rather than
+            hardcoded. */}
+        <SampleStudioHero socialProof={<HeroSocialProof />} />
 
         {/* How it works — four steps with screenshots, ending in the
             handoff to the concierge (step 4) */}
@@ -127,13 +120,6 @@ export default async function HomePage() {
             Lazily fetches per-country pricing from the same tRPC
             endpoint as the paywall. */}
         <TierComparisonSection />
-
-        {/* The pulse — who's already on the platform. Streamed: the rest of
-            the marketing shell flushes immediately while the DB query for
-            the anonymized briefs resolves in the background. */}
-        <Suspense fallback={<MarketplaceTeaserSkeleton variant="home" />}>
-          <MarketplaceTeaserSection variant="home" />
-        </Suspense>
 
         {/* Final CTA */}
         <BeginSection />
