@@ -105,7 +105,7 @@ export default function ProposalsPage() {
 
       <div className="mx-auto max-w-6xl px-6 py-12 sm:py-16">
         <header className="mb-10">
-          <div className="inline-flex items-center gap-2 rounded-full border border-rose-200/70 bg-rose-50/70 px-3.5 py-1 text-[11px] font-medium uppercase tracking-[0.18em] text-rose-700 backdrop-blur-sm">
+          <div className="inline-flex items-center gap-2 rounded-full border border-rose-200/70 bg-rose-50/70 px-3.5 py-1 text-eyebrow font-medium text-rose-700 backdrop-blur-sm">
             <FileText className="size-3" />
             {t("proposalsEyebrow")}
           </div>
@@ -133,7 +133,7 @@ export default function ProposalsPage() {
                   {t(TAB_LABEL_KEYS[key])}
                   <span
                     className={cn(
-                      "rounded-full px-1.5 py-0.5 text-[10px] font-medium",
+                      "rounded-full px-1.5 py-0.5 text-xs font-medium",
                       tab === key
                         ? "bg-rose-100 text-rose-700"
                         : "bg-white/70 text-muted-foreground"
@@ -221,17 +221,17 @@ function ProposalCard({ proposal }: { proposal: ProposalRow }) {
             </div>
           )}
           {isAccepted && (
-            <span className="absolute start-3 top-3 inline-flex items-center rounded-full bg-emerald-600/90 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-white backdrop-blur-sm">
+            <span className="absolute start-3 top-3 inline-flex items-center rounded-full bg-emerald-600/90 px-2 py-0.5 text-xs font-medium uppercase tracking-wide text-white backdrop-blur-sm">
               {t("engagedBadge")}
             </span>
           )}
           {isBackup && (
-            <span className="absolute start-3 top-3 inline-flex items-center rounded-full bg-amber-500/90 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-white backdrop-blur-sm">
+            <span className="absolute start-3 top-3 inline-flex items-center rounded-full bg-amber-500/90 px-2 py-0.5 text-xs font-medium uppercase tracking-wide text-white backdrop-blur-sm">
               {t("backupBadge")}
             </span>
           )}
           {isReleased && (
-            <span className="absolute start-3 top-3 inline-flex items-center rounded-full bg-stone-700/85 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-white backdrop-blur-sm">
+            <span className="absolute start-3 top-3 inline-flex items-center rounded-full bg-stone-700/85 px-2 py-0.5 text-xs font-medium uppercase tracking-wide text-white backdrop-blur-sm">
               {t("releasedBadge")}
             </span>
           )}
@@ -252,7 +252,7 @@ function ProposalCard({ proposal }: { proposal: ProposalRow }) {
         <h3 className="font-display text-base font-medium leading-tight tracking-tight">
           {proposal.event.title}
         </h3>
-        <p className="text-[11px] capitalize text-muted-foreground">
+        <p className="text-xs capitalize text-muted-foreground">
           {t("typeWithFirstName", {
             type: proposal.event.event_type,
             firstName: proposal.event.client_first_name,
@@ -283,7 +283,7 @@ function ProposalCard({ proposal }: { proposal: ProposalRow }) {
         )}
         {isReleased && proposal.release_rating && (
           <div className="rounded-xl bg-stone-50 p-3 text-xs text-stone-700">
-            <p className="flex items-center gap-1 text-[10px] font-medium uppercase tracking-[0.2em] text-stone-500">
+            <p className="flex items-center gap-1 text-eyebrow font-medium text-stone-500">
               {t("theirFeedback")}
               <span className="inline-flex items-center gap-0.5 text-amber-600">
                 {Array.from({ length: 5 }).map((_, i) => (

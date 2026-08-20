@@ -61,7 +61,7 @@ export default function AdminEnquiriesPage() {
   return (
     <div className="space-y-6">
       <header>
-        <p className="text-xs uppercase tracking-[0.22em] text-muted-foreground rtl:tracking-normal">
+        <p className="text-xs text-eyebrow text-muted-foreground">
           Pipeline
         </p>
         <h1 className="mt-1 font-display text-3xl font-light tracking-tight">

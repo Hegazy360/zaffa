@@ -101,7 +101,7 @@ export function GeneratePostModal({
               onChange={(e) => setVibe(e.target.value)}
               placeholder="e.g. Tuscan Garden, Cairo Rooftop"
             />
-            <p className="text-[11px] text-muted-foreground">
+            <p className="text-xs text-muted-foreground">
               Leave blank to let the LLM invent one (MENA-weighted,
               avoids the last ~30 vibes).
             </p>
@@ -143,7 +143,7 @@ export function GeneratePostModal({
         </div>
 
         {generate.isPending && (
-          <p className="text-center text-[11px] text-muted-foreground">
+          <p className="text-center text-xs text-muted-foreground">
             this takes 30-60 seconds (pinterest + image-gen + caption)
           </p>
         )}

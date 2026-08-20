@@ -59,7 +59,7 @@ export default function NotificationsInboxPage() {
       <div className="relative mx-auto max-w-3xl px-6 py-12 sm:py-16">
         <header className="mb-8 flex flex-wrap items-end justify-between gap-4">
           <div className="space-y-3">
-            <p className="text-[0.65rem] font-medium uppercase tracking-[0.3em] text-rose-700/80">
+            <p className="text-eyebrow font-medium text-rose-700/80">
               {t("pageEyebrow")}
             </p>
             <h1 className="font-display text-balance text-4xl font-light leading-tight tracking-tight sm:text-5xl">
@@ -156,7 +156,7 @@ export default function NotificationsInboxPage() {
                             {n.body}
                           </p>
                         )}
-                        <p className="mt-1.5 text-[11px] text-muted-foreground/80">
+                        <p className="mt-1.5 text-xs text-muted-foreground/80">
                           {formatDateTime(n.created_at)}
                         </p>
                       </div>
@@ -215,7 +215,7 @@ function TabButton({
       {badge !== undefined && (
         <span
           className={cn(
-            "grid h-5 min-w-5 place-items-center rounded-full px-1.5 text-[10px] font-semibold",
+            "grid h-5 min-w-5 place-items-center rounded-full px-1.5 text-xs font-semibold",
             active
               ? "bg-white/25 text-white"
               : "bg-rose-100 text-rose-800",

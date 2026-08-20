@@ -78,7 +78,7 @@ export default async function AuthLayout({
           />
 
           <div className="relative flex h-full flex-col justify-between p-10 text-white">
-            <div className="inline-flex w-fit items-center gap-2 rounded-full border border-white/30 bg-white/10 px-4 py-1.5 text-xs uppercase tracking-[0.18em] backdrop-blur-md">
+            <div className="inline-flex w-fit items-center gap-2 rounded-full border border-white/30 bg-white/10 px-4 py-1.5 text-xs text-eyebrow backdrop-blur-md">
               <Sparkles className="size-3.5" />
               {tAuth("atelierEyebrow")}
             </div>
@@ -104,7 +104,7 @@ export default async function AuthLayout({
               </p>
             </div>
 
-            <p className="text-[0.65rem] uppercase tracking-[0.3em] text-white/60">
+            <p className="text-eyebrow text-white/60">
               {tBrand("tagline")}
             </p>
           </div>

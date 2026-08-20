@@ -76,7 +76,7 @@ export function BeginSection() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-15% 0px" }}
             transition={{ duration: reduce ? 0 : 0.7 }}
-            className="mb-5 inline-flex w-fit items-center gap-2 rounded-full border border-white/15 bg-white/5 px-3 py-1.5 text-[0.6rem] uppercase tracking-[0.28em] text-rose-200 backdrop-blur-md sm:mb-6 sm:px-4 sm:text-[0.7rem] sm:tracking-[0.3em] rtl:tracking-normal"
+            className="mb-5 inline-flex w-fit items-center gap-2 rounded-full border border-white/15 bg-white/5 px-3 py-1.5 text-eyebrow text-rose-200 backdrop-blur-md sm:mb-6 sm:px-4 sm:text-xs sm:tracking-[0.3em]"
           >
             <Sparkles className="h-3.5 w-3.5" />
             {t("beginEyebrow")}
@@ -178,7 +178,7 @@ export function BeginSection() {
             transition={{ duration: reduce ? 0 : 0.8, delay: 0.4 }}
             className="mt-12 max-w-xl sm:mt-16"
           >
-            <p className="mb-3 text-[0.6rem] uppercase tracking-[0.28em] text-muted-foreground sm:text-[0.65rem] sm:tracking-[0.3em] rtl:tracking-normal">
+            <p className="mb-3 text-eyebrow text-muted-foreground sm:text-xs sm:tracking-[0.3em]">
               {t("beginAsSeenIn")}
             </p>
             <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-foreground/65 sm:gap-x-5">

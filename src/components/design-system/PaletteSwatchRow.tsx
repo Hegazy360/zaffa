@@ -70,7 +70,7 @@ const NAMED_SWATCH = {
 } as const;
 
 const NAMED_NAME_TEXT = {
-  sm: "text-[0.6rem]",
+  sm: "text-xs",
   md: "text-xs",
   lg: "text-sm",
   // 18px label + uppercase tracking reads cleanly at 1080px slide width;
@@ -79,9 +79,9 @@ const NAMED_NAME_TEXT = {
 } as const;
 
 const NAMED_HEX_TEXT = {
-  sm: "text-[0.55rem]",
-  md: "text-[0.65rem]",
-  lg: "text-[0.7rem]",
+  sm: "text-xs",
+  md: "text-xs",
+  lg: "text-xs",
   xl: "text-[14px]",
 } as const;
 
@@ -160,7 +160,7 @@ export function PaletteSwatchRow({
           {c.name && (
             <span
               className={cn(
-                "mt-3 font-medium uppercase tracking-[0.22em] text-stone-900",
+                "mt-3 font-medium text-eyebrow text-stone-900",
                 NAMED_NAME_TEXT[scale],
               )}
             >

@@ -202,7 +202,7 @@ function Row({
       </span>
       <div className="min-w-0 flex-1">
         <p className="leading-snug">{children}</p>
-        <p className="mt-0.5 text-[11px] text-muted-foreground">{at}</p>
+        <p className="mt-0.5 text-xs text-muted-foreground">{at}</p>
       </div>
     </li>
   );
@@ -225,7 +225,7 @@ function Badge({
           : "bg-stone-100 text-stone-700 ring-stone-200";
   return (
     <span
-      className={`inline-flex items-center rounded-full px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide ring-1 ${cls}`}
+      className={`inline-flex items-center rounded-full px-1.5 py-0.5 text-xs font-medium uppercase tracking-wide ring-1 ${cls}`}
     >
       {children}
     </span>

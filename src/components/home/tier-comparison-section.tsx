@@ -54,7 +54,7 @@ export function TierComparisonSection() {
       />
       <div className="container mx-auto max-w-6xl px-4 py-20 md:py-28">
         <div className="mx-auto max-w-2xl text-center">
-          <p className="inline-flex items-center gap-2 rounded-full border border-rose-200/60 bg-white/60 px-3 py-1 text-[0.65rem] uppercase tracking-[0.18em] text-rose-700">
+          <p className="inline-flex items-center gap-2 rounded-full border border-rose-200/60 bg-white/60 px-3 py-1 text-eyebrow text-rose-700">
             <Sparkles className="h-3 w-3" />
             {t("tiersEyebrow")}
           </p>
@@ -134,13 +134,13 @@ function TierCard({ tier, idx, reduce }: TierCardProps) {
       )}
     >
       {isVision ? (
-        <span className="absolute end-6 top-6 rounded-full bg-brand-gradient px-3 py-1 text-[10px] font-medium uppercase tracking-[0.18em] text-white">
+        <span className="absolute end-6 top-6 rounded-full bg-brand-gradient px-3 py-1 text-eyebrow font-medium text-white">
           {t("tierBadgeMostPopular")}
         </span>
       ) : null}
 
       <div>
-        <p className="text-[0.65rem] uppercase tracking-[0.22em] text-muted-foreground">
+        <p className="text-eyebrow text-muted-foreground">
           {tv(
             tier.sku === "wedding_design_pack_v1"
               ? "tierDesignName"
@@ -313,7 +313,7 @@ function WholeWeddingCard({
       />
 
       <div className="relative">
-        <p className="text-[0.65rem] uppercase tracking-[0.22em] text-muted-foreground rtl:tracking-normal">
+        <p className="text-eyebrow text-muted-foreground">
           {w("eyebrow")}
         </p>
         <p className="mt-1 text-sm text-muted-foreground">{w("cardTagline")}</p>
@@ -340,16 +340,16 @@ function WholeWeddingCard({
         ))}
       </ul>
 
-      <div className="relative mt-7 border-t border-zinc-800 pt-6">
+      <div className="relative mt-7 border-t border-border pt-6">
         <Button
           size="lg"
           render={<Link href="/enquire" />}
-          className="group h-11 w-full gap-2 bg-white text-sm text-zinc-950 hover:bg-zinc-100"
+          className="group h-11 w-full gap-2 bg-white text-sm text-stone-950 hover:bg-stone-100"
         >
           {w("cta")}
           <ArrowRight className="h-4 w-4 transition-transform rtl:-scale-x-100 group-hover:translate-x-0.5 rtl:group-hover:-translate-x-0.5" />
         </Button>
-        <p className="mt-3 text-center text-xs text-zinc-500">{w("ctaHint")}</p>
+        <p className="mt-3 text-center text-xs text-stone-500">{w("ctaHint")}</p>
       </div>
     </motion.div>
   );

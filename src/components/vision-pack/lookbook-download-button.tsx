@@ -89,7 +89,7 @@ export function LookbookDownloadButton({
         {pending ? t("lookbookDownloading") : t("lookbookDownload")}
       </Button>
       {!hideHint && (
-        <p className="mt-2 text-[11px] text-muted-foreground/85">
+        <p className="mt-2 text-xs text-muted-foreground/85">
           {t("lookbookDownloadHint")}
         </p>
       )}

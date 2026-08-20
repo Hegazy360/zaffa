@@ -91,7 +91,7 @@ export function WholeWeddingSection() {
               glyph joining — the letters stop connecting and the word comes
               apart. Live in several older sections; fixed here, raised
               separately rather than folded into this ticket. */}
-          <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/[0.06] px-4 py-1.5 text-[0.7rem] uppercase tracking-[0.3em] text-rose-100 backdrop-blur-md rtl:tracking-normal">
+          <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/[0.06] px-4 py-1.5 text-eyebrow text-rose-100 backdrop-blur-md">
             <Sparkles className="h-3.5 w-3.5" />
             {t("eyebrow")}
           </div>
@@ -191,7 +191,7 @@ export function WholeWeddingSection() {
                 <Button
                   size="lg"
                   render={<Link href="/enquire" />}
-                  className="group h-12 w-full gap-2 bg-white px-8 text-base text-zinc-950 hover:bg-zinc-100 sm:w-auto"
+                  className="group h-12 w-full gap-2 bg-white px-8 text-base text-stone-950 hover:bg-stone-100 sm:w-auto"
                 >
                   {t("cta")}
                   <ArrowRight className="h-4 w-4 transition-transform rtl:-scale-x-100 group-hover:translate-x-0.5 rtl:group-hover:-translate-x-0.5" />
@@ -202,7 +202,7 @@ export function WholeWeddingSection() {
                   className="w-full border-white/25 bg-transparent text-foreground hover:bg-white/10 hover:text-white sm:w-auto"
                 />
               </div>
-              <p className="mt-3 text-xs text-zinc-500">{t("ctaHint")}</p>
+              <p className="mt-3 text-xs text-stone-500">{t("ctaHint")}</p>
             </div>
           </motion.div>
         </div>

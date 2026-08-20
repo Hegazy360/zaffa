@@ -158,7 +158,7 @@ export function ProfessionalSignUpForm() {
     <form onSubmit={handleSubmit} className="space-y-6">
       {/* Step indicator — minimal pair of capsules + an em-dash divider so
           progress is obvious without dominating the layout. */}
-      <div className="flex items-center gap-2 text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
+      <div className="flex items-center gap-2 text-eyebrow text-muted-foreground">
         <span
           className={cn(
             "inline-flex items-center gap-1.5",
@@ -167,7 +167,7 @@ export function ProfessionalSignUpForm() {
         >
           <span
             className={cn(
-              "inline-flex size-5 items-center justify-center rounded-full text-[10px] font-semibold",
+              "inline-flex size-5 items-center justify-center rounded-full text-xs font-semibold",
               step >= 1
                 ? "bg-gradient-to-br from-rose-500 to-amber-500 text-white"
                 : "bg-muted text-muted-foreground",
@@ -186,7 +186,7 @@ export function ProfessionalSignUpForm() {
         >
           <span
             className={cn(
-              "inline-flex size-5 items-center justify-center rounded-full text-[10px] font-semibold",
+              "inline-flex size-5 items-center justify-center rounded-full text-xs font-semibold",
               step >= 2
                 ? "bg-gradient-to-br from-rose-500 to-amber-500 text-white"
                 : "bg-muted text-muted-foreground",
@@ -219,7 +219,7 @@ export function ProfessionalSignUpForm() {
       {step === 2 && role && (
         <div className="space-y-5">
           <div className="rounded-2xl border border-brand-line bg-gradient-to-br from-rose-50 via-white to-amber-50/60 p-4">
-            <p className="text-[10px] font-medium uppercase tracking-[0.18em] text-rose-700/80">
+            <p className="text-eyebrow font-medium text-rose-700/80">
               {role === "planner" ? t("plannerEyebrow") : t("vendorEyebrow")}
             </p>
             <p className="mt-1 font-display text-lg font-light tracking-tight">
@@ -335,7 +335,7 @@ export function ProfessionalSignUpForm() {
               className="champagne-hairline absolute inset-x-0 top-1/2 h-px"
             />
             <div className="relative flex justify-center">
-              <span className="bg-background px-3 text-[0.65rem] uppercase tracking-[0.3em] text-muted-foreground">
+              <span className="bg-background px-3 text-eyebrow text-muted-foreground">
                 {t("orContinueWith")}
               </span>
             </div>

@@ -223,7 +223,7 @@ export function DesignerStepper({
                 </motion.button>
                 <span
                   className={cn(
-                    "mt-3 hidden font-display text-[11px] tracking-wide transition-colors sm:block",
+                    "mt-3 hidden font-display text-xs tracking-wide transition-colors sm:block",
                     isActive
                       ? "font-medium text-foreground"
                       : isPastOrCurrent
@@ -241,7 +241,7 @@ export function DesignerStepper({
 
       {/* Mobile-only active step caption */}
       <p className="mt-4 text-center sm:hidden">
-        <span className="text-[11px] font-medium tracking-[0.18em] text-muted-foreground uppercase">
+        <span className="text-eyebrow font-medium text-muted-foreground">
           {t("stepIndicator", { n: activeIdx + 1, total: STEPS.length })}
         </span>
         <span className="mt-1 block font-display text-base text-foreground">
@@ -265,7 +265,7 @@ export function StepHeading({ step, index, total }: StepHeadingProps) {
 
   return (
     <header className="space-y-4 text-center">
-      <div className="inline-flex items-center gap-2 rounded-full border border-rose-200/70 bg-rose-50/70 px-3.5 py-1 text-[11px] font-medium tracking-[0.18em] text-rose-700 uppercase backdrop-blur-sm">
+      <div className="inline-flex items-center gap-2 rounded-full border border-rose-200/70 bg-rose-50/70 px-3.5 py-1 text-eyebrow font-medium text-rose-700 backdrop-blur-sm">
         <StepIcon className="size-3" />
         {t("stepIndicator", { n: index + 1, total })}
       </div>

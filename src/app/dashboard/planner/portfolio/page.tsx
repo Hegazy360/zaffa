@@ -110,7 +110,7 @@ export default function PortfolioPage() {
     return (
       <div className="mx-auto max-w-3xl px-6 py-16">
         <div className="rounded-2xl border border-brand-line bg-white/70 p-8 backdrop-blur-sm">
-          <p className="mb-1 text-[0.65rem] font-medium uppercase tracking-[0.3em] text-rose-700/80">
+          <p className="mb-1 text-eyebrow font-medium text-rose-700/80">
             {t("almostThereEyebrow")}
           </p>
           <h1 className="font-display text-3xl font-light tracking-tight">
@@ -134,7 +134,7 @@ export default function PortfolioPage() {
       <div className="mx-auto max-w-6xl px-6 py-12 sm:py-16">
         <header className="mb-10 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <p className="text-[0.65rem] font-medium uppercase tracking-[0.3em] text-rose-700/80">
+            <p className="text-eyebrow font-medium text-rose-700/80">
               {t("portfolioEyebrow")}
             </p>
             <h1 className="font-display mt-3 text-balance text-4xl font-light leading-tight tracking-tight sm:text-5xl">
@@ -227,7 +227,7 @@ export default function PortfolioPage() {
                       </p>
                     )}
                     {item.event_type && (
-                      <p className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
+                      <p className="text-eyebrow text-muted-foreground">
                         {item.event_type}
                       </p>
                     )}
@@ -236,7 +236,7 @@ export default function PortfolioPage() {
                         {tags.map((t) => (
                           <span
                             key={t}
-                            className="rounded-full bg-rose-50 px-2 py-0.5 text-[10px] text-rose-700 ring-1 ring-rose-100"
+                            className="rounded-full bg-rose-50 px-2 py-0.5 text-xs text-rose-700 ring-1 ring-rose-100"
                           >
                             {t}
                           </span>
@@ -452,7 +452,7 @@ function PortfolioForm({
                 <>
                   <Upload className="size-6 text-rose-500" />
                   <p className="text-sm font-medium">{t("uploadOrDrop")}</p>
-                  <p className="text-[11px] text-muted-foreground">
+                  <p className="text-xs text-muted-foreground">
                     {t("imageRules")}
                   </p>
                 </>

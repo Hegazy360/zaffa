@@ -136,7 +136,7 @@ export default function PlannerSettingsPage() {
       />
       <div className="mx-auto max-w-2xl px-6 py-12 sm:py-16">
         <header className="mb-10 space-y-3">
-          <p className="text-[0.65rem] font-medium uppercase tracking-[0.3em] text-rose-700/80">
+          <p className="text-eyebrow font-medium text-rose-700/80">
             {t("yourAccountEyebrow")}
           </p>
           <h1 className="font-display text-balance text-4xl font-light leading-tight tracking-tight sm:text-5xl">
@@ -183,7 +183,7 @@ export default function PlannerSettingsPage() {
                   placeholder={t("bioPlaceholder")}
                   className="resize-none"
                 />
-                <p className="text-[11px] text-muted-foreground">
+                <p className="text-xs text-muted-foreground">
                   {bio.length}/2000
                 </p>
               </div>
@@ -238,7 +238,7 @@ export default function PlannerSettingsPage() {
                     {t("addAction")}
                   </Button>
                 </div>
-                <p className="text-[11px] text-muted-foreground">
+                <p className="text-xs text-muted-foreground">
                   {t("pressEnterOrComma")}
                 </p>
               </div>

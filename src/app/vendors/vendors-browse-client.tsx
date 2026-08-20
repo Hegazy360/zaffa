@@ -96,7 +96,7 @@ export function VendorsBrowseClient() {
       />
       <div className="relative z-10 mx-auto max-w-6xl px-4 py-12 sm:px-6 sm:py-16">
         <header className="mb-10 max-w-3xl space-y-3">
-          <p className="text-[0.65rem] font-medium uppercase tracking-[0.3em] text-rose-700/80">
+          <p className="text-eyebrow font-medium text-rose-700/80">
             {t("vendorsEyebrow")}
           </p>
           <h1 className="font-display text-balance text-4xl font-light leading-tight tracking-tight sm:text-5xl">
@@ -191,7 +191,7 @@ export function VendorsBrowseClient() {
                         <Store className="size-10 text-rose-700/40" />
                       </div>
                     )}
-                    <span className="absolute end-2 top-2 rounded-full bg-white/90 px-2 py-0.5 text-[10px] font-medium uppercase tracking-[0.15em] text-rose-700 ring-1 ring-rose-100 backdrop-blur">
+                    <span className="absolute end-2 top-2 rounded-full bg-white/90 px-2 py-0.5 text-eyebrow font-medium text-rose-700 ring-1 ring-rose-100 backdrop-blur">
                       {t(`category${capitalize(v.category)}` as const)}
                     </span>
                   </div>

@@ -228,7 +228,7 @@ export default function PlannerVendorProfilePage({
         <header className="overflow-hidden rounded-2xl border border-brand-line bg-white/85 backdrop-blur-sm">
           <div className="flex flex-wrap items-start justify-between gap-4 px-6 py-5">
             <div className="min-w-0 space-y-2">
-              <p className="text-[0.65rem] font-medium uppercase tracking-[0.3em] text-rose-700/80">
+              <p className="text-eyebrow font-medium text-rose-700/80">
                 {v.category}
               </p>
               <h1 className="font-display text-3xl font-light tracking-tight">
@@ -249,7 +249,7 @@ export default function PlannerVendorProfilePage({
                   </span>
                 </span>
                 {v.verified && (
-                  <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] uppercase tracking-wider text-emerald-800 ring-1 ring-emerald-100">
+                  <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-xs uppercase tracking-wider text-emerald-800 ring-1 ring-emerald-100">
                     {t("verifiedBadge")}
                   </span>
                 )}
@@ -278,7 +278,7 @@ export default function PlannerVendorProfilePage({
           <section className="space-y-6">
             <div className="rounded-2xl border border-brand-line bg-white/85 backdrop-blur-sm">
               <div className="border-b border-brand-line px-5 py-3">
-                <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-rose-700/80">
+                <p className="text-eyebrow font-medium text-rose-700/80">
                   {t("catalog")}
                 </p>
               </div>
@@ -326,7 +326,7 @@ export default function PlannerVendorProfilePage({
                               {s.description}
                             </p>
                           )}
-                          <div className="flex flex-wrap gap-1.5 text-[11px] text-muted-foreground">
+                          <div className="flex flex-wrap gap-1.5 text-xs text-muted-foreground">
                             {s.subcategory && (
                               <span className="rounded-full bg-rose-50 px-2 py-0.5 text-rose-800 ring-1 ring-rose-100">
                                 {s.subcategory}
@@ -356,7 +356,7 @@ export default function PlannerVendorProfilePage({
             {v.portfolio_items.length > 0 && (
               <div className="rounded-2xl border border-brand-line bg-white/85 backdrop-blur-sm">
                 <div className="border-b border-brand-line px-5 py-3">
-                  <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-rose-700/80">
+                  <p className="text-eyebrow font-medium text-rose-700/80">
                     {t("portfolioHeading")}
                   </p>
                 </div>
@@ -385,7 +385,7 @@ export default function PlannerVendorProfilePage({
 
             <div className="rounded-2xl border border-brand-line bg-white/85 backdrop-blur-sm">
               <div className="border-b border-brand-line px-5 py-3">
-                <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-rose-700/80">
+                <p className="text-eyebrow font-medium text-rose-700/80">
                   {t("reviewsHeading")}
                 </p>
               </div>
@@ -408,7 +408,7 @@ export default function PlannerVendorProfilePage({
                           </span>
                         </p>
                       </div>
-                      <p className="text-[11px] text-muted-foreground">
+                      <p className="text-xs text-muted-foreground">
                         {f.date(r.created_at, "medium")}
                         {r.engagement && (
                           <> · {r.engagement.title}</>
@@ -427,7 +427,7 @@ export default function PlannerVendorProfilePage({
           <aside className="lg:sticky lg:top-20 lg:self-start">
             <div className="rounded-2xl border border-brand-line bg-white/85 backdrop-blur-sm">
               <div className="border-b border-brand-line px-5 py-3">
-                <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-rose-700/80">
+                <p className="text-eyebrow font-medium text-rose-700/80">
                   {t("engagementCart")}
                 </p>
                 <p className="text-xs text-muted-foreground">

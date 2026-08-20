@@ -49,7 +49,7 @@ export default async function AdminEventsPage() {
       />
       <div className="relative mx-auto max-w-4xl px-6 py-12 sm:py-16">
         <header className="mb-8 space-y-3">
-          <p className="text-[0.65rem] font-medium uppercase tracking-[0.3em] text-rose-700/80">
+          <p className="text-eyebrow font-medium text-rose-700/80">
             Vision Pack events
           </p>
           <h1 className="font-display text-balance text-4xl font-light leading-tight tracking-tight">
@@ -93,7 +93,7 @@ export default async function AdminEventsPage() {
                       {event.venue ? ` · ${event.venue}` : ""}
                     </p>
                   </div>
-                  <span className="hidden shrink-0 rounded-full bg-rose-50 px-2 py-1 text-[10px] font-medium uppercase tracking-wider text-rose-700 sm:inline-flex">
+                  <span className="hidden shrink-0 rounded-full bg-rose-50 px-2 py-1 text-xs font-medium uppercase tracking-wider text-rose-700 sm:inline-flex">
                     {event._count.venue_recommendations} rec
                     {event._count.venue_recommendations === 1 ? "" : "s"}
                   </span>

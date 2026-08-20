@@ -144,7 +144,7 @@ export function EventBasicsCard() {
           <div className="flex items-baseline justify-between gap-2">
             <Label htmlFor="guest-count">{t("guestCountLabel")}</Label>
             {sizeBucketHint && guestCount && guestCount > 0 && (
-              <span className="text-[11px] text-muted-foreground">
+              <span className="text-xs text-muted-foreground">
                 {sizeBucketHint}
               </span>
             )}

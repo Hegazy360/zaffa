@@ -214,7 +214,7 @@ export default function PlannerEventDetailPage() {
           </Button>
           <span
             className={cn(
-              "inline-flex items-center rounded-full px-2.5 py-0.5 text-[10px] font-medium uppercase tracking-wide ring-1",
+              "inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium uppercase tracking-wide ring-1",
               statusStyles[event.status] ?? statusStyles.draft
             )}
           >
@@ -225,7 +225,7 @@ export default function PlannerEventDetailPage() {
 
         <header className="mb-10 grid gap-8 lg:grid-cols-12">
           <div className="lg:col-span-7">
-            <p className="mb-2 text-[0.65rem] font-medium uppercase tracking-[0.3em] text-rose-700/80">
+            <p className="mb-2 text-eyebrow font-medium text-rose-700/80">
               {event.event_type}
             </p>
             <h1 className="font-display text-balance text-4xl font-light leading-tight tracking-tight sm:text-5xl">
@@ -372,13 +372,13 @@ function Stat({
 }) {
   return (
     <div className="rounded-2xl border border-brand-line bg-white/70 p-4 backdrop-blur-sm">
-      <p className="text-[0.6rem] font-medium uppercase tracking-[0.25em] text-muted-foreground">
+      <p className="text-eyebrow font-medium text-muted-foreground">
         {label}
       </p>
       <p className="font-display mt-1 text-2xl font-light leading-none tracking-tight">
         {value}
       </p>
-      {hint && <p className="mt-1 text-[11px] text-muted-foreground">{hint}</p>}
+      {hint && <p className="mt-1 text-xs text-muted-foreground">{hint}</p>}
     </div>
   );
 }
@@ -427,7 +427,7 @@ function ApprovedDesignCard({
             <Sparkles className="size-7 text-rose-400/70" />
           </div>
         )}
-        <div className="absolute start-3 top-3 inline-flex items-center gap-1 rounded-full bg-white/90 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-rose-700 backdrop-blur-sm">
+        <div className="absolute start-3 top-3 inline-flex items-center gap-1 rounded-full bg-white/90 px-2 py-0.5 text-xs font-medium uppercase tracking-wide text-rose-700 backdrop-blur-sm">
           <CheckCircle2 className="size-3" />
           {t("approvedDesign")}
         </div>
@@ -474,7 +474,7 @@ function OverviewTab({ event }: { event: OverviewEventProps }) {
             <h3 className="font-display text-base font-medium tracking-tight">
               {t("eventDetails")}
             </h3>
-            <span className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
+            <span className="text-eyebrow text-muted-foreground">
               {t("editedByCouple")}
             </span>
           </div>
@@ -506,7 +506,7 @@ function OverviewTab({ event }: { event: OverviewEventProps }) {
             <DetailRow label={t("detailStatus")}>
               <span
                 className={cn(
-                  "inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide ring-1",
+                  "inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium uppercase tracking-wide ring-1",
                   statusStyles[event.status] ?? statusStyles.draft
                 )}
               >
@@ -520,7 +520,7 @@ function OverviewTab({ event }: { event: OverviewEventProps }) {
       <div className="lg:col-span-1">
         <div className="sticky top-24 overflow-hidden rounded-2xl border border-brand-line bg-white/80 backdrop-blur-sm">
           <div className="border-b border-brand-line px-5 py-3">
-            <p className="text-[0.65rem] font-medium uppercase tracking-[0.3em] text-rose-700/80">
+            <p className="text-eyebrow font-medium text-rose-700/80">
               {t("theCouple")}
             </p>
           </div>
@@ -564,7 +564,7 @@ function DetailRow({
 }) {
   return (
     <div className={cn("space-y-1.5", className)}>
-      <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-muted-foreground">
+      <p className="text-eyebrow font-medium text-muted-foreground">
         {label}
       </p>
       {children}
@@ -634,7 +634,7 @@ function DesignTab({ design }: { design: DesignSnapshot | null }) {
 
       {styleNotes && (
         <div className="rounded-2xl border border-brand-line bg-white/80 p-5 backdrop-blur-sm">
-          <p className="mb-2 text-[10px] font-medium uppercase tracking-[0.2em] text-rose-700/80">
+          <p className="mb-2 text-eyebrow font-medium text-rose-700/80">
             {t("coupleStyleNotesHeading")}
           </p>
           <p className="whitespace-pre-wrap text-sm leading-relaxed text-foreground/90">
@@ -646,10 +646,10 @@ function DesignTab({ design }: { design: DesignSnapshot | null }) {
       <div className="overflow-hidden rounded-2xl border border-brand-line bg-white/80 backdrop-blur-sm">
         <div className="flex items-center justify-between border-b border-brand-line px-5 py-3">
           <div>
-            <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-rose-700/80">
+            <p className="text-eyebrow font-medium text-rose-700/80">
               {t("aiRenderHeading")}
             </p>
-            <p className="text-[11px] text-muted-foreground">
+            <p className="text-xs text-muted-foreground">
               {t("aiRenderHint")}
             </p>
           </div>
@@ -670,14 +670,14 @@ function DesignTab({ design }: { design: DesignSnapshot | null }) {
           </h3>
           {palette.length > 0 && (
             <div>
-              <p className="mb-2 text-[10px] font-medium uppercase tracking-[0.2em] text-muted-foreground">
+              <p className="mb-2 text-eyebrow font-medium text-muted-foreground">
                 {t("paletteHeading")}
               </p>
               <div className="flex flex-wrap gap-2">
                 {palette.map((c) => (
                   <div
                     key={c}
-                    className="flex items-center gap-2 rounded-full border border-brand-line bg-white px-2 py-1 text-[11px]"
+                    className="flex items-center gap-2 rounded-full border border-brand-line bg-white px-2 py-1 text-xs"
                   >
                     <span
                       className="block size-3 rounded-full ring-1 ring-foreground/10"
@@ -694,7 +694,7 @@ function DesignTab({ design }: { design: DesignSnapshot | null }) {
 
       {videos.length > 0 && (
         <div className="rounded-2xl border border-brand-line bg-white/80 p-5 backdrop-blur-sm">
-          <p className="mb-3 text-[10px] font-medium uppercase tracking-[0.2em] text-muted-foreground">
+          <p className="mb-3 text-eyebrow font-medium text-muted-foreground">
             {t("cinematicPreview")}
           </p>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
@@ -765,13 +765,13 @@ function VendorsTab({ event }: { event: VendorsTabEvent }) {
     <div className="space-y-4">
       <div className="flex items-center justify-between gap-3 rounded-2xl border border-brand-line bg-gradient-to-br from-rose-50 to-amber-50/60 px-5 py-3">
         <div>
-          <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-rose-700/80">
+          <p className="text-eyebrow font-medium text-rose-700/80">
             {t("availableForEvent")}
           </p>
           <p className="font-display text-xl font-light leading-tight tracking-tight">
             {f.currency(canReleaseHere)}
           </p>
-          <p className="text-[11px] text-muted-foreground">
+          <p className="text-xs text-muted-foreground">
             {t("earnedCommittedPaid", {
               accrued: f.currency(eventBalance.data?.accrued ?? 0),
               committed: f.currency(
@@ -803,7 +803,7 @@ function VendorsTab({ event }: { event: VendorsTabEvent }) {
           <h3 className="font-display text-base font-medium tracking-tight">
             {t("engagementsHeading")}
           </h3>
-          <span className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
+          <span className="text-eyebrow text-muted-foreground">
             {t("engagementsHint")}
           </span>
         </div>
@@ -929,7 +929,7 @@ function EngagementRow({
         <div className="flex items-center gap-2">
           <span
             className={cn(
-              "rounded-full px-2 py-0.5 text-[10px] uppercase tracking-wider",
+              "rounded-full px-2 py-0.5 text-xs uppercase tracking-wider",
               ENGAGEMENT_STATUS_TONE[status] ?? ENGAGEMENT_STATUS_TONE.draft,
             )}
           >
@@ -966,7 +966,7 @@ function EngagementRow({
             <div className="flex shrink-0 items-center gap-3 text-xs text-muted-foreground">
               <span>×{i.quantity}</span>
               {i.delivered_at && (
-                <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] uppercase tracking-wider text-emerald-800 ring-1 ring-emerald-100">
+                <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-xs uppercase tracking-wider text-emerald-800 ring-1 ring-emerald-100">
                   {t("deliveredBadge")}
                 </span>
               )}
@@ -983,7 +983,7 @@ function EngagementRow({
 
       {engagement.releases.length > 0 && (
         <div className="rounded-xl border border-brand-line">
-          <p className="border-b border-brand-line px-3 py-2 text-[10px] font-medium uppercase tracking-[0.2em] text-rose-700/80">
+          <p className="border-b border-brand-line px-3 py-2 text-eyebrow font-medium text-rose-700/80">
             {t("releasesRemaining", {
               amount: f.currency(
                 Math.max(0, remaining),
@@ -999,7 +999,7 @@ function EngagementRow({
               >
                 <div>
                   <p className="font-medium">{r.label}</p>
-                  <p className="text-[11px] text-muted-foreground">
+                  <p className="text-xs text-muted-foreground">
                     {t("requestedOnLabel", {
                       date: f.date(r.requested_at, "medium"),
                     })}
@@ -1017,7 +1017,7 @@ function EngagementRow({
                 <div className="flex items-center gap-2">
                   <span
                     className={cn(
-                      "rounded-full px-2 py-0.5 text-[10px] uppercase tracking-wider",
+                      "rounded-full px-2 py-0.5 text-xs uppercase tracking-wider",
                       r.status === "paid"
                         ? "bg-emerald-100 text-emerald-800"
                         : r.status === "cancelled"
@@ -1394,7 +1394,7 @@ function MessagesTab({ eventId }: { eventId: string }) {
                 )}
               >
                 {!isMine && (
-                  <div className="grid size-7 shrink-0 place-items-center rounded-full bg-gradient-to-br from-rose-200 to-amber-200 text-[11px] font-semibold text-rose-800">
+                  <div className="grid size-7 shrink-0 place-items-center rounded-full bg-gradient-to-br from-rose-200 to-amber-200 text-xs font-semibold text-rose-800">
                     {m.sender.full_name.charAt(0)}
                   </div>
                 )}
@@ -1409,7 +1409,7 @@ function MessagesTab({ eventId }: { eventId: string }) {
                   <p className="whitespace-pre-wrap">{m.content}</p>
                   <p
                     className={cn(
-                      "mt-1 text-[10px]",
+                      "mt-1 text-xs",
                       isMine ? "text-white/70" : "text-muted-foreground"
                     )}
                   >

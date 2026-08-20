@@ -306,7 +306,7 @@ function Section({
   return (
     <section className="rounded-2xl border border-brand-line bg-white/80">
       <div className="border-b border-brand-line px-5 py-3">
-        <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-rose-700/80">
+        <p className="text-eyebrow font-medium text-rose-700/80">
           {title}
         </p>
       </div>

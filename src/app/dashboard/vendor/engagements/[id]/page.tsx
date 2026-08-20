@@ -125,7 +125,7 @@ export default function VendorEngagementDetailPage({
         <header className="space-y-3 rounded-2xl border border-brand-line bg-white/85 p-6 backdrop-blur-sm">
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div className="min-w-0">
-              <p className="text-[0.65rem] font-medium uppercase tracking-[0.3em] text-rose-700/80">
+              <p className="text-eyebrow font-medium text-rose-700/80">
                 {t("engagementSingular")}
               </p>
               <h1 className="font-display mt-1 text-2xl font-light tracking-tight sm:text-3xl">
@@ -139,7 +139,7 @@ export default function VendorEngagementDetailPage({
               </p>
             </div>
             <span
-              className={`rounded-full px-3 py-1 text-[10px] uppercase tracking-wider ${
+              className={`rounded-full px-3 py-1 text-xs uppercase tracking-wider ${
                 STATUS_TONE[status]
               }`}
             >
@@ -229,7 +229,7 @@ export default function VendorEngagementDetailPage({
 
         <section className="rounded-2xl border border-brand-line bg-white/85 backdrop-blur-sm">
           <div className="border-b border-brand-line px-5 py-3">
-            <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-rose-700/80">
+            <p className="text-eyebrow font-medium text-rose-700/80">
               {t("lineItems")}
             </p>
           </div>
@@ -305,7 +305,7 @@ export default function VendorEngagementDetailPage({
 
         <section className="rounded-2xl border border-brand-line bg-white/85 backdrop-blur-sm">
           <div className="border-b border-brand-line px-5 py-3">
-            <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-rose-700/80">
+            <p className="text-eyebrow font-medium text-rose-700/80">
               {t("releasesSection")}
             </p>
             <p className="text-xs text-muted-foreground">
@@ -341,7 +341,7 @@ export default function VendorEngagementDetailPage({
                   </div>
                   <div className="flex items-center gap-3">
                     <span
-                      className={`rounded-full px-2 py-0.5 text-[10px] uppercase tracking-wider ${
+                      className={`rounded-full px-2 py-0.5 text-xs uppercase tracking-wider ${
                         RELEASE_TONE[r.status] ?? RELEASE_TONE.pending
                       }`}
                     >

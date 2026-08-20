@@ -67,12 +67,12 @@ export function PackCheckoutCard({
       }
     >
       {featured ? (
-        <div className="absolute -top-3 start-6 inline-flex items-center gap-1 rounded-full bg-brand-gradient px-2.5 py-0.5 text-[10px] font-semibold tracking-[0.15em] text-white uppercase shadow-md">
+        <div className="absolute -top-3 start-6 inline-flex items-center gap-1 rounded-full bg-brand-gradient px-2.5 py-0.5 text-eyebrow font-semibold text-white shadow-md">
           {t("featuredBadge")}
         </div>
       ) : null}
 
-      <div className="text-[10px] font-semibold tracking-[0.2em] text-rose-700 uppercase">
+      <div className="text-eyebrow font-semibold text-rose-700">
         {tm(`tier.${sku}.eyebrow`)}
       </div>
       <div className="mt-2 font-display text-3xl font-light tracking-tight sm:text-4xl">
@@ -84,7 +84,7 @@ export function PackCheckoutCard({
 
       <div className="my-5 h-px bg-rose-100/70" />
 
-      <div className="text-[10px] font-semibold tracking-[0.2em] text-muted-foreground uppercase mb-3">
+      <div className="text-eyebrow font-semibold text-muted-foreground mb-3">
         {t("includesEyebrow")}
       </div>
       <ul className="space-y-2.5 text-sm">
@@ -125,7 +125,7 @@ export function PackCheckoutCard({
       {/* Stacking note: only relevant when planner match is part of
           the tier — entry tier is a flat one-off with no marketplace
           fee. */}
-      <p className="mt-5 text-[11px] leading-relaxed text-muted-foreground">
+      <p className="mt-5 text-xs leading-relaxed text-muted-foreground">
         {meta.includesPlannerMatch
           ? t("stackingNote", {
               pct: VISION_PACK_DEFAULT_PLATFORM_FEE_PCT,
@@ -166,7 +166,7 @@ export function PackCheckoutCard({
         )}
       </Button>
 
-      <p className="mt-2 text-center text-[11px] text-muted-foreground/85">
+      <p className="mt-2 text-center text-xs text-muted-foreground/85">
         {t("refundPolicyShort")}
       </p>
     </div>

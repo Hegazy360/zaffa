@@ -600,7 +600,7 @@ export function GenerateRenderPanel({ designId }: GenerateRenderPanelProps) {
                   disabled controls, and titles don't surface on touch
                   devices at all. */}
               {onFreeTier && (
-                <p className="rounded-md border border-rose-200/70 bg-rose-50/60 px-3 py-2 text-[11px] leading-relaxed text-rose-800">
+                <p className="rounded-md border border-rose-200/70 bg-rose-50/60 px-3 py-2 text-xs leading-relaxed text-rose-800">
                   {t("freeTierActionsHint")}
                 </p>
               )}
@@ -700,7 +700,7 @@ export function GenerateRenderPanel({ designId }: GenerateRenderPanelProps) {
         {!isAnon && designId && previousMedia.length > 0 && (
           <section className="space-y-3 border-t border-border/60 pt-5">
             <div className="flex items-center justify-between">
-              <h3 className="text-[11px] font-medium uppercase tracking-[0.18em] text-muted-foreground">
+              <h3 className="text-eyebrow font-medium text-muted-foreground">
                 {t("previousRenders", { count: previousMedia.length })}
               </h3>
               <p className="text-xs text-muted-foreground">
@@ -746,10 +746,10 @@ export function GenerateRenderPanel({ designId }: GenerateRenderPanelProps) {
                       />
                     )}
                     <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/55 via-black/0 to-transparent opacity-0 transition-opacity group-hover:opacity-100" />
-                    <span className="absolute bottom-1.5 start-1.5 rounded-md bg-black/0 px-1.5 py-0.5 text-[10px] font-medium text-white opacity-0 transition-all group-hover:bg-black/65 group-hover:opacity-100">
+                    <span className="absolute bottom-1.5 start-1.5 rounded-md bg-black/0 px-1.5 py-0.5 text-xs font-medium text-white opacity-0 transition-all group-hover:bg-black/65 group-hover:opacity-100">
                       {f.relativeTime(new Date(item.created_at))}
                     </span>
-                    <span className="absolute top-1.5 start-1.5 inline-flex items-center gap-1 rounded-md bg-black/60 px-1.5 py-0.5 text-[10px] font-medium text-white">
+                    <span className="absolute top-1.5 start-1.5 inline-flex items-center gap-1 rounded-md bg-black/60 px-1.5 py-0.5 text-xs font-medium text-white">
                       {item.type === "video" ? (
                         <Video className="size-2.5" />
                       ) : (

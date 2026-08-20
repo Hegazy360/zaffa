@@ -74,7 +74,7 @@ export function MarketplaceTeaser({
           className="pointer-events-none absolute inset-0 grain-bg opacity-30"
         />
         <div className="relative mx-auto max-w-3xl px-4 py-24 text-center sm:py-28">
-          <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-rose-200/60 bg-white/70 px-4 py-1.5 text-[0.7rem] uppercase tracking-[0.3em] text-rose-700 backdrop-blur-md">
+          <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-rose-200/60 bg-white/70 px-4 py-1.5 text-eyebrow text-rose-700 backdrop-blur-md">
             <Sparkles className="h-3.5 w-3.5" />
             {t("homeEyebrow")}
           </div>
@@ -131,8 +131,8 @@ export function MarketplaceTeaser({
             className={cn(
               "inline-flex items-center gap-2 rounded-full border border-rose-200/60 bg-white/70 backdrop-blur-md",
               isHome
-                ? "mb-5 px-4 py-1.5 text-[0.7rem] uppercase tracking-[0.3em] text-rose-700"
-                : "mb-3 px-3 py-1 text-[10px] uppercase tracking-[0.22em] text-rose-700",
+                ? "mb-5 px-4 py-1.5 text-eyebrow text-rose-700"
+                : "mb-3 px-3 py-1 text-eyebrow text-rose-700",
             )}
           >
             <Sparkles
@@ -324,7 +324,7 @@ function BriefCard({
 
         {/* Lock chip — the central "this is hidden" affordance. */}
         <div className="absolute inset-0 flex items-center justify-center">
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-white/30 bg-black/40 px-3 py-1.5 text-[11px] font-medium text-white backdrop-blur-md">
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-white/30 bg-black/40 px-3 py-1.5 text-xs font-medium text-white backdrop-blur-md">
             <Lock className="size-3" />
             {signInLabel}
           </span>
@@ -332,7 +332,7 @@ function BriefCard({
 
         {/* Top-left chip: event type — the only piece of info we expose
             up front, since the enum itself isn't identifying. */}
-        <div className="absolute start-3 top-3 inline-flex items-center rounded-full bg-white/90 px-2.5 py-0.5 text-[10px] font-medium uppercase tracking-[0.18em] text-rose-700 backdrop-blur-sm">
+        <div className="absolute start-3 top-3 inline-flex items-center rounded-full bg-white/90 px-2.5 py-0.5 text-eyebrow font-medium text-rose-700 backdrop-blur-sm">
           {eventTypeLabel}
         </div>
 

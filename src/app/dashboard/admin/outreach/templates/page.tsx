@@ -63,7 +63,7 @@ export default function OutreachTemplatesPage() {
     <div className="mx-auto max-w-4xl space-y-6 px-4 py-8 sm:px-6">
       <header className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <p className="mb-1 text-[0.65rem] font-medium uppercase tracking-[0.3em] text-rose-700/80">
+          <p className="mb-1 text-eyebrow font-medium text-rose-700/80">
             {t("eyebrow")}
           </p>
           <h1 className="font-display text-3xl font-light tracking-tight">
@@ -111,7 +111,7 @@ export default function OutreachTemplatesPage() {
                   >
                     {tpl.body}
                   </pre>
-                  <p className="mt-2 text-[10px] text-muted-foreground">
+                  <p className="mt-2 text-xs text-muted-foreground">
                     {f.relativeTime(tpl.updated_at)}
                   </p>
                 </div>
@@ -137,7 +137,7 @@ function Badge({
 }) {
   return (
     <span
-      className={`inline-flex items-center rounded-full px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide ring-1 ${
+      className={`inline-flex items-center rounded-full px-1.5 py-0.5 text-xs font-medium uppercase tracking-wide ring-1 ${
         tone === "rose"
           ? "bg-rose-50 text-rose-700 ring-rose-200"
           : "bg-stone-100 text-stone-700 ring-stone-200"
@@ -299,7 +299,7 @@ function TemplateDialog({ template }: { template?: Template }) {
               onChange={(e) => setForm((s) => ({ ...s, body: e.target.value }))}
               placeholder={t("bodyPlaceholder")}
             />
-            <p className="text-[11px] text-muted-foreground">
+            <p className="text-xs text-muted-foreground">
               {t("bodyHint")}
             </p>
           </div>

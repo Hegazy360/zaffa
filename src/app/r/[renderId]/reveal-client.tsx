@@ -146,7 +146,7 @@ function RevealInner({ renderId }: { renderId: string }) {
         />
         <div className="mx-auto max-w-5xl px-6 py-12 sm:py-16">
           <div className="space-y-3 text-center">
-            <div className="inline-flex items-center gap-2 rounded-full border border-rose-200/70 bg-rose-50/70 px-3.5 py-1 text-[11px] font-medium tracking-[0.18em] text-rose-700 uppercase backdrop-blur-sm">
+            <div className="inline-flex items-center gap-2 rounded-full border border-rose-200/70 bg-rose-50/70 px-3.5 py-1 text-eyebrow font-medium text-rose-700 backdrop-blur-sm">
               <Sparkles className="size-3" />
               {t("eyebrow")}
             </div>
@@ -167,7 +167,7 @@ function RevealInner({ renderId }: { renderId: string }) {
                 className="block h-auto w-full"
               />
               {render.watermarked ? (
-                <div className="pointer-events-none absolute bottom-3 end-3 inline-flex items-center gap-1.5 rounded-full bg-black/65 px-3 py-1 text-[10px] font-medium tracking-wide text-white backdrop-blur">
+                <div className="pointer-events-none absolute bottom-3 end-3 inline-flex items-center gap-1.5 rounded-full bg-black/65 px-3 py-1 text-xs font-medium tracking-wide text-white backdrop-blur">
                   {tEmail("watermarkBadge")}
                 </div>
               ) : null}
@@ -210,7 +210,7 @@ function RevealInner({ renderId }: { renderId: string }) {
               second card (Vision Pack) is featured by sort order. */}
           <div className="mt-12 space-y-6">
             <div className="text-center">
-              <div className="text-[10px] font-semibold tracking-[0.2em] text-rose-700 uppercase">
+              <div className="text-eyebrow font-semibold text-rose-700">
                 {t("comparePlansEyebrow")}
               </div>
               <h2 className="font-display mt-2 text-3xl font-light tracking-tight sm:text-4xl">

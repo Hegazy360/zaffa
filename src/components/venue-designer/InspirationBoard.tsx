@@ -165,7 +165,7 @@ export function InspirationBoard({
     >
       <header className="flex flex-wrap items-start justify-between gap-3 border-b border-brand-line px-5 py-4">
         <div className="min-w-0">
-          <p className="text-[0.65rem] font-medium uppercase tracking-[0.3em] text-rose-700/80">
+          <p className="text-eyebrow font-medium text-rose-700/80">
             {t("eyebrow")}
           </p>
           <h3
@@ -182,7 +182,7 @@ export function InspirationBoard({
             </p>
           )}
         </div>
-        <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-gradient-to-r from-rose-50 to-amber-50 px-2.5 py-1 text-[11px] font-medium text-rose-700 ring-1 ring-rose-200/70">
+        <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-gradient-to-r from-rose-50 to-amber-50 px-2.5 py-1 text-xs font-medium text-rose-700 ring-1 ring-rose-200/70">
           <Sparkles className="size-3" />
           {t("totalCount", { count: total })}
         </span>
@@ -205,7 +205,7 @@ export function InspirationBoard({
                   <h4 className="font-display text-base font-medium tracking-tight">
                     {tDesigner(CATEGORY_LABEL_KEYS[category])}
                   </h4>
-                  <span className="text-[10px] font-medium uppercase tracking-[0.2em] text-muted-foreground">
+                  <span className="text-eyebrow font-medium text-muted-foreground">
                     {t("categoryPickCount", { count: refs.length })}
                   </span>
                 </div>
@@ -244,11 +244,11 @@ export function InspirationBoard({
                         aria-hidden
                         className="pointer-events-none absolute inset-x-0 bottom-0 flex items-center justify-between gap-2 bg-gradient-to-t from-black/55 via-black/25 to-transparent px-2 py-1.5 opacity-0 transition-opacity group-hover:opacity-100"
                       >
-                        <span className="truncate text-[10px] font-medium uppercase tracking-[0.18em] text-white/90">
+                        <span className="truncate text-eyebrow font-medium text-white/90">
                           {tDesigner(CATEGORY_LABEL_KEYS[category])}
                         </span>
                         {r.attribution && (
-                          <span className="truncate text-[10px] text-white/75">
+                          <span className="truncate text-xs text-white/75">
                             {r.attribution}
                           </span>
                         )}

@@ -87,7 +87,7 @@ export function PackCheckoutPanel({
       {heading ? (
         <div className="px-6 pt-6 pb-2">
           {heading.eyebrow ? (
-            <div className="text-[10px] font-semibold tracking-[0.2em] text-rose-700 uppercase">
+            <div className="text-eyebrow font-semibold text-rose-700">
               {heading.eyebrow}
             </div>
           ) : null}
@@ -129,13 +129,13 @@ export function PackCheckoutPanel({
                   : "border-brand-line bg-background hover:border-rose-200")
               }
             >
-              <div className="text-[10px] font-semibold tracking-[0.18em] text-rose-700 uppercase">
+              <div className="text-eyebrow font-semibold text-rose-700">
                 {tm(`tier.${id}.eyebrow`)}
               </div>
               <div className="mt-1 font-display text-lg font-light tracking-tight">
                 {price.label}
               </div>
-              <div className="mt-1 text-[11px] text-muted-foreground leading-snug">
+              <div className="mt-1 text-xs text-muted-foreground leading-snug">
                 {tm(`tier.${id}.tagline`)}
               </div>
             </button>
@@ -147,7 +147,7 @@ export function PackCheckoutPanel({
           capability flags so adding a tier doesn't require any edits
           here. */}
       <div className="px-6 py-5">
-        <div className="text-[10px] font-semibold tracking-[0.2em] text-muted-foreground uppercase mb-3">
+        <div className="text-eyebrow font-semibold text-muted-foreground mb-3">
           {t("includesEyebrow")}
         </div>
         <ul className="space-y-2.5 text-sm">

@@ -163,7 +163,7 @@ export default function SchedulePage() {
       <div className="mx-auto max-w-6xl px-6 py-12 sm:py-16">
         <header className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <div className="inline-flex items-center gap-2 rounded-full border border-rose-200/70 bg-rose-50/70 px-3.5 py-1 text-[11px] font-medium uppercase tracking-[0.18em] text-rose-700 backdrop-blur-sm">
+            <div className="inline-flex items-center gap-2 rounded-full border border-rose-200/70 bg-rose-50/70 px-3.5 py-1 text-eyebrow font-medium text-rose-700 backdrop-blur-sm">
               <CalendarDays className="size-3" />
               {t("scheduleEyebrow")}
             </div>
@@ -251,7 +251,7 @@ export default function SchedulePage() {
         {/* Desktop: full month grid. */}
         <div className="hidden overflow-hidden rounded-2xl border border-brand-line bg-white/70 backdrop-blur-sm md:block">
           {/* Weekday header */}
-          <div className="grid grid-cols-7 border-b border-brand-line bg-rose-50/40 text-[10px] font-medium uppercase tracking-[0.2em] text-muted-foreground">
+          <div className="grid grid-cols-7 border-b border-brand-line bg-rose-50/40 text-eyebrow font-medium text-muted-foreground">
             {WEEKDAY_KEYS.map((key) => (
               <div key={key} className="px-2 py-2 text-center">
                 {t(key)}
@@ -291,7 +291,7 @@ export default function SchedulePage() {
                     <div className="mb-1 flex items-center justify-between">
                       <span
                         className={cn(
-                          "inline-flex size-6 items-center justify-center rounded-full text-[11px]",
+                          "inline-flex size-6 items-center justify-center rounded-full text-xs",
                           isToday
                             ? "bg-gradient-to-br from-rose-500 to-amber-500 font-medium text-white"
                             : "text-foreground/80"
@@ -319,7 +319,7 @@ export default function SchedulePage() {
                           <Link
                             key={b.id}
                             href={`/dashboard/planner/event/${b.id}`}
-                            className="flex items-center gap-1.5 truncate rounded-md px-1.5 py-1 text-[10px] font-medium ring-1 ring-foreground/5"
+                            className="flex items-center gap-1.5 truncate rounded-md px-1.5 py-1 text-xs font-medium ring-1 ring-foreground/5"
                             style={{
                               backgroundColor: `${accent}1a`,
                               color: accent,
@@ -340,7 +340,7 @@ export default function SchedulePage() {
                           onClick={() =>
                             setBlockDialog({ mode: "edit", block: b })
                           }
-                          className="flex w-full items-center gap-1.5 truncate rounded-md bg-stone-200/80 px-1.5 py-1 text-start text-[10px] font-medium text-stone-700 ring-1 ring-stone-300/60 hover:bg-stone-200"
+                          className="flex w-full items-center gap-1.5 truncate rounded-md bg-stone-200/80 px-1.5 py-1 text-start text-xs font-medium text-stone-700 ring-1 ring-stone-300/60 hover:bg-stone-200"
                         >
                           <span
                             aria-hidden
@@ -601,7 +601,7 @@ function AgendaList({
 
   return (
     <div className="overflow-hidden rounded-2xl border border-brand-line bg-white/70 backdrop-blur-sm">
-      <div className="border-b border-brand-line bg-rose-50/40 px-4 py-2 text-[10px] font-medium uppercase tracking-[0.2em] text-muted-foreground">
+      <div className="border-b border-brand-line bg-rose-50/40 px-4 py-2 text-eyebrow font-medium text-muted-foreground">
         {labels.title}
       </div>
       <ul className="divide-y divide-rose-100/70">
@@ -615,7 +615,7 @@ function AgendaList({
                   className="flex items-center gap-3 px-4 py-3 transition-colors hover:bg-rose-50/60"
                 >
                   <div
-                    className="grid size-12 shrink-0 place-items-center rounded-lg text-[11px] font-medium leading-tight"
+                    className="grid size-12 shrink-0 place-items-center rounded-lg text-xs font-medium leading-tight"
                     style={{
                       backgroundColor: `${accent}1a`,
                       color: accent,
@@ -644,7 +644,7 @@ function AgendaList({
                 onClick={() => onEditBlock(item.block)}
                 className="flex w-full items-center gap-3 px-4 py-3 text-start transition-colors hover:bg-stone-100/60"
               >
-                <div className="grid size-12 shrink-0 place-items-center rounded-lg bg-stone-200/80 text-[11px] font-medium leading-tight text-stone-700">
+                <div className="grid size-12 shrink-0 place-items-center rounded-lg bg-stone-200/80 text-xs font-medium leading-tight text-stone-700">
                   <span>{dayFmt.format(item.date)}</span>
                 </div>
                 <div className="min-w-0 flex-1">

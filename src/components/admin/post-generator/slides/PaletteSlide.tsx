@@ -56,10 +56,10 @@ export function PaletteSlide({ palette, vibe }: PaletteSlideProps) {
       {/* Header */}
       <div className="absolute inset-x-0 top-0 px-16 pt-20">
         <div className="flex items-baseline justify-between gap-4">
-          <p className="text-[0.7rem] font-semibold uppercase tracking-[0.4em] text-rose-700">
+          <p className="text-eyebrow font-semibold text-rose-700">
             PALETTE STUDY
           </p>
-          <p className="text-[0.65rem] font-medium uppercase tracking-[0.32em] text-stone-500">
+          <p className="text-eyebrow font-medium text-stone-500">
             ZAFFA.AI
           </p>
         </div>
@@ -143,12 +143,12 @@ function ColorCard({ color, role, featured, compact }: ColorCardProps) {
       {/* role chip */}
       <span
         className={cn(
-          "absolute left-4 top-4 inline-flex items-center gap-1.5 rounded-full px-3 py-1 font-semibold uppercase tracking-[0.36em]",
+          "absolute left-4 top-4 inline-flex items-center gap-1.5 rounded-full px-3 py-1 font-semibold text-eyebrow",
           featured
             ? "text-[12px]"
             : compact
-              ? "text-[10px]"
-              : "text-[11px]",
+              ? "text-xs"
+              : "text-xs",
           light
             ? "bg-stone-900/85 text-white"
             : "bg-white/90 text-stone-900",
@@ -180,8 +180,8 @@ function ColorCard({ color, role, featured, compact }: ColorCardProps) {
         </p>
         <p
           className={cn(
-            "mt-0.5 font-mono uppercase tracking-[0.18em] text-stone-500",
-            featured ? "text-[13px]" : compact ? "text-[10px]" : "text-[11px]",
+            "mt-0.5 font-mono text-eyebrow text-stone-500",
+            featured ? "text-[13px]" : compact ? "text-xs" : "text-xs",
           )}
         >
           {color.hex}

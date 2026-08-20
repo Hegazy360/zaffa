@@ -65,7 +65,7 @@ export function NotificationBell({ userId }: { userId: string }) {
       >
         <Bell className="h-5 w-5" />
         {unread > 0 && (
-          <span className="absolute -top-0.5 -end-0.5 grid h-4 min-w-4 place-items-center rounded-full bg-gradient-to-br from-rose-600 to-amber-500 px-1 text-[10px] font-semibold leading-none text-white ring-2 ring-background">
+          <span className="absolute -top-0.5 -end-0.5 grid h-4 min-w-4 place-items-center rounded-full bg-gradient-to-br from-rose-600 to-amber-500 px-1 text-xs font-semibold leading-none text-white ring-2 ring-background">
             {unread > 99 ? "99+" : unread}
           </span>
         )}
@@ -79,7 +79,7 @@ export function NotificationBell({ userId }: { userId: string }) {
           <div>
             <p className="text-sm font-medium">{t("title")}</p>
             {unread > 0 && (
-              <p className="text-[11px] text-muted-foreground">
+              <p className="text-xs text-muted-foreground">
                 {t("unreadCount", { count: unread })}
               </p>
             )}
@@ -88,7 +88,7 @@ export function NotificationBell({ userId }: { userId: string }) {
             <button
               type="button"
               onClick={() => markAllRead.mutate()}
-              className="inline-flex items-center gap-1 rounded-full px-2 py-1 text-[11px] font-medium text-rose-700 transition-colors hover:bg-rose-50 disabled:opacity-50"
+              className="inline-flex items-center gap-1 rounded-full px-2 py-1 text-xs font-medium text-rose-700 transition-colors hover:bg-rose-50 disabled:opacity-50"
               disabled={markAllRead.isPending}
             >
               <CheckCheck className="h-3 w-3" />
@@ -142,7 +142,7 @@ export function NotificationBell({ userId }: { userId: string }) {
                             {n.body}
                           </p>
                         )}
-                        <p className="mt-1 text-[11px] text-muted-foreground/80">
+                        <p className="mt-1 text-xs text-muted-foreground/80">
                           {formatRelative(n.created_at)}
                         </p>
                       </div>

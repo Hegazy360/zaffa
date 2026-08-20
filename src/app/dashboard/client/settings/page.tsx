@@ -73,7 +73,7 @@ export default function SettingsPage() {
 
       <div className="mx-auto max-w-2xl px-6 py-12 sm:py-16">
         <header className="mb-10 space-y-3">
-          <p className="text-[0.65rem] font-medium uppercase tracking-[0.3em] text-rose-700/80">
+          <p className="text-eyebrow font-medium text-rose-700/80">
             {tc("settingsEyebrow")}
           </p>
           <h1 className="font-display text-balance text-4xl font-light leading-tight tracking-tight sm:text-5xl">
@@ -109,7 +109,7 @@ export default function SettingsPage() {
                   disabled
                   className="bg-muted/50"
                 />
-                <p className="text-[11px] text-muted-foreground">
+                <p className="text-xs text-muted-foreground">
                   {tc("emailHint")}
                 </p>
               </div>

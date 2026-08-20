@@ -48,7 +48,7 @@ export default function AdminPostsPage() {
       <div className="relative mx-auto max-w-5xl px-4 py-8 sm:px-6 sm:py-16">
         <header className="mb-6 flex flex-col gap-4 sm:mb-8 sm:flex-row sm:items-end sm:justify-between">
           <div className="space-y-2 sm:space-y-3">
-            <p className="text-[0.65rem] font-medium uppercase tracking-[0.3em] text-rose-700/80">
+            <p className="text-eyebrow font-medium text-rose-700/80">
               Social
             </p>
             <h1 className="font-display text-balance text-3xl font-light leading-tight tracking-tight sm:text-4xl">
@@ -156,7 +156,7 @@ function PostRow({ post }: { post: HydratedPost }) {
       </div>
       <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
-          <span className="rounded-full bg-stone-100 px-2 py-0.5 text-[9px] font-medium uppercase tracking-[0.18em] text-stone-700 ring-1 ring-stone-200 sm:text-[10px]">
+          <span className="rounded-full bg-stone-100 px-2 py-0.5 text-eyebrow font-medium text-stone-700 ring-1 ring-stone-200 sm:text-xs">
             {FORMAT_LABELS[post.format]}
           </span>
           <span className="font-display text-sm lowercase tracking-wide">
@@ -170,13 +170,13 @@ function PostRow({ post }: { post: HydratedPost }) {
       <div className="flex shrink-0 flex-col items-end gap-1">
         <span
           className={cn(
-            "rounded-full px-2 py-0.5 text-[9px] font-medium uppercase tracking-[0.18em] ring-1 sm:text-[10px]",
+            "rounded-full px-2 py-0.5 text-eyebrow font-medium ring-1 sm:text-xs",
             STATUS_PILL[post.status],
           )}
         >
           {post.status}
         </span>
-        <time className="text-[10px] text-muted-foreground" dateTime={post.created_at.toISOString()}>
+        <time className="text-xs text-muted-foreground" dateTime={post.created_at.toISOString()}>
           {new Date(post.created_at).toLocaleDateString(undefined, {
             month: "short",
             day: "numeric",

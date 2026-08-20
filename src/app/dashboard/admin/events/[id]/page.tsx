@@ -71,7 +71,7 @@ export default async function AdminEventPage({
         </div>
 
         <header className="mb-8 space-y-2">
-          <p className="text-[0.6rem] font-semibold uppercase tracking-[0.3em] text-rose-700/80">
+          <p className="text-eyebrow font-semibold text-rose-700/80">
             Event
           </p>
           <h1 className="font-display text-3xl font-light tracking-tight">
@@ -85,7 +85,7 @@ export default async function AdminEventPage({
             {event.venue ? <> · {event.venue}</> : null}
           </p>
           {event.vision_packs[0] ? (
-            <p className="text-[11px] text-muted-foreground/85">
+            <p className="text-xs text-muted-foreground/85">
               Vision Pack: <span className="font-mono">{event.vision_packs[0].sku}</span>
               {" · "}
               {event.vision_packs[0].status}

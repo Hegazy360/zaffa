@@ -196,12 +196,12 @@ export function PostMetadataSidebar({
       <section className="rounded-2xl border border-brand-line bg-white/80 p-3 shadow-sm backdrop-blur-sm sm:p-4">
         <div className="space-y-4">
           <div className="flex flex-wrap items-center gap-2">
-            <span className="rounded-full bg-stone-100 px-2.5 py-0.5 text-[10px] font-medium uppercase tracking-[0.18em] text-stone-700 ring-1 ring-stone-200">
+            <span className="rounded-full bg-stone-100 px-2.5 py-0.5 text-eyebrow font-medium text-stone-700 ring-1 ring-stone-200">
               {FORMAT_LABELS[post.format]}
             </span>
             <span
               className={cn(
-                "rounded-full px-2.5 py-0.5 text-[10px] font-medium uppercase tracking-[0.18em] ring-1",
+                "rounded-full px-2.5 py-0.5 text-eyebrow font-medium ring-1",
                 post.status === "pending"
                   ? "bg-amber-100 text-amber-800 ring-amber-200"
                   : post.status === "published"
@@ -286,7 +286,7 @@ export function PostMetadataSidebar({
             <div className="flex items-baseline justify-between gap-2">
               <Label htmlFor="caption">Caption</Label>
               <div className="flex items-baseline gap-2">
-                <span className="text-[10px] text-muted-foreground">
+                <span className="text-xs text-muted-foreground">
                   {caption.length} chars
                 </span>
                 <button
@@ -295,7 +295,7 @@ export function PostMetadataSidebar({
                   disabled={!caption.trim() && hashtags.length === 0}
                   title="Copy caption + hashtags"
                   className={cn(
-                    "inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-[0.14em] transition-colors",
+                    "inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-eyebrow font-medium transition-colors",
                     "text-stone-600 ring-1 ring-stone-200 hover:bg-stone-50 hover:text-stone-900",
                     "disabled:cursor-not-allowed disabled:opacity-50",
                     justCopied && "bg-emerald-50 text-emerald-700 ring-emerald-200",
@@ -385,7 +385,7 @@ export function PostMetadataSidebar({
       </section>
 
       <section className="rounded-2xl border border-brand-line bg-white/80 p-3 shadow-sm backdrop-blur-sm sm:p-4">
-        <p className="mb-3 text-[10px] font-medium uppercase tracking-[0.3em] text-rose-700/85">
+        <p className="mb-3 text-eyebrow font-medium text-rose-700/85">
           Actions
         </p>
         <div className="space-y-2">

@@ -54,7 +54,7 @@ export default function AdminVenuesPage() {
       <div className="relative mx-auto max-w-5xl px-6 py-12 sm:py-16">
         <header className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div className="space-y-3">
-            <p className="text-[0.65rem] font-medium uppercase tracking-[0.3em] text-rose-700/80">
+            <p className="text-eyebrow font-medium text-rose-700/80">
               Venues
             </p>
             <h1 className="font-display text-balance text-4xl font-light leading-tight tracking-tight">
@@ -130,11 +130,11 @@ export default function AdminVenuesPage() {
                         {venue.name}
                       </h3>
                       {venue.published ? (
-                        <span className="inline-flex items-center gap-1 text-[10px] font-medium uppercase tracking-wider text-emerald-700">
+                        <span className="inline-flex items-center gap-1 text-xs font-medium uppercase tracking-wider text-emerald-700">
                           <Eye className="size-3" /> Live
                         </span>
                       ) : (
-                        <span className="inline-flex items-center gap-1 text-[10px] font-medium uppercase tracking-wider text-amber-700">
+                        <span className="inline-flex items-center gap-1 text-xs font-medium uppercase tracking-wider text-amber-700">
                           <EyeOff className="size-3" /> Hidden
                         </span>
                       )}
@@ -148,7 +148,7 @@ export default function AdminVenuesPage() {
                         </>
                       ) : null}
                     </p>
-                    <p className="text-[11px] text-muted-foreground/85">
+                    <p className="text-xs text-muted-foreground/85">
                       {venue._count.recommendations} recommendation
                       {venue._count.recommendations === 1 ? "" : "s"}
                     </p>

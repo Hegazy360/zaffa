@@ -53,7 +53,7 @@ export function VisionPackQuotaBadge() {
       onClick={dim ? handleClick : undefined}
       title={longForm}
       aria-label={longForm}
-      className={`inline-flex shrink-0 items-center gap-1.5 rounded-full border px-2 py-1 text-[10px] font-medium tracking-wide transition-all md:gap-2 md:px-2.5 md:text-[11px] ${
+      className={`inline-flex shrink-0 items-center gap-1.5 rounded-full border px-2 py-1 text-xs font-medium tracking-wide transition-all md:gap-2 md:px-2.5 md:text-xs ${
         dim
           ? "border-amber-200/80 bg-amber-50/70 text-amber-800 hover:bg-amber-100/70 cursor-pointer"
           : "border-rose-200/70 bg-rose-50/60 text-rose-700 cursor-default"

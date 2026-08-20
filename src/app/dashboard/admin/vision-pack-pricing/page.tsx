@@ -103,7 +103,7 @@ export default function AdminVisionPackPricingPage() {
       <div className="relative mx-auto max-w-4xl px-6 py-12 sm:py-16">
         <header className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div className="space-y-3">
-            <p className="text-[0.65rem] font-medium uppercase tracking-[0.3em] text-rose-700/80">
+            <p className="text-eyebrow font-medium text-rose-700/80">
               Vision Pack
             </p>
             <h1 className="font-display text-balance text-4xl font-light leading-tight tracking-tight">
@@ -190,10 +190,10 @@ function TierSection({
     <section className="space-y-3 rounded-2xl border border-brand-line bg-white/80 p-4 backdrop-blur-sm">
       <header className="flex items-baseline justify-between gap-3">
         <div>
-          <p className="text-[0.6rem] font-semibold uppercase tracking-[0.3em] text-rose-700/80">
+          <p className="text-eyebrow font-semibold text-rose-700/80">
             {meta.name}
           </p>
-          <p className="mt-0.5 font-mono text-[10px] text-muted-foreground">
+          <p className="mt-0.5 font-mono text-xs text-muted-foreground">
             {meta.id}
           </p>
         </div>
@@ -285,7 +285,7 @@ function TierSection({
               key={row.code}
               className="flex items-center gap-4 py-2 text-xs"
             >
-              <code className="grid size-7 shrink-0 place-items-center rounded-md bg-muted font-mono text-[10px] font-semibold text-muted-foreground">
+              <code className="grid size-7 shrink-0 place-items-center rounded-md bg-muted font-mono text-xs font-semibold text-muted-foreground">
                 {row.code}
               </code>
               <span className="min-w-0 flex-1 font-medium">
@@ -411,7 +411,7 @@ function PricingDialog({ editing, onClose, onSave, saving }: PricingDialogProps)
                 ))}
               </SelectContent>
             </Select>
-            <p className="text-[11px] text-muted-foreground">
+            <p className="text-xs text-muted-foreground">
               Tier id: <code>{sku}</code>
             </p>
           </div>
@@ -427,9 +427,9 @@ function PricingDialog({ editing, onClose, onSave, saving }: PricingDialogProps)
               disabled={isEdit}
               className="font-mono uppercase"
             />
-            <p className="text-[11px] text-muted-foreground">
+            <p className="text-xs text-muted-foreground">
               ISO-3166-1 alpha-2 (e.g. EG, AE) or the literal{" "}
-              <code className="rounded bg-muted px-1 py-0.5 text-[10px]">DEFAULT</code>.
+              <code className="rounded bg-muted px-1 py-0.5 text-xs">DEFAULT</code>.
             </p>
           </div>
 
@@ -443,7 +443,7 @@ function PricingDialog({ editing, onClose, onSave, saving }: PricingDialogProps)
                 placeholder="19.99"
                 inputMode="decimal"
               />
-              <p className="text-[11px] text-muted-foreground">
+              <p className="text-xs text-muted-foreground">
                 Major units (e.g. <code>19.99</code> for $19.99).
               </p>
             </div>

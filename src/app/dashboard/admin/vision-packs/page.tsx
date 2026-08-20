@@ -61,8 +61,8 @@ const STATUS_TONE: Record<StatusFilter, string> = {
   pending_payment: "bg-amber-50 text-amber-800",
   active: "bg-emerald-50 text-emerald-800",
   fulfilled: "bg-rose-50 text-rose-800",
-  refunded: "bg-zinc-100 text-zinc-700",
-  expired: "bg-zinc-100 text-zinc-600",
+  refunded: "bg-stone-100 text-stone-700",
+  expired: "bg-stone-100 text-stone-600",
 };
 
 export default function AdminVisionPacksPage() {
@@ -89,7 +89,7 @@ export default function AdminVisionPacksPage() {
   return (
     <div className="mx-auto max-w-6xl space-y-6 px-4 py-8 sm:px-6">
       <header>
-        <p className="mb-1 text-[0.65rem] font-medium uppercase tracking-[0.3em] text-rose-700/80">
+        <p className="mb-1 text-eyebrow font-medium text-rose-700/80">
           {t("eyebrow")}
         </p>
         <h1 className="font-display text-3xl font-light tracking-tight">
@@ -162,7 +162,7 @@ export default function AdminVisionPacksPage() {
         ) : null}
       </div>
 
-      <p className="text-[11px] text-muted-foreground">
+      <p className="text-xs text-muted-foreground">
         <Wallet className="me-1 inline size-3" />
         {f.number(items.length)} packs loaded
       </p>
@@ -197,7 +197,7 @@ function PackRow({ row }: { row: PackRowItem }) {
               row.id.slice(0, 8)}
           </p>
           <span
-            className={`rounded-full px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide ${STATUS_TONE[statusKey] ?? "bg-zinc-100 text-zinc-700"}`}
+            className={`rounded-full px-2 py-0.5 text-xs font-medium uppercase tracking-wide ${STATUS_TONE[statusKey] ?? "bg-stone-100 text-stone-700"}`}
           >
             {t(STATUS_LABEL_KEY[statusKey] ?? "visionPacksFilterAll")}
           </span>

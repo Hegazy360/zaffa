@@ -172,7 +172,7 @@ export default function VenueDesignerGalleryPage() {
           className="mb-12 flex flex-col items-start gap-5 sm:mb-14 sm:flex-row sm:items-end sm:justify-between"
         >
           <div className="space-y-3">
-            <div className="inline-flex items-center gap-2 rounded-full border border-rose-200/70 bg-rose-50/70 px-3.5 py-1 text-[11px] font-medium tracking-[0.18em] text-rose-700 uppercase backdrop-blur-sm">
+            <div className="inline-flex items-center gap-2 rounded-full border border-rose-200/70 bg-rose-50/70 px-3.5 py-1 text-eyebrow font-medium text-rose-700 backdrop-blur-sm">
               <Sparkles className="size-3" />
               {t("atelierEyebrow")}
             </div>
@@ -218,7 +218,7 @@ export default function VenueDesignerGalleryPage() {
           >
             <div className="flex flex-col items-start gap-5 sm:flex-row sm:items-center sm:justify-between">
               <div className="space-y-2 max-w-xl">
-                <div className="inline-flex items-center gap-1.5 rounded-full border border-rose-200/70 bg-white/80 px-3 py-1 text-[10px] font-medium tracking-[0.2em] text-rose-700 uppercase backdrop-blur-sm">
+                <div className="inline-flex items-center gap-1.5 rounded-full border border-rose-200/70 bg-white/80 px-3 py-1 text-eyebrow font-medium text-rose-700 backdrop-blur-sm">
                   <Sparkles className="size-3" />
                   {tv("name")}
                 </div>
@@ -332,7 +332,7 @@ export default function VenueDesignerGalleryPage() {
                           <div className="mx-auto mb-2 grid size-12 place-items-center rounded-full bg-white/70 ring-1 ring-rose-200/60 backdrop-blur-sm">
                             <Sparkles className="size-5 text-rose-500" />
                           </div>
-                          <p className="text-[11px] tracking-wide text-muted-foreground">
+                          <p className="text-xs tracking-wide text-muted-foreground">
                             {t("noRenderYet")}
                           </p>
                         </div>
@@ -342,7 +342,7 @@ export default function VenueDesignerGalleryPage() {
                     <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 transition-opacity group-hover:opacity-100" />
 
                     <div className="absolute start-2.5 top-2.5 flex items-center gap-1.5">
-                      <span className="inline-flex items-center rounded-full bg-black/55 px-2 py-0.5 text-[10px] font-medium tracking-wide text-white backdrop-blur-sm">
+                      <span className="inline-flex items-center rounded-full bg-black/55 px-2 py-0.5 text-xs font-medium tracking-wide text-white backdrop-blur-sm">
                         {eventTypeLabel(design.event_type)}
                       </span>
                       {palette.colors.length > 0 && (
@@ -384,7 +384,7 @@ export default function VenueDesignerGalleryPage() {
                         {sizeLabel(design.size)} · {settingLabel(design.setting)}
                       </p>
                     </div>
-                    <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
                       <span>{f.relativeTime(new Date(design.updated_at))}</span>
                       {design._count.media > 0 && (
                         <span className="inline-flex items-center gap-1 rounded-full bg-rose-50 px-1.5 py-0.5 text-rose-700 ring-1 ring-rose-200/60">

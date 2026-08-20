@@ -28,7 +28,7 @@ export default function AdminVendorPayoutsPage() {
   return (
     <div className="mx-auto max-w-6xl space-y-8 px-4 py-8 sm:px-6">
       <header>
-        <p className="mb-1 text-[0.65rem] font-medium uppercase tracking-[0.3em] text-rose-700/80">
+        <p className="mb-1 text-eyebrow font-medium text-rose-700/80">
           {t("vendorPayoutsEyebrow")}
         </p>
         <h1 className="font-display text-3xl font-light tracking-tight">
@@ -41,7 +41,7 @@ export default function AdminVendorPayoutsPage() {
 
       <div className="rounded-2xl border border-brand-line bg-white/80">
         <div className="border-b border-brand-line px-5 py-3">
-          <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-rose-700/80">
+          <p className="text-eyebrow font-medium text-rose-700/80">
             {t("awaitingPayout")}
           </p>
         </div>

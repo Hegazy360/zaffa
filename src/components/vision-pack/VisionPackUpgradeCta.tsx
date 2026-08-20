@@ -77,7 +77,7 @@ export function VisionPackUpgradeCta({
 
   return (
     <div className="rounded-2xl border border-rose-200/70 bg-gradient-to-br from-rose-50/80 via-white to-amber-50/60 p-4 shadow-sm">
-      <div className="text-[10px] font-semibold tracking-[0.2em] text-rose-700 uppercase">
+      <div className="text-eyebrow font-semibold text-rose-700">
         {t("upgradeCtaEyebrow")}
       </div>
       <h3 className="font-display mt-1 text-xl font-light tracking-tight">

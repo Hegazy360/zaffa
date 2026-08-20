@@ -325,7 +325,7 @@ export function ClientSignUpForm() {
           className="champagne-hairline absolute inset-x-0 top-1/2 h-px"
         />
         <div className="relative flex justify-center">
-          <span className="bg-background px-3 text-[0.65rem] uppercase tracking-[0.3em] text-muted-foreground">
+          <span className="bg-background px-3 text-eyebrow text-muted-foreground">
             {t("orContinueWith")}
           </span>
         </div>

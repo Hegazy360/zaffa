@@ -568,7 +568,7 @@ export function ReferencePickerDialog({
                         </div>
                       )}
                       {item.subcategory && (
-                        <div className="absolute bottom-0 start-0 end-0 truncate bg-gradient-to-t from-black/70 to-transparent px-2 py-1 text-start text-[10px] capitalize text-white">
+                        <div className="absolute bottom-0 start-0 end-0 truncate bg-gradient-to-t from-black/70 to-transparent px-2 py-1 text-start text-xs capitalize text-white">
                           {item.subcategory.replace(/_/g, " ")}
                         </div>
                       )}

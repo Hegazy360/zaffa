@@ -238,7 +238,7 @@ export default function EventDetailPage() {
           </Button>
           <span
             className={cn(
-              "inline-flex items-center rounded-full px-2.5 py-0.5 text-[10px] font-medium uppercase tracking-wide ring-1",
+              "inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium uppercase tracking-wide ring-1",
               statusStyles[event.status] ?? statusStyles.draft
             )}
           >
@@ -250,7 +250,7 @@ export default function EventDetailPage() {
         {/* Hero */}
         <header className="mb-10 grid gap-8 lg:grid-cols-12">
           <div className="lg:col-span-7">
-            <p className="mb-2 text-[0.65rem] font-medium uppercase tracking-[0.3em] text-rose-700/80">
+            <p className="mb-2 text-eyebrow font-medium text-rose-700/80">
               {event.event_type}
             </p>
             <h1 className="font-display text-balance text-4xl font-light leading-tight tracking-tight sm:text-5xl">
@@ -442,13 +442,13 @@ function Stat({
 }) {
   return (
     <div className="rounded-2xl border border-brand-line bg-white/70 p-4 backdrop-blur-sm">
-      <p className="text-[0.6rem] font-medium uppercase tracking-[0.25em] text-muted-foreground">
+      <p className="text-eyebrow font-medium text-muted-foreground">
         {label}
       </p>
       <p className="font-display mt-1 text-2xl font-light leading-none tracking-tight">
         {value}
       </p>
-      {hint && <p className="mt-1 text-[11px] text-muted-foreground">{hint}</p>}
+      {hint && <p className="mt-1 text-xs text-muted-foreground">{hint}</p>}
     </div>
   );
 }
@@ -515,7 +515,7 @@ function ApprovedDesignCard({
           </div>
         )}
         <div className="absolute inset-0 bg-gradient-to-t from-black/35 via-transparent to-transparent" />
-        <div className="absolute start-3 top-3 inline-flex items-center gap-1 rounded-full bg-white/90 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-rose-700 backdrop-blur-sm">
+        <div className="absolute start-3 top-3 inline-flex items-center gap-1 rounded-full bg-white/90 px-2 py-0.5 text-xs font-medium uppercase tracking-wide text-rose-700 backdrop-blur-sm">
           <CheckCircle2 className="size-3" />
           {tc("approvedDesign")}
         </div>
@@ -769,7 +769,7 @@ function OverviewTab({
               ) : (
                 <span
                   className={cn(
-                    "inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide ring-1",
+                    "inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium uppercase tracking-wide ring-1",
                     statusStyles[event.status] ?? statusStyles.draft
                   )}
                 >
@@ -811,7 +811,7 @@ function OverviewTab({
       <div className="lg:col-span-1">
         <div className="sticky top-24 overflow-hidden rounded-2xl border border-brand-line bg-white/80 backdrop-blur-sm">
           <div className="border-b border-brand-line px-5 py-3">
-            <p className="text-[0.65rem] font-medium uppercase tracking-[0.3em] text-rose-700/80">
+            <p className="text-eyebrow font-medium text-rose-700/80">
               {tc("yourPlanner")}
             </p>
           </div>
@@ -879,7 +879,7 @@ function DetailRow({
 }) {
   return (
     <div className={cn("space-y-1", className)}>
-      <Label className="text-[0.65rem] font-medium uppercase tracking-[0.2em] text-muted-foreground">
+      <Label className="text-eyebrow font-medium text-muted-foreground">
         {label}
       </Label>
       {children}
@@ -1043,7 +1043,7 @@ function DesignTab({
               </div>
               {normalizePalette(approvedDesign.palette).length > 0 && (
                 <div>
-                  <p className="text-[0.6rem] font-medium uppercase tracking-[0.25em] text-muted-foreground">
+                  <p className="text-eyebrow font-medium text-muted-foreground">
                     {tc("palette")}
                   </p>
                   <div className="mt-2 flex items-center gap-1.5">
@@ -1193,7 +1193,7 @@ function MessagesTab({ eventId }: { eventId: string }) {
                 )}
               >
                 {!isMine && (
-                  <div className="grid size-7 shrink-0 place-items-center rounded-full bg-gradient-to-br from-rose-200 to-amber-200 text-[11px] font-semibold text-rose-800">
+                  <div className="grid size-7 shrink-0 place-items-center rounded-full bg-gradient-to-br from-rose-200 to-amber-200 text-xs font-semibold text-rose-800">
                     {m.sender.full_name.charAt(0)}
                   </div>
                 )}
@@ -1208,7 +1208,7 @@ function MessagesTab({ eventId }: { eventId: string }) {
                   <p className="whitespace-pre-wrap">{m.content}</p>
                   <p
                     className={cn(
-                      "mt-1 text-[10px]",
+                      "mt-1 text-xs",
                       isMine ? "text-white/70" : "text-muted-foreground"
                     )}
                   >
@@ -1367,7 +1367,7 @@ function ProposalsTab({
     <div className="space-y-8">
       {accepted && (
         <section>
-          <p className="mb-3 text-[0.65rem] font-medium uppercase tracking-[0.3em] text-rose-700/80">
+          <p className="mb-3 text-eyebrow font-medium text-rose-700/80">
             {tc("currentlyEngaged")}
           </p>
           <ProposalCard
@@ -1383,7 +1383,7 @@ function ProposalsTab({
 
       {pending.length > 0 && (
         <section>
-          <p className="mb-3 text-[0.65rem] font-medium uppercase tracking-[0.3em] text-rose-700/80">
+          <p className="mb-3 text-eyebrow font-medium text-rose-700/80">
             {accepted ? tc("backupsStandingBy") : tc("awaitingDecision")}
           </p>
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
@@ -1412,7 +1412,7 @@ function ProposalsTab({
 
       {released.length > 0 && (
         <section>
-          <p className="mb-3 text-[0.65rem] font-medium uppercase tracking-[0.3em] text-stone-500">
+          <p className="mb-3 text-eyebrow font-medium text-stone-500">
             {tc("pastPlanners")}
           </p>
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
@@ -1433,7 +1433,7 @@ function ProposalsTab({
 
       {declined.length > 0 && (
         <section>
-          <p className="mb-3 text-[0.65rem] font-medium uppercase tracking-[0.3em] text-stone-500">
+          <p className="mb-3 text-eyebrow font-medium text-stone-500">
             {tc("withdrew")}
           </p>
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
@@ -1571,7 +1571,7 @@ function ProposalCard({
               </p>
             </div>
             {planner.review_count > 0 && (
-              <span className="inline-flex shrink-0 items-center gap-0.5 rounded-full bg-amber-50 px-1.5 py-0.5 text-[11px] font-medium text-amber-800 ring-1 ring-amber-100">
+              <span className="inline-flex shrink-0 items-center gap-0.5 rounded-full bg-amber-50 px-1.5 py-0.5 text-xs font-medium text-amber-800 ring-1 ring-amber-100">
                 <Star className="size-3 fill-current" />
                 {rating.toFixed(1)}
                 <span className="text-muted-foreground">
@@ -1585,7 +1585,7 @@ function ProposalCard({
               {specialtiesArr.slice(0, 3).map((s) => (
                 <span
                   key={s}
-                  className="rounded-full bg-rose-50 px-2 py-0.5 text-[10px] text-rose-700 ring-1 ring-rose-100"
+                  className="rounded-full bg-rose-50 px-2 py-0.5 text-xs text-rose-700 ring-1 ring-rose-100"
                 >
                   {s}
                 </span>
@@ -1615,7 +1615,7 @@ function ProposalCard({
       )}
 
       <div className="mt-4 rounded-xl bg-rose-50/40 p-3">
-        <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-rose-700/80">
+        <p className="text-eyebrow font-medium text-rose-700/80">
           {tc("coverLetter")}
         </p>
         <p className="mt-1 whitespace-pre-wrap text-sm text-foreground/90">
@@ -1639,7 +1639,7 @@ function ProposalCard({
           return (
             <div className="mt-3 overflow-hidden rounded-xl border border-brand-line bg-white/60">
               <div className="flex items-center justify-between gap-3 px-3 py-2.5">
-                <span className="text-[10px] font-medium uppercase tracking-[0.2em] text-muted-foreground">
+                <span className="text-eyebrow font-medium text-muted-foreground">
                   {tc("quote")}
                 </span>
                 <span className="font-display text-lg font-light tracking-tight">
@@ -1648,7 +1648,7 @@ function ProposalCard({
               </div>
               {breakdown.length > 0 && (
                 <div className="border-t border-brand-line bg-rose-50/30 px-3 py-2">
-                  <p className="mb-1.5 text-[10px] font-medium uppercase tracking-[0.2em] text-rose-700/80">
+                  <p className="mb-1.5 text-eyebrow font-medium text-rose-700/80">
                     {tc("breakdown")}
                   </p>
                   <ul className="space-y-1">
@@ -1672,7 +1672,7 @@ function ProposalCard({
 
       {planner.reviews.length > 0 && (
         <div className="mt-3 space-y-2">
-          <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-muted-foreground">
+          <p className="text-eyebrow font-medium text-muted-foreground">
             {tc("recentReviews")}
           </p>
           {planner.reviews.slice(0, 1).map((r) => (
@@ -1690,7 +1690,7 @@ function ProposalCard({
                     )}
                   />
                 ))}
-                <span className="ms-1 text-[11px] text-muted-foreground">
+                <span className="ms-1 text-xs text-muted-foreground">
                   {r.author.full_name}
                 </span>
               </div>
@@ -1707,10 +1707,10 @@ function ProposalCard({
       {proposedSchedule && proposedSchedule.status === "proposed" && (
         <div className="mt-3 overflow-hidden rounded-xl border border-brand-line bg-rose-50/30">
           <div className="flex items-center justify-between gap-3 border-b border-brand-line bg-white/60 px-3 py-2">
-            <span className="text-[10px] font-medium uppercase tracking-[0.2em] text-rose-700/80">
+            <span className="text-eyebrow font-medium text-rose-700/80">
               {tc("paymentPlan")}
             </span>
-            <span className="text-[10px] text-muted-foreground">
+            <span className="text-xs text-muted-foreground">
               {tc("lockedWhenAccept")}
             </span>
           </div>
@@ -1723,7 +1723,7 @@ function ProposalCard({
                 <div className="min-w-0">
                   <p className="truncate text-foreground/90">{i.label}</p>
                   {i.due_date && (
-                    <p className="text-[10px] text-muted-foreground">
+                    <p className="text-xs text-muted-foreground">
                       {tc("due", { date: f.date(i.due_date, "medium") })}
                     </p>
                   )}
@@ -1770,16 +1770,16 @@ function ProposalCard({
           {tc("viewFullProfile")}
         </Button>
         {isAccepted ? (
-          <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-1 text-[11px] font-medium text-emerald-800 ring-1 ring-emerald-200">
+          <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-medium text-emerald-800 ring-1 ring-emerald-200">
             <CheckCircle2 className="size-3" />
             {tc("engaged")}
           </span>
         ) : isReleased ? (
-          <span className="inline-flex items-center gap-1 rounded-full bg-stone-100 px-2.5 py-1 text-[11px] font-medium text-stone-700 ring-1 ring-stone-200">
+          <span className="inline-flex items-center gap-1 rounded-full bg-stone-100 px-2.5 py-1 text-xs font-medium text-stone-700 ring-1 ring-stone-200">
             {tc("released")}
           </span>
         ) : isDeclined ? (
-          <span className="inline-flex items-center gap-1 rounded-full bg-stone-100 px-2.5 py-1 text-[11px] font-medium text-stone-500 ring-1 ring-stone-200">
+          <span className="inline-flex items-center gap-1 rounded-full bg-stone-100 px-2.5 py-1 text-xs font-medium text-stone-500 ring-1 ring-stone-200">
             {tc("withdrew")}
           </span>
         ) : someoneEngaged ? (
@@ -1865,7 +1865,7 @@ function ReviewSection({
       <div className="mt-3 rounded-xl border border-amber-100/70 bg-amber-50/40 p-3">
         <div className="flex items-start justify-between gap-2">
           <div className="min-w-0 flex-1">
-            <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-amber-700/90">
+            <p className="text-eyebrow font-medium text-amber-700/90">
               {tc("yourReview")}
             </p>
             <div className="mt-1 flex items-center gap-1 text-amber-500">
@@ -1910,7 +1910,7 @@ function ReviewSection({
               remove.mutate({ id: review.id });
             }
           }}
-          className="mt-2 text-[11px] text-stone-500 underline-offset-4 hover:text-rose-700 hover:underline disabled:opacity-50"
+          className="mt-2 text-xs text-stone-500 underline-offset-4 hover:text-rose-700 hover:underline disabled:opacity-50"
         >
           {remove.isPending ? tc("removingReview") : tc("removeReview")}
         </button>
@@ -1922,7 +1922,7 @@ function ReviewSection({
     <Dialog open={open} onOpenChange={setOpen}>
       <div className="mt-3 flex items-center justify-between gap-3 rounded-xl border border-dashed border-rose-200/80 bg-rose-50/30 p-3">
         <div className="min-w-0">
-          <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-rose-700/80">
+          <p className="text-eyebrow font-medium text-rose-700/80">
             {tc("shareExperience")}
           </p>
           <p className="mt-0.5 text-xs text-foreground/80">
@@ -2050,7 +2050,7 @@ function ReviewDialogContent({
             rows={5}
             maxLength={2000}
           />
-          <p className="text-end text-[11px] text-muted-foreground">
+          <p className="text-end text-xs text-muted-foreground">
             {tc("charCount", { count: comment.length, max: 2000 })}
           </p>
         </div>

@@ -218,7 +218,7 @@ export default function VendorProfilePage() {
       />
       <div className="relative z-10 mx-auto max-w-3xl space-y-10 px-4 py-10 sm:px-6">
         <header>
-          <p className="mb-1 text-[0.65rem] font-medium uppercase tracking-[0.3em] text-rose-700/80">
+          <p className="mb-1 text-eyebrow font-medium text-rose-700/80">
             {t("profileLabel")}
           </p>
           <h1 className="font-display text-3xl font-light tracking-tight sm:text-4xl">
@@ -287,7 +287,7 @@ export default function VendorProfilePage() {
                   placeholder={t("bioPlaceholder")}
                   className="resize-none"
                 />
-                <p className="text-[11px] text-muted-foreground">
+                <p className="text-xs text-muted-foreground">
                   {t("bioCounter", { count: bio.length })}
                 </p>
               </div>
@@ -404,7 +404,7 @@ export default function VendorProfilePage() {
                         <p className="text-sm">{item.caption}</p>
                       )}
                       {item.event_type && (
-                        <p className="text-[11px] uppercase tracking-wider text-rose-700/70">
+                        <p className="text-xs uppercase tracking-wider text-rose-700/70">
                           {(() => {
                             const opt = EVENT_TYPE_VALUES.find(
                               (o) => o.value === item.event_type,
@@ -650,7 +650,7 @@ function PortfolioForm({
                   <p className="text-sm font-medium">
                     {t("uploadOrDrop")}
                   </p>
-                  <p className="text-[11px] text-muted-foreground">
+                  <p className="text-xs text-muted-foreground">
                     {t("imageRules")}
                   </p>
                 </>

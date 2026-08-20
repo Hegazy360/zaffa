@@ -72,7 +72,7 @@ export default function VendorInboxPage() {
       />
       <div className="relative z-10 mx-auto max-w-4xl px-4 py-10 sm:px-6">
         <header className="mb-8">
-          <p className="mb-1 text-[0.65rem] font-medium uppercase tracking-[0.3em] text-rose-700/80">
+          <p className="mb-1 text-eyebrow font-medium text-rose-700/80">
             {t("inboxLabel")}
           </p>
           <h1 className="font-display text-3xl font-light tracking-tight sm:text-4xl">
@@ -139,7 +139,7 @@ function Section({
 }) {
   return (
     <section>
-      <h2 className="mb-3 text-[10px] font-medium uppercase tracking-[0.2em] text-rose-700/80">
+      <h2 className="mb-3 text-eyebrow font-medium text-rose-700/80">
         {title}
       </h2>
       {children}
@@ -206,7 +206,7 @@ function EngagementCard({
         </div>
         <div className="flex items-center gap-2">
           <span
-            className={`rounded-full px-2 py-0.5 text-[10px] uppercase tracking-wider ${STATUS_TONE[status]}`}
+            className={`rounded-full px-2 py-0.5 text-xs uppercase tracking-wider ${STATUS_TONE[status]}`}
           >
             {t(STATUS_KEY[status])}
           </span>

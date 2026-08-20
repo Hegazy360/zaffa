@@ -162,7 +162,7 @@ export default function PublicPlannerProfilePage() {
           {/* Hero */}
           <header className="mb-12 grid gap-8 md:grid-cols-12">
             <div className="md:col-span-8">
-              <div className="inline-flex items-center gap-2 rounded-full border border-rose-200/70 bg-rose-50/70 px-3.5 py-1 text-[11px] font-medium uppercase tracking-[0.18em] text-rose-700 backdrop-blur-sm">
+              <div className="inline-flex items-center gap-2 rounded-full border border-rose-200/70 bg-rose-50/70 px-3.5 py-1 text-eyebrow font-medium text-rose-700 backdrop-blur-sm">
                 <Sparkles className="size-3" />
                 Event planner
               </div>
@@ -243,7 +243,7 @@ export default function PublicPlannerProfilePage() {
           <section className="mb-14">
             <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
               <div>
-                <p className="mb-1 text-[0.65rem] font-medium uppercase tracking-[0.3em] text-rose-700/80">
+                <p className="mb-1 text-eyebrow font-medium text-rose-700/80">
                   Portfolio
                 </p>
                 <h2 className="font-display text-2xl font-light tracking-tight">
@@ -292,7 +292,7 @@ export default function PublicPlannerProfilePage() {
                           </p>
                         )}
                         {item.event_type && (
-                          <p className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
+                          <p className="text-eyebrow text-muted-foreground">
                             {item.event_type}
                           </p>
                         )}
@@ -301,7 +301,7 @@ export default function PublicPlannerProfilePage() {
                             {tags.map((t) => (
                               <span
                                 key={t}
-                                className="rounded-full bg-rose-50 px-2 py-0.5 text-[10px] text-rose-700 ring-1 ring-rose-100"
+                                className="rounded-full bg-rose-50 px-2 py-0.5 text-xs text-rose-700 ring-1 ring-rose-100"
                               >
                                 {t}
                               </span>
@@ -322,7 +322,7 @@ export default function PublicPlannerProfilePage() {
           <section id="reviews" className="scroll-mt-20">
             <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
               <div>
-                <p className="mb-1 text-[0.65rem] font-medium uppercase tracking-[0.3em] text-rose-700/80">
+                <p className="mb-1 text-eyebrow font-medium text-rose-700/80">
                   Reviews
                 </p>
                 <h2 className="font-display text-2xl font-light tracking-tight">
@@ -339,7 +339,7 @@ export default function PublicPlannerProfilePage() {
                         / 5
                       </span>
                     </p>
-                    <p className="text-[11px] text-amber-800/80">
+                    <p className="text-xs text-amber-800/80">
                       Based on {planner.review_count} review
                       {planner.review_count === 1 ? "" : "s"}
                     </p>
@@ -384,7 +384,7 @@ export default function PublicPlannerProfilePage() {
                         <p className="truncate text-sm font-medium">
                           {r.author.full_name}
                         </p>
-                        <p className="text-[11px] text-muted-foreground">
+                        <p className="text-xs text-muted-foreground">
                           {f.date(r.created_at, "long")}
                         </p>
                       </div>

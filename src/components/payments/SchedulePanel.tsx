@@ -234,7 +234,7 @@ export function SchedulePanel({
       <div className="overflow-hidden rounded-2xl border border-brand-line bg-white/80 backdrop-blur-sm">
         <div className="flex items-center justify-between gap-3 border-b border-brand-line px-5 py-3">
           <div>
-            <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-rose-700/80">
+            <p className="text-eyebrow font-medium text-rose-700/80">
               {t("planEyebrow")}
             </p>
             <p className="text-xs text-muted-foreground">
@@ -339,7 +339,7 @@ export function SchedulePanel({
                           </span>
                         )}
                       {side === "planner" && p.payout_id && (
-                        <span className="inline-flex items-center gap-1 rounded-full bg-stone-100 px-1.5 py-0 text-[10px] uppercase tracking-wide text-stone-600">
+                        <span className="inline-flex items-center gap-1 rounded-full bg-stone-100 px-1.5 py-0 text-xs uppercase tracking-wide text-stone-600">
                           {t("paidOut")}
                         </span>
                       )}
@@ -351,7 +351,7 @@ export function SchedulePanel({
                     </span>
                     <span
                       className={cn(
-                        "inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide ring-1",
+                        "inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium uppercase tracking-wide ring-1",
                         TONE_CLASS[tone]
                       )}
                     >
@@ -404,7 +404,7 @@ export function SchedulePanel({
 function SummaryStat({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-2xl border border-brand-line bg-white/80 px-4 py-3 backdrop-blur-sm">
-      <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-rose-700/80">
+      <p className="text-eyebrow font-medium text-rose-700/80">
         {label}
       </p>
       <p className="font-display mt-1 text-xl font-light tracking-tight">

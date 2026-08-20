@@ -35,7 +35,7 @@ export function CTASlide({
         }}
       />
       <div className="absolute inset-0 flex flex-col items-center justify-center px-20 text-center">
-        <p className="text-[0.7rem] font-semibold uppercase tracking-[0.4em] text-rose-700">
+        <p className="text-eyebrow font-semibold text-rose-700">
           START WITH A VIBE
         </p>
         <div className="mt-6 h-px w-16 bg-rose-700/40" />
@@ -48,7 +48,7 @@ export function CTASlide({
         <p className="mt-10 font-display text-3xl font-medium tracking-[0.02em] text-rose-700">
           {subline}
         </p>
-        <p className="mt-3 text-[0.7rem] font-semibold uppercase tracking-[0.4em] text-stone-500">
+        <p className="mt-3 text-eyebrow font-semibold text-stone-500">
           DESIGNED WITH ZAFFA
         </p>
       </div>

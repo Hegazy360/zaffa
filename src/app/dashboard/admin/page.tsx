@@ -28,7 +28,7 @@ export default function AdminOverview() {
   return (
     <div className="mx-auto max-w-6xl space-y-8 px-4 py-8 sm:px-6">
       <header>
-        <p className="mb-1 text-[0.65rem] font-medium uppercase tracking-[0.3em] text-rose-700/80">
+        <p className="mb-1 text-eyebrow font-medium text-rose-700/80">
           {t("eyebrow")}
         </p>
         <h1 className="font-display text-3xl font-light tracking-tight">
@@ -128,7 +128,7 @@ export default function AdminOverview() {
             <div className="rounded-2xl border border-brand-line bg-white/80 backdrop-blur-sm">
               <div className="flex items-center justify-between border-b border-brand-line px-5 py-4">
                 <div>
-                  <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-rose-700/80">
+                  <p className="text-eyebrow font-medium text-rose-700/80">
                     {t("recentActivity")}
                   </p>
                   <p className="text-sm text-muted-foreground">
@@ -253,7 +253,7 @@ function KpiCard({
       }
     >
       <div className="flex items-center justify-between text-rose-700/80">
-        <p className="text-[10px] font-medium uppercase tracking-[0.2em]">
+        <p className="text-eyebrow font-medium">
           {label}
         </p>
         {icon && <span aria-hidden>{icon}</span>}
@@ -262,7 +262,7 @@ function KpiCard({
         {value}
       </p>
       <div className="mt-2 flex items-end justify-between gap-2">
-        <div className="text-[11px] text-muted-foreground">
+        <div className="text-xs text-muted-foreground">
           {hint}
           {delta != null && (
             <span

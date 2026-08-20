@@ -13,10 +13,10 @@ export function InspirationSlide({ imageUrls, vibe }: InspirationSlideProps) {
           readable even when the collage runs hot at the top. */}
       <div className="absolute inset-x-0 top-0 z-10 bg-gradient-to-b from-[#FAF6EE] via-[#FAF6EE]/95 to-transparent px-16 pb-10 pt-16">
         <div className="flex items-baseline justify-between gap-4">
-          <p className="text-[0.7rem] font-semibold uppercase tracking-[0.4em] text-rose-700">
+          <p className="text-eyebrow font-semibold text-rose-700">
             INSPIRATION
           </p>
-          <p className="text-[0.65rem] font-medium uppercase tracking-[0.32em] text-stone-500">
+          <p className="text-eyebrow font-medium text-stone-500">
             ZAFFA.AI
           </p>
         </div>

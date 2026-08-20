@@ -82,7 +82,7 @@ export function HeroEditorial({
       <div className="container relative mx-auto grid max-w-7xl gap-y-10 px-4 pt-20 pb-20 md:pt-28 md:pb-32 lg:grid-cols-12 lg:gap-x-16 lg:gap-y-10 lg:pb-32">
         <div className="lg:col-span-6 lg:row-start-1 lg:self-end">
           <div
-            className="hero-rise mb-5 inline-flex w-fit items-center gap-2 rounded-full border border-rose-200/60 bg-white/60 px-3 py-1.5 text-[0.65rem] uppercase tracking-[0.18em] text-rose-700 backdrop-blur-md sm:mb-6 sm:px-4 sm:text-xs"
+            className="hero-rise mb-5 inline-flex w-fit items-center gap-2 rounded-full border border-rose-200/60 bg-white/60 px-3 py-1.5 text-eyebrow text-rose-700 backdrop-blur-md sm:mb-6 sm:px-4 sm:text-xs"
           >
             <Sparkles className="h-3.5 w-3.5" />
             {t("heroEyebrow")}

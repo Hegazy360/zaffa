@@ -20,7 +20,7 @@ export function LegalPage({ eyebrow, title, updated, children }: LegalPageProps)
       <main className="flex-1">
         <article className="mx-auto max-w-3xl px-4 py-16 sm:px-6 sm:py-24">
           <header className="mb-10 border-b border-brand-line pb-6">
-            <p className="mb-2 text-[0.65rem] font-medium uppercase tracking-[0.3em] text-rose-700/80">
+            <p className="mb-2 text-eyebrow font-medium text-rose-700/80">
               {eyebrow}
             </p>
             <h1 className="font-display text-4xl font-light tracking-tight sm:text-5xl">

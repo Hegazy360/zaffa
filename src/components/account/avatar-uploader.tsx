@@ -108,7 +108,7 @@ export function AvatarUploader({
           )}
           {t("changeAvatar")}
         </Button>
-        <p className="text-[11px] text-muted-foreground">
+        <p className="text-xs text-muted-foreground">
           {t("avatarHint")}
         </p>
       </div>

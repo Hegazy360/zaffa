@@ -165,7 +165,7 @@ export function Microsite({
           />
           <div className="relative mx-auto grid max-w-6xl grid-cols-1 gap-8 px-6 py-16 lg:grid-cols-12 lg:py-24">
             <div className="flex flex-col justify-center lg:col-span-5">
-              <div className="inline-flex items-center gap-1.5 self-start rounded-full border border-rose-200/70 bg-white/80 px-3 py-1 text-[10px] font-medium tracking-[0.22em] text-rose-700 uppercase backdrop-blur-sm">
+              <div className="inline-flex items-center gap-1.5 self-start rounded-full border border-rose-200/70 bg-white/80 px-3 py-1 text-eyebrow font-medium text-rose-700 backdrop-blur-sm">
                 <Sparkles className="size-3" />
                 {t("name")}
               </div>
@@ -184,7 +184,7 @@ export function Microsite({
               )}
               {palette.colors && palette.colors.length > 0 && (
                 <div className="mt-6 flex items-center gap-2">
-                  <span className="text-[10px] font-medium tracking-[0.2em] text-muted-foreground uppercase">
+                  <span className="text-eyebrow font-medium text-muted-foreground">
                     {t("micrositePalette")}
                   </span>
                   <div className="flex items-center gap-1.5">
@@ -323,7 +323,7 @@ export function Microsite({
                   {t("micrositeMoodboardTitle")}
                 </h2>
               </div>
-              <span className="text-[10px] font-medium uppercase tracking-[0.22em] text-muted-foreground">
+              <span className="text-eyebrow font-medium text-muted-foreground">
                 {totalRefs} {totalRefs === 1 ? "reference" : "references"}
               </span>
             </div>
@@ -335,7 +335,7 @@ export function Microsite({
                     <h3 className="font-display text-lg font-light tracking-tight sm:text-xl">
                       {tDesigner(CATEGORY_LABEL_KEYS[cat])}
                     </h3>
-                    <span className="text-[10px] font-medium uppercase tracking-[0.2em] text-muted-foreground">
+                    <span className="text-eyebrow font-medium text-muted-foreground">
                       {references[cat].length}
                     </span>
                   </div>
@@ -370,7 +370,7 @@ export function Microsite({
         {/* Create yours CTA */}
         <section className="bg-gradient-to-br from-rose-50/80 via-white to-amber-50/60 py-20">
           <div className="mx-auto max-w-2xl px-6 text-center">
-            <div className="inline-flex items-center gap-1.5 rounded-full border border-rose-200/70 bg-white/80 px-3 py-1 text-[10px] font-medium tracking-[0.22em] text-rose-700 uppercase backdrop-blur-sm">
+            <div className="inline-flex items-center gap-1.5 rounded-full border border-rose-200/70 bg-white/80 px-3 py-1 text-eyebrow font-medium text-rose-700 backdrop-blur-sm">
               <Sparkles className="size-3" />
               {t("micrositeCreateYoursEyebrow")}
             </div>

@@ -94,7 +94,7 @@ export function HowItWorks() {
 
       <div className="relative mx-auto max-w-6xl px-4 py-24 sm:py-28">
         <header className="mx-auto mb-14 max-w-2xl text-center sm:mb-20">
-          <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-rose-200/60 bg-rose-50/70 px-4 py-1.5 text-[0.7rem] uppercase tracking-[0.3em] text-rose-700 backdrop-blur-md">
+          <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-rose-200/60 bg-rose-50/70 px-4 py-1.5 text-eyebrow text-rose-700 backdrop-blur-md">
             <Sparkles className="h-3.5 w-3.5" />
             {t("howEyebrow")}
           </div>
@@ -136,7 +136,7 @@ export function HowItWorks() {
                     <span className="grid size-10 place-items-center rounded-full border border-rose-200/70 bg-gradient-to-br from-rose-50 to-amber-50 text-rose-700 ring-1 ring-rose-200/40">
                       <Icon className="size-4" strokeWidth={2} />
                     </span>
-                    <span className="text-[10px] font-medium uppercase tracking-[0.28em] text-muted-foreground">
+                    <span className="text-eyebrow font-medium text-muted-foreground">
                       {t("howStepLabel", { n: idx + 1, total: STEPS.length })}
                     </span>
                   </div>
@@ -210,7 +210,7 @@ function Screenshot({ screenshot, suggestedFilename, altKey }: ScreenshotProps) 
       <p className="max-w-sm text-xs text-muted-foreground">
         {t("howScreenshotPlaceholderBody")}
       </p>
-      <code className="rounded-md bg-white/70 px-2 py-1 font-mono text-[11px] text-rose-700 ring-1 ring-rose-200/60">
+      <code className="rounded-md bg-white/70 px-2 py-1 font-mono text-xs text-rose-700 ring-1 ring-rose-200/60">
         public/home/how-it-works/{suggestedFilename}
       </code>
     </div>

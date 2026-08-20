@@ -173,7 +173,7 @@ export default async function GalleryPage() {
             className="pointer-events-none absolute inset-0 grain-bg opacity-30"
           />
           <div className="relative mx-auto max-w-6xl px-6 text-center">
-            <div className="inline-flex items-center gap-1.5 rounded-full border border-rose-200/70 bg-white/80 px-3 py-1 text-[10px] font-medium tracking-[0.22em] text-rose-700 uppercase backdrop-blur-sm">
+            <div className="inline-flex items-center gap-1.5 rounded-full border border-rose-200/70 bg-white/80 px-3 py-1 text-eyebrow font-medium text-rose-700 backdrop-blur-sm">
               <Sparkles className="size-3" />
               {t("galleryEyebrow")}
             </div>
@@ -254,7 +254,7 @@ export default async function GalleryPage() {
                     <h3 className="font-display text-lg leading-tight font-medium tracking-tight">
                       {name}
                     </h3>
-                    <p className="text-[11px] text-muted-foreground">
+                    <p className="text-xs text-muted-foreground">
                       {t("galleryRenderCount", {
                         count: item.rendersGenerated,
                       })}

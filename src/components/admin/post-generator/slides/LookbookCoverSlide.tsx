@@ -55,12 +55,12 @@ export function LookbookCoverSlide({
               className="h-full w-full object-cover"
             />
             <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/35" />
-            <span className="absolute right-6 top-6 rounded-full bg-white/95 px-3 py-1 text-[0.55rem] font-semibold uppercase tracking-[0.36em] text-stone-900 shadow ring-1 ring-stone-200">
+            <span className="absolute right-6 top-6 rounded-full bg-white/95 px-3 py-1 text-eyebrow font-semibold text-stone-900 shadow ring-1 ring-stone-200">
               THE LOOKBOOK
             </span>
           </div>
           <div className="bg-[#FAF6EE] px-12 py-10 text-stone-900">
-            <p className="text-[0.65rem] font-semibold uppercase tracking-[0.4em] text-rose-700">
+            <p className="text-eyebrow font-semibold text-rose-700">
               {vibe.toUpperCase()}
             </p>
             <h1 className="mt-4 flex flex-wrap items-baseline gap-x-3 font-display text-[60px] font-medium leading-[1.02] tracking-[-0.01em]">
@@ -77,7 +77,7 @@ export function LookbookCoverSlide({
                 scale="lg"
               />
             </div>
-            <p className="mt-6 text-[0.7rem] font-semibold uppercase tracking-[0.36em] text-stone-500">
+            <p className="mt-6 text-eyebrow font-semibold text-stone-500">
               DESIGNED WITH ZAFFA.AI
             </p>
           </div>

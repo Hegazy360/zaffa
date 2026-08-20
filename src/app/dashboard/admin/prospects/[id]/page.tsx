@@ -178,7 +178,7 @@ export default function ProspectDetailPage({
 
       {/* Status pipeline */}
       <section className="rounded-2xl border border-brand-line bg-white/80 px-5 py-4">
-        <p className="mb-3 text-[10px] font-medium uppercase tracking-[0.2em] text-rose-700/80">
+        <p className="mb-3 text-eyebrow font-medium text-rose-700/80">
           {t("statusPipeline")}
         </p>
         <div className="flex flex-wrap gap-1.5">
@@ -210,7 +210,7 @@ export default function ProspectDetailPage({
 
       {/* Contact card */}
       <section className="rounded-2xl border border-brand-line bg-white/80 px-5 py-4">
-        <p className="mb-3 text-[10px] font-medium uppercase tracking-[0.2em] text-rose-700/80">
+        <p className="mb-3 text-eyebrow font-medium text-rose-700/80">
           {t("contact")}
         </p>
         <ul className="grid gap-2 sm:grid-cols-2">
@@ -282,7 +282,7 @@ export default function ProspectDetailPage({
       {/* Bio */}
       {p.bio && (
         <section className="rounded-2xl border border-brand-line bg-white/80 px-5 py-4">
-          <p className="mb-2 text-[10px] font-medium uppercase tracking-[0.2em] text-rose-700/80">
+          <p className="mb-2 text-eyebrow font-medium text-rose-700/80">
             {t("bio")}
           </p>
           <p
@@ -297,7 +297,7 @@ export default function ProspectDetailPage({
       {/* Sample images */}
       {samples.length > 0 && (
         <section className="rounded-2xl border border-brand-line bg-white/80 px-5 py-4">
-          <p className="mb-3 text-[10px] font-medium uppercase tracking-[0.2em] text-rose-700/80">
+          <p className="mb-3 text-eyebrow font-medium text-rose-700/80">
             {t("samples")}
           </p>
           <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
@@ -331,7 +331,7 @@ export default function ProspectDetailPage({
 
       {/* Notes */}
       <section className="rounded-2xl border border-brand-line bg-white/80 px-5 py-4">
-        <p className="mb-2 text-[10px] font-medium uppercase tracking-[0.2em] text-rose-700/80">
+        <p className="mb-2 text-eyebrow font-medium text-rose-700/80">
           {t("notes")}
         </p>
         <Textarea
@@ -360,10 +360,10 @@ export default function ProspectDetailPage({
       {/* Raw payload */}
       {p.raw_payload != null && (
         <details className="rounded-2xl border border-brand-line bg-white/80 px-5 py-4 text-sm">
-          <summary className="cursor-pointer text-[10px] font-medium uppercase tracking-[0.2em] text-rose-700/80">
+          <summary className="cursor-pointer text-eyebrow font-medium text-rose-700/80">
             {t("rawPayload")}
           </summary>
-          <pre className="mt-3 max-h-96 overflow-auto rounded-lg bg-stone-50 p-3 text-[11px] text-stone-700 ring-1 ring-stone-200">
+          <pre className="mt-3 max-h-96 overflow-auto rounded-lg bg-stone-50 p-3 text-xs text-stone-700 ring-1 ring-stone-200">
             {JSON.stringify(p.raw_payload, null, 2)}
           </pre>
         </details>
@@ -440,7 +440,7 @@ function DraftsPanel({
   return (
     <section className="rounded-2xl border border-brand-line bg-white/80 px-5 py-4">
       <div className="mb-3 flex items-center justify-between">
-        <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-rose-700/80">
+        <p className="text-eyebrow font-medium text-rose-700/80">
           {t("draftsTitle")}
         </p>
         <div className="flex gap-1">
@@ -449,7 +449,7 @@ function DraftsPanel({
               key={ch}
               type="button"
               onClick={() => setActiveChannel(ch)}
-              className={`rounded-full border px-2.5 py-1 text-[11px] font-medium transition-all ${
+              className={`rounded-full border px-2.5 py-1 text-xs font-medium transition-all ${
                 activeChannel === ch
                   ? "border-rose-300 bg-gradient-to-r from-rose-500 to-amber-500 text-white shadow-sm"
                   : "border-brand-line bg-white/70 text-muted-foreground hover:bg-white"
@@ -557,7 +557,7 @@ function ContactRow({
         {icon}
       </span>
       <div className="min-w-0">
-        <p className="text-[10px] uppercase tracking-wide text-muted-foreground">
+        <p className="text-xs uppercase tracking-wide text-muted-foreground">
           {label}
         </p>
         <p className="truncate text-sm">{value}</p>

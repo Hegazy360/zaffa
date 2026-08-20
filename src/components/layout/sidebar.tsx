@@ -285,7 +285,7 @@ export function Sidebar({ role }: SidebarProps) {
           className="pointer-events-none absolute inset-0 grain-bg opacity-30"
         />
 
-        <p className="relative z-10 mb-1 text-[0.65rem] font-medium uppercase tracking-[0.3em] text-rose-700/80">
+        <p className="relative z-10 mb-1 text-eyebrow font-medium text-rose-700/80">
           {t(`eyebrow.${role}`)}
         </p>
         <p className="font-display relative z-10 mb-5 text-2xl font-light leading-tight tracking-tight">

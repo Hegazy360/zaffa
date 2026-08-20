@@ -254,7 +254,7 @@ export default function AdminVenueEditPage() {
             <div className="flex items-start justify-between gap-3 rounded-md border border-brand-line bg-white/60 p-3">
               <Label htmlFor="published" className="text-sm">
                 Published
-                <p className="text-[11px] font-normal text-muted-foreground">
+                <p className="text-xs font-normal text-muted-foreground">
                   Hidden venues are excluded from search & recommendations.
                 </p>
               </Label>
@@ -438,7 +438,7 @@ interface SectionProps {
 function Section({ title, children }: SectionProps) {
   return (
     <section className="space-y-3 rounded-2xl border border-brand-line bg-white/80 p-5 backdrop-blur-sm">
-      <h2 className="text-[10px] font-semibold uppercase tracking-[0.3em] text-rose-700/80">
+      <h2 className="text-eyebrow font-semibold text-rose-700/80">
         {title}
       </h2>
       <div className="space-y-3">{children}</div>
@@ -462,7 +462,7 @@ function Field({ label, hint, required, children }: FieldProps) {
       </Label>
       {children}
       {hint ? (
-        <p className="text-[11px] text-muted-foreground">{hint}</p>
+        <p className="text-xs text-muted-foreground">{hint}</p>
       ) : null}
     </div>
   );
@@ -564,7 +564,7 @@ function PhotoManager({ venueId }: { venueId: string }) {
           )}
         </label>
       </div>
-      <p className="text-[11px] text-muted-foreground">
+      <p className="text-xs text-muted-foreground">
         JPG, PNG, or WebP, up to 8MB. The first image becomes the gallery
         cover; the cover image set above is used on cards.
       </p>

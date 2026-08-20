@@ -45,6 +45,28 @@ const eslintConfig = defineConfig([
           message:
             "Dark mode was deleted (ZAF-56 / decision D5). Use `.surface-dark` for a dark plate; it remaps the semantic tokens locally.",
         },
+
+        // 12px type floor (ZAF-57 / decision D6). There were 436 instances
+        // below it, most of them 10px, and Arabic suffers worst: its letter
+        // forms carry more detail per glyph than Latin, so the same size is
+        // effectively smaller to read. The floor is `text-xs`; an eyebrow
+        // wants `text-eyebrow`, which is 12px with the RTL tracking reset
+        // built in.
+        //
+        // The regex matches any arbitrary size under 12px, in px or rem,
+        // including responsive and state variants (`sm:text-[10px]`).
+        {
+          selector:
+            "Literal[value=/text-\\[(?:(?:[0-9]|1[01])(?:\\.[0-9]+)?px|0?\\.[0-6][0-9]*rem)\\]/]",
+          message:
+            "Text below 12px (ZAF-57 / decision D6). Use `text-xs`, or `text-eyebrow` for a tracked label.",
+        },
+        {
+          selector:
+            "TemplateElement[value.raw=/text-\\[(?:(?:[0-9]|1[01])(?:\\.[0-9]+)?px|0?\\.[0-6][0-9]*rem)\\]/]",
+          message:
+            "Text below 12px (ZAF-57 / decision D6). Use `text-xs`, or `text-eyebrow` for a tracked label.",
+        },
       ],
     },
   },

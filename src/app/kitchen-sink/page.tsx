@@ -64,7 +64,7 @@ export default function KitchenSink() {
               <div
                 className={`h-16 rounded-card border border-border ${cls}`}
               />
-              <p className="font-mono text-[0.7rem] text-muted-foreground">
+              <p className="font-mono text-xs text-muted-foreground">
                 {name}
               </p>
             </div>
@@ -80,7 +80,7 @@ export default function KitchenSink() {
               <div
                 className={`h-16 rounded-card border border-border ${cls}`}
               />
-              <p className="font-mono text-[0.7rem] text-muted-foreground">
+              <p className="font-mono text-xs text-muted-foreground">
                 {name}
               </p>
             </div>

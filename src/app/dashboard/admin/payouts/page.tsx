@@ -30,7 +30,7 @@ export default function AdminPayoutsPage() {
   return (
     <div className="mx-auto max-w-6xl space-y-8 px-4 py-8 sm:px-6">
       <header>
-        <p className="mb-1 text-[0.65rem] font-medium uppercase tracking-[0.3em] text-rose-700/80">
+        <p className="mb-1 text-eyebrow font-medium text-rose-700/80">
           {t("payoutsEyebrow")}
         </p>
         <h1 className="font-display text-3xl font-light tracking-tight">
@@ -48,13 +48,13 @@ export default function AdminPayoutsPage() {
               key={row.currency}
               className="rounded-2xl border border-brand-line bg-white/80 px-5 py-4 backdrop-blur-sm"
             >
-              <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-rose-700/80">
+              <p className="text-eyebrow font-medium text-rose-700/80">
                 {t("totalOwed", { currency: row.currency })}
               </p>
               <p className="font-display mt-1 text-2xl font-light tracking-tight">
                 {f.currency(row.net, row.currency)}
               </p>
-              <p className="mt-0.5 text-[11px] text-muted-foreground">
+              <p className="mt-0.5 text-xs text-muted-foreground">
                 {t("grossFees", {
                   gross: f.currency(row.gross, row.currency),
                   fees: f.currency(row.fees, row.currency),
@@ -67,7 +67,7 @@ export default function AdminPayoutsPage() {
 
       <div className="rounded-2xl border border-brand-line bg-white/80">
         <div className="border-b border-brand-line px-5 py-3">
-          <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-rose-700/80">
+          <p className="text-eyebrow font-medium text-rose-700/80">
             {t("awaitingPayout")}
           </p>
         </div>
@@ -101,7 +101,7 @@ export default function AdminPayoutsPage() {
                     <p className="font-mono tabular-nums">
                       {f.currency(p.net, p.currency)}
                     </p>
-                    <p className="text-[10px] text-muted-foreground">
+                    <p className="text-xs text-muted-foreground">
                       {t("grossPrefix", {
                         amount: f.currency(p.gross, p.currency),
                       })}
@@ -122,7 +122,7 @@ export default function AdminPayoutsPage() {
       <div className="rounded-2xl border border-red-200/70 bg-red-50/40">
         <div className="flex items-center gap-2 border-b border-red-200/70 px-5 py-3">
           <AlertTriangle className="size-4 text-red-700" aria-hidden />
-          <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-red-700">
+          <p className="text-eyebrow font-medium text-red-700">
             {t("openDisputes")}
           </p>
         </div>
@@ -171,7 +171,7 @@ export default function AdminPayoutsPage() {
 
       <div className="rounded-2xl border border-brand-line bg-white/80">
         <div className="border-b border-brand-line px-5 py-3">
-          <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-rose-700/80">
+          <p className="text-eyebrow font-medium text-rose-700/80">
             {t("recentInstallments")}
           </p>
         </div>
@@ -212,7 +212,7 @@ export default function AdminPayoutsPage() {
                     <p className="font-mono tabular-nums">
                       {f.currency(decimalToNumber(p.amount), p.currency)}
                     </p>
-                    <p className="text-[10px] capitalize text-muted-foreground">
+                    <p className="text-xs capitalize text-muted-foreground">
                       {p.status}
                     </p>
                   </div>
@@ -501,7 +501,7 @@ function RecordPayoutDialog({
                           i.currency
                         )}
                       </p>
-                      <p className="text-[10px] text-muted-foreground">
+                      <p className="text-xs text-muted-foreground">
                         {t("grossPrefix", {
                           amount: f.currency(
                             decimalToNumber(i.amount),

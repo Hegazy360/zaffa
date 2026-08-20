@@ -94,12 +94,12 @@ export function IGCarouselPreview({
       <div className="flex items-center gap-3 rounded-t-2xl border border-stone-200 bg-white px-3 py-2">
         <div className="size-8 rounded-full bg-gradient-to-br from-rose-400 via-amber-300 to-orange-300 ring-2 ring-white">
           <div className="grid h-full w-full place-items-center">
-            <span className="text-[10px] font-semibold text-white">Z</span>
+            <span className="text-xs font-semibold text-white">Z</span>
           </div>
         </div>
         <div className="min-w-0 flex-1">
           <p className="text-xs font-semibold">zaffa.ai</p>
-          <p className="text-[10px] text-stone-500">sponsored</p>
+          <p className="text-xs text-stone-500">sponsored</p>
         </div>
         <MoreHorizontal className="size-5 text-stone-700" />
       </div>
@@ -187,7 +187,7 @@ export function IGCarouselPreview({
             onClick={() => onRegenerateSlide(index)}
             disabled={regeneratingIndices?.has(index)}
             aria-label="Regenerate this slide"
-            className="absolute right-2 top-2 inline-flex items-center gap-1.5 rounded-full bg-black/60 px-2.5 py-1 text-[10px] font-medium uppercase tracking-[0.2em] text-white backdrop-blur-sm hover:bg-black/75 disabled:opacity-60"
+            className="absolute right-2 top-2 inline-flex items-center gap-1.5 rounded-full bg-black/60 px-2.5 py-1 text-eyebrow font-medium text-white backdrop-blur-sm hover:bg-black/75 disabled:opacity-60"
           >
             {regeneratingIndices?.has(index) ? (
               <Loader2 className="size-3 animate-spin" />
@@ -200,7 +200,7 @@ export function IGCarouselPreview({
 
         {/* rasterized indicator */}
         {slides[index]?.rendered_png_url && (
-          <span className="absolute left-2 top-2 rounded-full bg-emerald-500/90 px-2.5 py-1 text-[10px] font-medium uppercase tracking-[0.2em] text-white backdrop-blur-sm">
+          <span className="absolute left-2 top-2 rounded-full bg-emerald-500/90 px-2.5 py-1 text-eyebrow font-medium text-white backdrop-blur-sm">
             rendered
           </span>
         )}
@@ -229,7 +229,7 @@ export function IGCarouselPreview({
           <Send className="size-6 text-stone-700" />
           <Bookmark className="ms-auto size-6 text-stone-700" />
         </div>
-        <p className="mt-2 text-[11px] text-stone-500">
+        <p className="mt-2 text-xs text-stone-500">
           slide {index + 1} of {slides.length}
         </p>
       </div>

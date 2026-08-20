@@ -56,7 +56,7 @@ export default async function ProfessionalSignUpPage({ searchParams }: PageProps
               <HeartHandshake className="size-4" />
             </div>
             <div className="min-w-0 space-y-1.5">
-              <p className="text-[10.5px] font-medium uppercase tracking-[0.22em] text-rose-700">
+              <p className="text-eyebrow font-medium text-rose-700">
                 {t("invitedBadge")}
               </p>
               <p className="font-display text-xl font-light leading-snug tracking-tight text-foreground">
@@ -71,7 +71,7 @@ export default async function ProfessionalSignUpPage({ searchParams }: PageProps
       )}
 
       <div className="space-y-3">
-        <div className="inline-flex items-center gap-2 rounded-full border border-rose-200/70 bg-rose-50/70 px-3.5 py-1 text-[11px] font-medium uppercase tracking-[0.18em] text-rose-700 backdrop-blur-sm">
+        <div className="inline-flex items-center gap-2 rounded-full border border-rose-200/70 bg-rose-50/70 px-3.5 py-1 text-eyebrow font-medium text-rose-700 backdrop-blur-sm">
           <Sparkles className="size-3" />
           {t("professionalEyebrow")}
         </div>

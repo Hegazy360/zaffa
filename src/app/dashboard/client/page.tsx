@@ -95,7 +95,7 @@ export default function ClientDashboardPage() {
         {/* Hero */}
         <header className="mb-12 flex flex-col items-start gap-5 sm:flex-row sm:items-end sm:justify-between">
           <div className="space-y-3">
-            <div className="inline-flex items-center gap-2 rounded-full border border-rose-200/70 bg-rose-50/70 px-3.5 py-1 text-[11px] font-medium uppercase tracking-[0.18em] text-rose-700 backdrop-blur-sm">
+            <div className="inline-flex items-center gap-2 rounded-full border border-rose-200/70 bg-rose-50/70 px-3.5 py-1 text-eyebrow font-medium text-rose-700 backdrop-blur-sm">
               <Sparkles className="size-3" />
               {t("clientEyebrow")}
             </div>
@@ -121,7 +121,7 @@ export default function ClientDashboardPage() {
         <section className="mb-14">
           <div className="mb-6 flex items-end justify-between">
             <div>
-              <p className="mb-1 text-[0.65rem] font-medium uppercase tracking-[0.3em] text-rose-700/80">
+              <p className="mb-1 text-eyebrow font-medium text-rose-700/80">
                 {tc("yourDesigns")}
               </p>
               <h2 className="font-display text-2xl font-light tracking-tight">
@@ -202,7 +202,7 @@ export default function ClientDashboardPage() {
                           </div>
                         )}
                         {isAttached && (
-                          <div className="absolute end-3 top-3 inline-flex items-center gap-1 rounded-full bg-rose-600/90 px-2 py-1 text-[10px] font-medium tracking-wide text-white backdrop-blur-sm">
+                          <div className="absolute end-3 top-3 inline-flex items-center gap-1 rounded-full bg-rose-600/90 px-2 py-1 text-xs font-medium tracking-wide text-white backdrop-blur-sm">
                             <CheckCircle2 className="size-3" />
                             {tc("approvedTag")}
                           </div>
@@ -215,7 +215,7 @@ export default function ClientDashboardPage() {
                         <h3 className="font-display text-base font-medium leading-tight tracking-tight">
                           {design.name}
                         </h3>
-                        <p className="mt-1 text-[11px] capitalize text-muted-foreground">
+                        <p className="mt-1 text-xs capitalize text-muted-foreground">
                           {design.event_type} · {design.size} · {design.setting}
                         </p>
                       </div>
@@ -266,7 +266,7 @@ export default function ClientDashboardPage() {
         <section>
           <div className="mb-6 flex items-end justify-between">
             <div>
-              <p className="mb-1 text-[0.65rem] font-medium uppercase tracking-[0.3em] text-rose-700/80">
+              <p className="mb-1 text-eyebrow font-medium text-rose-700/80">
                 {tc("yourEvents")}
               </p>
               <h2 className="font-display text-2xl font-light tracking-tight">
@@ -346,7 +346,7 @@ function EventCard({ event }: { event: EventListItem }) {
         <div className="absolute inset-0 bg-gradient-to-t from-black/35 via-transparent to-transparent" />
         <span
           className={cn(
-            "absolute start-3 top-3 inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide ring-1 backdrop-blur-sm",
+            "absolute start-3 top-3 inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium uppercase tracking-wide ring-1 backdrop-blur-sm",
             statusStyles[event.status] ?? statusStyles.draft
           )}
         >
@@ -381,7 +381,7 @@ function EventCard({ event }: { event: EventListItem }) {
             </span>
           )}
         </div>
-        <p className="text-[11px] capitalize text-muted-foreground">
+        <p className="text-xs capitalize text-muted-foreground">
           {formatEventType(event.event_type)}
           {event.designs[0] && ` · ${tc("linkedTo", { name: event.designs[0].name })}`}
         </p>

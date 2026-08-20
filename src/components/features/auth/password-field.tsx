@@ -116,7 +116,7 @@ export function PasswordField({
               />
             ))}
           </div>
-          <span className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
+          <span className="text-eyebrow text-muted-foreground">
             {t(labelKey)}
           </span>
         </div>

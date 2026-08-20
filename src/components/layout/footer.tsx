@@ -101,7 +101,7 @@ export async function Footer() {
               {t("footerBlurb")}
             </p>
 
-            <p className="mt-5 text-[10px] font-medium uppercase tracking-[0.2em] text-muted-foreground/80">
+            <p className="mt-5 text-eyebrow font-medium text-muted-foreground/80">
               {t("footerFollow")}
             </p>
             <ul className="mt-2 flex items-center gap-2">

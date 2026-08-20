@@ -197,7 +197,7 @@ export default function VenueDesignerWelcomePage() {
               <Loader2 className="size-9 animate-spin text-rose-600" />
             )}
           </motion.div>
-          <div className="inline-flex items-center gap-1.5 rounded-full border border-rose-200/70 bg-white/80 px-3 py-1 text-[10px] font-medium tracking-[0.2em] text-rose-700 uppercase backdrop-blur-sm">
+          <div className="inline-flex items-center gap-1.5 rounded-full border border-rose-200/70 bg-white/80 px-3 py-1 text-eyebrow font-medium text-rose-700 backdrop-blur-sm">
             {t("successEyebrow")}
           </div>
           <motion.h1

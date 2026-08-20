@@ -171,7 +171,7 @@ export default function BriefDetailPage() {
         </div>
 
         <header className="mb-8">
-          <p className="mb-2 text-[0.65rem] font-medium uppercase tracking-[0.3em] text-rose-700/80">
+          <p className="mb-2 text-eyebrow font-medium text-rose-700/80">
             {brief.event_type}
           </p>
           <h1 className="font-display text-balance text-4xl font-light leading-tight tracking-tight sm:text-5xl">
@@ -249,14 +249,14 @@ export default function BriefDetailPage() {
               <div className="space-y-4 p-5">
                 {palette.length > 0 && (
                   <div>
-                    <p className="mb-2 text-[10px] font-medium uppercase tracking-[0.2em] text-muted-foreground">
+                    <p className="mb-2 text-eyebrow font-medium text-muted-foreground">
                       {t("palette")}
                     </p>
                     <div className="flex flex-wrap gap-2">
                       {palette.map((c) => (
                         <div
                           key={c}
-                          className="flex items-center gap-2 rounded-full border border-brand-line bg-white px-2 py-1 text-[11px]"
+                          className="flex items-center gap-2 rounded-full border border-brand-line bg-white px-2 py-1 text-xs"
                         >
                           <span
                             className="block size-3 rounded-full ring-1 ring-foreground/10"
@@ -272,7 +272,7 @@ export default function BriefDetailPage() {
                 )}
                 {design?.style_notes && (
                   <div>
-                    <p className="mb-2 text-[10px] font-medium uppercase tracking-[0.2em] text-muted-foreground">
+                    <p className="mb-2 text-eyebrow font-medium text-muted-foreground">
                       {t("styleNotes")}
                     </p>
                     <p className="text-sm text-foreground/90">
@@ -306,7 +306,7 @@ export default function BriefDetailPage() {
                   if (videos.length === 0) return null;
                   return (
                     <div>
-                      <p className="mb-2 text-[10px] font-medium uppercase tracking-[0.2em] text-muted-foreground">
+                      <p className="mb-2 text-eyebrow font-medium text-muted-foreground">
                         {t("cinematicPreview")}
                       </p>
                       <div className="grid grid-cols-1 gap-2">
@@ -334,7 +334,7 @@ export default function BriefDetailPage() {
           <aside className="lg:col-span-5">
             <div className="space-y-5">
               <div className="rounded-2xl border border-brand-line bg-white/70 p-5 backdrop-blur-sm">
-                <p className="mb-3 text-[10px] font-medium uppercase tracking-[0.2em] text-muted-foreground">
+                <p className="mb-3 text-eyebrow font-medium text-muted-foreground">
                   {t("brief")}
                 </p>
                 <dl className="space-y-3 text-sm">
@@ -460,11 +460,11 @@ function MyProposalState({
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-muted-foreground">
+        <p className="text-eyebrow font-medium text-muted-foreground">
           {t("yourProposal")}
         </p>
         <span
-          className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide ring-1 ${s.className}`}
+          className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium uppercase tracking-wide ring-1 ${s.className}`}
         >
           {s.label}
         </span>
@@ -485,7 +485,7 @@ function MyProposalState({
           return (
             <div className="overflow-hidden rounded-xl border border-brand-line bg-white/60">
               <div className="flex items-center justify-between gap-3 px-3 py-2.5">
-                <span className="text-[10px] font-medium uppercase tracking-[0.2em] text-muted-foreground">
+                <span className="text-eyebrow font-medium text-muted-foreground">
                   {t("quote")}
                 </span>
                 <span className="font-display text-xl font-light tracking-tight">
@@ -494,7 +494,7 @@ function MyProposalState({
               </div>
               {breakdown.length > 0 && (
                 <div className="border-t border-brand-line bg-rose-50/30 px-3 py-2">
-                  <p className="mb-1.5 text-[10px] font-medium uppercase tracking-[0.2em] text-rose-700/80">
+                  <p className="mb-1.5 text-eyebrow font-medium text-rose-700/80">
                     {t("breakdown")}
                   </p>
                   <ul className="space-y-1">
@@ -516,7 +516,7 @@ function MyProposalState({
           );
         })()}
       <div>
-        <p className="mb-1 text-[10px] font-medium uppercase tracking-[0.2em] text-muted-foreground">
+        <p className="mb-1 text-eyebrow font-medium text-muted-foreground">
           {t("coverLetter")}
         </p>
         <p className="whitespace-pre-wrap text-sm text-foreground/90">
@@ -581,7 +581,7 @@ function ProposeDialog({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <div className="text-center">
-        <p className="mb-3 text-[10px] font-medium uppercase tracking-[0.2em] text-muted-foreground">
+        <p className="mb-3 text-eyebrow font-medium text-muted-foreground">
           {t("submitProposal")}
         </p>
         <p className="mb-4 text-sm text-muted-foreground">
@@ -882,7 +882,7 @@ function ProposalForm({
           placeholder={t("coverLetterPlaceholder")}
           className="resize-none"
         />
-        <p className="text-[11px] text-muted-foreground">
+        <p className="text-xs text-muted-foreground">
           {coverLetter.length}/5000
         </p>
       </div>
@@ -1080,7 +1080,7 @@ function ProposalForm({
 
         {installmentTotal > 0 && (
           <div className="rounded-xl border border-brand-line bg-white/80 px-3 py-2 text-xs">
-            <p className="mb-1 text-[10px] font-medium uppercase tracking-[0.2em] text-rose-700/80">
+            <p className="mb-1 text-eyebrow font-medium text-rose-700/80">
               {t("takeHomePreview")}
             </p>
             <ul className="space-y-0.5">

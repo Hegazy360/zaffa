@@ -73,7 +73,7 @@ export default function DiscoveryRunDetailPage({
       </Link>
 
       <header>
-        <p className="mb-1 text-[0.65rem] font-medium uppercase tracking-[0.3em] text-rose-700/80">
+        <p className="mb-1 text-eyebrow font-medium text-rose-700/80">
           {t(`prospectSource.${run.source}`)} · {run.query_type}
           {run.depth && run.depth !== "standard" && (
             <> · {t(`depthLabel.${run.depth}`)}</>
@@ -111,7 +111,7 @@ export default function DiscoveryRunDetailPage({
 
       <section className="rounded-2xl border border-brand-line bg-white/80">
         <div className="border-b border-brand-line px-5 py-3">
-          <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-rose-700/80">
+          <p className="text-eyebrow font-medium text-rose-700/80">
             {t("prospectsFromRun")}
           </p>
         </div>
@@ -135,7 +135,7 @@ export default function DiscoveryRunDetailPage({
                     <div className="flex items-center gap-1.5">
                       <p className="truncate font-medium">{prospectDisplayName(p)}</p>
                       {p.qualifying_score != null && (
-                        <span className="inline-flex items-center gap-0.5 rounded bg-amber-50 px-1 text-[10px] text-amber-800">
+                        <span className="inline-flex items-center gap-0.5 rounded bg-amber-50 px-1 text-xs text-amber-800">
                           <Star className="size-2.5 fill-amber-500 text-amber-500" />
                           {p.qualifying_score}
                         </span>

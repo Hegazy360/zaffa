@@ -27,7 +27,7 @@ export default function PlannerMessagesPage() {
 
       <div className="mx-auto max-w-4xl px-6 py-12 sm:py-16">
         <header className="mb-10 space-y-3">
-          <p className="text-[0.65rem] font-medium uppercase tracking-[0.3em] text-rose-700/80">
+          <p className="text-eyebrow font-medium text-rose-700/80">
             {t("conversationsEyebrow")}
           </p>
           <h1 className="font-display text-balance text-4xl font-light leading-tight tracking-tight sm:text-5xl">
@@ -89,13 +89,13 @@ export default function PlannerMessagesPage() {
                         {row.title}
                       </p>
                       {row.lastMessage && (
-                        <span className="shrink-0 text-[11px] text-muted-foreground">
+                        <span className="shrink-0 text-xs text-muted-foreground">
                           {f.relativeTime(row.lastMessage.created_at)}
                         </span>
                       )}
                     </div>
                     {row.event_date && (
-                      <p className="mt-0.5 inline-flex items-center gap-1 text-[11px] text-muted-foreground">
+                      <p className="mt-0.5 inline-flex items-center gap-1 text-xs text-muted-foreground">
                         <CalendarDays className="size-3" />
                         {f.date(row.event_date, "long")}
                       </p>

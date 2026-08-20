@@ -161,7 +161,7 @@ export default async function PricingPage({
           />
           <div className="relative mx-auto max-w-3xl px-4 py-16 sm:py-20">
             <header className="mx-auto max-w-xl text-center">
-              <p className="text-xs uppercase tracking-[0.28em] text-rose-700 rtl:tracking-normal">
+              <p className="text-xs text-eyebrow text-rose-700">
                 {t("eyebrow")}
               </p>
               <h1 className="mt-3 font-display text-balance text-4xl font-light leading-tight tracking-tight sm:text-5xl">

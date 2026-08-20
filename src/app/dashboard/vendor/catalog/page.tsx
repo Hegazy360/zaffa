@@ -85,7 +85,7 @@ export default function VendorCatalogPage() {
     return (
       <div className="mx-auto max-w-3xl px-6 py-16">
         <div className="rounded-2xl border border-brand-line bg-white/80 p-8 backdrop-blur-sm">
-          <p className="mb-1 text-[0.65rem] font-medium uppercase tracking-[0.3em] text-rose-700/80">
+          <p className="mb-1 text-eyebrow font-medium text-rose-700/80">
             {t("almostThere")}
           </p>
           <h1 className="font-display text-3xl font-light tracking-tight">
@@ -114,7 +114,7 @@ export default function VendorCatalogPage() {
       <div className="relative z-10 mx-auto max-w-6xl px-4 py-10 sm:px-6">
         <header className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <p className="mb-1 text-[0.65rem] font-medium uppercase tracking-[0.3em] text-rose-700/80">
+            <p className="mb-1 text-eyebrow font-medium text-rose-700/80">
               {t("catalogLabel")}
             </p>
             <h1 className="font-display text-3xl font-light tracking-tight sm:text-4xl">
@@ -177,7 +177,7 @@ export default function VendorCatalogPage() {
                       </div>
                     )}
                     {!s.available && (
-                      <span className="absolute start-2 top-2 inline-flex items-center gap-1 rounded-full bg-stone-900/80 px-2 py-0.5 text-[10px] uppercase tracking-wider text-white">
+                      <span className="absolute start-2 top-2 inline-flex items-center gap-1 rounded-full bg-stone-900/80 px-2 py-0.5 text-xs uppercase tracking-wider text-white">
                         <EyeOff className="size-3" />
                         {t("hidden")}
                       </span>
@@ -195,7 +195,7 @@ export default function VendorCatalogPage() {
                         {s.description}
                       </p>
                     )}
-                    <div className="flex flex-wrap gap-1.5 text-[11px] text-muted-foreground">
+                    <div className="flex flex-wrap gap-1.5 text-xs text-muted-foreground">
                       {s.subcategory && (
                         <span className="rounded-full bg-rose-50 px-2 py-0.5 text-rose-800 ring-1 ring-rose-100">
                           {s.subcategory}
@@ -497,13 +497,13 @@ function ServiceForm({
               ) : (
                 <>
                   <Upload className="size-5" />
-                  <span className="text-[11px] font-medium">{t("uploadLabel")}</span>
+                  <span className="text-xs font-medium">{t("uploadLabel")}</span>
                 </>
               )}
             </button>
           )}
         </div>
-        <details className="text-[11px] text-muted-foreground">
+        <details className="text-xs text-muted-foreground">
           <summary className="cursor-pointer select-none hover:text-foreground">
             {t("orPasteUrl")}
           </summary>
@@ -519,7 +519,7 @@ function ServiceForm({
             </Button>
           </div>
         </details>
-        <p className="text-[11px] text-muted-foreground">
+        <p className="text-xs text-muted-foreground">
           {t("imagesHint")}
         </p>
       </div>

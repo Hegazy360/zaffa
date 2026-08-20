@@ -42,7 +42,7 @@ export default function PlannerEarningsPage() {
   return (
     <div className="mx-auto max-w-5xl space-y-8 px-4 py-8 sm:px-6">
       <header>
-        <p className="mb-1 text-[0.65rem] font-medium uppercase tracking-[0.3em] text-rose-700/80">
+        <p className="mb-1 text-eyebrow font-medium text-rose-700/80">
           {t("earningsEyebrow")}
         </p>
         <h1 className="font-display text-3xl font-light tracking-tight">
@@ -91,7 +91,7 @@ export default function PlannerEarningsPage() {
       <div className="rounded-2xl border border-brand-line bg-white/80 backdrop-blur-sm">
         <div className="flex flex-col gap-3 border-b border-brand-line px-5 py-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-rose-700/80">
+            <p className="text-eyebrow font-medium text-rose-700/80">
               {t("awaitingPayout")}
             </p>
             <p className="text-sm text-muted-foreground">
@@ -156,7 +156,7 @@ export default function PlannerEarningsPage() {
                       p.currency
                     )}
                   </span>
-                  <span className="text-[10px] text-muted-foreground">
+                  <span className="text-xs text-muted-foreground">
                     {t("grossLabel", {
                       amount: f.currency(
                         decimalToNumber(p.amount),
@@ -173,7 +173,7 @@ export default function PlannerEarningsPage() {
 
       <div className="rounded-2xl border border-brand-line bg-white/80 backdrop-blur-sm">
         <div className="border-b border-brand-line px-5 py-3">
-          <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-rose-700/80">
+          <p className="text-eyebrow font-medium text-rose-700/80">
             {t("payoutHistory")}
           </p>
           <p className="text-sm text-muted-foreground">
@@ -244,14 +244,14 @@ function Stat({
           : "rounded-2xl border border-brand-line bg-white/80 px-5 py-4 backdrop-blur-sm"
       }
     >
-      <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-rose-700/80">
+      <p className="text-eyebrow font-medium text-rose-700/80">
         {label}
       </p>
       <p className="font-display mt-1 text-2xl font-light tracking-tight">
         {value}
       </p>
       {hint && (
-        <p className="mt-0.5 text-[11px] text-muted-foreground">{hint}</p>
+        <p className="mt-0.5 text-xs text-muted-foreground">{hint}</p>
       )}
     </div>
   );

@@ -81,7 +81,7 @@ export function RecommendedVenuesCard({ eventId, packSku }: Props) {
             {t("venueRecsTitle")}
           </h3>
         </div>
-        <p className="text-[11px] text-muted-foreground">
+        <p className="text-xs text-muted-foreground">
           {t("venueRecsCuratedBy")}
         </p>
       </div>
@@ -147,7 +147,7 @@ export function RecommendedVenuesCard({ eventId, packSku }: Props) {
                           .map((style) => (
                             <span
                               key={style}
-                              className="rounded-full bg-rose-50 px-2 py-0.5 text-[10px] uppercase tracking-wider text-rose-700"
+                              className="rounded-full bg-rose-50 px-2 py-0.5 text-xs uppercase tracking-wider text-rose-700"
                             >
                               {style}
                             </span>
@@ -198,7 +198,7 @@ export function RecommendedVenuesCard({ eventId, packSku }: Props) {
                       </Button>
                     </div>
                     {isInterested ? (
-                      <p className="text-[11px] text-emerald-700">
+                      <p className="text-xs text-emerald-700">
                         {t("venueRecsInterestConfirm")}
                       </p>
                     ) : null}

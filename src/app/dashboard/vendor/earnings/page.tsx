@@ -47,7 +47,7 @@ export default function VendorEarningsPage() {
       />
       <div className="relative z-10 mx-auto max-w-5xl space-y-8 px-4 py-10 sm:px-6">
         <header>
-          <p className="mb-1 text-[0.65rem] font-medium uppercase tracking-[0.3em] text-rose-700/80">
+          <p className="mb-1 text-eyebrow font-medium text-rose-700/80">
             {t("earningsLabel")}
           </p>
           <h1 className="font-display text-3xl font-light tracking-tight">
@@ -82,7 +82,7 @@ export default function VendorEarningsPage() {
 
         <section className="rounded-2xl border border-brand-line bg-white/85 backdrop-blur-sm">
           <div className="border-b border-brand-line px-5 py-3">
-            <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-rose-700/80">
+            <p className="text-eyebrow font-medium text-rose-700/80">
               {t("pendingReleases")}
             </p>
             <p className="text-xs text-muted-foreground">
@@ -126,7 +126,7 @@ export default function VendorEarningsPage() {
                   </div>
                   <div className="flex items-center gap-3">
                     <span
-                      className={`rounded-full px-2 py-0.5 text-[10px] uppercase tracking-wider ${
+                      className={`rounded-full px-2 py-0.5 text-xs uppercase tracking-wider ${
                         RELEASE_TONE[r.status]
                       }`}
                     >
@@ -146,7 +146,7 @@ export default function VendorEarningsPage() {
 
         <section className="rounded-2xl border border-brand-line bg-white/85 backdrop-blur-sm">
           <div className="border-b border-brand-line px-5 py-3">
-            <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-rose-700/80">
+            <p className="text-eyebrow font-medium text-rose-700/80">
               {t("paidReleases")}
             </p>
             <p className="text-xs text-muted-foreground">
@@ -218,14 +218,14 @@ function Stat({
           : "rounded-2xl border border-brand-line bg-white/80 px-5 py-4 backdrop-blur-sm"
       }
     >
-      <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-rose-700/80">
+      <p className="text-eyebrow font-medium text-rose-700/80">
         {label}
       </p>
       <p className="font-display mt-1 text-2xl font-light tracking-tight">
         {value}
       </p>
       {hint && (
-        <p className="mt-0.5 text-[11px] text-muted-foreground">{hint}</p>
+        <p className="mt-0.5 text-xs text-muted-foreground">{hint}</p>
       )}
     </div>
   );

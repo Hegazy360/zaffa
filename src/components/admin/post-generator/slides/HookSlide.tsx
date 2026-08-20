@@ -35,7 +35,7 @@ export function HookSlide(props: HookSlideProps) {
 function BrandTag() {
   return (
     <span
-      className="inline-flex items-center gap-2 rounded-full bg-white/90 px-4 py-1.5 text-[0.7rem] font-semibold uppercase tracking-[0.32em] text-rose-700 ring-1 ring-rose-200/70 backdrop-blur-sm"
+      className="inline-flex items-center gap-2 rounded-full bg-white/90 px-4 py-1.5 text-eyebrow font-semibold text-rose-700 ring-1 ring-rose-200/70 backdrop-blur-sm"
     >
       <span className="size-1.5 rounded-full bg-rose-500" />
       ZAFFA.AI
@@ -95,10 +95,10 @@ function FourUpHook({ fourUpUrls = [], headline, subline }: HookSlideProps) {
   return (
     <Slide className="bg-gradient-to-br from-[#F5EFE6] via-[#F1E9DD] to-[#E8DFD2]">
       <div className="absolute inset-x-0 top-0 z-10 flex items-center justify-between px-16 pt-14">
-        <span className="rounded-full bg-white/85 px-3.5 py-1.5 text-[0.65rem] font-semibold uppercase tracking-[0.32em] text-rose-700 ring-1 ring-rose-200/70">
+        <span className="rounded-full bg-white/85 px-3.5 py-1.5 text-eyebrow font-semibold text-rose-700 ring-1 ring-rose-200/70">
           ONE PALETTE
         </span>
-        <span className="rounded-full bg-stone-900/90 px-3.5 py-1.5 text-[0.65rem] font-semibold uppercase tracking-[0.32em] text-white">
+        <span className="rounded-full bg-stone-900/90 px-3.5 py-1.5 text-eyebrow font-semibold text-white">
           FOUR WAYS
         </span>
       </div>
@@ -113,7 +113,7 @@ function FourUpHook({ fourUpUrls = [], headline, subline }: HookSlideProps) {
             ) : (
               <div className="h-full w-full bg-stone-200" />
             )}
-            <span className="absolute left-3 top-3 grid size-7 place-items-center rounded-full bg-white/95 text-[10px] font-semibold text-stone-900 shadow-md">
+            <span className="absolute left-3 top-3 grid size-7 place-items-center rounded-full bg-white/95 text-xs font-semibold text-stone-900 shadow-md">
               {i + 1}
             </span>
           </div>
@@ -153,7 +153,7 @@ function ChaosToClarityHook({
           )}
           <div className="absolute inset-0 bg-gradient-to-b from-black/35 via-transparent to-black/30" />
           <span
-            className="pointer-events-none absolute left-8 top-8 rounded-full bg-white/95 px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.32em] text-stone-900 shadow-md ring-1 ring-stone-200"
+            className="pointer-events-none absolute left-8 top-8 rounded-full bg-white/95 px-4 py-1.5 text-xs font-semibold text-eyebrow text-stone-900 shadow-md ring-1 ring-stone-200"
           >
             BEFORE
           </span>
@@ -165,7 +165,7 @@ function ChaosToClarityHook({
             <div className="h-full w-full bg-stone-100" />
           )}
           <span
-            className="pointer-events-none absolute right-8 top-8 rounded-full bg-rose-600 px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.32em] text-white shadow-md"
+            className="pointer-events-none absolute right-8 top-8 rounded-full bg-rose-600 px-4 py-1.5 text-xs font-semibold text-eyebrow text-white shadow-md"
           >
             AFTER
           </span>

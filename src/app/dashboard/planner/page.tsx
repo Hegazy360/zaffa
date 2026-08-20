@@ -106,7 +106,7 @@ export default function PlannerDashboardPage() {
         {/* Hero */}
         <header className="mb-12 flex flex-col items-start gap-5 sm:flex-row sm:items-end sm:justify-between">
           <div className="space-y-3">
-            <div className="inline-flex items-center gap-2 rounded-full border border-rose-200/70 bg-rose-50/70 px-3.5 py-1 text-[11px] font-medium uppercase tracking-[0.18em] text-rose-700 backdrop-blur-sm">
+            <div className="inline-flex items-center gap-2 rounded-full border border-rose-200/70 bg-rose-50/70 px-3.5 py-1 text-eyebrow font-medium text-rose-700 backdrop-blur-sm">
               <Sparkles className="size-3" />
               {tEyebrow("planner")}
             </div>
@@ -164,7 +164,7 @@ export default function PlannerDashboardPage() {
         <section className="mb-14">
           <div className="mb-6 flex items-end justify-between">
             <div>
-              <p className="mb-1 text-[0.65rem] font-medium uppercase tracking-[0.3em] text-rose-700/80">
+              <p className="mb-1 text-eyebrow font-medium text-rose-700/80">
                 {tPlanner("newBriefsEyebrow")}
               </p>
               <h2 className="font-display text-2xl font-light tracking-tight">
@@ -205,7 +205,7 @@ export default function PlannerDashboardPage() {
         <section className="mb-14">
           <div className="mb-6 flex items-end justify-between">
             <div>
-              <p className="mb-1 text-[0.65rem] font-medium uppercase tracking-[0.3em] text-rose-700/80">
+              <p className="mb-1 text-eyebrow font-medium text-rose-700/80">
                 {tPlanner("engagedEyebrow")}
               </p>
               <h2 className="font-display text-2xl font-light tracking-tight">
@@ -245,7 +245,7 @@ export default function PlannerDashboardPage() {
         {/* Upcoming month */}
         <section>
           <div className="mb-6">
-            <p className="mb-1 text-[0.65rem] font-medium uppercase tracking-[0.3em] text-rose-700/80">
+            <p className="mb-1 text-eyebrow font-medium text-rose-700/80">
               {tPlanner("monthAheadEyebrow")}
             </p>
             <h2 className="font-display text-2xl font-light tracking-tight">
@@ -302,7 +302,7 @@ function StatCard({
   return (
     <div className="rounded-2xl border border-brand-line bg-white/70 p-5 backdrop-blur-sm ring-1 ring-foreground/[0.04]">
       <div className="mb-3 flex items-center justify-between">
-        <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-muted-foreground">
+        <p className="text-eyebrow font-medium text-muted-foreground">
           {label}
         </p>
         <span className="grid size-7 place-items-center rounded-full bg-rose-50/80 ring-1 ring-rose-100/70">
@@ -313,7 +313,7 @@ function StatCard({
         {value}
       </p>
       {sublabel && (
-        <p className="mt-2 text-[11px] text-muted-foreground">{sublabel}</p>
+        <p className="mt-2 text-xs text-muted-foreground">{sublabel}</p>
       )}
     </div>
   );
@@ -370,7 +370,7 @@ function BriefCard({ brief }: BriefCardProps) {
         <h3 className="font-display text-base font-medium leading-tight tracking-tight">
           {brief.title}
         </h3>
-        <p className="text-[11px] capitalize text-muted-foreground">
+        <p className="text-xs capitalize text-muted-foreground">
           {tPlanner("typeWithFirstName", {
             type: formatType(brief.event_type),
             firstName: brief.client_first_name,
@@ -426,7 +426,7 @@ function EngagementCard({ proposal }: { proposal: EngagementProposal }) {
             <ImageIcon className="size-7 text-rose-400/70" />
           </div>
         )}
-        <span className="absolute start-3 top-3 inline-flex items-center rounded-full bg-rose-600/90 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-white backdrop-blur-sm">
+        <span className="absolute start-3 top-3 inline-flex items-center rounded-full bg-rose-600/90 px-2 py-0.5 text-xs font-medium uppercase tracking-wide text-white backdrop-blur-sm">
           {tPlanner("engagedBadge")}
         </span>
         {palette.colors.length > 0 && (
@@ -461,7 +461,7 @@ function EngagementCard({ proposal }: { proposal: EngagementProposal }) {
             </span>
           )}
         </div>
-        <p className="text-[11px] capitalize text-muted-foreground">
+        <p className="text-xs capitalize text-muted-foreground">
           {tPlanner("typeWithFirstName", {
             type: formatType(proposal.event.event_type),
             firstName: proposal.event.client_first_name,
@@ -485,7 +485,7 @@ function MonthList({
 }) {
   return (
     <div className="rounded-2xl border border-brand-line bg-white/70 p-5 backdrop-blur-sm ring-1 ring-foreground/[0.04]">
-      <p className="mb-3 text-[10px] font-medium uppercase tracking-[0.2em] text-muted-foreground">
+      <p className="mb-3 text-eyebrow font-medium text-muted-foreground">
         {title}
       </p>
       {items.length === 0 ? (

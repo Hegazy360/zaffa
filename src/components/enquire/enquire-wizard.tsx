@@ -165,7 +165,7 @@ export function EnquireWizard({
           />
         ))}
       </ol>
-      <p className="mb-2 text-xs uppercase tracking-[0.22em] text-muted-foreground rtl:tracking-normal">
+      <p className="mb-2 text-xs text-eyebrow text-muted-foreground">
         {t("stepOf", { n: step + 1, total: TOTAL_STEPS })}
       </p>
 

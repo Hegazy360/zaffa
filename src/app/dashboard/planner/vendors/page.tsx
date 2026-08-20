@@ -88,7 +88,7 @@ export default function PlannerVendorsPage() {
       />
       <div className="relative z-10 mx-auto max-w-6xl px-4 py-10 sm:px-6">
         <header className="mb-8 space-y-2">
-          <p className="text-[0.65rem] font-medium uppercase tracking-[0.3em] text-rose-700/80">
+          <p className="text-eyebrow font-medium text-rose-700/80">
             {t("vendorsEyebrow")}
           </p>
           <h1 className="font-display text-3xl font-light tracking-tight sm:text-4xl">
@@ -182,7 +182,7 @@ export default function PlannerVendorsPage() {
                         <Store className="size-8" />
                       </div>
                     )}
-                    <span className="absolute start-2 top-2 rounded-full bg-stone-900/70 px-2 py-0.5 text-[10px] uppercase tracking-wider text-white">
+                    <span className="absolute start-2 top-2 rounded-full bg-stone-900/70 px-2 py-0.5 text-xs uppercase tracking-wider text-white">
                       {v.category}
                     </span>
                   </div>
@@ -214,7 +214,7 @@ export default function PlannerVendorsPage() {
                         {services.slice(0, 3).map((s) => (
                           <span
                             key={s.id}
-                            className="rounded-full bg-rose-50 px-2 py-0.5 text-[11px] text-rose-800 ring-1 ring-rose-100"
+                            className="rounded-full bg-rose-50 px-2 py-0.5 text-xs text-rose-800 ring-1 ring-rose-100"
                           >
                             {s.name} ·{" "}
                             <span className="font-mono">

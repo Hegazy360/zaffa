@@ -114,7 +114,7 @@ export function VendorOnboardingWizard() {
         <header className="border-b border-brand-line bg-gradient-to-r from-rose-50/80 to-amber-50/60 px-6 py-5">
           <div className="flex items-center gap-2 text-rose-700/80">
             <Sparkles className="size-4" />
-            <span className="text-[11px] font-medium uppercase tracking-[0.25em]">
+            <span className="text-eyebrow font-medium">
               {t("wizardStepLabel", { current: step, total: TOTAL_STEPS })}
             </span>
           </div>
@@ -155,7 +155,7 @@ export function VendorOnboardingWizard() {
               </div>
               <div className="space-y-1.5">
                 <Label>{t("wizardCategoryLabel")}</Label>
-                <p className="text-[11px] text-muted-foreground">
+                <p className="text-xs text-muted-foreground">
                   {t("wizardCategoryHint")}
                 </p>
                 <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
@@ -188,7 +188,7 @@ export function VendorOnboardingWizard() {
                   placeholder={t("wizardBioPlaceholder")}
                   className="resize-none"
                 />
-                <p className="text-[11px] text-muted-foreground">
+                <p className="text-xs text-muted-foreground">
                   {t("wizardBioHint", { count: BIO_LIMIT - bio.length })}
                 </p>
               </div>
@@ -267,7 +267,7 @@ export function VendorOnboardingWizard() {
                     {t("wizardAddSpecialty")}
                   </Button>
                 </div>
-                <p className="text-[11px] text-muted-foreground">
+                <p className="text-xs text-muted-foreground">
                   {t("wizardSpecialtiesHint")}
                 </p>
               </div>
@@ -371,7 +371,7 @@ function SummaryRow({
 }) {
   return (
     <div className="flex items-start justify-between gap-4 px-4 py-3">
-      <dt className="text-[11px] font-medium uppercase tracking-[0.2em] text-rose-700/70">
+      <dt className="text-eyebrow font-medium text-rose-700/70">
         {label}
       </dt>
       <dd

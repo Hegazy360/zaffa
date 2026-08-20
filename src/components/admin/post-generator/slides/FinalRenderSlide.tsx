@@ -75,7 +75,7 @@ export function FinalRenderSlide({
             <p className="font-display text-[22px] font-medium tracking-[-0.005em] text-stone-900">
               {paletteOverlay.name}
             </p>
-            <p className="text-[0.6rem] font-semibold uppercase tracking-[0.32em] text-rose-700">
+            <p className="text-eyebrow font-semibold text-rose-700">
               PALETTE
             </p>
           </div>

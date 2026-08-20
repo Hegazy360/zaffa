@@ -50,7 +50,7 @@ export default function VendorEngagementsListPage() {
       />
       <div className="relative z-10 mx-auto max-w-5xl px-4 py-10 sm:px-6">
         <header className="mb-8">
-          <p className="mb-1 text-[0.65rem] font-medium uppercase tracking-[0.3em] text-rose-700/80">
+          <p className="mb-1 text-eyebrow font-medium text-rose-700/80">
             {t("engagementsLabel")}
           </p>
           <h1 className="font-display text-3xl font-light tracking-tight sm:text-4xl">
@@ -97,7 +97,7 @@ export default function VendorEngagementsListPage() {
                   </div>
                   <div className="flex items-center gap-3">
                     <span
-                      className={`rounded-full px-2 py-0.5 text-[10px] uppercase tracking-wider ${
+                      className={`rounded-full px-2 py-0.5 text-xs uppercase tracking-wider ${
                         STATUS_TONE[e.status] ?? STATUS_TONE.draft
                       }`}
                     >

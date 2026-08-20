@@ -40,7 +40,7 @@ export function ShareSection() {
 
       <div className="relative mx-auto max-w-6xl px-4 py-20 sm:py-24">
         <header className="mx-auto mb-14 max-w-2xl text-center sm:mb-20">
-          <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-rose-200/60 bg-rose-50/70 px-4 py-1.5 text-[0.7rem] uppercase tracking-[0.3em] text-rose-700 backdrop-blur-md">
+          <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-rose-200/60 bg-rose-50/70 px-4 py-1.5 text-eyebrow text-rose-700 backdrop-blur-md">
             <Heart className="h-3.5 w-3.5" />
             {t("shareEyebrow")}
           </div>
@@ -93,7 +93,7 @@ export function ShareSection() {
         >
           <span className="inline-flex items-center gap-2">
             <Users className="size-4 text-rose-600" />
-            <span className="text-[10px] font-medium uppercase tracking-[0.28em] text-rose-700/80">
+            <span className="text-eyebrow font-medium text-rose-700/80">
               {t("shareAudienceEyebrow")}
             </span>
           </span>
@@ -148,7 +148,7 @@ function ArtefactCard({
         <span className="grid size-8 place-items-center rounded-full border border-rose-200/70 bg-gradient-to-br from-rose-50 to-amber-50 text-rose-700 ring-1 ring-rose-200/40">
           <Icon className="size-3.5" strokeWidth={2} />
         </span>
-        <span className="text-[10px] font-medium uppercase tracking-[0.28em] text-muted-foreground">
+        <span className="text-eyebrow font-medium text-muted-foreground">
           {label}
         </span>
       </div>
@@ -186,7 +186,7 @@ function MicrositePreview() {
           <span className="size-2 rounded-full bg-amber-300/70" />
           <span className="size-2 rounded-full bg-emerald-300/70" />
         </div>
-        <div className="flex flex-1 items-center gap-1.5 truncate rounded-md bg-rose-50/70 px-2.5 py-1 text-[10px] font-mono text-rose-700/80">
+        <div className="flex flex-1 items-center gap-1.5 truncate rounded-md bg-rose-50/70 px-2.5 py-1 text-xs font-mono text-rose-700/80">
           <Globe className="size-3 shrink-0" strokeWidth={2} />
           <span className="truncate">zaffa.ai/v/jasmine-omar</span>
         </div>
@@ -205,7 +205,7 @@ function MicrositePreview() {
         />
         <div className="absolute inset-x-4 bottom-3 flex items-end justify-between gap-3">
           <div className="min-w-0">
-            <p className="text-[9px] font-medium uppercase tracking-[0.22em] text-white/85">
+            <p className="text-eyebrow font-medium text-white/85">
               Wedding Vision Pack
             </p>
             <p className="font-display mt-1 truncate text-lg font-light italic leading-tight tracking-tight text-white">
@@ -255,7 +255,7 @@ function LookbookPreview() {
         className="absolute end-[6%] top-[8%] h-[88%] w-[58%] rotate-[4deg] rounded-xl border border-brand-line bg-gradient-to-br from-rose-50/80 via-white to-amber-50/60 shadow-glow"
       />
       <div className="absolute start-[4%] top-[4%] flex h-[92%] w-[62%] -rotate-[2deg] flex-col overflow-hidden rounded-xl border border-brand-line bg-gradient-to-br from-white via-rose-50/40 to-amber-50/40 p-4 shadow-glow-lg ring-1 ring-foreground/[0.04] sm:p-5">
-        <p className="text-[8px] font-medium uppercase tracking-[0.32em] text-rose-700/80 sm:text-[9px]">
+        <p className="text-eyebrow font-medium text-rose-700/80 sm:text-xs">
           Wedding Vision Pack
         </p>
         <p className="font-display mt-2 text-2xl font-light leading-[1.05] tracking-tight sm:text-3xl">
@@ -263,7 +263,7 @@ function LookbookPreview() {
           <br />
           &amp; Omar
         </p>
-        <p className="font-display mt-1 text-[11px] italic font-light text-rose-600 sm:text-xs">
+        <p className="font-display mt-1 text-xs italic font-light text-rose-600 sm:text-xs">
           A wedding, visualized.
         </p>
         <div className="champagne-hairline mt-3 h-px w-12" aria-hidden />
@@ -282,12 +282,12 @@ function LookbookPreview() {
             />
           ))}
         </div>
-        <div className="mt-auto flex items-center justify-between text-[8px] font-medium uppercase tracking-[0.22em] text-muted-foreground/80 sm:text-[9px]">
+        <div className="mt-auto flex items-center justify-between text-eyebrow font-medium text-muted-foreground/80 sm:text-xs">
           <span>Zaffa</span>
           <span>PDF · 12 pages</span>
         </div>
       </div>
-      <span className="absolute bottom-3 end-3 inline-flex items-center gap-1.5 rounded-full bg-rose-600/90 px-2.5 py-1 text-[9px] font-medium uppercase tracking-[0.22em] text-white shadow-glow-sm backdrop-blur-sm sm:text-[10px]">
+      <span className="absolute bottom-3 end-3 inline-flex items-center gap-1.5 rounded-full bg-rose-600/90 px-2.5 py-1 text-eyebrow font-medium text-white shadow-glow-sm backdrop-blur-sm sm:text-xs">
         <FileDown className="size-3" strokeWidth={2.25} />
         PDF
       </span>

@@ -105,7 +105,7 @@ export default function MarketplacePage() {
 
       <div className="mx-auto max-w-6xl px-6 py-12 sm:py-16">
         <header className="mb-10 flex flex-col gap-3">
-          <div className="inline-flex w-fit items-center gap-2 rounded-full border border-rose-200/70 bg-rose-50/70 px-3.5 py-1 text-[11px] font-medium uppercase tracking-[0.18em] text-rose-700 backdrop-blur-sm">
+          <div className="inline-flex w-fit items-center gap-2 rounded-full border border-rose-200/70 bg-rose-50/70 px-3.5 py-1 text-eyebrow font-medium text-rose-700 backdrop-blur-sm">
             <Compass className="size-3" />
             {t("eyebrow")}
           </div>
@@ -119,7 +119,7 @@ export default function MarketplacePage() {
 
         {/* Filters */}
         <div className="mb-8 flex flex-wrap items-center gap-3 rounded-2xl border border-brand-line bg-white/70 p-3 backdrop-blur-sm">
-          <span className="ms-2 text-[10px] font-medium uppercase tracking-[0.2em] text-muted-foreground">
+          <span className="ms-2 text-eyebrow font-medium text-muted-foreground">
             {t("filter")}
           </span>
           <Select
@@ -207,7 +207,7 @@ export default function MarketplacePage() {
                       </div>
                     )}
                     {brief.myProposal && (
-                      <span className="absolute start-3 top-3 inline-flex items-center gap-1 rounded-full bg-emerald-600/90 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-white backdrop-blur-sm">
+                      <span className="absolute start-3 top-3 inline-flex items-center gap-1 rounded-full bg-emerald-600/90 px-2 py-0.5 text-xs font-medium uppercase tracking-wide text-white backdrop-blur-sm">
                         <Sparkles className="size-2.5" />
                         {t("alreadyProposed")}
                       </span>
@@ -229,7 +229,7 @@ export default function MarketplacePage() {
                       <h3 className="font-display text-base font-medium leading-tight tracking-tight">
                         {brief.title}
                       </h3>
-                      <p className="text-[11px] capitalize text-muted-foreground">
+                      <p className="text-xs capitalize text-muted-foreground">
                         {t("withClient", {
                           type: brief.event_type,
                           firstName: brief.client_first_name,
@@ -253,7 +253,7 @@ export default function MarketplacePage() {
                       </div>
                     </div>
                     <div className="mt-4 flex items-baseline justify-between gap-3 border-t border-brand-line pt-3">
-                      <span className="text-[10px] font-medium uppercase tracking-[0.18em] text-muted-foreground">
+                      <span className="text-eyebrow font-medium text-muted-foreground">
                         {t("budget")}
                       </span>
                       {budget ? (

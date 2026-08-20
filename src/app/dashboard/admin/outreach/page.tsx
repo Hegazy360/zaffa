@@ -47,7 +47,7 @@ export default function OutreachKanbanPage() {
     <div className="mx-auto max-w-7xl space-y-6 px-4 py-8 sm:px-6">
       <header className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <p className="mb-1 text-[0.65rem] font-medium uppercase tracking-[0.3em] text-rose-700/80">
+          <p className="mb-1 text-eyebrow font-medium text-rose-700/80">
             {t("eyebrow")}
           </p>
           <h1 className="font-display text-3xl font-light tracking-tight">
@@ -77,16 +77,16 @@ export default function OutreachKanbanPage() {
               className="w-[80vw] max-w-[320px] shrink-0 snap-start rounded-2xl border border-brand-line bg-white/80 lg:w-auto lg:max-w-none lg:shrink"
             >
               <div className="flex items-center justify-between border-b border-brand-line px-3 py-2">
-                <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-rose-700/80">
+                <p className="text-eyebrow font-medium text-rose-700/80">
                   {t(`prospectStatus.${status}`)}
                 </p>
-                <span className="rounded-full bg-rose-50 px-1.5 py-0.5 text-[10px] font-medium text-rose-700">
+                <span className="rounded-full bg-rose-50 px-1.5 py-0.5 text-xs font-medium text-rose-700">
                   {grouped[status].length}
                 </span>
               </div>
               <ul className="space-y-1 p-2">
                 {grouped[status].length === 0 && (
-                  <li className="px-1 py-2 text-center text-[11px] text-muted-foreground">
+                  <li className="px-1 py-2 text-center text-xs text-muted-foreground">
                     —
                   </li>
                 )}
@@ -99,7 +99,7 @@ export default function OutreachKanbanPage() {
                       <div className="flex items-center gap-2">
                         <Avatar className="size-6">
                           {p.avatar_url && <AvatarImage src={p.avatar_url} />}
-                          <AvatarFallback className="text-[10px]">
+                          <AvatarFallback className="text-xs">
                             {prospectInitial(p)}
                           </AvatarFallback>
                         </Avatar>
@@ -107,7 +107,7 @@ export default function OutreachKanbanPage() {
                           {prospectDisplayName(p)}
                         </p>
                       </div>
-                      <p className="mt-1 truncate text-[10px] text-muted-foreground">
+                      <p className="mt-1 truncate text-xs text-muted-foreground">
                         {t(`prospectType.${p.prospect_type}`)}
                         {p.vendor_category && ` · ${p.vendor_category}`}
                         {p.qualifying_score != null && (
@@ -118,7 +118,7 @@ export default function OutreachKanbanPage() {
                           </>
                         )}
                       </p>
-                      <p className="text-[10px] text-muted-foreground/80">
+                      <p className="text-xs text-muted-foreground/80">
                         {f.relativeTime(p.created_at)}
                       </p>
                     </Link>

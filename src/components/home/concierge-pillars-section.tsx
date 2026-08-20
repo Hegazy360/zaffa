@@ -65,7 +65,7 @@ export function ConciergePillarsSection() {
 
       <div className="relative mx-auto max-w-6xl px-4 py-20 sm:py-24">
         <header className="mx-auto mb-14 max-w-2xl text-center sm:mb-16">
-          <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-4 py-1.5 text-[0.7rem] uppercase tracking-[0.3em] text-rose-200 backdrop-blur-md rtl:tracking-normal">
+          <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-4 py-1.5 text-eyebrow text-rose-200 backdrop-blur-md">
             <Sparkles className="h-3.5 w-3.5" />
             {t("conciergeEyebrow")}
           </div>

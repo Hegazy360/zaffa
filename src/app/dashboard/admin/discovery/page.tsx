@@ -69,7 +69,7 @@ export default function AdminDiscoveryPage() {
   return (
     <div className="mx-auto max-w-6xl space-y-6 px-4 py-8 sm:px-6">
       <header>
-        <p className="mb-1 text-[0.65rem] font-medium uppercase tracking-[0.3em] text-rose-700/80">
+        <p className="mb-1 text-eyebrow font-medium text-rose-700/80">
           {t("eyebrow")}
         </p>
         <h1 className="font-display text-3xl font-light tracking-tight">
@@ -81,7 +81,7 @@ export default function AdminDiscoveryPage() {
       </header>
 
       <section className="rounded-2xl border border-brand-line bg-white/80 px-5 py-5">
-        <p className="mb-3 text-[10px] font-medium uppercase tracking-[0.2em] text-rose-700/80">
+        <p className="mb-3 text-eyebrow font-medium text-rose-700/80">
           {t("runNow")}
         </p>
         <form
@@ -164,13 +164,13 @@ export default function AdminDiscoveryPage() {
             {t("runDiscovery")}
           </Button>
         </form>
-        <p className="mt-2 text-[11px] text-muted-foreground">
+        <p className="mt-2 text-xs text-muted-foreground">
           {t(`depthHint.${depth}`)}
         </p>
 
         {seeds.data && (
           <div className="mt-5 space-y-3">
-            <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-rose-700/80">
+            <p className="text-eyebrow font-medium text-rose-700/80">
               {t("seedQueries")}
             </p>
             {seeds.data.map((group) => (
@@ -190,7 +190,7 @@ export default function AdminDiscoveryPage() {
                         setSource(group.source as Source);
                         setQuery(q);
                       }}
-                      className="rounded-full border border-brand-line bg-white/70 px-2.5 py-1 text-[11px] font-medium text-muted-foreground transition-colors hover:bg-rose-50/60 hover:text-foreground"
+                      className="rounded-full border border-brand-line bg-white/70 px-2.5 py-1 text-xs font-medium text-muted-foreground transition-colors hover:bg-rose-50/60 hover:text-foreground"
                     >
                       {q}
                     </button>
@@ -204,7 +204,7 @@ export default function AdminDiscoveryPage() {
 
       <section className="rounded-2xl border border-brand-line bg-white/80">
         <div className="flex items-center justify-between border-b border-brand-line px-5 py-3">
-          <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-rose-700/80">
+          <p className="text-eyebrow font-medium text-rose-700/80">
             {t("recentRuns")}
           </p>
           {runs.isFetching && (
@@ -311,7 +311,7 @@ function RunStatus({ status }: { status: string }) {
           : "bg-stone-100 text-stone-700 ring-stone-200";
   return (
     <span
-      className={`inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide ring-1 ${tone}`}
+      className={`inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 text-xs font-medium uppercase tracking-wide ring-1 ${tone}`}
     >
       <Icon
         className={`size-2.5 ${status === "running" ? "animate-spin" : ""}`}

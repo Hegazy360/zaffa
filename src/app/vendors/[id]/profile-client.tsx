@@ -90,7 +90,7 @@ export default function PublicVendorProfilePage() {
 
           <header className="mb-12 grid gap-8 md:grid-cols-12">
             <div className="md:col-span-8">
-              <div className="inline-flex items-center gap-2 rounded-full border border-rose-200/70 bg-rose-50/70 px-3.5 py-1 text-[11px] font-medium uppercase tracking-[0.18em] text-rose-700 backdrop-blur-sm">
+              <div className="inline-flex items-center gap-2 rounded-full border border-rose-200/70 bg-rose-50/70 px-3.5 py-1 text-eyebrow font-medium text-rose-700 backdrop-blur-sm">
                 <Sparkles className="size-3" />
                 {t(`category${capitalize(vendor.category)}` as const)}
               </div>
@@ -152,7 +152,7 @@ export default function PublicVendorProfilePage() {
 
           {vendor.services.length > 0 && (
             <section className="mb-14">
-              <p className="mb-1 text-[0.65rem] font-medium uppercase tracking-[0.3em] text-rose-700/80">
+              <p className="mb-1 text-eyebrow font-medium text-rose-700/80">
                 Services
               </p>
               <h2 className="mb-5 font-display text-2xl font-light tracking-tight">
@@ -185,7 +185,7 @@ export default function PublicVendorProfilePage() {
           )}
 
           <section className="mb-14">
-            <p className="mb-1 text-[0.65rem] font-medium uppercase tracking-[0.3em] text-rose-700/80">
+            <p className="mb-1 text-eyebrow font-medium text-rose-700/80">
               Portfolio
             </p>
             <h2 className="mb-5 font-display text-2xl font-light tracking-tight">
@@ -221,7 +221,7 @@ export default function PublicVendorProfilePage() {
                           {item.caption}
                         </p>
                         {item.event_type && (
-                          <p className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
+                          <p className="text-eyebrow text-muted-foreground">
                             {item.event_type}
                           </p>
                         )}
@@ -234,7 +234,7 @@ export default function PublicVendorProfilePage() {
           </section>
 
           <section id="reviews">
-            <p className="mb-1 text-[0.65rem] font-medium uppercase tracking-[0.3em] text-rose-700/80">
+            <p className="mb-1 text-eyebrow font-medium text-rose-700/80">
               Reviews
             </p>
             <h2 className="mb-5 font-display text-2xl font-light tracking-tight">
@@ -273,7 +273,7 @@ export default function PublicVendorProfilePage() {
                         <p className="truncate text-sm font-medium">
                           {r.author.full_name}
                         </p>
-                        <p className="text-[11px] text-muted-foreground">
+                        <p className="text-xs text-muted-foreground">
                           {f.date(r.created_at, "long")}
                         </p>
                       </div>

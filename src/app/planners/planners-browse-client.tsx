@@ -64,7 +64,7 @@ export function PlannersBrowseClient() {
       />
       <div className="relative z-10 mx-auto max-w-6xl px-4 py-12 sm:px-6 sm:py-16">
         <header className="mb-10 max-w-3xl space-y-3">
-          <p className="text-[0.65rem] font-medium uppercase tracking-[0.3em] text-rose-700/80">
+          <p className="text-eyebrow font-medium text-rose-700/80">
             {t("plannersEyebrow")}
           </p>
           <h1 className="font-display text-balance text-4xl font-light leading-tight tracking-tight sm:text-5xl">
@@ -199,7 +199,7 @@ export function PlannersBrowseClient() {
                         {specialties.slice(0, 4).map((s) => (
                           <span
                             key={s}
-                            className="rounded-full bg-rose-50 px-2 py-0.5 text-[11px] text-rose-700 ring-1 ring-rose-100"
+                            className="rounded-full bg-rose-50 px-2 py-0.5 text-xs text-rose-700 ring-1 ring-rose-100"
                           >
                             {s}
                           </span>

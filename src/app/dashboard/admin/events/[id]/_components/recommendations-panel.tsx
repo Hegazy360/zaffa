@@ -132,7 +132,7 @@ export function RecommendationsPanel({ eventId }: { eventId: string }) {
                       “{rec.note}”
                     </p>
                   ) : null}
-                  <div className="flex flex-wrap gap-2 pt-1 text-[11px] text-muted-foreground">
+                  <div className="flex flex-wrap gap-2 pt-1 text-xs text-muted-foreground">
                     {rec.interested_at ? (
                       <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-emerald-700">
                         <Heart className="size-3" />
@@ -253,7 +253,7 @@ function RecommendDialog({ eventId }: { eventId: string }) {
                     )}
                     <div className="min-w-0 flex-1">
                       <p className="truncate text-sm font-medium">{hit.name}</p>
-                      <p className="text-[11px] text-muted-foreground">
+                      <p className="text-xs text-muted-foreground">
                         {hit.city}, {hit.country}
                         {hit.capacity_max ? (
                           <>

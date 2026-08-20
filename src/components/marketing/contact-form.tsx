@@ -144,7 +144,7 @@ export function ContactForm({ kind }: ContactFormProps) {
           disabled={submit.isPending}
           className="resize-y"
         />
-        <p className="text-[11px] text-muted-foreground">
+        <p className="text-xs text-muted-foreground">
           {t("messageHint", { remaining: 5000 - message.length })}
         </p>
       </div>

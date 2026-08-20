@@ -29,7 +29,7 @@ export default function AdminActivityPage() {
   return (
     <div className="mx-auto max-w-4xl space-y-6 px-4 py-8 sm:px-6">
       <header>
-        <p className="mb-1 text-[0.65rem] font-medium uppercase tracking-[0.3em] text-rose-700/80">
+        <p className="mb-1 text-eyebrow font-medium text-rose-700/80">
           {t("eyebrow")}
         </p>
         <h1 className="font-display text-3xl font-light tracking-tight">

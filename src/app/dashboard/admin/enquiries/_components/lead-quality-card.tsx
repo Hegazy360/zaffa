@@ -63,7 +63,7 @@ export function LeadQualityCard() {
             key={w.weekStart}
             className="flex min-w-0 flex-1 flex-col items-center gap-1"
           >
-            <span className="text-[0.65rem] text-muted-foreground">
+            <span className="text-xs text-muted-foreground">
               {pct(w.quoteWorthyRate)}
             </span>
             <div
@@ -76,7 +76,7 @@ export function LeadQualityCard() {
                 style={{ height: `${(w.quoteWorthyRate ?? 0) * 100}%` }}
               />
             </div>
-            <span className="w-full truncate text-center text-[0.6rem] text-muted-foreground">
+            <span className="w-full truncate text-center text-xs text-muted-foreground">
               {w.weekStart.slice(5)}
             </span>
           </li>

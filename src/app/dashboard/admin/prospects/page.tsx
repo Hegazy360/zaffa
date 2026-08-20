@@ -110,7 +110,7 @@ export default function AdminProspectsPage() {
     <div className="mx-auto max-w-7xl space-y-6 px-4 py-8 sm:px-6">
       <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <p className="mb-1 text-[0.65rem] font-medium uppercase tracking-[0.3em] text-rose-700/80">
+          <p className="mb-1 text-eyebrow font-medium text-rose-700/80">
             {t("eyebrow")}
           </p>
           <h1 className="font-display text-3xl font-light tracking-tight">
@@ -140,7 +140,7 @@ export default function AdminProspectsPage() {
               key={s}
               className="rounded-xl border border-brand-line bg-white/80 px-3 py-2 backdrop-blur-sm"
             >
-              <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-rose-700/80">
+              <p className="text-eyebrow font-medium text-rose-700/80">
                 {t(`prospectStatus.${s}`)}
               </p>
               <p className="font-display text-2xl font-light tracking-tight">
@@ -187,10 +187,10 @@ export default function AdminProspectsPage() {
       {/* Subtle nudge so the W shortcut is discoverable. We only render it
           when there's at least one WA-eligible row, otherwise it's noise. */}
       {items.some((p) => p.whatsapp) && (
-        <p className="-mb-2 ms-1 text-[11px] text-muted-foreground">
+        <p className="-mb-2 ms-1 text-xs text-muted-foreground">
           {t.rich("quickSendKbHint", {
             kbd: (chunks) => (
-              <kbd className="mx-0.5 inline-flex h-[18px] items-center rounded border border-rose-200/70 bg-white px-1.5 font-mono text-[10px] font-medium text-rose-700 shadow-sm">
+              <kbd className="mx-0.5 inline-flex h-[18px] items-center rounded border border-rose-200/70 bg-white px-1.5 font-mono text-xs font-medium text-rose-700 shadow-sm">
                 {chunks}
               </kbd>
             ),
@@ -256,7 +256,7 @@ export default function AdminProspectsPage() {
                     <div className="flex items-center gap-1.5">
                       <p className="truncate font-medium">{prospectDisplayName(p)}</p>
                       {p.qualifying_score != null && (
-                        <span className="inline-flex items-center gap-0.5 rounded bg-amber-50 px-1 text-[10px] text-amber-800">
+                        <span className="inline-flex items-center gap-0.5 rounded bg-amber-50 px-1 text-xs text-amber-800">
                           <Star className="size-2.5 fill-amber-500 text-amber-500" />
                           {p.qualifying_score}
                         </span>
@@ -319,7 +319,7 @@ function FilterRow<T extends string>({
 }) {
   return (
     <div className="flex flex-wrap items-center gap-1.5">
-      <span className="text-[10px] font-medium uppercase tracking-[0.2em] text-rose-700/80">
+      <span className="text-eyebrow font-medium text-rose-700/80">
         {label}
       </span>
       {values.map((v) => (
@@ -327,7 +327,7 @@ function FilterRow<T extends string>({
           key={v}
           type="button"
           onClick={() => setActive(v)}
-          className={`rounded-full border px-2.5 py-1 text-[11px] font-medium transition-all ${
+          className={`rounded-full border px-2.5 py-1 text-xs font-medium transition-all ${
             active === v
               ? "border-rose-300 bg-gradient-to-r from-rose-500 to-amber-500 text-white shadow-sm"
               : "border-brand-line bg-white/70 text-muted-foreground hover:bg-white"
@@ -355,7 +355,7 @@ function SourceBadge({ source }: { source: string }) {
               ? MapPin
               : UserRound;
   return (
-    <span className="inline-flex items-center gap-1 rounded-full bg-rose-50 px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-rose-700 ring-1 ring-rose-200">
+    <span className="inline-flex items-center gap-1 rounded-full bg-rose-50 px-1.5 py-0.5 text-xs font-medium uppercase tracking-wide text-rose-700 ring-1 ring-rose-200">
       <Icon className="size-2.5" />
       {t(`prospectSource.${source}`)}
     </span>
@@ -376,7 +376,7 @@ function StatusBadge({ status }: { status: string }) {
             : "bg-rose-50 text-rose-800 ring-rose-200";
   return (
     <span
-      className={`inline-flex items-center rounded-full px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide ring-1 ${tone}`}
+      className={`inline-flex items-center rounded-full px-1.5 py-0.5 text-xs font-medium uppercase tracking-wide ring-1 ${tone}`}
     >
       {t(`prospectStatus.${status}`)}
     </span>

@@ -408,7 +408,7 @@ function MobileNotificationsLink({
       <Bell className="h-4 w-4" />
       <span className="flex-1">{label}</span>
       {unread > 0 && (
-        <span className="grid h-5 min-w-5 place-items-center rounded-full bg-gradient-to-br from-rose-600 to-amber-500 px-1.5 text-[10px] font-semibold leading-none text-white">
+        <span className="grid h-5 min-w-5 place-items-center rounded-full bg-gradient-to-br from-rose-600 to-amber-500 px-1.5 text-xs font-semibold leading-none text-white">
           {unread > 99 ? "99+" : unread}
         </span>
       )}

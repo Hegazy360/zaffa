@@ -238,7 +238,7 @@ export function MediaGalleryDialog({
                       />
                     )}
                     <div className="absolute top-1.5 start-1.5">
-                      <span className="inline-flex items-center gap-1 rounded-md bg-black/60 px-1.5 py-0.5 text-[10px] font-medium text-white">
+                      <span className="inline-flex items-center gap-1 rounded-md bg-black/60 px-1.5 py-0.5 text-xs font-medium text-white">
                         {item.type === "video" ? (
                           <Video className="h-2.5 w-2.5" />
                         ) : (
@@ -250,7 +250,7 @@ export function MediaGalleryDialog({
                     <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors" />
                   </div>
                   <div className="px-2 py-1.5">
-                    <p className="text-[10px] text-muted-foreground">
+                    <p className="text-xs text-muted-foreground">
                       {f.relativeTime(new Date(item.created_at))}
                     </p>
                   </div>
