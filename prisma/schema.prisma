@@ -167,6 +167,10 @@ enum NotificationType {
   // Ops/admin: a full-service enquiry landed. This is the flagship tier's
   // only inbound channel, so the fan-out is deliberately noisy.
   enquiry_received
+  // Ops/admin: a couple approved their design — "I want this wedding,
+  // contact me". The warmest lead the funnel produces; their render is
+  // attached to the enquiry as the brief.
+  design_approved
 }
 
 /// Sales pipeline for the full-service plan ("The Whole Wedding").

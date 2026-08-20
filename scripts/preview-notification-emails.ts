@@ -157,6 +157,10 @@ const DEMO_VARS: Record<NotificationType, Vars> = {
     guests: "150–200 guests",
     channel: "WhatsApp",
   },
+  design_approved: {
+    coupleName: "Noor & Faisal",
+    designName: "Garden Nikah, Dusty Rose",
+  },
 };
 
 function parseArgs(): {

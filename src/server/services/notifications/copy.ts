@@ -452,6 +452,25 @@ const CATALOG: Record<
       eyebrow: "طلب جديد",
     },
   },
+
+  // ----- Ops: design approval -----
+  // The warmest lead the funnel produces: the couple didn't fill a form,
+  // they looked at a finished render of their wedding and said "this one".
+  // Their design arrives attached to the enquiry as the brief.
+  design_approved: {
+    en: {
+      title: "{coupleName} approved their design — they want this wedding",
+      body: "{coupleName} approved “{designName}”. Their render is the brief; open the enquiry and reach out while they're still looking at it.",
+      ctaLabel: "Open the enquiry",
+      eyebrow: "Design approved",
+    },
+    ar: {
+      title: "اعتمد {coupleName} التصميم — يريدون هذا الزفاف",
+      body: "اعتمد {coupleName} تصميم «{designName}». التصميم نفسه هو ملخّص الطلب؛ افتح الطلب وتواصل معهم وهم ما زالوا متحمّسين.",
+      ctaLabel: "فتح الطلب",
+      eyebrow: "تصميم معتمد",
+    },
+  },
 };
 
 /**

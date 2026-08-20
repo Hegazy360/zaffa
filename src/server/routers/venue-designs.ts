@@ -1,10 +1,14 @@
 import { z } from "zod";
-import { router, protectedProcedure } from "../trpc";
+import { TRPCError } from "@trpc/server";
+import { router, protectedProcedure, nonAnonymousProcedure } from "../trpc";
 import { prisma } from "@/lib/prisma";
 import { cloudinary, watermarkedUrl } from "@/lib/cloudinary";
 import { isFreePack } from "@/lib/vision-pack";
 import { trackServer } from "@/lib/posthog";
 import { ANALYTICS_EVENTS } from "@/lib/analytics-events";
+import { reportError } from "@/lib/logger";
+import { isFlagEnabled } from "@/lib/flags";
+import { notifyDesignApproved } from "@/server/services/notifications/dispatchers";
 
 const refSchema = z.object({
   id: z.string().min(1),
@@ -86,6 +90,113 @@ function urlForTier(
 }
 
 export const venueDesignsRouter = router({
+  /**
+   * "I want this wedding — contact me."
+   *
+   * Approval used to be `events.createFromDesign`, gated on the Vision Pack
+   * SKU because it opened the planner marketplace. The marketplace is hidden
+   * now, so that gate was selling a door that 404s — and it surfaced to real
+   * clients as a raw `PACK_TIER_NO_PLANNER_MATCH` toast. Under the concierge
+   * model, approving a design is a *lead*, not a feature unlock: it must be
+   * free for anyone with a permanent account. Pack buyers who only want the
+   * PDF simply never click it.
+   *
+   * `nonAnonymousProcedure` rather than `protectedProcedure` on purpose: an
+   * approval without contact details is unactionable, and the email gate is
+   * where anonymous visitors acquire one.
+   *
+   * Shape mirrors `enquiries.submit`: the Enquiry row is written FIRST and
+   * every side effect after it (admin fan-out, analytics) is best-effort —
+   * an email outage must never lose the warmest lead the funnel produces.
+   */
+  approve: nonAnonymousProcedure
+    .input(z.object({ designId: z.string().uuid() }))
+    .mutation(async ({ ctx, input }) => {
+      // Conditional write doubles as the idempotency guard: only the call
+      // that flips `approved_at` from null proceeds to create the lead, so a
+      // re-click (or a replayed request) can never spam every admin twice.
+      const flipped = await prisma.venueDesign.updateMany({
+        where: { id: input.designId, user_id: ctx.user.id, approved_at: null },
+        data: { approved_at: new Date() },
+      });
+
+      if (flipped.count === 0) {
+        const design = await prisma.venueDesign.findFirst({
+          where: { id: input.designId, user_id: ctx.user.id },
+          select: { id: true },
+        });
+        if (!design) {
+          throw new TRPCError({ code: "NOT_FOUND", message: "Design not found" });
+        }
+        // Already approved — hand back the existing lead so the UI can show
+        // the same "we're on it" state without creating a duplicate.
+        const existing = await prisma.enquiry.findFirst({
+          where: { design_id: input.designId, source: "design_approved" },
+          orderBy: { created_at: "desc" },
+          select: { id: true },
+        });
+        return {
+          ok: true as const,
+          alreadyApproved: true as const,
+          enquiryId: existing?.id ?? null,
+        };
+      }
+
+      const [design, profile] = await Promise.all([
+        prisma.venueDesign.findUniqueOrThrow({
+          where: { id: input.designId },
+          select: { name: true, guest_count: true },
+        }),
+        prisma.profile.findUnique({
+          where: { id: ctx.user.id },
+          select: { full_name: true, phone: true, locale: true },
+        }),
+      ]);
+      const fullName =
+        profile?.full_name || ctx.user.email?.split("@")[0] || "A couple";
+
+      // ---- The row. Everything after this point is best-effort. ----
+      const enquiry = await prisma.enquiry.create({
+        data: {
+          user_id: ctx.user.id,
+          full_name: fullName,
+          email: ctx.user.email ?? null,
+          phone: profile?.phone ?? null,
+          preferred_channel: "whatsapp",
+          guest_band: design.guest_count ? String(design.guest_count) : null,
+          design_id: input.designId,
+          source: "design_approved",
+          locale: profile?.locale ?? null,
+          pricing_published: isFlagEnabled("publishedPricing"),
+        },
+        select: { id: true },
+      });
+
+      try {
+        await notifyDesignApproved({
+          enquiryId: enquiry.id,
+          coupleName: fullName,
+          designName: design.name,
+        });
+      } catch (err) {
+        reportError("design_approve.notify_failed", err, {
+          enquiryId: enquiry.id,
+        });
+      }
+
+      await trackServer(ctx.user.id, ANALYTICS_EVENTS.DESIGN_APPROVED, {
+        design_id: input.designId,
+        enquiry_id: enquiry.id,
+        from: "free_approve",
+      });
+
+      return {
+        ok: true as const,
+        alreadyApproved: false as const,
+        enquiryId: enquiry.id,
+      };
+    }),
+
   list: protectedProcedure.query(async ({ ctx }) => {
     const [designs, pack] = await Promise.all([
       prisma.venueDesign.findMany({

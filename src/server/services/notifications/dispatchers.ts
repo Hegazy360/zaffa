@@ -564,6 +564,32 @@ export async function notifyEnquiryReceived(args: {
   });
 }
 
+// A couple approved their design — the warmest signal the funnel produces,
+// warmer than a form enquiry because they are reacting to a finished render
+// of their own wedding. Fan out to every admin; the deep link lands on the
+// enquiry the approval created, where the design is attached as the brief.
+export async function notifyDesignApproved(args: {
+  enquiryId: string;
+  coupleName: string;
+  designName: string;
+}): Promise<void> {
+  const admins = await prisma.profile.findMany({
+    where: { role: "admin" },
+    select: { id: true },
+  });
+  if (admins.length === 0) return;
+  await notifyMany({
+    userIds: admins.map((a) => a.id),
+    type: "design_approved",
+    link: `/dashboard/admin/enquiries/${args.enquiryId}`,
+    varsFor: () => ({
+      coupleName: args.coupleName,
+      designName: args.designName,
+    }),
+    data: { enquiryId: args.enquiryId },
+  });
+}
+
 // ----- Shared -----
 
 export function notifyMessageReceived(args: {
