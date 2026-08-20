@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import { useLocale, useTranslations } from "next-intl";
-import { ArrowLeft, ArrowRight, Check, Loader2, MessageCircle } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -11,7 +11,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import { trpc } from "@/lib/trpc";
 import { budgetBandsFor, type BudgetBandOption } from "@/lib/concierge-pricing";
-import { WHATSAPP_LINK } from "@/lib/contact-channels";
+import { REPLY_WITHIN_HOURS } from "@/lib/contact-channels";
+import { WhatsAppCta } from "@/components/marketing/whatsapp-cta";
 import { formatMoney } from "@/lib/money-format";
 
 /**
@@ -122,20 +123,17 @@ export function EnquireWizard({
           {t("doneTitle")}
         </h1>
         <p className="mt-4 text-pretty text-base leading-relaxed text-muted-foreground">
-          {t("doneBody")}
+          {t("doneBody", { hours: REPLY_WITHIN_HOURS })}
         </p>
         <p className="mt-3 text-pretty text-sm leading-relaxed text-muted-foreground">
           {t("donePromise")}
         </p>
         <div className="mt-8 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
-          <Button
-            size="lg"
-            render={<a href={WHATSAPP_LINK} target="_blank" rel="noopener noreferrer" />}
-            className="h-12 w-full gap-2 bg-gradient-to-r from-rose-600 to-amber-500 px-6 text-white sm:w-auto"
-          >
-            <MessageCircle className="size-4" />
-            {t("doneWhatsapp")}
-          </Button>
+          <WhatsAppCta
+            surface="enquire_confirmation"
+            label={t("doneWhatsapp")}
+            className="w-full sm:w-auto"
+          />
           <Button
             size="lg"
             variant="outline"

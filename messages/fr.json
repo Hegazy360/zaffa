@@ -2,7 +2,7 @@
   "brand": {
     "name": "Zaffa",
     "nameArabic": "زفّة",
-    "tagline": "Votre événement de rêve, planifié par des experts"
+    "tagline": "Une équipe pour tout le mariage"
   },
   "browse": {
     "plannersEyebrow": "Trouver un planificateur",
@@ -518,7 +518,7 @@
     "beginCtaHint": "Aucune carte requise pour le premier aperçu · les packs payants débloquent plus de rendus et un lookbook imprimable",
     "beginAsSeenIn": "Vu dans",
     "footerTagline": "Un atelier événementiel éditorial",
-    "footerBlurb": "Votre événement de rêve, planifié par des experts. Nous vous mettons en relation avec des organisateurs de mariage et des prestataires sélectionnés.",
+    "footerBlurb": "Une équipe pour tout le mariage — l'organisation, le lieu, les prestataires et les cent détails dont personne ne vous a parlé. Basés à Paris, nous intervenons partout où se tient votre mariage.",
     "footerDesign": "Design",
     "footerVenueDesigner": "Concepteur de lieux",
     "footerStartNew": "Commencer une nouvelle conception",
@@ -2393,7 +2393,7 @@
     "errorContact": "Donnez-nous un email ou un numéro WhatsApp pour que nous puissions vous contacter",
     "errorGeneric": "Un problème est survenu de notre côté. Réessayez ou envoyez-nous un message sur WhatsApp.",
     "doneTitle": "Nous avons bien reçu.",
-    "doneBody": "Nous lirons cela attentivement et reviendrons vers vous sur WhatsApp sous un jour — d'abord avec des questions, puis un prix fixe pour tout le mariage.",
+    "doneBody": "Nous lirons cela attentivement et vous répondrons sur WhatsApp sous {hours} heures — d'abord des questions, puis un prix unique et fixe pour tout le mariage.",
     "donePromise": "Rien ne commence avant que vous ayez vu ce montant et dit oui.",
     "doneWhatsapp": "Envoyez-nous un message maintenant",
     "doneHome": "Retour à la page d'accueil",
@@ -2416,5 +2416,13 @@
     "enquiryStatusAccepted": "Accordé — mise en place en cours",
     "enquiryStatusDeposit": "Acompte reçu",
     "enquiryStatusPlanning": "Nous organisons votre journée"
+  },
+  "whatsapp": {
+    "cta": "Écrivez-nous sur WhatsApp",
+    "ctaShort": "WhatsApp",
+    "prefill": "Bonjour Zaffa — nous nous marions et nous aimerions que vous vous en occupiez.",
+    "prefillPricing": "Bonjour Zaffa — nous nous marions, nous avons vu vos honoraires et nous aimerions en parler.",
+    "contextDesign": "Voici ce que nous avons en tête : {url}",
+    "replyPromise": "Une vraie personne répond, généralement bien avant {hours} heures."
   }
 }

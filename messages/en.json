@@ -2,7 +2,7 @@
   "brand": {
     "name": "Zaffa",
     "nameArabic": "زفّة",
-    "tagline": "Your dream event, expertly planned"
+    "tagline": "One team for the whole wedding"
   },
   "browse": {
     "plannersEyebrow": "Find a planner",
@@ -551,7 +551,7 @@
     "beginCtaHint": "No card required for the first look · paid packs unlock more renders & a printable lookbook",
     "beginAsSeenIn": "As seen in",
     "footerTagline": "An editorial event atelier",
-    "footerBlurb": "Your dream event, expertly planned. Connecting you with vetted wedding planners and vendors.",
+    "footerBlurb": "One team for the whole wedding — the planning, the venue, the vendors, and the hundred things nobody warned you about. Based in Paris, working wherever your wedding is.",
     "footerDesign": "Design",
     "footerVenueDesigner": "Venue Designer",
     "footerStartNew": "Start a New Design",
@@ -2393,7 +2393,7 @@
     "errorContact": "Give us an email or a WhatsApp number so we can reach you",
     "errorGeneric": "Something went wrong on our side. Try again, or message us on WhatsApp.",
     "doneTitle": "We have got it.",
-    "doneBody": "We will read this properly and come back to you on WhatsApp within a day — with questions first, then one fixed price for the whole wedding.",
+    "doneBody": "We will read this properly and come back to you on WhatsApp within {hours} hours — with questions first, then one fixed price for the whole wedding.",
     "donePromise": "Nothing starts until you have seen that number and said yes.",
     "doneWhatsapp": "Message us now instead",
     "doneHome": "Back to the homepage",
@@ -2416,5 +2416,13 @@
     "enquiryStatusAccepted": "Agreed — setting things up",
     "enquiryStatusDeposit": "Deposit received",
     "enquiryStatusPlanning": "We are planning your day"
+  },
+  "whatsapp": {
+    "cta": "Message us on WhatsApp",
+    "ctaShort": "WhatsApp us",
+    "prefill": "Hi Zaffa — we're getting married and we'd like you to handle it.",
+    "prefillPricing": "Hi Zaffa — we're getting married and we saw your fee. We'd like to talk.",
+    "contextDesign": "This is what we have in mind: {url}",
+    "replyPromise": "A person replies, usually well inside {hours} hours."
   }
 }

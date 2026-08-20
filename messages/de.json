@@ -2,7 +2,7 @@
   "brand": {
     "name": "Zaffa",
     "nameArabic": "زفّة",
-    "tagline": "Ihr Traumevent, fachmännisch geplant"
+    "tagline": "Ein Team für die ganze Hochzeit"
   },
   "browse": {
     "plannersEyebrow": "Einen Planer finden",
@@ -518,7 +518,7 @@
     "beginCtaHint": "Keine Kreditkarte für den ersten Einblick erforderlich · kostenpflichtige Pakete schalten weitere Renderings & ein druckbares Lookbook frei",
     "beginAsSeenIn": "Wie gesehen in",
     "footerTagline": "Ein redaktionelles Event-Atelier",
-    "footerBlurb": "Ihr Traumevent, fachmännisch geplant. Wir verbinden Sie mit geprüften Hochzeitsplanern und Dienstleistern.",
+    "footerBlurb": "Ein Team für die ganze Hochzeit – Planung, Location, Dienstleister und die hundert Dinge, vor denen niemand Sie gewarnt hat. Sitz in Paris, tätig überall dort, wo Ihre Hochzeit stattfindet.",
     "footerDesign": "Design",
     "footerVenueDesigner": "Veranstaltungsdesigner",
     "footerStartNew": "Neues Design starten",
@@ -2393,7 +2393,7 @@
     "errorContact": "Bitte geben Sie uns eine E-Mail-Adresse oder WhatsApp-Nummer, damit wir Sie erreichen können",
     "errorGeneric": "Bei uns ist ein Fehler aufgetreten. Versuchen Sie es erneut oder schreiben Sie uns auf WhatsApp.",
     "doneTitle": "Wir haben es erhalten.",
-    "doneBody": "Wir lesen das sorgfältig und melden uns innerhalb eines Tages per WhatsApp bei Ihnen – zuerst mit Fragen, dann mit einem Festpreis für die gesamte Hochzeit.",
+    "doneBody": "Wir lesen das in Ruhe und melden uns innerhalb von {hours} Stunden auf WhatsApp — zuerst mit Fragen, dann mit einem Festpreis für die gesamte Hochzeit.",
     "donePromise": "Nichts beginnt, bevor Sie diese Zahl gesehen und zugestimmt haben.",
     "doneWhatsapp": "Schreiben Sie uns stattdessen jetzt",
     "doneHome": "Zurück zur Startseite",
@@ -2416,5 +2416,13 @@
     "enquiryStatusAccepted": "Vereinbart — wir bereiten alles vor",
     "enquiryStatusDeposit": "Anzahlung erhalten",
     "enquiryStatusPlanning": "Wir planen Ihren Tag"
+  },
+  "whatsapp": {
+    "cta": "Schreiben Sie uns auf WhatsApp",
+    "ctaShort": "WhatsApp",
+    "prefill": "Hallo Zaffa – wir heiraten und würden das gerne in Ihre Hände geben.",
+    "prefillPricing": "Hallo Zaffa – wir heiraten, haben Ihr Honorar gesehen und würden gerne sprechen.",
+    "contextDesign": "So stellen wir es uns vor: {url}",
+    "replyPromise": "Ein Mensch antwortet, meist deutlich innerhalb von {hours} Stunden."
   }
 }

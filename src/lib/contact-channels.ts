@@ -17,6 +17,34 @@ export const WHATSAPP_NUMBER_DIGITS = WHATSAPP_NUMBER_E164.replace(/\D/g, "");
 export const WHATSAPP_LINK = `https://wa.me/${WHATSAPP_NUMBER_DIGITS}`;
 
 /**
+ * How long we promise to take to reply. One number, one place.
+ *
+ * The research finding this exists to serve: in the Gulf, response latency —
+ * not the enquiry model — is where these deals die. So the promise is made
+ * explicitly rather than left implied, and it is deliberately conservative:
+ * a promise that is quietly missed is worse than no promise, and beating it
+ * costs nothing. Change this and every surface follows.
+ */
+export const REPLY_WITHIN_HOURS = 24;
+
+/**
+ * Tap-to-chat with the first message already written.
+ *
+ * A visitor who has to compose an opening line to a company they do not know
+ * yet frequently just does not send it. Prefilling removes that, and it
+ * arrives with context we would otherwise have to ask for.
+ *
+ * Note the direction: this is *our* number, for a visitor to reach us.
+ * `waLinkFor` below is the reverse — an operator opening a chat with a lead.
+ */
+export function whatsappLink(message?: string): string {
+  if (!message) return WHATSAPP_LINK;
+  // encodeURIComponent, not encodeURI: Arabic text and newlines both need
+  // full escaping, and `wa.me` reads the `text` query param literally.
+  return `${WHATSAPP_LINK}?text=${encodeURIComponent(message)}`;
+}
+
+/**
  * A wa.me deep link to a *lead's* number, optionally with a prefilled message.
  *
  * Note the direction: the constants above are OUR number, for visitors to

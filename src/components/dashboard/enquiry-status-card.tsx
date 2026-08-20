@@ -1,9 +1,8 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { MessageCircle } from "lucide-react";
 import { trpc } from "@/lib/trpc";
-import { WHATSAPP_LINK } from "@/lib/contact-channels";
+import { WhatsAppCta } from "@/components/marketing/whatsapp-cta";
 
 /**
  * "We're on it" — the couple's view of a live enquiry.
@@ -28,6 +27,7 @@ const STATUS_KEY: Record<string, string> = {
 
 export function EnquiryStatusCard() {
   const t = useTranslations("concierge");
+  const tWa = useTranslations("whatsapp");
   const q = trpc.enquiries.mine.useQuery();
 
   const live = (q.data ?? []).find(
@@ -49,15 +49,16 @@ export function EnquiryStatusCard() {
             {t(STATUS_KEY[live.status])}
           </p>
         </div>
-        <a
-          href={WHATSAPP_LINK}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex items-center gap-1.5 rounded-full border border-rose-200 bg-white px-4 py-2 text-sm text-rose-700 transition-colors hover:bg-rose-50"
-        >
-          <MessageCircle className="size-4" />
-          WhatsApp
-        </a>
+        {/* Their enquiry is already in our pipeline, so the prefilled message
+            carries the reference — the operator opens the chat already knowing
+            which lead it is, instead of asking. */}
+        <WhatsAppCta
+          surface="dashboard_enquiry"
+          context={`Ref: ${live.id.slice(0, 8)}`}
+          label={tWa("ctaShort")}
+          variant="outline"
+          className="h-10 rounded-full px-4 text-sm"
+        />
       </div>
     </section>
   );

@@ -5,6 +5,7 @@ import { motion, useReducedMotion } from "framer-motion";
 import { useTranslations } from "next-intl";
 import { ArrowRight, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { WhatsAppCta } from "@/components/marketing/whatsapp-cta";
 
 // The Whole Wedding (الزفّة الكاملة) — the full-service plan, where Zaffa
 // runs the wedding instead of handing the couple a tool. See ZAF-25 (scope
@@ -183,14 +184,24 @@ export function WholeWeddingSection() {
                 {t("reassuranceLong")}
               </p>
 
-              <Button
-                size="lg"
-                render={<Link href="/enquire" />}
-                className="group mt-8 h-12 w-full gap-2 bg-white px-8 text-base text-zinc-950 hover:bg-zinc-100 sm:w-auto"
-              >
-                {t("cta")}
-                <ArrowRight className="h-4 w-4 transition-transform rtl:-scale-x-100 group-hover:translate-x-0.5 rtl:group-hover:-translate-x-0.5" />
-              </Button>
+              {/* Two ways in, side by side and equally weighted. The form is
+                  not the "real" path with WhatsApp as a fallback: in the Gulf
+                  the reverse is closer to true, so neither is demoted. */}
+              <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
+                <Button
+                  size="lg"
+                  render={<Link href="/enquire" />}
+                  className="group h-12 w-full gap-2 bg-white px-8 text-base text-zinc-950 hover:bg-zinc-100 sm:w-auto"
+                >
+                  {t("cta")}
+                  <ArrowRight className="h-4 w-4 transition-transform rtl:-scale-x-100 group-hover:translate-x-0.5 rtl:group-hover:-translate-x-0.5" />
+                </Button>
+                <WhatsAppCta
+                  surface="home_whole_wedding"
+                  variant="outline"
+                  className="w-full border-white/25 bg-transparent text-zinc-100 hover:bg-white/10 hover:text-white sm:w-auto"
+                />
+              </div>
               <p className="mt-3 text-xs text-zinc-500">{t("ctaHint")}</p>
             </div>
           </motion.div>

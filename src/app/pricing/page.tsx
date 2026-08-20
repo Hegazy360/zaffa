@@ -14,6 +14,8 @@ import { VISION_PACK_COUNTRY_COOKIE } from "@/lib/vision-pack-pricing";
 import { pricedMarkets, quoteGuidanceFor } from "@/lib/concierge-pricing";
 import { MarketSwitcher } from "./_components/market-switcher";
 import { jsonLdScript, serviceLd } from "@/lib/structured-data";
+import { WhatsAppCta } from "@/components/marketing/whatsapp-cta";
+import { REPLY_WITHIN_HOURS } from "@/lib/contact-channels";
 
 export async function generateMetadata(): Promise<Metadata> {
   const locale = await getLocale();
@@ -74,6 +76,7 @@ export default async function PricingPage({
     getTranslations("marketing.pricing"),
     getTranslations("marketing.wholeWedding"),
   ]);
+  const tWa = await getTranslations("whatsapp");
 
   const markets = pricedMarkets();
   // An explicit ?market= wins over the cookie: the switcher and a shared link
@@ -306,16 +309,25 @@ export default async function PricingPage({
               {t("ctaTitle")}
             </h2>
             <p className="mt-3 text-sm text-muted-foreground">{t("ctaBody")}</p>
-            <Button
-              size="lg"
-              render={<Link href="/enquire" />}
-              className="group mt-6 h-12 gap-2 bg-gradient-to-r from-rose-600 to-amber-500 px-8 text-base text-white shadow-lg shadow-rose-600/20 transition-all hover:opacity-90"
-            >
-              {t("cta")}
-              <ArrowRight className="h-4 w-4 transition-transform rtl:-scale-x-100 group-hover:translate-x-0.5 rtl:group-hover:-translate-x-0.5" />
-            </Button>
-            <p className="mt-6 text-xs text-muted-foreground">
-              {tw("ctaHint")}
+            <div className="mt-6 flex flex-col items-center justify-center gap-3 sm:flex-row">
+              <Button
+                size="lg"
+                render={<Link href="/enquire" />}
+                className="group h-12 w-full gap-2 bg-gradient-to-r from-rose-600 to-amber-500 px-8 text-base text-white shadow-lg shadow-rose-600/20 transition-all hover:opacity-90 sm:w-auto"
+              >
+                {t("cta")}
+                <ArrowRight className="h-4 w-4 transition-transform rtl:-scale-x-100 group-hover:translate-x-0.5 rtl:group-hover:-translate-x-0.5" />
+              </Button>
+              {/* Someone who has just read the fee and wants to talk about it
+                  should not have to fill in a wizard first. */}
+              <WhatsAppCta
+                surface="pricing"
+                variant="outline"
+                className="w-full sm:w-auto"
+              />
+            </div>
+            <p className="mt-4 text-xs text-muted-foreground">
+              {tWa("replyPromise", { hours: REPLY_WITHIN_HOURS })}
             </p>
           </div>
         </section>
