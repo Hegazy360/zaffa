@@ -46,7 +46,11 @@
     "required": "Ce champ est obligatoire",
     "uploadFailed": "Échec du téléversement. Réessayez.",
     "imageOnly": "Veuillez choisir un fichier image.",
-    "imageTooLarge": "L'image est trop volumineuse ({size} Mo). Max {max}Mo."
+    "imageTooLarge": "L'image est trop volumineuse ({size} Mo). Max {max}Mo.",
+    "notFoundTitle": "Cette page n'est pas ici.",
+    "notFoundBody": "Le lien est peut-être ancien, ou la page a été déplacée. Tout le reste fonctionne.",
+    "notFoundHome": "Revenir au début",
+    "notFoundEnquire": "Parlez-nous plutôt"
   },
   "account": {
     "changeAvatar": "Changement",

@@ -46,7 +46,11 @@
     "required": "هذا الحقل مطلوب",
     "uploadFailed": "فشل الرفع، حاول مرة أخرى.",
     "imageOnly": "اختر ملف صورة من فضلك.",
-    "imageTooLarge": "حجم الصورة كبير جداً ({size}م.ب). الحد الأقصى {max}م.ب."
+    "imageTooLarge": "حجم الصورة كبير جداً ({size}م.ب). الحد الأقصى {max}م.ب.",
+    "notFoundTitle": "الصفحة دي مش هنا.",
+    "notFoundBody": "يمكن الرابط قديم، أو الصفحة اتنقلت. باقي الموقع شغّال عادي.",
+    "notFoundHome": "ارجعوا للبداية",
+    "notFoundEnquire": "كلّمونا بدل كده"
   },
   "account": {
     "changeAvatar": "تغيير",

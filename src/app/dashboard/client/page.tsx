@@ -19,6 +19,7 @@ import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { EnquiryStatusCard } from "@/components/dashboard/enquiry-status-card";
+import { Skeleton, SkeletonRegion } from "@/components/ui/skeleton";
 import { useFormatters } from "@/lib/use-formatters";
 import type { EventStatus, EventType } from "@/types";
 
@@ -55,6 +56,7 @@ export default function ClientDashboardPage() {
   const utils = trpc.useUtils();
   const t = useTranslations("dashboard");
   const tc = useTranslations("client");
+  const tCommon = useTranslations("common");
 
   const { data: profile } = trpc.profile.me.useQuery();
   const { data: designs, isLoading: designsLoading } =
@@ -138,20 +140,23 @@ export default function ClientDashboardPage() {
           </div>
 
           {designsLoading ? (
-            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            <SkeletonRegion
+              label={tCommon("loading")}
+              className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3"
+            >
               {Array.from({ length: 3 }).map((_, i) => (
                 <div
                   key={i}
                   className="overflow-hidden rounded-2xl bg-card/80 ring-1 ring-foreground/[0.06]"
                 >
-                  <div className="aspect-[4/3] animate-pulse bg-gradient-to-br from-rose-50 to-amber-50/60" />
+                  <Skeleton className="aspect-[4/3] rounded-none" />
                   <div className="space-y-2 p-4">
-                    <div className="h-4 w-2/3 animate-pulse rounded bg-muted" />
-                    <div className="h-3 w-1/2 animate-pulse rounded bg-muted" />
+                    <Skeleton className="h-4 w-2/3" />
+                    <Skeleton className="h-3 w-1/2" />
                   </div>
                 </div>
               ))}
-            </div>
+            </SkeletonRegion>
           ) : !designs || designs.length === 0 ? (
             <DesignsEmptyState onStart={() => router.push("/venue-designer/new")} />
           ) : (
@@ -271,14 +276,14 @@ export default function ClientDashboardPage() {
           </div>
 
           {eventsLoading ? (
-            <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
+            <SkeletonRegion
+              label={tCommon("loading")}
+              className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3"
+            >
               {Array.from({ length: 3 }).map((_, i) => (
-                <div
-                  key={i}
-                  className="h-44 animate-pulse rounded-2xl bg-gradient-to-br from-rose-50 to-amber-50/60"
-                />
+                <Skeleton key={i} className="h-44 rounded-2xl" />
               ))}
-            </div>
+            </SkeletonRegion>
           ) : !events || events.length === 0 ? (
             <EventsEmptyState />
           ) : (

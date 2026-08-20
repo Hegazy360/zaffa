@@ -46,7 +46,11 @@
     "required": "This field is required",
     "uploadFailed": "Upload failed. Try again.",
     "imageOnly": "Please choose an image file.",
-    "imageTooLarge": "Image is too large ({size}MB). Max {max}MB."
+    "imageTooLarge": "Image is too large ({size}MB). Max {max}MB.",
+    "notFoundTitle": "This page isn't here.",
+    "notFoundBody": "The link may be old, or the page may have moved. Everything else still works.",
+    "notFoundHome": "Back to the start",
+    "notFoundEnquire": "Talk to us instead"
   },
   "account": {
     "changeAvatar": "Change",

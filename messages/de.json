@@ -46,7 +46,11 @@
     "required": "Dieses Feld ist erforderlich",
     "uploadFailed": "Upload fehlgeschlagen. Versuchen Sie es erneut.",
     "imageOnly": "Bitte wählen Sie eine Bilddatei aus.",
-    "imageTooLarge": "Das Bild ist zu groß ({size}MB). Max. {max}MB."
+    "imageTooLarge": "Das Bild ist zu groß ({size}MB). Max. {max}MB.",
+    "notFoundTitle": "Diese Seite gibt es hier nicht.",
+    "notFoundBody": "Der Link ist vielleicht alt, oder die Seite wurde verschoben. Alles andere funktioniert weiter.",
+    "notFoundHome": "Zurück zum Anfang",
+    "notFoundEnquire": "Sprechen Sie stattdessen mit uns"
   },
   "account": {
     "changeAvatar": "Änderung",

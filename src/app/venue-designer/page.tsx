@@ -26,6 +26,7 @@ import { usePackPaywall } from "@/components/vision-pack/VisionPackPaywallProvid
 import { useVisionPackPricing } from "@/components/vision-pack/use-pricing";
 import { useIsAnonymous } from "@/lib/use-is-anonymous";
 import { isFreePack } from "@/lib/vision-pack";
+import { Skeleton, SkeletonRegion } from "@/components/ui/skeleton";
 
 interface NormalizedPalette {
   colors: string[];
@@ -47,6 +48,7 @@ export default function VenueDesignerGalleryPage() {
   const reduceMotion = useReducedMotion();
   const t = useTranslations("designer");
   const tv = useTranslations("visionPack");
+  const tCommon = useTranslations("common");
   const f = useFormatters();
   const { data: designs, isLoading } = trpc.venueDesigns.list.useQuery();
   const { data: pack } = trpc.visionPacks.current.useQuery();
@@ -242,24 +244,27 @@ export default function VenueDesignerGalleryPage() {
         )}
 
         {isLoading ? (
-          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          <SkeletonRegion
+            label={tCommon("loading")}
+            className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3"
+          >
             {Array.from({ length: 6 }).map((_, i) => (
               <div
                 key={i}
                 className="overflow-hidden rounded-2xl bg-card/80 ring-1 ring-foreground/[0.06] backdrop-blur-sm"
               >
-                <div className="aspect-[4/3] animate-pulse bg-gradient-to-br from-rose-50 to-amber-50/60 dark:from-rose-950/30 dark:to-amber-950/20" />
+                <Skeleton className="aspect-[4/3] rounded-none" />
                 <div className="space-y-2.5 p-5">
-                  <div className="h-4 w-2/3 animate-pulse rounded bg-muted" />
-                  <div className="h-3 w-1/2 animate-pulse rounded bg-muted" />
-                  <div className="h-3 w-1/3 animate-pulse rounded bg-muted" />
+                  <Skeleton className="h-4 w-2/3" />
+                  <Skeleton className="h-3 w-1/2" />
+                  <Skeleton className="h-3 w-1/3" />
                 </div>
               </div>
             ))}
-            <div className="col-span-full flex items-center justify-center py-2">
-              <Loader2 className="size-5 animate-spin text-rose-500" />
-            </div>
-          </div>
+            {/* The spinner under the grid is gone: a skeleton already says
+                "loading", and the two together read as two separate things
+                loading. */}
+          </SkeletonRegion>
         ) : !designs || designs.length === 0 ? (
           <motion.div
             initial={reduceMotion ? false : { opacity: 0, y: 8 }}
