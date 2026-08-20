@@ -61,7 +61,15 @@ const nextConfig: NextConfig = {
   outputFileTracingIncludes: {
     "/opengraph-image": ["./src/assets/fonts/**"],
     "/r/[renderId]/opengraph-image": ["./src/assets/fonts/**"],
-    "/v/[slug]/opengraph-image": ["./src/assets/fonts/**"],
+    // The microsite card also re-encodes to JPEG with sharp, whose native
+    // libvips sibling gets pruned the same way the fonts do: the deployment
+    // shipped `@img/sharp-linux-x64` without `@img/sharp-libvips-linux-x64`,
+    // and the route 500'd with ERR_DLOPEN_FAILED — in production only, after
+    // passing every local check.
+    "/v/[slug]/opengraph-image": [
+      "./src/assets/fonts/**",
+      "./node_modules/@img/**",
+    ],
   },
   images: {
     remotePatterns: [

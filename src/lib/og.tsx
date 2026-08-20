@@ -1,6 +1,7 @@
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { ImageResponse } from "next/og";
+import { reportError } from "@/lib/logger";
 
 /**
  * Shared pieces of the Open Graph image system.
@@ -33,14 +34,28 @@ export const OG_PHOTO_CONTENT_TYPE = "image/jpeg";
  */
 export async function ogAsJpeg(image: Response): Promise<Response> {
   const png = Buffer.from(await image.arrayBuffer());
-  const { default: sharp } = await import("sharp");
-  const jpeg = await sharp(png).jpeg({ quality: 78, mozjpeg: true }).toBuffer();
-  return new Response(new Uint8Array(jpeg), {
-    headers: {
-      "content-type": OG_PHOTO_CONTENT_TYPE,
-      "cache-control": image.headers.get("cache-control") ?? "public, max-age=3600",
-    },
-  });
+  const cacheControl =
+    image.headers.get("cache-control") ?? "public, max-age=3600";
+
+  try {
+    const { default: sharp } = await import("sharp");
+    const jpeg = await sharp(png)
+      .jpeg({ quality: 78, mozjpeg: true })
+      .toBuffer();
+    return new Response(new Uint8Array(jpeg), {
+      headers: { "content-type": OG_PHOTO_CONTENT_TYPE, "cache-control": cacheControl },
+    });
+  } catch (err) {
+    // sharp is a native module, and native modules are exactly what gets
+    // pruned or mis-linked in a serverless bundle. A card that is too heavy
+    // for WhatsApp still renders everywhere else; a 500 renders nowhere. So
+    // the PNG is served with its own honest content-type and the failure is
+    // reported rather than swallowed.
+    reportError("og.jpeg_encode_failed", err);
+    return new Response(new Uint8Array(png), {
+      headers: { "content-type": OG_CONTENT_TYPE, "cache-control": cacheControl },
+    });
+  }
 }
 
 /** Cool ink, so the rose glow reads (the light/dark rhythm from D3). */
