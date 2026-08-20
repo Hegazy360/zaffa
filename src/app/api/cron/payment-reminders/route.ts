@@ -130,7 +130,7 @@ async function dispatchMissing(
   const existing = await prisma.$queryRaw<{ installment_id: string }[]>`
     select data->>'installmentId' as installment_id
     from notifications
-    where type = ${type}::notification_type
+    where type = ${type}::"NotificationType"
       and data->>'installmentId' = any(${installmentIds}::text[])
   `;
   const seen = new Set(existing.map((e) => e.installment_id));
