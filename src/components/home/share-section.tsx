@@ -27,7 +27,7 @@ export function ShareSection() {
   return (
     <section
       aria-label={t("shareAria")}
-      className="relative isolate overflow-hidden border-y border-brand-line bg-gradient-to-b from-rose-50/40 via-background to-amber-50/30 dark:border-rose-900/40 dark:from-rose-950/20 dark:to-amber-950/10"
+      className="relative isolate overflow-hidden border-y border-brand-line bg-gradient-to-b from-rose-50/40 via-background to-amber-50/30"
     >
       <div
         aria-hidden
@@ -40,7 +40,7 @@ export function ShareSection() {
 
       <div className="relative mx-auto max-w-6xl px-4 py-20 sm:py-24">
         <header className="mx-auto mb-14 max-w-2xl text-center sm:mb-20">
-          <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-rose-200/60 bg-rose-50/70 px-4 py-1.5 text-[0.7rem] uppercase tracking-[0.3em] text-rose-700 backdrop-blur-md dark:border-rose-900/40 dark:bg-rose-950/30 dark:text-rose-200">
+          <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-rose-200/60 bg-rose-50/70 px-4 py-1.5 text-[0.7rem] uppercase tracking-[0.3em] text-rose-700 backdrop-blur-md">
             <Heart className="h-3.5 w-3.5" />
             {t("shareEyebrow")}
           </div>
@@ -93,7 +93,7 @@ export function ShareSection() {
         >
           <span className="inline-flex items-center gap-2">
             <Users className="size-4 text-rose-600" />
-            <span className="text-[10px] font-medium uppercase tracking-[0.28em] text-rose-700/80 dark:text-rose-300/80">
+            <span className="text-[10px] font-medium uppercase tracking-[0.28em] text-rose-700/80">
               {t("shareAudienceEyebrow")}
             </span>
           </span>
@@ -138,14 +138,14 @@ function ArtefactCard({
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: "-15% 0px" }}
       transition={{ duration: reduce ? 0 : 0.8, ease: [0.16, 1, 0.3, 1] }}
-      className="group relative flex flex-col overflow-hidden rounded-3xl border border-brand-line bg-white/70 p-6 shadow-glow-lg backdrop-blur-sm sm:p-8 dark:border-rose-900/40 dark:bg-card/70"
+      className="group relative flex flex-col overflow-hidden rounded-3xl border border-brand-line bg-white/70 p-6 shadow-glow-lg backdrop-blur-sm sm:p-8"
     >
       <div className="mb-6">
         {kind === "microsite" ? <MicrositePreview /> : <LookbookPreview />}
       </div>
 
       <div className="flex items-center gap-2">
-        <span className="grid size-8 place-items-center rounded-full border border-rose-200/70 bg-gradient-to-br from-rose-50 to-amber-50 text-rose-700 ring-1 ring-rose-200/40 dark:border-rose-900/50 dark:from-rose-950/40 dark:to-amber-950/30 dark:text-rose-200">
+        <span className="grid size-8 place-items-center rounded-full border border-rose-200/70 bg-gradient-to-br from-rose-50 to-amber-50 text-rose-700 ring-1 ring-rose-200/40">
           <Icon className="size-3.5" strokeWidth={2} />
         </span>
         <span className="text-[10px] font-medium uppercase tracking-[0.28em] text-muted-foreground">
@@ -179,14 +179,14 @@ function ArtefactCard({
 // not pixel-accurate UI.
 function MicrositePreview() {
   return (
-    <div className="relative overflow-hidden rounded-2xl border border-brand-line bg-gradient-to-br from-rose-50/80 via-white to-amber-50/60 ring-1 ring-foreground/[0.04] dark:border-rose-900/40 dark:from-rose-950/30 dark:via-card/80 dark:to-amber-950/20">
-      <div className="flex items-center gap-2 border-b border-brand-line bg-white/60 px-3 py-2 dark:border-rose-900/40 dark:bg-card/40">
+    <div className="relative overflow-hidden rounded-2xl border border-brand-line bg-gradient-to-br from-rose-50/80 via-white to-amber-50/60 ring-1 ring-foreground/[0.04]">
+      <div className="flex items-center gap-2 border-b border-brand-line bg-white/60 px-3 py-2">
         <div className="flex items-center gap-1.5">
           <span className="size-2 rounded-full bg-rose-300/70" />
           <span className="size-2 rounded-full bg-amber-300/70" />
           <span className="size-2 rounded-full bg-emerald-300/70" />
         </div>
-        <div className="flex flex-1 items-center gap-1.5 truncate rounded-md bg-rose-50/70 px-2.5 py-1 text-[10px] font-mono text-rose-700/80 dark:bg-rose-950/40 dark:text-rose-200/80">
+        <div className="flex flex-1 items-center gap-1.5 truncate rounded-md bg-rose-50/70 px-2.5 py-1 text-[10px] font-mono text-rose-700/80">
           <Globe className="size-3 shrink-0" strokeWidth={2} />
           <span className="truncate">zaffa.ai/v/jasmine-omar</span>
         </div>
@@ -229,7 +229,7 @@ function MicrositePreview() {
         {MICROSITE_THUMB_IMAGES.map((src) => (
           <div
             key={src}
-            className="relative aspect-square overflow-hidden rounded-md bg-rose-100/60 ring-1 ring-foreground/[0.04] dark:bg-rose-950/30"
+            className="relative aspect-square overflow-hidden rounded-md bg-rose-100/60 ring-1 ring-foreground/[0.04]"
           >
             <Image
               src={src}
@@ -252,9 +252,9 @@ function LookbookPreview() {
     <div className="relative aspect-[16/10] w-full">
       <div
         aria-hidden
-        className="absolute end-[6%] top-[8%] h-[88%] w-[58%] rotate-[4deg] rounded-xl border border-brand-line bg-gradient-to-br from-rose-50/80 via-white to-amber-50/60 shadow-glow dark:border-rose-900/40 dark:from-rose-950/30 dark:via-card/80 dark:to-amber-950/20"
+        className="absolute end-[6%] top-[8%] h-[88%] w-[58%] rotate-[4deg] rounded-xl border border-brand-line bg-gradient-to-br from-rose-50/80 via-white to-amber-50/60 shadow-glow"
       />
-      <div className="absolute start-[4%] top-[4%] flex h-[92%] w-[62%] -rotate-[2deg] flex-col overflow-hidden rounded-xl border border-brand-line bg-gradient-to-br from-white via-rose-50/40 to-amber-50/40 p-4 shadow-glow-lg ring-1 ring-foreground/[0.04] sm:p-5 dark:border-rose-900/40 dark:from-card dark:via-rose-950/20 dark:to-amber-950/10">
+      <div className="absolute start-[4%] top-[4%] flex h-[92%] w-[62%] -rotate-[2deg] flex-col overflow-hidden rounded-xl border border-brand-line bg-gradient-to-br from-white via-rose-50/40 to-amber-50/40 p-4 shadow-glow-lg ring-1 ring-foreground/[0.04] sm:p-5">
         <p className="text-[8px] font-medium uppercase tracking-[0.32em] text-rose-700/80 sm:text-[9px]">
           Wedding Vision Pack
         </p>

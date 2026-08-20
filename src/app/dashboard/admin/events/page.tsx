@@ -42,7 +42,7 @@ export default async function AdminEventsPage() {
   });
 
   return (
-    <div className="relative isolate min-h-[calc(100vh-4rem)] w-full overflow-x-hidden bg-gradient-to-b from-rose-50/40 via-background to-background dark:from-rose-950/15">
+    <div className="relative isolate min-h-[calc(100vh-4rem)] w-full overflow-x-hidden bg-gradient-to-b from-rose-50/40 via-background to-background">
       <div
         aria-hidden
         className="pointer-events-none absolute inset-0 grain-bg opacity-30"
@@ -70,14 +70,14 @@ export default async function AdminEventsPage() {
             </p>
           </div>
         ) : (
-          <ul className="divide-y divide-rose-100/70 rounded-2xl border border-brand-line bg-white/80 backdrop-blur-sm dark:divide-rose-900/30 dark:border-rose-900/30 dark:bg-card/80">
+          <ul className="divide-y divide-rose-100/70 rounded-2xl border border-brand-line bg-white/80 backdrop-blur-sm">
             {events.map((event) => (
               <li key={event.id}>
                 <Link
                   href={`/dashboard/admin/events/${event.id}`}
-                  className="flex items-center gap-4 px-5 py-4 transition hover:bg-rose-50/40 dark:hover:bg-rose-950/20"
+                  className="flex items-center gap-4 px-5 py-4 transition hover:bg-rose-50/40"
                 >
-                  <div className="grid size-10 shrink-0 place-items-center rounded-full bg-rose-100 text-rose-700 dark:bg-rose-950/40 dark:text-rose-300">
+                  <div className="grid size-10 shrink-0 place-items-center rounded-full bg-rose-100 text-rose-700">
                     <Sparkles className="size-4" />
                   </div>
                   <div className="min-w-0 flex-1">
@@ -93,7 +93,7 @@ export default async function AdminEventsPage() {
                       {event.venue ? ` · ${event.venue}` : ""}
                     </p>
                   </div>
-                  <span className="hidden shrink-0 rounded-full bg-rose-50 px-2 py-1 text-[10px] font-medium uppercase tracking-wider text-rose-700 sm:inline-flex dark:bg-rose-950/40 dark:text-rose-200">
+                  <span className="hidden shrink-0 rounded-full bg-rose-50 px-2 py-1 text-[10px] font-medium uppercase tracking-wider text-rose-700 sm:inline-flex">
                     {event._count.venue_recommendations} rec
                     {event._count.venue_recommendations === 1 ? "" : "s"}
                   </span>

@@ -92,21 +92,21 @@ export default function PlannerDashboardPage() {
   const engaged = (myProposals ?? []).filter((p) => p.status === "accepted");
 
   return (
-    <div className="relative isolate min-h-[calc(100vh-4rem)] w-full overflow-x-hidden bg-gradient-to-b from-rose-50/50 via-background to-background dark:from-rose-950/15">
+    <div className="relative isolate min-h-[calc(100vh-4rem)] w-full overflow-x-hidden bg-gradient-to-b from-rose-50/50 via-background to-background">
       <div
         aria-hidden
         className="pointer-events-none absolute inset-0 grain-bg opacity-40"
       />
       <div
         aria-hidden
-        className="pointer-events-none absolute -top-40 left-1/2 -z-10 h-[28rem] w-[28rem] -translate-x-1/2 rounded-full bg-gradient-to-br from-rose-200/30 to-amber-200/20 blur-3xl dark:from-rose-900/15 dark:to-amber-900/10"
+        className="pointer-events-none absolute -top-40 left-1/2 -z-10 h-[28rem] w-[28rem] -translate-x-1/2 rounded-full bg-gradient-to-br from-rose-200/30 to-amber-200/20 blur-3xl"
       />
 
       <div className="mx-auto max-w-6xl px-6 py-12 sm:py-16">
         {/* Hero */}
         <header className="mb-12 flex flex-col items-start gap-5 sm:flex-row sm:items-end sm:justify-between">
           <div className="space-y-3">
-            <div className="inline-flex items-center gap-2 rounded-full border border-rose-200/70 bg-rose-50/70 px-3.5 py-1 text-[11px] font-medium uppercase tracking-[0.18em] text-rose-700 backdrop-blur-sm dark:border-rose-900/50 dark:bg-rose-950/30 dark:text-rose-200">
+            <div className="inline-flex items-center gap-2 rounded-full border border-rose-200/70 bg-rose-50/70 px-3.5 py-1 text-[11px] font-medium uppercase tracking-[0.18em] text-rose-700 backdrop-blur-sm">
               <Sparkles className="size-3" />
               {tEyebrow("planner")}
             </div>
@@ -300,7 +300,7 @@ function StatCard({
   sublabel?: string;
 }) {
   return (
-    <div className="rounded-2xl border border-brand-line bg-white/70 p-5 backdrop-blur-sm ring-1 ring-foreground/[0.04] dark:border-rose-900/30 dark:bg-card/80">
+    <div className="rounded-2xl border border-brand-line bg-white/70 p-5 backdrop-blur-sm ring-1 ring-foreground/[0.04]">
       <div className="mb-3 flex items-center justify-between">
         <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-muted-foreground">
           {label}
@@ -339,7 +339,7 @@ function BriefCard({ brief }: BriefCardProps) {
   return (
     <Link
       href={`/dashboard/planner/marketplace/${brief.id}`}
-      className="group relative block overflow-hidden rounded-2xl border border-brand-line bg-white/80 backdrop-blur-sm ring-1 ring-foreground/[0.04] transition-all hover:-translate-y-0.5 hover:shadow-[0_20px_50px_-20px_rgba(244,63,94,0.25)] dark:border-rose-900/30 dark:bg-card/80"
+      className="group relative block overflow-hidden rounded-2xl border border-brand-line bg-white/80 backdrop-blur-sm ring-1 ring-foreground/[0.04] transition-all hover:-translate-y-0.5 hover:shadow-[0_20px_50px_-20px_rgba(244,63,94,0.25)]"
     >
       <div className="relative aspect-[4/3] overflow-hidden bg-gradient-to-br from-rose-50 to-amber-50/60">
         {heroImage ? (
@@ -411,7 +411,7 @@ function EngagementCard({ proposal }: { proposal: EngagementProposal }) {
   return (
     <Link
       href={`/dashboard/planner/event/${proposal.event.id}`}
-      className="group relative block overflow-hidden rounded-2xl border border-brand-line bg-white/80 backdrop-blur-sm ring-1 ring-foreground/[0.04] transition-all hover:-translate-y-0.5 hover:shadow-[0_20px_50px_-20px_rgba(244,63,94,0.25)] dark:border-rose-900/30 dark:bg-card/80"
+      className="group relative block overflow-hidden rounded-2xl border border-brand-line bg-white/80 backdrop-blur-sm ring-1 ring-foreground/[0.04] transition-all hover:-translate-y-0.5 hover:shadow-[0_20px_50px_-20px_rgba(244,63,94,0.25)]"
     >
       <div className="relative aspect-[16/9] overflow-hidden bg-gradient-to-br from-rose-50 to-amber-50/60">
         {proposal.event.heroImage ? (
@@ -484,7 +484,7 @@ function MonthList({
   accent: "rose" | "stone";
 }) {
   return (
-    <div className="rounded-2xl border border-brand-line bg-white/70 p-5 backdrop-blur-sm ring-1 ring-foreground/[0.04] dark:border-rose-900/30 dark:bg-card/80">
+    <div className="rounded-2xl border border-brand-line bg-white/70 p-5 backdrop-blur-sm ring-1 ring-foreground/[0.04]">
       <p className="mb-3 text-[10px] font-medium uppercase tracking-[0.2em] text-muted-foreground">
         {title}
       </p>
@@ -535,7 +535,7 @@ function EmptyCard({
   ctaLabel?: string;
 }) {
   return (
-    <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-rose-200/70 bg-white/40 px-6 py-16 text-center backdrop-blur-sm dark:border-rose-900/40 dark:bg-card/40">
+    <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-rose-200/70 bg-white/40 px-6 py-16 text-center backdrop-blur-sm">
       <div className="mb-5 grid size-14 place-items-center rounded-full bg-gradient-to-br from-rose-100 to-amber-100 ring-1 ring-rose-200/60">
         {icon}
       </div>

@@ -65,7 +65,7 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="relative isolate min-h-[calc(100vh-4rem)] w-full overflow-x-hidden bg-gradient-to-b from-rose-50/50 via-background to-background dark:from-rose-950/15">
+    <div className="relative isolate min-h-[calc(100vh-4rem)] w-full overflow-x-hidden bg-gradient-to-b from-rose-50/50 via-background to-background">
       <div
         aria-hidden
         className="pointer-events-none absolute inset-0 grain-bg opacity-30"
@@ -84,7 +84,7 @@ export default function SettingsPage() {
           </p>
         </header>
 
-        <div className="overflow-hidden rounded-2xl border border-brand-line bg-white/80 backdrop-blur-sm dark:border-rose-900/30 dark:bg-card/80">
+        <div className="overflow-hidden rounded-2xl border border-brand-line bg-white/80 backdrop-blur-sm">
           <div className="space-y-5 p-6">
             <AvatarUploader
               currentUrl={profile?.avatar_url ?? null}
@@ -148,7 +148,7 @@ export default function SettingsPage() {
 
           <PasswordChangeCard email={profile?.email ?? null} />
 
-          <div className="rounded-2xl border border-brand-line bg-white/70 p-4 backdrop-blur-sm dark:border-rose-900/30 dark:bg-card/70">
+          <div className="rounded-2xl border border-brand-line bg-white/70 p-4 backdrop-blur-sm">
             <div className="flex items-center justify-between gap-3">
               <div>
                 <p className="text-sm font-medium">{tc("signOut")}</p>

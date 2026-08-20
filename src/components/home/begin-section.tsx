@@ -48,7 +48,7 @@ export function BeginSection() {
   const t = useTranslations("marketing");
 
   return (
-    <section className="relative isolate overflow-hidden bg-zinc-950 text-zinc-50">
+    <section className="surface-dark relative isolate overflow-hidden">
       {/* Atmosphere */}
       <div
         aria-hidden
@@ -104,7 +104,7 @@ export function BeginSection() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-15% 0px" }}
             transition={{ duration: reduce ? 0 : 0.7, delay: 0.15 }}
-            className="mt-5 max-w-xl text-pretty text-base text-zinc-300 sm:mt-6 md:text-lg"
+            className="mt-5 max-w-xl text-pretty text-base text-muted-foreground sm:mt-6 md:text-lg"
           >
             {t("beginSubtitle")}
           </motion.p>
@@ -161,12 +161,12 @@ export function BeginSection() {
               size="lg"
               variant="outline"
               render={<Link href="/venue-designer" />}
-              className="h-12 w-full gap-2 border-white/20 bg-white/5 px-6 text-base text-zinc-100 backdrop-blur-sm hover:bg-white/10 hover:text-white sm:w-auto sm:px-8"
+              className="h-12 w-full gap-2 border-white/20 bg-white/5 px-6 text-base text-foreground backdrop-blur-sm hover:bg-white/10 hover:text-white sm:w-auto sm:px-8"
             >
               {t("beginCta", { price: pricing.label })}
             </Button>
           </motion.div>
-          <p className="mt-3 text-xs text-zinc-400">
+          <p className="mt-3 text-xs text-muted-foreground">
             {t("beginCtaHint")}
           </p>
 
@@ -178,7 +178,7 @@ export function BeginSection() {
             transition={{ duration: reduce ? 0 : 0.8, delay: 0.4 }}
             className="mt-12 max-w-xl sm:mt-16"
           >
-            <p className="mb-3 text-[0.6rem] uppercase tracking-[0.28em] text-zinc-400 sm:text-[0.65rem] sm:tracking-[0.3em] rtl:tracking-normal">
+            <p className="mb-3 text-[0.6rem] uppercase tracking-[0.28em] text-muted-foreground sm:text-[0.65rem] sm:tracking-[0.3em] rtl:tracking-normal">
               {t("beginAsSeenIn")}
             </p>
             <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-foreground/65 sm:gap-x-5">

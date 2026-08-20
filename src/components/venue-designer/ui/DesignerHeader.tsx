@@ -236,7 +236,7 @@ export function DesignerHeader({
             <Button
               size="sm"
               variant="outline"
-              className="h-9 flex-1 gap-1.5 border-rose-200/70 bg-background text-xs text-rose-700 hover:bg-rose-50 md:h-7 md:flex-none dark:border-rose-900/40 dark:text-rose-200 dark:hover:bg-rose-950/30"
+              className="h-9 flex-1 gap-1.5 border-rose-200/70 bg-background text-xs text-rose-700 hover:bg-rose-50 md:h-7 md:flex-none"
               onClick={() => setUpgradeOpen(true)}
               aria-label={tVp("upgradeApproveTitle")}
             >

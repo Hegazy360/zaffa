@@ -63,7 +63,7 @@ export function VisionPackUpgradeCta({
         size="sm"
         disabled={startUpgrade.isPending}
         onClick={() => startUpgrade.mutate({ returnPath })}
-        className="gap-2 border-rose-300 text-rose-700 hover:bg-rose-50 hover:text-rose-800 dark:border-rose-800 dark:text-rose-200 dark:hover:bg-rose-950/40"
+        className="gap-2 border-rose-300 text-rose-700 hover:bg-rose-50 hover:text-rose-800"
       >
         {startUpgrade.isPending ? (
           <Loader2 className="size-4 animate-spin" />
@@ -76,8 +76,8 @@ export function VisionPackUpgradeCta({
   }
 
   return (
-    <div className="rounded-2xl border border-rose-200/70 bg-gradient-to-br from-rose-50/80 via-white to-amber-50/60 p-4 shadow-sm dark:border-rose-900/40 dark:from-rose-950/30 dark:via-background dark:to-amber-950/20">
-      <div className="text-[10px] font-semibold tracking-[0.2em] text-rose-700 uppercase dark:text-rose-300">
+    <div className="rounded-2xl border border-rose-200/70 bg-gradient-to-br from-rose-50/80 via-white to-amber-50/60 p-4 shadow-sm">
+      <div className="text-[10px] font-semibold tracking-[0.2em] text-rose-700 uppercase">
         {t("upgradeCtaEyebrow")}
       </div>
       <h3 className="font-display mt-1 text-xl font-light tracking-tight">

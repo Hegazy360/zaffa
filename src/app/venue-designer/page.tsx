@@ -154,14 +154,14 @@ export default function VenueDesignerGalleryPage() {
         bounced to /new (effect above); permanent users on the free pack
         keep the chrome-less feel they had during the try-it-free flow. */}
     {!onFreeTier && <Navbar />}
-    <div className="relative isolate min-h-screen w-full overflow-x-hidden bg-gradient-to-b from-rose-50/50 via-background to-background dark:from-rose-950/15">
+    <div className="relative isolate min-h-screen w-full overflow-x-hidden bg-gradient-to-b from-rose-50/50 via-background to-background">
       <div
         aria-hidden
         className="pointer-events-none absolute inset-0 grain-bg opacity-50"
       />
       <div
         aria-hidden
-        className="pointer-events-none absolute -top-40 left-1/2 -z-10 h-[28rem] w-[28rem] -translate-x-1/2 rounded-full bg-gradient-to-br from-rose-200/30 to-amber-200/20 blur-3xl dark:from-rose-900/15 dark:to-amber-900/10"
+        className="pointer-events-none absolute -top-40 left-1/2 -z-10 h-[28rem] w-[28rem] -translate-x-1/2 rounded-full bg-gradient-to-br from-rose-200/30 to-amber-200/20 blur-3xl"
       />
 
       <div className="mx-auto max-w-6xl px-6 py-16 sm:py-20">
@@ -172,7 +172,7 @@ export default function VenueDesignerGalleryPage() {
           className="mb-12 flex flex-col items-start gap-5 sm:mb-14 sm:flex-row sm:items-end sm:justify-between"
         >
           <div className="space-y-3">
-            <div className="inline-flex items-center gap-2 rounded-full border border-rose-200/70 bg-rose-50/70 px-3.5 py-1 text-[11px] font-medium tracking-[0.18em] text-rose-700 uppercase backdrop-blur-sm dark:border-rose-900/50 dark:bg-rose-950/30 dark:text-rose-200">
+            <div className="inline-flex items-center gap-2 rounded-full border border-rose-200/70 bg-rose-50/70 px-3.5 py-1 text-[11px] font-medium tracking-[0.18em] text-rose-700 uppercase backdrop-blur-sm">
               <Sparkles className="size-3" />
               {t("atelierEyebrow")}
             </div>
@@ -214,11 +214,11 @@ export default function VenueDesignerGalleryPage() {
             initial={reduceMotion ? false : { opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
-            className="mb-12 overflow-hidden rounded-2xl border border-rose-200/70 bg-gradient-to-br from-rose-50/80 via-white to-amber-50/60 p-6 shadow-sm dark:border-rose-900/50 dark:from-rose-950/30 dark:via-background dark:to-amber-950/20 sm:p-8"
+            className="mb-12 overflow-hidden rounded-2xl border border-rose-200/70 bg-gradient-to-br from-rose-50/80 via-white to-amber-50/60 p-6 shadow-sm sm:p-8"
           >
             <div className="flex flex-col items-start gap-5 sm:flex-row sm:items-center sm:justify-between">
               <div className="space-y-2 max-w-xl">
-                <div className="inline-flex items-center gap-1.5 rounded-full border border-rose-200/70 bg-white/80 px-3 py-1 text-[10px] font-medium tracking-[0.2em] text-rose-700 uppercase backdrop-blur-sm dark:border-rose-900/50 dark:bg-rose-950/40 dark:text-rose-200">
+                <div className="inline-flex items-center gap-1.5 rounded-full border border-rose-200/70 bg-white/80 px-3 py-1 text-[10px] font-medium tracking-[0.2em] text-rose-700 uppercase backdrop-blur-sm">
                   <Sparkles className="size-3" />
                   {tv("name")}
                 </div>
@@ -272,8 +272,8 @@ export default function VenueDesignerGalleryPage() {
             transition={{ duration: 0.4, delay: 0.1 }}
             className="flex flex-col items-center justify-center py-24 text-center"
           >
-            <div className="mb-6 grid size-16 place-items-center rounded-full bg-gradient-to-br from-rose-100 to-amber-100 ring-1 ring-rose-200/60 dark:from-rose-950/50 dark:to-amber-950/30 dark:ring-rose-900/40">
-              <Sparkles className="size-7 text-rose-600 dark:text-rose-300" />
+            <div className="mb-6 grid size-16 place-items-center rounded-full bg-gradient-to-br from-rose-100 to-amber-100 ring-1 ring-rose-200/60">
+              <Sparkles className="size-7 text-rose-600" />
             </div>
             <h2 className="font-display text-2xl font-light tracking-tight">
               {t("noDesignsTitle")}
@@ -327,10 +327,10 @@ export default function VenueDesignerGalleryPage() {
                         className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
                       />
                     ) : (
-                      <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-rose-50 via-rose-50/60 to-amber-50 dark:from-rose-950/40 dark:via-rose-950/20 dark:to-amber-950/30">
+                      <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-rose-50 via-rose-50/60 to-amber-50">
                         <div className="text-center">
-                          <div className="mx-auto mb-2 grid size-12 place-items-center rounded-full bg-white/70 ring-1 ring-rose-200/60 backdrop-blur-sm dark:bg-rose-950/50 dark:ring-rose-900/50">
-                            <Sparkles className="size-5 text-rose-500 dark:text-rose-300" />
+                          <div className="mx-auto mb-2 grid size-12 place-items-center rounded-full bg-white/70 ring-1 ring-rose-200/60 backdrop-blur-sm">
+                            <Sparkles className="size-5 text-rose-500" />
                           </div>
                           <p className="text-[11px] tracking-wide text-muted-foreground">
                             {t("noRenderYet")}
@@ -369,7 +369,7 @@ export default function VenueDesignerGalleryPage() {
 
                     <div
                       aria-hidden
-                      className="pointer-events-none absolute bottom-3 end-3 grid size-9 translate-y-0 place-items-center rounded-full bg-white/95 text-rose-600 opacity-100 shadow-lg transition-all md:translate-y-2 md:opacity-0 md:group-hover:translate-y-0 md:group-hover:opacity-100 dark:bg-rose-50/90"
+                      className="pointer-events-none absolute bottom-3 end-3 grid size-9 translate-y-0 place-items-center rounded-full bg-white/95 text-rose-600 opacity-100 shadow-lg transition-all md:translate-y-2 md:opacity-0 md:group-hover:translate-y-0 md:group-hover:opacity-100"
                     >
                       <ArrowRight className="size-4 rtl:-scale-x-100" />
                     </div>
@@ -387,7 +387,7 @@ export default function VenueDesignerGalleryPage() {
                     <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
                       <span>{f.relativeTime(new Date(design.updated_at))}</span>
                       {design._count.media > 0 && (
-                        <span className="inline-flex items-center gap-1 rounded-full bg-rose-50 px-1.5 py-0.5 text-rose-700 ring-1 ring-rose-200/60 dark:bg-rose-950/40 dark:text-rose-300 dark:ring-rose-900/50">
+                        <span className="inline-flex items-center gap-1 rounded-full bg-rose-50 px-1.5 py-0.5 text-rose-700 ring-1 ring-rose-200/60">
                           <ImageIcon className="size-3" />
                           {f.number(design._count.media)}
                         </span>

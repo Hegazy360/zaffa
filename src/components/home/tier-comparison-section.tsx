@@ -54,7 +54,7 @@ export function TierComparisonSection() {
       />
       <div className="container mx-auto max-w-6xl px-4 py-20 md:py-28">
         <div className="mx-auto max-w-2xl text-center">
-          <p className="inline-flex items-center gap-2 rounded-full border border-rose-200/60 bg-white/60 px-3 py-1 text-[0.65rem] uppercase tracking-[0.18em] text-rose-700 dark:border-rose-900/40 dark:bg-rose-950/30 dark:text-rose-200">
+          <p className="inline-flex items-center gap-2 rounded-full border border-rose-200/60 bg-white/60 px-3 py-1 text-[0.65rem] uppercase tracking-[0.18em] text-rose-700">
             <Sparkles className="h-3 w-3" />
             {t("tiersEyebrow")}
           </p>
@@ -127,10 +127,10 @@ function TierCard({ tier, idx, reduce }: TierCardProps) {
         delay: reduce ? 0 : idx * 0.1,
       }}
       className={cn(
-        "relative flex flex-col overflow-hidden rounded-3xl border bg-white/90 p-7 dark:bg-card/80",
+        "relative flex flex-col overflow-hidden rounded-3xl border bg-white/90 p-7",
         isVision
-          ? "border-rose-300 shadow-glow-lg ring-1 ring-rose-200/60 dark:border-rose-700"
-          : "border-brand-line dark:border-rose-900/30",
+          ? "border-rose-300 shadow-glow-lg ring-1 ring-rose-200/60"
+          : "border-brand-line",
       )}
     >
       {isVision ? (
@@ -208,7 +208,7 @@ function TierCard({ tier, idx, reduce }: TierCardProps) {
         )}
       </ul>
 
-      <div className="mt-7 pt-6 border-t border-brand-line dark:border-rose-900/30">
+      <div className="mt-7 pt-6 border-t border-brand-line">
         <Button
           type="button"
           size="lg"
@@ -251,7 +251,7 @@ function IncludedRow({
 }) {
   return (
     <li className="flex items-start gap-2">
-      <span className="mt-0.5 grid h-5 w-5 flex-shrink-0 place-items-center rounded-full bg-rose-50 text-rose-600 dark:bg-rose-950/40 dark:text-rose-300">
+      <span className="mt-0.5 grid h-5 w-5 flex-shrink-0 place-items-center rounded-full bg-rose-50 text-rose-600">
         <Check className="h-3 w-3" />
       </span>
       <span className="flex-1 text-foreground/90">
@@ -305,7 +305,7 @@ function WholeWeddingCard({
         duration: reduce ? 0 : 0.6,
         delay: reduce ? 0 : idx * 0.1,
       }}
-      className="relative flex flex-col overflow-hidden rounded-3xl border border-zinc-800 bg-zinc-950 p-7 text-zinc-50 shadow-xl shadow-zinc-900/20"
+      className="surface-dark relative flex flex-col overflow-hidden rounded-plate border border-border p-7 shadow-xl shadow-zinc-900/20"
     >
       <div
         aria-hidden
@@ -313,10 +313,10 @@ function WholeWeddingCard({
       />
 
       <div className="relative">
-        <p className="text-[0.65rem] uppercase tracking-[0.22em] text-zinc-400 rtl:tracking-normal">
+        <p className="text-[0.65rem] uppercase tracking-[0.22em] text-muted-foreground rtl:tracking-normal">
           {w("eyebrow")}
         </p>
-        <p className="mt-1 text-sm text-zinc-400">{w("cardTagline")}</p>
+        <p className="mt-1 text-sm text-muted-foreground">{w("cardTagline")}</p>
 
         {/* Where the packs print a number, this prints what happens instead.
             Same slot, same rhythm, so the row still scans as a price line. */}
@@ -324,13 +324,13 @@ function WholeWeddingCard({
           <span className="font-display text-3xl font-light tracking-tight">
             {w("priceLabel")}
           </span>
-          <span className="text-xs text-zinc-400">{w("priceHint")}</span>
+          <span className="text-xs text-muted-foreground">{w("priceHint")}</span>
         </div>
       </div>
 
       <ul className="relative mt-6 space-y-2.5 text-sm">
         {(["card1", "card2", "card3", "card4"] as const).map((key) => (
-          <li key={key} className="flex items-start gap-2.5 text-zinc-300">
+          <li key={key} className="flex items-start gap-2.5 text-muted-foreground">
             <span
               aria-hidden
               className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-gradient-to-br from-rose-400 to-amber-300"

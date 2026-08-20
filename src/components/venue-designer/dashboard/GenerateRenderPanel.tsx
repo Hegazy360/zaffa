@@ -600,7 +600,7 @@ export function GenerateRenderPanel({ designId }: GenerateRenderPanelProps) {
                   disabled controls, and titles don't surface on touch
                   devices at all. */}
               {onFreeTier && (
-                <p className="rounded-md border border-rose-200/70 bg-rose-50/60 px-3 py-2 text-[11px] leading-relaxed text-rose-800 dark:border-rose-900/40 dark:bg-rose-950/30 dark:text-rose-200">
+                <p className="rounded-md border border-rose-200/70 bg-rose-50/60 px-3 py-2 text-[11px] leading-relaxed text-rose-800">
                   {t("freeTierActionsHint")}
                 </p>
               )}

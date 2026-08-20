@@ -62,14 +62,14 @@ export function HeroEditorial({
   }, [pricing.isLoading, pricing.amount, pricing.currency]);
 
   return (
-    <section className="relative isolate overflow-hidden bg-gradient-to-b from-rose-50/60 via-background to-background dark:from-rose-950/20">
+    <section className="relative isolate overflow-hidden bg-gradient-to-b from-rose-50/60 via-background to-background">
       <div
         aria-hidden
         className="pointer-events-none absolute inset-0 grain-bg opacity-60"
       />
       <div
         aria-hidden
-        className="pointer-events-none absolute -top-40 -end-32 h-[36rem] w-[36rem] rounded-full bg-gradient-to-br from-rose-200/40 to-amber-200/30 blur-3xl dark:from-rose-900/20 dark:to-amber-900/10"
+        className="pointer-events-none absolute -top-40 -end-32 h-[36rem] w-[36rem] rounded-full bg-gradient-to-br from-rose-200/40 to-amber-200/30 blur-3xl"
       />
 
       {/* Two-row × 12-col grid on desktop, single column on mobile.
@@ -82,7 +82,7 @@ export function HeroEditorial({
       <div className="container relative mx-auto grid max-w-7xl gap-y-10 px-4 pt-20 pb-20 md:pt-28 md:pb-32 lg:grid-cols-12 lg:gap-x-16 lg:gap-y-10 lg:pb-32">
         <div className="lg:col-span-6 lg:row-start-1 lg:self-end">
           <div
-            className="hero-rise mb-5 inline-flex w-fit items-center gap-2 rounded-full border border-rose-200/60 bg-white/60 px-3 py-1.5 text-[0.65rem] uppercase tracking-[0.18em] text-rose-700 backdrop-blur-md sm:mb-6 sm:px-4 sm:text-xs dark:border-rose-900/40 dark:bg-rose-950/30 dark:text-rose-200"
+            className="hero-rise mb-5 inline-flex w-fit items-center gap-2 rounded-full border border-rose-200/60 bg-white/60 px-3 py-1.5 text-[0.65rem] uppercase tracking-[0.18em] text-rose-700 backdrop-blur-md sm:mb-6 sm:px-4 sm:text-xs"
           >
             <Sparkles className="h-3.5 w-3.5" />
             {t("heroEyebrow")}
@@ -159,7 +159,7 @@ export function HeroEditorial({
               size="lg"
               variant="outline"
               render={<Link href="#how-it-works" />}
-              className="h-12 w-full gap-2 border-rose-200/80 bg-white px-6 text-base text-rose-700 hover:bg-rose-50/70 hover:text-rose-700 sm:w-auto sm:px-8 dark:border-rose-900/40 dark:bg-card dark:text-rose-200 dark:hover:bg-rose-950/20 dark:hover:text-rose-200"
+              className="h-12 w-full gap-2 border-rose-200/80 bg-white px-6 text-base text-rose-700 hover:bg-rose-50/70 hover:text-rose-700 sm:w-auto sm:px-8"
             >
               {t("heroCtaSecondary")}
             </Button>

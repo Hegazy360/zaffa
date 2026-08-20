@@ -160,7 +160,7 @@ export function EnquireWizard({
               "h-1 flex-1 rounded-full transition-colors",
               i <= step
                 ? "bg-brand-gradient"
-                : "bg-rose-100 dark:bg-rose-900/30",
+                : "bg-rose-100",
             )}
           />
         ))}

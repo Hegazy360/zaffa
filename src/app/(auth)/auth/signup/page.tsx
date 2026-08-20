@@ -15,7 +15,7 @@ export default async function SignUpPage() {
   return (
     <div className="space-y-8">
       <div className="space-y-3">
-        <div className="inline-flex items-center gap-2 rounded-full border border-rose-200/70 bg-rose-50/70 px-3.5 py-1 text-[11px] font-medium uppercase tracking-[0.18em] text-rose-700 backdrop-blur-sm dark:border-rose-900/50 dark:bg-rose-950/30 dark:text-rose-200">
+        <div className="inline-flex items-center gap-2 rounded-full border border-rose-200/70 bg-rose-50/70 px-3.5 py-1 text-[11px] font-medium uppercase tracking-[0.18em] text-rose-700 backdrop-blur-sm">
           <Sparkles className="size-3" />
           {t("signUpEyebrow")}
         </div>
@@ -40,12 +40,12 @@ export default async function SignUpPage() {
           entirely while the professional surfaces are off, since the
           destination 404s at the edge and linking to it would be a dead end. */}
       {isFlagEnabled("professionalSurfaces") ? (
-        <div className="rounded-2xl border border-brand-line bg-white/70 p-4 text-sm backdrop-blur-sm dark:border-rose-900/30 dark:bg-card/60">
+        <div className="rounded-2xl border border-brand-line bg-white/70 p-4 text-sm backdrop-blur-sm">
           <p className="text-muted-foreground">
             {t("areYouProfessional")}{" "}
             <Link
               href="/auth/signup/professional"
-              className="group inline-flex items-center gap-1 font-medium text-rose-700 underline-offset-4 hover:underline dark:text-rose-300"
+              className="group inline-flex items-center gap-1 font-medium text-rose-700 underline-offset-4 hover:underline"
             >
               {t("areYouProfessionalCta")}
               <ArrowRight className="size-3.5 transition-transform rtl:-scale-x-100 group-hover:translate-x-0.5 rtl:group-hover:-translate-x-0.5" />

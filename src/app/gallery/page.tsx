@@ -167,13 +167,13 @@ export default async function GalleryPage() {
         />
       )}
       <main className="flex-1">
-        <section className="relative isolate overflow-hidden bg-gradient-to-b from-rose-50/60 via-background to-background pb-12 pt-20 dark:from-rose-950/15 sm:pb-16 sm:pt-28">
+        <section className="relative isolate overflow-hidden bg-gradient-to-b from-rose-50/60 via-background to-background pb-12 pt-20 sm:pb-16 sm:pt-28">
           <div
             aria-hidden
             className="pointer-events-none absolute inset-0 grain-bg opacity-30"
           />
           <div className="relative mx-auto max-w-6xl px-6 text-center">
-            <div className="inline-flex items-center gap-1.5 rounded-full border border-rose-200/70 bg-white/80 px-3 py-1 text-[10px] font-medium tracking-[0.22em] text-rose-700 uppercase backdrop-blur-sm dark:border-rose-900/50 dark:bg-rose-950/40 dark:text-rose-200">
+            <div className="inline-flex items-center gap-1.5 rounded-full border border-rose-200/70 bg-white/80 px-3 py-1 text-[10px] font-medium tracking-[0.22em] text-rose-700 uppercase backdrop-blur-sm">
               <Sparkles className="size-3" />
               {t("galleryEyebrow")}
             </div>
@@ -198,8 +198,8 @@ export default async function GalleryPage() {
 
         <section className="mx-auto max-w-6xl px-6 pb-24">
           {items.length === 0 ? (
-            <div className="rounded-2xl border border-dashed border-rose-200/60 bg-rose-50/40 p-16 text-center dark:border-rose-900/50 dark:bg-rose-950/15">
-              <div className="mx-auto mb-5 grid size-14 place-items-center rounded-full bg-rose-100 text-rose-600 dark:bg-rose-950/50 dark:text-rose-300">
+            <div className="rounded-2xl border border-dashed border-rose-200/60 bg-rose-50/40 p-16 text-center">
+              <div className="mx-auto mb-5 grid size-14 place-items-center rounded-full bg-rose-100 text-rose-600">
                 <Sparkles className="size-6" />
               </div>
               <h2 className="font-display text-2xl font-light tracking-tight">
@@ -234,7 +234,7 @@ export default async function GalleryPage() {
                         className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
                       />
                     ) : (
-                      <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-rose-50 via-rose-50/60 to-amber-50 dark:from-rose-950/40 dark:via-rose-950/20 dark:to-amber-950/30">
+                      <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-rose-50 via-rose-50/60 to-amber-50">
                         <Sparkles className="size-7 text-rose-400" />
                       </div>
                     )}
@@ -262,7 +262,7 @@ export default async function GalleryPage() {
                         ? ` · ${monthYear.format(new Date(item.publishedAt))}`
                         : ""}
                     </p>
-                    <span className="mt-3 inline-flex items-center gap-1 text-xs font-medium text-rose-700 dark:text-rose-300">
+                    <span className="mt-3 inline-flex items-center gap-1 text-xs font-medium text-rose-700">
                       {t("galleryViewMicrosite")}
                       <ArrowRight className="size-3 rtl:-scale-x-100" />
                     </span>

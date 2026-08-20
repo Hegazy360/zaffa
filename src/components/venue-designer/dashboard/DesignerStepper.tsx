@@ -156,7 +156,7 @@ export function DesignerStepper({
     >
       {/* Mobile: compact progress bar instead of the dense dot rail. */}
       <div className="sm:hidden">
-        <div className="relative h-1.5 overflow-hidden rounded-full bg-rose-100/70 dark:bg-rose-950/40">
+        <div className="relative h-1.5 overflow-hidden rounded-full bg-rose-100/70">
           <motion.div
             initial={false}
             animate={{ width: `${progressPct}%` }}
@@ -209,9 +209,9 @@ export function DesignerStepper({
                     "relative grid size-10 place-items-center rounded-full border transition-colors duration-300",
                     "focus-visible:ring-2 focus-visible:ring-rose-400 focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:outline-none",
                     isActive
-                      ? "border-rose-500 bg-gradient-to-br from-rose-500 to-rose-600 text-white shadow-glow ring-4 ring-rose-100 dark:ring-rose-950/60"
+                      ? "border-rose-500 bg-gradient-to-br from-rose-500 to-rose-600 text-white shadow-glow ring-4 ring-rose-100"
                       : isPastOrCurrent
-                        ? "border-rose-300 bg-rose-50 text-rose-600 dark:border-rose-900 dark:bg-rose-950/40 dark:text-rose-300"
+                        ? "border-rose-300 bg-rose-50 text-rose-600"
                         : "border-border bg-background text-muted-foreground hover:border-rose-300 hover:text-rose-500"
                   )}
                 >
@@ -227,7 +227,7 @@ export function DesignerStepper({
                     isActive
                       ? "font-medium text-foreground"
                       : isPastOrCurrent
-                        ? "text-rose-700 dark:text-rose-300"
+                        ? "text-rose-700"
                         : "text-muted-foreground"
                   )}
                 >
@@ -265,7 +265,7 @@ export function StepHeading({ step, index, total }: StepHeadingProps) {
 
   return (
     <header className="space-y-4 text-center">
-      <div className="inline-flex items-center gap-2 rounded-full border border-rose-200/70 bg-rose-50/70 px-3.5 py-1 text-[11px] font-medium tracking-[0.18em] text-rose-700 uppercase backdrop-blur-sm dark:border-rose-900/50 dark:bg-rose-950/30 dark:text-rose-200">
+      <div className="inline-flex items-center gap-2 rounded-full border border-rose-200/70 bg-rose-50/70 px-3.5 py-1 text-[11px] font-medium tracking-[0.18em] text-rose-700 uppercase backdrop-blur-sm">
         <StepIcon className="size-3" />
         {t("stepIndicator", { n: index + 1, total })}
       </div>

@@ -188,7 +188,7 @@ export default function AdminVenueEditPage() {
   }
 
   return (
-    <div className="relative isolate min-h-[calc(100vh-4rem)] w-full overflow-x-hidden bg-gradient-to-b from-rose-50/40 via-background to-background dark:from-rose-950/15">
+    <div className="relative isolate min-h-[calc(100vh-4rem)] w-full overflow-x-hidden bg-gradient-to-b from-rose-50/40 via-background to-background">
       <div
         aria-hidden
         className="pointer-events-none absolute inset-0 grain-bg opacity-30"
@@ -251,7 +251,7 @@ export default function AdminVenueEditPage() {
                 rows={3}
               />
             </Field>
-            <div className="flex items-start justify-between gap-3 rounded-md border border-brand-line bg-white/60 p-3 dark:border-rose-900/30 dark:bg-card/60">
+            <div className="flex items-start justify-between gap-3 rounded-md border border-brand-line bg-white/60 p-3">
               <Label htmlFor="published" className="text-sm">
                 Published
                 <p className="text-[11px] font-normal text-muted-foreground">
@@ -437,7 +437,7 @@ interface SectionProps {
 
 function Section({ title, children }: SectionProps) {
   return (
-    <section className="space-y-3 rounded-2xl border border-brand-line bg-white/80 p-5 backdrop-blur-sm dark:border-rose-900/30 dark:bg-card/80">
+    <section className="space-y-3 rounded-2xl border border-brand-line bg-white/80 p-5 backdrop-blur-sm">
       <h2 className="text-[10px] font-semibold uppercase tracking-[0.3em] text-rose-700/80">
         {title}
       </h2>

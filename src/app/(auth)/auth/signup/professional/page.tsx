@@ -45,7 +45,7 @@ export default async function ProfessionalSignUpPage({ searchParams }: PageProps
       {invitation && (
         <section
           aria-label={t("invitedBadge")}
-          className="relative overflow-hidden rounded-2xl border border-rose-200/70 bg-gradient-to-br from-rose-50/90 via-white/70 to-amber-50/70 p-5 shadow-sm backdrop-blur-sm dark:border-rose-900/40 dark:from-rose-950/40 dark:via-card/60 dark:to-amber-950/30"
+          className="relative overflow-hidden rounded-2xl border border-rose-200/70 bg-gradient-to-br from-rose-50/90 via-white/70 to-amber-50/70 p-5 shadow-sm backdrop-blur-sm"
         >
           <div
             aria-hidden
@@ -56,7 +56,7 @@ export default async function ProfessionalSignUpPage({ searchParams }: PageProps
               <HeartHandshake className="size-4" />
             </div>
             <div className="min-w-0 space-y-1.5">
-              <p className="text-[10.5px] font-medium uppercase tracking-[0.22em] text-rose-700 dark:text-rose-200">
+              <p className="text-[10.5px] font-medium uppercase tracking-[0.22em] text-rose-700">
                 {t("invitedBadge")}
               </p>
               <p className="font-display text-xl font-light leading-snug tracking-tight text-foreground">
@@ -71,7 +71,7 @@ export default async function ProfessionalSignUpPage({ searchParams }: PageProps
       )}
 
       <div className="space-y-3">
-        <div className="inline-flex items-center gap-2 rounded-full border border-rose-200/70 bg-rose-50/70 px-3.5 py-1 text-[11px] font-medium uppercase tracking-[0.18em] text-rose-700 backdrop-blur-sm dark:border-rose-900/50 dark:bg-rose-950/30 dark:text-rose-200">
+        <div className="inline-flex items-center gap-2 rounded-full border border-rose-200/70 bg-rose-50/70 px-3.5 py-1 text-[11px] font-medium uppercase tracking-[0.18em] text-rose-700 backdrop-blur-sm">
           <Sparkles className="size-3" />
           {t("professionalEyebrow")}
         </div>
@@ -98,12 +98,12 @@ export default async function ProfessionalSignUpPage({ searchParams }: PageProps
 
       <ProfessionalSignUpForm />
 
-      <div className="rounded-2xl border border-brand-line bg-white/70 p-4 text-sm backdrop-blur-sm dark:border-rose-900/30 dark:bg-card/60">
+      <div className="rounded-2xl border border-brand-line bg-white/70 p-4 text-sm backdrop-blur-sm">
         <p className="text-muted-foreground">
           {t("areYouAClient")}{" "}
           <Link
             href="/auth/signup"
-            className="group inline-flex items-center gap-1 font-medium text-rose-700 underline-offset-4 hover:underline dark:text-rose-300"
+            className="group inline-flex items-center gap-1 font-medium text-rose-700 underline-offset-4 hover:underline"
           >
             {t("areYouAClientCta")}
             <ArrowRight className="size-3.5 transition-transform rtl:-scale-x-100 group-hover:translate-x-0.5 rtl:group-hover:-translate-x-0.5" />

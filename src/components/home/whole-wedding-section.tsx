@@ -62,7 +62,7 @@ export function WholeWeddingSection() {
   return (
     <section
       aria-label={t("aria")}
-      className="relative isolate overflow-hidden bg-zinc-950 text-zinc-50"
+      className="surface-dark relative isolate overflow-hidden"
     >
       {/* Hairline + grain, matching the `contact.tsx` dark plate so the two
           dark surfaces on the site read as the same material. */}
@@ -98,7 +98,7 @@ export function WholeWeddingSection() {
           <h2 className="font-display text-balance text-4xl font-light leading-tight tracking-tight sm:text-5xl">
             {t("title")}
           </h2>
-          <p className="mx-auto mt-5 max-w-2xl text-pretty text-base leading-relaxed text-zinc-300 sm:text-lg">
+          <p className="mx-auto mt-5 max-w-2xl text-pretty text-base leading-relaxed text-muted-foreground sm:text-lg">
             {t("tagline")}
           </p>
         </motion.header>
@@ -109,7 +109,7 @@ export function WholeWeddingSection() {
           whileInView={{ opacity: 1 }}
           viewport={{ once: true, margin: "-15% 0px" }}
           transition={{ duration: reduce ? 0 : 0.7, delay: 0.1 }}
-          className="mx-auto mt-12 flex max-w-3xl flex-wrap items-center justify-center gap-x-4 gap-y-2 text-sm text-zinc-400 sm:gap-x-5"
+          className="mx-auto mt-12 flex max-w-3xl flex-wrap items-center justify-center gap-x-4 gap-y-2 text-sm text-muted-foreground sm:gap-x-5"
         >
           {covers.map((item, i) => (
             <span key={item} className="flex items-center gap-4 sm:gap-5">
@@ -140,7 +140,7 @@ export function WholeWeddingSection() {
                   aria-hidden
                   className="mt-2.5 h-1.5 w-1.5 shrink-0 rounded-full bg-gradient-to-br from-rose-400 to-amber-300"
                 />
-                <span className="text-pretty text-base leading-relaxed text-zinc-300">
+                <span className="text-pretty text-base leading-relaxed text-muted-foreground">
                   {t(key)}
                 </span>
               </li>
@@ -166,7 +166,7 @@ export function WholeWeddingSection() {
                   market instead of with silence. The table itself stays on
                   /pricing — three rows per market at the top of a funnel makes
                   the decision harder, not easier. */}
-              <p className="text-pretty text-sm leading-relaxed text-zinc-400">
+              <p className="text-pretty text-sm leading-relaxed text-muted-foreground">
                 {t("priceParagraph")}
               </p>
               <Link
@@ -177,10 +177,10 @@ export function WholeWeddingSection() {
                 <ArrowRight className="size-3.5 transition-transform rtl:-scale-x-100 group-hover:translate-x-0.5 rtl:group-hover:-translate-x-0.5" />
               </Link>
 
-              <p className="font-display mt-7 text-balance text-2xl font-light leading-snug tracking-tight text-zinc-50">
+              <p className="font-display mt-7 text-balance text-2xl font-light leading-snug tracking-tight text-foreground">
                 {t("reassurance")}
               </p>
-              <p className="mt-3 text-pretty text-sm leading-relaxed text-zinc-400">
+              <p className="mt-3 text-pretty text-sm leading-relaxed text-muted-foreground">
                 {t("reassuranceLong")}
               </p>
 
@@ -199,7 +199,7 @@ export function WholeWeddingSection() {
                 <WhatsAppCta
                   surface="home_whole_wedding"
                   variant="outline"
-                  className="w-full border-white/25 bg-transparent text-zinc-100 hover:bg-white/10 hover:text-white sm:w-auto"
+                  className="w-full border-white/25 bg-transparent text-foreground hover:bg-white/10 hover:text-white sm:w-auto"
                 />
               </div>
               <p className="mt-3 text-xs text-zinc-500">{t("ctaHint")}</p>

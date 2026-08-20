@@ -234,7 +234,7 @@ function FormState({
   return (
     <form onSubmit={onSubmit} className="space-y-4">
       <div className="space-y-1.5">
-        <div className="inline-flex items-center gap-1.5 rounded-full border border-rose-200/70 bg-rose-50 px-2.5 py-1 text-[10px] font-medium tracking-[0.18em] text-rose-700 uppercase dark:border-rose-900/50 dark:bg-rose-950/40 dark:text-rose-200">
+        <div className="inline-flex items-center gap-1.5 rounded-full border border-rose-200/70 bg-rose-50 px-2.5 py-1 text-[10px] font-medium tracking-[0.18em] text-rose-700 uppercase">
           <Sparkles className="size-3" />
           {t("eyebrow")}
         </div>
@@ -313,8 +313,8 @@ function SentState({
   const t = useTranslations("emailGate");
   return (
     <div className="space-y-4 text-center">
-      <div className="mx-auto grid size-12 place-items-center rounded-full bg-gradient-to-br from-rose-100 to-amber-100 ring-1 ring-rose-200/60 dark:from-rose-950/50 dark:to-amber-950/30 dark:ring-rose-900/40">
-        <CheckCircle2 className="size-6 text-rose-600 dark:text-rose-300" />
+      <div className="mx-auto grid size-12 place-items-center rounded-full bg-gradient-to-br from-rose-100 to-amber-100 ring-1 ring-rose-200/60">
+        <CheckCircle2 className="size-6 text-rose-600" />
       </div>
       <div className="space-y-1.5">
         <h2 className="font-display text-2xl font-light tracking-tight">
@@ -330,7 +330,7 @@ function SentState({
         variant="ghost"
         size="sm"
         onClick={onTryDifferent}
-        className="text-rose-700 hover:bg-rose-50 hover:text-rose-800 dark:hover:bg-rose-950/40"
+        className="text-rose-700 hover:bg-rose-50 hover:text-rose-800"
       >
         {t("skipForNow")}
       </Button>
@@ -346,8 +346,8 @@ function AlreadyUsedState({
   const t = useTranslations("emailGate");
   return (
     <div className="space-y-4 text-center">
-      <div className="mx-auto grid size-12 place-items-center rounded-full bg-amber-100 ring-1 ring-amber-300/60 dark:bg-amber-950/40 dark:ring-amber-800/50">
-        <Lock className="size-6 text-amber-700 dark:text-amber-300" />
+      <div className="mx-auto grid size-12 place-items-center rounded-full bg-amber-100 ring-1 ring-amber-300/60">
+        <Lock className="size-6 text-amber-700" />
       </div>
       <div className="space-y-1.5">
         <h2 className="font-display text-2xl font-light tracking-tight">

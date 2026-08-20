@@ -73,8 +73,8 @@ export function RecommendedVenuesCard({ eventId, packSku }: Props) {
   if (!enabled) return null;
 
   return (
-    <div className="overflow-hidden rounded-2xl border border-brand-line bg-gradient-to-br from-rose-50/40 via-white/80 to-amber-50/30 backdrop-blur-sm dark:border-rose-900/30 dark:from-rose-950/20 dark:via-card/80 dark:to-amber-950/10">
-      <div className="flex items-center justify-between border-b border-brand-line px-5 py-3 dark:border-rose-900/30">
+    <div className="overflow-hidden rounded-2xl border border-brand-line bg-gradient-to-br from-rose-50/40 via-white/80 to-amber-50/30 backdrop-blur-sm">
+      <div className="flex items-center justify-between border-b border-brand-line px-5 py-3">
         <div className="flex items-center gap-2">
           <Sparkles className="size-3.5 text-rose-500" />
           <h3 className="font-display text-base font-medium tracking-tight">
@@ -92,7 +92,7 @@ export function RecommendedVenuesCard({ eventId, packSku }: Props) {
             <Loader2 className="size-5 animate-spin text-rose-500" />
           </div>
         ) : !recs || recs.length === 0 ? (
-          <div className="rounded-xl border border-dashed bg-white/60 px-5 py-10 text-center dark:bg-card/40">
+          <div className="rounded-xl border border-dashed bg-white/60 px-5 py-10 text-center">
             <Building2 className="mx-auto size-7 text-rose-400" />
             <p className="mt-3 text-sm text-muted-foreground">
               {t("venueRecsEmpty")}
@@ -107,7 +107,7 @@ export function RecommendedVenuesCard({ eventId, packSku }: Props) {
               return (
                 <li
                   key={rec.id}
-                  className="flex flex-col overflow-hidden rounded-xl border border-brand-line bg-white/90 dark:border-rose-900/30 dark:bg-card/80"
+                  className="flex flex-col overflow-hidden rounded-xl border border-brand-line bg-white/90"
                 >
                   {cover ? (
                     <div className="relative aspect-[4/3] w-full overflow-hidden bg-muted">
@@ -120,7 +120,7 @@ export function RecommendedVenuesCard({ eventId, packSku }: Props) {
                       />
                     </div>
                   ) : (
-                    <div className="grid aspect-[4/3] w-full place-items-center bg-rose-50/60 dark:bg-rose-950/20">
+                    <div className="grid aspect-[4/3] w-full place-items-center bg-rose-50/60">
                       <Building2 className="size-8 text-rose-400" />
                     </div>
                   )}
@@ -147,7 +147,7 @@ export function RecommendedVenuesCard({ eventId, packSku }: Props) {
                           .map((style) => (
                             <span
                               key={style}
-                              className="rounded-full bg-rose-50 px-2 py-0.5 text-[10px] uppercase tracking-wider text-rose-700 dark:bg-rose-950/40 dark:text-rose-200"
+                              className="rounded-full bg-rose-50 px-2 py-0.5 text-[10px] uppercase tracking-wider text-rose-700"
                             >
                               {style}
                             </span>
@@ -155,7 +155,7 @@ export function RecommendedVenuesCard({ eventId, packSku }: Props) {
                       </div>
                     ) : null}
                     {rec.note ? (
-                      <p className="rounded-md bg-rose-50/60 px-3 py-2 text-xs italic text-rose-900/90 dark:bg-rose-950/30 dark:text-rose-100/90">
+                      <p className="rounded-md bg-rose-50/60 px-3 py-2 text-xs italic text-rose-900/90">
                         “{rec.note}”
                       </p>
                     ) : null}

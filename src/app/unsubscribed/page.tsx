@@ -19,7 +19,7 @@ export default async function UnsubscribedPage({
   const ok = sp.ok === "1";
 
   return (
-    <main className="relative isolate flex min-h-screen flex-col items-center justify-center bg-gradient-to-b from-rose-50/60 via-background to-background px-6 py-16 dark:from-rose-950/20">
+    <main className="relative isolate flex min-h-screen flex-col items-center justify-center bg-gradient-to-b from-rose-50/60 via-background to-background px-6 py-16">
       <div
         aria-hidden
         className="pointer-events-none absolute inset-0 grain-bg opacity-30"

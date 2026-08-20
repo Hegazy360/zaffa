@@ -131,7 +131,7 @@ export function ShareAndFinishPanel({ designId }: Props) {
         <CardDescription>{t("shareSubtitle")}</CardDescription>
       </CardHeader>
 
-      <CardContent className="divide-y divide-rose-100/70 px-0 dark:divide-rose-900/30">
+      <CardContent className="divide-y divide-rose-100/70 px-0">
         {/* Microsite */}
         <Section
           icon={<Globe className="size-4" />}
@@ -327,7 +327,7 @@ interface SectionProps {
 function Section({ icon, title, description, children }: SectionProps) {
   return (
     <div className="flex flex-col gap-3 px-5 py-4 sm:flex-row sm:items-start sm:gap-4 sm:px-7 sm:py-5">
-      <div className="grid size-8 shrink-0 place-items-center rounded-full bg-rose-100 text-rose-600 dark:bg-rose-950/50 dark:text-rose-300">
+      <div className="grid size-8 shrink-0 place-items-center rounded-full bg-rose-100 text-rose-600">
         {icon}
       </div>
       <div className="min-w-0 flex-1 space-y-1">

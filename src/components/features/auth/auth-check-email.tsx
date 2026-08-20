@@ -47,7 +47,7 @@ export function AuthCheckEmail({ email, title, body }: AuthCheckEmailProps) {
         {t("hasAccount")}{" "}
         <Link
           href="/auth/signin"
-          className="font-medium text-rose-700 underline-offset-4 hover:underline dark:text-rose-300"
+          className="font-medium text-rose-700 underline-offset-4 hover:underline"
         >
           {t("signIn")}
         </Link>

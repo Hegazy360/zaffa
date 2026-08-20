@@ -87,7 +87,7 @@ export function PackCheckoutPanel({
       {heading ? (
         <div className="px-6 pt-6 pb-2">
           {heading.eyebrow ? (
-            <div className="text-[10px] font-semibold tracking-[0.2em] text-rose-700 uppercase dark:text-rose-300">
+            <div className="text-[10px] font-semibold tracking-[0.2em] text-rose-700 uppercase">
               {heading.eyebrow}
             </div>
           ) : null}
@@ -125,11 +125,11 @@ export function PackCheckoutPanel({
               className={
                 "group rounded-xl border p-3 text-start transition-all " +
                 (active
-                  ? "border-rose-400 bg-rose-50/60 shadow-sm ring-1 ring-rose-300 dark:border-rose-700 dark:bg-rose-950/30 dark:ring-rose-700"
-                  : "border-brand-line bg-background hover:border-rose-200 dark:border-rose-900/40 dark:hover:border-rose-800")
+                  ? "border-rose-400 bg-rose-50/60 shadow-sm ring-1 ring-rose-300"
+                  : "border-brand-line bg-background hover:border-rose-200")
               }
             >
-              <div className="text-[10px] font-semibold tracking-[0.18em] text-rose-700 uppercase dark:text-rose-300">
+              <div className="text-[10px] font-semibold tracking-[0.18em] text-rose-700 uppercase">
                 {tm(`tier.${id}.eyebrow`)}
               </div>
               <div className="mt-1 font-display text-lg font-light tracking-tight">
@@ -189,7 +189,7 @@ export function PackCheckoutPanel({
       {/* Stacking note + refund. Only relevant when planner match is
           part of the selected tier — Design Pack is a flat one-off
           with no marketplace fee. */}
-      <div className="px-6 py-4 border-t border-brand-line bg-muted/30 text-xs text-muted-foreground leading-relaxed dark:border-rose-900/40">
+      <div className="px-6 py-4 border-t border-brand-line bg-muted/30 text-xs text-muted-foreground leading-relaxed">
         {sku.includesPlannerMatch ? (
           <p>
             {t("stackingNote", {
@@ -209,7 +209,7 @@ export function PackCheckoutPanel({
           page (see `handleBuyClick`); permanent users go straight to
           Stripe. The label adapts so the visitor knows what'll happen
           next. */}
-      <div className="px-6 py-4 border-t border-brand-line bg-background dark:border-rose-900/40 flex flex-col-reverse gap-2 sm:flex-row sm:items-center sm:justify-between">
+      <div className="px-6 py-4 border-t border-brand-line bg-background flex flex-col-reverse gap-2 sm:flex-row sm:items-center sm:justify-between">
         {onCancel ? (
           <Button
             type="button"
@@ -255,7 +255,7 @@ function PackInclude({
 }) {
   return (
     <li className="flex items-start gap-2.5">
-      <span className="mt-0.5 grid size-5 shrink-0 place-items-center rounded-full bg-rose-100 text-rose-600 dark:bg-rose-950/50 dark:text-rose-300">
+      <span className="mt-0.5 grid size-5 shrink-0 place-items-center rounded-full bg-rose-100 text-rose-600">
         <Icon className="size-3" />
       </span>
       <span className="text-foreground/85 leading-relaxed">{text}</span>

@@ -187,7 +187,7 @@ export function Navbar({ initialUser }: NavbarProps = {}) {
               <DropdownMenu>
               <DropdownMenuTrigger
                 aria-label={t("accountMenu")}
-                className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-rose-600 to-amber-500 text-sm font-semibold text-white shadow-glow-sm ring-2 ring-transparent transition-all hover:shadow-md hover:shadow-glow-lg hover:ring-rose-200 focus-visible:ring-rose-300 focus-visible:outline-none dark:hover:ring-rose-900/60"
+                className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-rose-600 to-amber-500 text-sm font-semibold text-white shadow-glow-sm ring-2 ring-transparent transition-all hover:shadow-md hover:shadow-glow-lg hover:ring-rose-200 focus-visible:ring-rose-300 focus-visible:outline-none"
               >
                 {userInitial}
               </DropdownMenuTrigger>
@@ -254,7 +254,7 @@ export function Navbar({ initialUser }: NavbarProps = {}) {
           </SheetTrigger>
           <SheetContent side="right" className="flex w-80 flex-col p-0">
             {/* Branded header */}
-            <div className="relative isolate overflow-hidden border-b bg-gradient-to-br from-rose-50 via-rose-50/80 to-amber-50 px-6 pt-6 pb-5 dark:from-rose-950/50 dark:via-rose-950/30 dark:to-amber-950/30">
+            <div className="relative isolate overflow-hidden border-b bg-gradient-to-br from-rose-50 via-rose-50/80 to-amber-50 px-6 pt-6 pb-5">
               <div
                 aria-hidden
                 className="pointer-events-none absolute inset-0 grain-bg opacity-40"
@@ -324,7 +324,7 @@ export function Navbar({ initialUser }: NavbarProps = {}) {
                     className={cn(
                       "mt-3 flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
                       isActiveRoute(pathname, "/dashboard")
-                        ? "bg-rose-50 text-rose-700 dark:bg-rose-950/40 dark:text-rose-200"
+                        ? "bg-rose-50 text-rose-700"
                         : "bg-accent/40 text-foreground hover:bg-accent"
                     )}
                   >
@@ -401,7 +401,7 @@ function MobileNotificationsLink({
       className={cn(
         "mt-3 flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
         active
-          ? "bg-rose-50 text-rose-700 dark:bg-rose-950/40 dark:text-rose-200"
+          ? "bg-rose-50 text-rose-700"
           : "bg-accent/40 text-foreground hover:bg-accent"
       )}
     >

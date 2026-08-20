@@ -79,7 +79,7 @@ export function PasswordChangeCard({ email }: PasswordChangeCardProps) {
   return (
     <form
       onSubmit={handleSubmit}
-      className="rounded-2xl border border-brand-line bg-white/70 p-4 backdrop-blur-sm dark:border-rose-900/30 dark:bg-card/70"
+      className="rounded-2xl border border-brand-line bg-white/70 p-4 backdrop-blur-sm"
     >
       <div className="mb-3 flex items-center gap-2">
         <KeyRound className="size-4 text-rose-700" aria-hidden />

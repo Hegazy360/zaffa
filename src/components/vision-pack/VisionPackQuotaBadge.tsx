@@ -55,8 +55,8 @@ export function VisionPackQuotaBadge() {
       aria-label={longForm}
       className={`inline-flex shrink-0 items-center gap-1.5 rounded-full border px-2 py-1 text-[10px] font-medium tracking-wide transition-all md:gap-2 md:px-2.5 md:text-[11px] ${
         dim
-          ? "border-amber-200/80 bg-amber-50/70 text-amber-800 hover:bg-amber-100/70 dark:border-amber-900/50 dark:bg-amber-950/30 dark:text-amber-200 cursor-pointer"
-          : "border-rose-200/70 bg-rose-50/60 text-rose-700 dark:border-rose-900/40 dark:bg-rose-950/20 dark:text-rose-200 cursor-default"
+          ? "border-amber-200/80 bg-amber-50/70 text-amber-800 hover:bg-amber-100/70 cursor-pointer"
+          : "border-rose-200/70 bg-rose-50/60 text-rose-700 cursor-default"
       }`}
     >
       <Sparkles className="size-3" aria-hidden />

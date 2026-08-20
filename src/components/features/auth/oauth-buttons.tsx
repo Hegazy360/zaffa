@@ -97,7 +97,7 @@ export function OAuthButtons({
       variant="outline"
       className={cn(
         "h-11 w-full justify-center gap-2 font-medium",
-        "bg-white text-gray-800 hover:bg-gray-50 border border-gray-200 dark:bg-gray-900 dark:text-gray-100 dark:border-gray-700 dark:hover:bg-gray-800",
+        "bg-white text-gray-800 hover:bg-gray-50 border border-gray-200",
       )}
       onClick={handleOAuthSignIn}
       disabled={disabled}

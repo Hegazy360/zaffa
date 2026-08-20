@@ -110,8 +110,8 @@ export function VendorOnboardingWizard() {
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-12 sm:px-6 sm:py-16">
-      <div className="overflow-hidden rounded-2xl border border-brand-line bg-white/80 shadow-sm backdrop-blur-sm dark:border-rose-900/30 dark:bg-card/80">
-        <header className="border-b border-brand-line bg-gradient-to-r from-rose-50/80 to-amber-50/60 px-6 py-5 dark:border-rose-900/30 dark:from-rose-950/30 dark:to-amber-950/20">
+      <div className="overflow-hidden rounded-2xl border border-brand-line bg-white/80 shadow-sm backdrop-blur-sm">
+        <header className="border-b border-brand-line bg-gradient-to-r from-rose-50/80 to-amber-50/60 px-6 py-5">
           <div className="flex items-center gap-2 text-rose-700/80">
             <Sparkles className="size-4" />
             <span className="text-[11px] font-medium uppercase tracking-[0.25em]">
@@ -125,7 +125,7 @@ export function VendorOnboardingWizard() {
                 className={`h-1.5 flex-1 rounded-full ${
                   i + 1 <= step
                     ? "bg-brand-gradient"
-                    : "bg-rose-100 dark:bg-rose-900/30"
+                    : "bg-rose-100"
                 }`}
               />
             ))}
@@ -168,8 +168,8 @@ export function VendorOnboardingWizard() {
                         onClick={() => setCategory(c)}
                         className={`rounded-xl border px-3 py-2 text-center text-sm transition ${
                           active
-                            ? "border-rose-300 bg-gradient-to-br from-rose-50 to-amber-50 text-rose-900 ring-2 ring-rose-200 dark:border-rose-700 dark:from-rose-950/40 dark:to-amber-950/30 dark:text-rose-100"
-                            : "border-brand-line bg-white/60 text-foreground/80 hover:border-rose-200 hover:bg-rose-50/40 dark:border-rose-900/30 dark:bg-card/40 dark:hover:border-rose-800/50 dark:hover:bg-rose-950/20"
+                            ? "border-rose-300 bg-gradient-to-br from-rose-50 to-amber-50 text-rose-900 ring-2 ring-rose-200"
+                            : "border-brand-line bg-white/60 text-foreground/80 hover:border-rose-200 hover:bg-rose-50/40"
                         }`}
                       >
                         {t(`wizardCategory_${c}` as const)}
@@ -223,7 +223,7 @@ export function VendorOnboardingWizard() {
                   {specialties.map((s) => (
                     <span
                       key={s}
-                      className="inline-flex items-center gap-1 rounded-full bg-rose-50 px-2 py-1 text-xs text-rose-800 ring-1 ring-rose-100 dark:bg-rose-950/30 dark:text-rose-200 dark:ring-rose-900/40"
+                      className="inline-flex items-center gap-1 rounded-full bg-rose-50 px-2 py-1 text-xs text-rose-800 ring-1 ring-rose-100"
                     >
                       {s}
                       <button
@@ -233,7 +233,7 @@ export function VendorOnboardingWizard() {
                             prev.filter((x) => x !== s),
                           )
                         }
-                        className="text-rose-700/70 hover:text-rose-900 dark:text-rose-300/70 dark:hover:text-rose-100"
+                        className="text-rose-700/70 hover:text-rose-900"
                       >
                         <X className="size-3" />
                       </button>
@@ -284,7 +284,7 @@ export function VendorOnboardingWizard() {
                   {t("wizardSummarySubtitle")}
                 </p>
               </div>
-              <dl className="divide-y divide-rose-100/70 rounded-xl border border-brand-line bg-rose-50/40 dark:divide-rose-900/30 dark:border-rose-900/30 dark:bg-rose-950/20">
+              <dl className="divide-y divide-rose-100/70 rounded-xl border border-brand-line bg-rose-50/40">
                 <SummaryRow
                   label={t("wizardBusinessName")}
                   value={businessName.trim() || "—"}
@@ -318,7 +318,7 @@ export function VendorOnboardingWizard() {
             </div>
           )}
 
-          <div className="flex items-center justify-between gap-2 border-t border-brand-line pt-5 dark:border-rose-900/30">
+          <div className="flex items-center justify-between gap-2 border-t border-brand-line pt-5">
             <Button
               type="button"
               variant="ghost"

@@ -162,7 +162,7 @@ export function ProfessionalSignUpForm() {
         <span
           className={cn(
             "inline-flex items-center gap-1.5",
-            step === 1 ? "text-rose-700 dark:text-rose-300" : "",
+            step === 1 ? "text-rose-700" : "",
           )}
         >
           <span
@@ -181,7 +181,7 @@ export function ProfessionalSignUpForm() {
         <span
           className={cn(
             "inline-flex items-center gap-1.5",
-            step === 2 ? "text-rose-700 dark:text-rose-300" : "",
+            step === 2 ? "text-rose-700" : "",
           )}
         >
           <span
@@ -218,8 +218,8 @@ export function ProfessionalSignUpForm() {
 
       {step === 2 && role && (
         <div className="space-y-5">
-          <div className="rounded-2xl border border-brand-line bg-gradient-to-br from-rose-50 via-white to-amber-50/60 p-4 dark:border-rose-900/30 dark:from-rose-950/40 dark:via-card dark:to-amber-950/30">
-            <p className="text-[10px] font-medium uppercase tracking-[0.18em] text-rose-700/80 dark:text-rose-200/80">
+          <div className="rounded-2xl border border-brand-line bg-gradient-to-br from-rose-50 via-white to-amber-50/60 p-4">
+            <p className="text-[10px] font-medium uppercase tracking-[0.18em] text-rose-700/80">
               {role === "planner" ? t("plannerEyebrow") : t("vendorEyebrow")}
             </p>
             <p className="mt-1 font-display text-lg font-light tracking-tight">
@@ -348,7 +348,7 @@ export function ProfessionalSignUpForm() {
         {t("hasAccount")}{" "}
         <Link
           href="/auth/signin"
-          className="font-medium text-rose-700 underline-offset-4 hover:underline dark:text-rose-300"
+          className="font-medium text-rose-700 underline-offset-4 hover:underline"
         >
           {t("signIn")}
         </Link>

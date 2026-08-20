@@ -52,7 +52,7 @@ export function ConciergePillarsSection() {
   return (
     <section
       aria-label={t("conciergeAria")}
-      className="relative isolate overflow-hidden bg-zinc-950 text-zinc-50"
+      className="surface-dark relative isolate overflow-hidden"
     >
       <div
         aria-hidden
@@ -72,7 +72,7 @@ export function ConciergePillarsSection() {
           <h2 className="font-display text-balance text-4xl font-light leading-tight tracking-tight sm:text-5xl">
             {t("conciergeTitle")}
           </h2>
-          <p className="mt-4 text-pretty text-base text-zinc-300 sm:text-lg">
+          <p className="mt-4 text-pretty text-base text-muted-foreground sm:text-lg">
             {t("conciergeSubtitle")}
           </p>
         </header>
@@ -98,7 +98,7 @@ export function ConciergePillarsSection() {
                 <h3 className="font-display mt-4 text-xl font-light tracking-tight">
                   {t(pillar.titleKey)}
                 </h3>
-                <p className="mx-auto mt-2 max-w-xs text-sm leading-relaxed text-zinc-400">
+                <p className="mx-auto mt-2 max-w-xs text-sm leading-relaxed text-muted-foreground">
                   {t(pillar.bodyKey)}
                 </p>
               </motion.div>

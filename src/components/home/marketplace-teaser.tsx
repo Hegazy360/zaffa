@@ -91,7 +91,7 @@ export function MarketplaceTeaser({
 
   const containerCls = isHome
     ? "relative isolate overflow-hidden bg-gradient-to-b from-background via-rose-50/30 to-background"
-    : "rounded-3xl border border-rose-200/60 bg-gradient-to-br from-rose-50/80 via-white/70 to-amber-50/60 p-5 shadow-sm backdrop-blur-md sm:p-6 dark:border-rose-900/40 dark:from-rose-950/30 dark:via-card/60 dark:to-amber-950/20";
+    : "rounded-3xl border border-rose-200/60 bg-gradient-to-br from-rose-50/80 via-white/70 to-amber-50/60 p-5 shadow-sm backdrop-blur-md sm:p-6";
 
   return (
     <section
@@ -132,7 +132,7 @@ export function MarketplaceTeaser({
               "inline-flex items-center gap-2 rounded-full border border-rose-200/60 bg-white/70 backdrop-blur-md",
               isHome
                 ? "mb-5 px-4 py-1.5 text-[0.7rem] uppercase tracking-[0.3em] text-rose-700"
-                : "mb-3 px-3 py-1 text-[10px] uppercase tracking-[0.22em] text-rose-700 dark:border-rose-900/40 dark:bg-card/60 dark:text-rose-200",
+                : "mb-3 px-3 py-1 text-[10px] uppercase tracking-[0.22em] text-rose-700",
             )}
           >
             <Sparkles
@@ -290,7 +290,7 @@ function BriefCard({
   return (
     <article
       className={cn(
-        "group relative flex h-full flex-col overflow-hidden rounded-2xl border border-brand-line bg-white/80 ring-1 ring-foreground/[0.04] backdrop-blur-sm transition-shadow hover:shadow-lg hover:shadow-glow-lg dark:border-rose-900/40 dark:bg-card/70",
+        "group relative flex h-full flex-col overflow-hidden rounded-2xl border border-brand-line bg-white/80 ring-1 ring-foreground/[0.04] backdrop-blur-sm transition-shadow hover:shadow-lg hover:shadow-glow-lg",
       )}
     >
       <div

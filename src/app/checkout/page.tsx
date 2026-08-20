@@ -124,8 +124,8 @@ function CheckoutInner() {
       <div className="w-full max-w-md rounded-2xl border border-rose-200/70 bg-card p-8 shadow-xl text-center">
         {errorMessage ? (
           <>
-            <div className="mx-auto grid size-12 place-items-center rounded-full bg-amber-100 ring-1 ring-amber-300/60 dark:bg-amber-950/40 dark:ring-amber-800/50">
-              <AlertCircle className="size-6 text-amber-700 dark:text-amber-300" />
+            <div className="mx-auto grid size-12 place-items-center rounded-full bg-amber-100 ring-1 ring-amber-300/60">
+              <AlertCircle className="size-6 text-amber-700" />
             </div>
             <h1 className="mt-4 font-display text-2xl font-light tracking-tight">
               {t("checkoutFailed")}
@@ -163,8 +163,8 @@ function RedirectingCardBody() {
   const t = useTranslations("visionPack");
   return (
     <>
-      <div className="mx-auto grid size-12 place-items-center rounded-full bg-gradient-to-br from-rose-100 to-amber-100 ring-1 ring-rose-200/60 dark:from-rose-950/50 dark:to-amber-950/30 dark:ring-rose-900/40">
-        <Sparkles className="size-6 text-rose-600 dark:text-rose-300" />
+      <div className="mx-auto grid size-12 place-items-center rounded-full bg-gradient-to-br from-rose-100 to-amber-100 ring-1 ring-rose-200/60">
+        <Sparkles className="size-6 text-rose-600" />
       </div>
       <h1 className="mt-4 font-display text-2xl font-light tracking-tight">
         {t("checkoutLoading")}

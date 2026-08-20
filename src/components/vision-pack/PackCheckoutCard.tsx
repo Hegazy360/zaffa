@@ -62,8 +62,8 @@ export function PackCheckoutCard({
       className={
         "relative flex h-full flex-col rounded-2xl border bg-card p-6 shadow-sm transition-shadow hover:shadow-lg " +
         (featured
-          ? "border-rose-300 ring-1 ring-rose-200/80 dark:border-rose-700 dark:ring-rose-900/50"
-          : "border-rose-200/70 dark:border-rose-900/40")
+          ? "border-rose-300 ring-1 ring-rose-200/80"
+          : "border-rose-200/70")
       }
     >
       {featured ? (
@@ -72,7 +72,7 @@ export function PackCheckoutCard({
         </div>
       ) : null}
 
-      <div className="text-[10px] font-semibold tracking-[0.2em] text-rose-700 uppercase dark:text-rose-300">
+      <div className="text-[10px] font-semibold tracking-[0.2em] text-rose-700 uppercase">
         {tm(`tier.${sku}.eyebrow`)}
       </div>
       <div className="mt-2 font-display text-3xl font-light tracking-tight sm:text-4xl">
@@ -82,7 +82,7 @@ export function PackCheckoutCard({
         {tm(`tier.${sku}.tagline`)}
       </p>
 
-      <div className="my-5 h-px bg-rose-100/70 dark:bg-rose-900/30" />
+      <div className="my-5 h-px bg-rose-100/70" />
 
       <div className="text-[10px] font-semibold tracking-[0.2em] text-muted-foreground uppercase mb-3">
         {t("includesEyebrow")}
@@ -182,7 +182,7 @@ function PackInclude({
 }) {
   return (
     <li className="flex items-start gap-2.5">
-      <span className="mt-0.5 grid size-5 shrink-0 place-items-center rounded-full bg-rose-100 text-rose-600 dark:bg-rose-950/50 dark:text-rose-300">
+      <span className="mt-0.5 grid size-5 shrink-0 place-items-center rounded-full bg-rose-100 text-rose-600">
         <Icon className="size-3" />
       </span>
       <span className="text-foreground/85 leading-relaxed">{text}</span>

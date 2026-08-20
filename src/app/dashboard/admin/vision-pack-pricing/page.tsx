@@ -95,7 +95,7 @@ export default function AdminVisionPackPricingPage() {
   }, [rows]);
 
   return (
-    <div className="relative isolate min-h-[calc(100vh-4rem)] w-full overflow-x-hidden bg-gradient-to-b from-rose-50/40 via-background to-background dark:from-rose-950/15">
+    <div className="relative isolate min-h-[calc(100vh-4rem)] w-full overflow-x-hidden bg-gradient-to-b from-rose-50/40 via-background to-background">
       <div
         aria-hidden
         className="pointer-events-none absolute inset-0 grain-bg opacity-30"
@@ -187,7 +187,7 @@ function TierSection({
     .sort((a, b) => a.code.localeCompare(b.code));
 
   return (
-    <section className="space-y-3 rounded-2xl border border-brand-line bg-white/80 p-4 backdrop-blur-sm dark:border-rose-900/30 dark:bg-card/80">
+    <section className="space-y-3 rounded-2xl border border-brand-line bg-white/80 p-4 backdrop-blur-sm">
       <header className="flex items-baseline justify-between gap-3">
         <div>
           <p className="text-[0.6rem] font-semibold uppercase tracking-[0.3em] text-rose-700/80">
@@ -215,13 +215,13 @@ function TierSection({
             No overrides yet for this tier. Seed prices below are in effect.
           </p>
         ) : (
-          <ul className="divide-y divide-rose-100/70 dark:divide-rose-900/30">
+          <ul className="divide-y divide-rose-100/70">
             {overrides.map((row) => (
               <li
                 key={`${row.sku}:${row.country_code}`}
                 className="flex items-center gap-4 py-3 text-sm"
               >
-                <code className="grid size-9 shrink-0 place-items-center rounded-md bg-rose-50 font-mono text-xs font-semibold text-rose-700 dark:bg-rose-950/40 dark:text-rose-200">
+                <code className="grid size-9 shrink-0 place-items-center rounded-md bg-rose-50 font-mono text-xs font-semibold text-rose-700">
                   {row.country_code}
                 </code>
                 <div className="min-w-0 flex-1">
@@ -272,14 +272,14 @@ function TierSection({
         )}
       </div>
 
-      <div className="rounded-xl border border-brand-line bg-white/60 p-3 backdrop-blur-sm dark:border-rose-900/20 dark:bg-card/60">
+      <div className="rounded-xl border border-brand-line bg-white/60 p-3 backdrop-blur-sm">
         <div className="mb-2 flex items-center gap-2">
           <Globe className="size-3.5 text-muted-foreground" />
           <h3 className="text-xs font-semibold tracking-tight">
             Seed matrix (read-only)
           </h3>
         </div>
-        <ul className="divide-y divide-rose-100/40 dark:divide-rose-900/20">
+        <ul className="divide-y divide-rose-100/40">
           {seedReferenceRows.map((row) => (
             <li
               key={row.code}

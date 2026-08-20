@@ -46,7 +46,7 @@ export default function AdminVenuesPage() {
   const items = data?.items ?? [];
 
   return (
-    <div className="relative isolate min-h-[calc(100vh-4rem)] w-full overflow-x-hidden bg-gradient-to-b from-rose-50/40 via-background to-background dark:from-rose-950/15">
+    <div className="relative isolate min-h-[calc(100vh-4rem)] w-full overflow-x-hidden bg-gradient-to-b from-rose-50/40 via-background to-background">
       <div
         aria-hidden
         className="pointer-events-none absolute inset-0 grain-bg opacity-30"
@@ -103,7 +103,7 @@ export default function AdminVenuesPage() {
             {items.map((venue) => (
               <li
                 key={venue.id}
-                className="group relative overflow-hidden rounded-2xl border border-brand-line bg-white/80 backdrop-blur-sm transition hover:border-rose-200 dark:border-rose-900/30 dark:bg-card/80 dark:hover:border-rose-800"
+                className="group relative overflow-hidden rounded-2xl border border-brand-line bg-white/80 backdrop-blur-sm transition hover:border-rose-200"
               >
                 <Link
                   href={`/dashboard/admin/venues/${venue.id}`}
@@ -120,7 +120,7 @@ export default function AdminVenuesPage() {
                       />
                     </div>
                   ) : (
-                    <div className="grid h-40 w-full place-items-center bg-rose-50/60 dark:bg-rose-950/20">
+                    <div className="grid h-40 w-full place-items-center bg-rose-50/60">
                       <Building2 className="size-8 text-rose-400" />
                     </div>
                   )}

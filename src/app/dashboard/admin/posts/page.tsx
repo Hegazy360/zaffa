@@ -40,7 +40,7 @@ export default function AdminPostsPage() {
   const posts = useMemo(() => data?.posts ?? [], [data]);
 
   return (
-    <div className="relative isolate min-h-[calc(100vh-4rem)] w-full overflow-x-hidden bg-gradient-to-b from-rose-50/40 via-background to-background dark:from-rose-950/15">
+    <div className="relative isolate min-h-[calc(100vh-4rem)] w-full overflow-x-hidden bg-gradient-to-b from-rose-50/40 via-background to-background">
       <div
         aria-hidden
         className="pointer-events-none absolute inset-0 grain-bg opacity-30"
@@ -84,7 +84,7 @@ export default function AdminPostsPage() {
           </TabsList>
         </Tabs>
 
-        <section className="rounded-2xl border border-brand-line bg-white/80 p-1.5 backdrop-blur-sm sm:p-2 dark:border-rose-900/30 dark:bg-card/80">
+        <section className="rounded-2xl border border-brand-line bg-white/80 p-1.5 backdrop-blur-sm sm:p-2">
           {isLoading ? (
             <div className="flex items-center justify-center py-16">
               <Loader2 className="size-5 animate-spin text-rose-500" />
@@ -102,7 +102,7 @@ export default function AdminPostsPage() {
               </p>
             </div>
           ) : (
-            <ul className="divide-y divide-rose-100/70 dark:divide-rose-900/30">
+            <ul className="divide-y divide-rose-100/70">
               {posts.map((post) => (
                 <li key={post.id}>
                   <PostRow post={post} />
@@ -133,7 +133,7 @@ function PostRow({ post }: { post: HydratedPost }) {
   return (
     <Link
       href={`/dashboard/admin/posts/${post.id}`}
-      className="flex items-center gap-3 px-2.5 py-2.5 text-sm transition-colors hover:bg-rose-50/40 sm:gap-4 sm:px-3 sm:py-3 dark:hover:bg-rose-950/20"
+      className="flex items-center gap-3 px-2.5 py-2.5 text-sm transition-colors hover:bg-rose-50/40 sm:gap-4 sm:px-3 sm:py-3"
     >
       <div className="relative grid h-16 w-[3.2rem] shrink-0 place-items-center overflow-hidden rounded-md bg-stone-100 ring-1 ring-foreground/[0.04] sm:h-20 sm:w-16">
         {firstSlideThumb ? (

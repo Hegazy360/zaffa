@@ -152,7 +152,7 @@ export function ResetPasswordForm() {
         <p className="text-center text-sm text-muted-foreground">
           <Link
             href="/auth/signin"
-            className="font-medium text-rose-700 underline-offset-4 hover:underline dark:text-rose-300"
+            className="font-medium text-rose-700 underline-offset-4 hover:underline"
           >
             {t("backToSignIn")}
           </Link>
@@ -217,7 +217,7 @@ export function ResetPasswordForm() {
       <p className="text-center text-sm text-muted-foreground">
         <Link
           href="/auth/signin"
-          className="font-medium text-rose-700 underline-offset-4 hover:underline dark:text-rose-300"
+          className="font-medium text-rose-700 underline-offset-4 hover:underline"
         >
           {t("backToSignIn")}
         </Link>

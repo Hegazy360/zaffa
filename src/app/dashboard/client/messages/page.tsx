@@ -19,7 +19,7 @@ export default function MessagesInboxPage() {
   const { data: inbox, isLoading } = trpc.messages.inbox.useQuery();
 
   return (
-    <div className="relative isolate min-h-[calc(100vh-4rem)] w-full overflow-x-hidden bg-gradient-to-b from-rose-50/50 via-background to-background dark:from-rose-950/15">
+    <div className="relative isolate min-h-[calc(100vh-4rem)] w-full overflow-x-hidden bg-gradient-to-b from-rose-50/50 via-background to-background">
       <div
         aria-hidden
         className="pointer-events-none absolute inset-0 grain-bg opacity-30"
@@ -43,7 +43,7 @@ export default function MessagesInboxPage() {
             <Loader2 className="size-6 animate-spin text-rose-500" />
           </div>
         ) : !inbox || inbox.length === 0 ? (
-          <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-rose-200/70 bg-white/40 px-6 py-20 text-center backdrop-blur-sm dark:border-rose-900/40 dark:bg-card/40">
+          <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-rose-200/70 bg-white/40 px-6 py-20 text-center backdrop-blur-sm">
             <div className="mb-5 grid size-14 place-items-center rounded-full bg-gradient-to-br from-rose-100 to-amber-100 ring-1 ring-rose-200/60">
               <MessageSquare className="size-6 text-rose-600" />
             </div>
@@ -67,7 +67,7 @@ export default function MessagesInboxPage() {
               <li key={row.id}>
                 <Link
                   href={`/dashboard/client/event/${row.id}?tab=messages`}
-                  className="group flex items-center gap-4 rounded-2xl border border-brand-line bg-white/80 p-4 backdrop-blur-sm transition-all hover:-translate-y-0.5 hover:shadow-[0_15px_40px_-20px_rgba(244,63,94,0.25)] dark:border-rose-900/30 dark:bg-card/80"
+                  className="group flex items-center gap-4 rounded-2xl border border-brand-line bg-white/80 p-4 backdrop-blur-sm transition-all hover:-translate-y-0.5 hover:shadow-[0_15px_40px_-20px_rgba(244,63,94,0.25)]"
                 >
                   <div className="size-16 shrink-0 overflow-hidden rounded-xl bg-gradient-to-br from-rose-50 to-amber-50/60">
                     {row.thumbnail ? (

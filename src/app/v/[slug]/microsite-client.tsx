@@ -158,14 +158,14 @@ export function Microsite({
   return (
     <main className="flex-1">
         {/* Hero band — full-bleed render with the names in display type. */}
-        <section className="relative isolate overflow-hidden bg-rose-50/30 dark:bg-rose-950/20">
+        <section className="relative isolate overflow-hidden bg-rose-50/30">
           <div
             aria-hidden
             className="pointer-events-none absolute inset-0 grain-bg opacity-30"
           />
           <div className="relative mx-auto grid max-w-6xl grid-cols-1 gap-8 px-6 py-16 lg:grid-cols-12 lg:py-24">
             <div className="flex flex-col justify-center lg:col-span-5">
-              <div className="inline-flex items-center gap-1.5 self-start rounded-full border border-rose-200/70 bg-white/80 px-3 py-1 text-[10px] font-medium tracking-[0.22em] text-rose-700 uppercase backdrop-blur-sm dark:border-rose-900/50 dark:bg-rose-950/40 dark:text-rose-200">
+              <div className="inline-flex items-center gap-1.5 self-start rounded-full border border-rose-200/70 bg-white/80 px-3 py-1 text-[10px] font-medium tracking-[0.22em] text-rose-700 uppercase backdrop-blur-sm">
                 <Sparkles className="size-3" />
                 {t("name")}
               </div>
@@ -284,7 +284,7 @@ export function Microsite({
 
         {/* Videos */}
         {videos.length > 0 && (
-          <section className="bg-rose-50/40 py-16 dark:bg-rose-950/20 sm:py-20">
+          <section className="bg-rose-50/40 py-16 sm:py-20">
             <div className="mx-auto max-w-6xl px-6">
               <div className="mb-8 flex items-center gap-3">
                 <Film className="size-4 text-rose-600" />
@@ -331,7 +331,7 @@ export function Microsite({
             <div className="space-y-12">
               {populatedCategories.map((cat) => (
                 <div key={cat}>
-                  <div className="mb-4 flex items-baseline justify-between gap-3 border-b border-brand-line pb-2 dark:border-rose-900/40">
+                  <div className="mb-4 flex items-baseline justify-between gap-3 border-b border-brand-line pb-2">
                     <h3 className="font-display text-lg font-light tracking-tight sm:text-xl">
                       {tDesigner(CATEGORY_LABEL_KEYS[cat])}
                     </h3>
@@ -368,9 +368,9 @@ export function Microsite({
         )}
 
         {/* Create yours CTA */}
-        <section className="bg-gradient-to-br from-rose-50/80 via-white to-amber-50/60 py-20 dark:from-rose-950/30 dark:via-background dark:to-amber-950/20">
+        <section className="bg-gradient-to-br from-rose-50/80 via-white to-amber-50/60 py-20">
           <div className="mx-auto max-w-2xl px-6 text-center">
-            <div className="inline-flex items-center gap-1.5 rounded-full border border-rose-200/70 bg-white/80 px-3 py-1 text-[10px] font-medium tracking-[0.22em] text-rose-700 uppercase backdrop-blur-sm dark:border-rose-900/50 dark:bg-rose-950/40 dark:text-rose-200">
+            <div className="inline-flex items-center gap-1.5 rounded-full border border-rose-200/70 bg-white/80 px-3 py-1 text-[10px] font-medium tracking-[0.22em] text-rose-700 uppercase backdrop-blur-sm">
               <Sparkles className="size-3" />
               {t("micrositeCreateYoursEyebrow")}
             </div>

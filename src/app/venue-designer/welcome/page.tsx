@@ -173,31 +173,31 @@ export default function VenueDesignerWelcomePage() {
   return (
     <>
       <Navbar />
-      <div className="relative isolate min-h-[calc(100vh-4rem)] w-full overflow-hidden bg-gradient-to-b from-rose-50/60 via-background to-background dark:from-rose-950/15">
+      <div className="relative isolate min-h-[calc(100vh-4rem)] w-full overflow-hidden bg-gradient-to-b from-rose-50/60 via-background to-background">
         <div
           aria-hidden
           className="pointer-events-none absolute inset-0 grain-bg opacity-50"
         />
         <div
           aria-hidden
-          className="pointer-events-none absolute -top-40 left-1/2 -z-10 h-[28rem] w-[28rem] -translate-x-1/2 rounded-full bg-gradient-to-br from-rose-200/30 to-amber-200/20 blur-3xl dark:from-rose-900/15 dark:to-amber-900/10"
+          className="pointer-events-none absolute -top-40 left-1/2 -z-10 h-[28rem] w-[28rem] -translate-x-1/2 rounded-full bg-gradient-to-br from-rose-200/30 to-amber-200/20 blur-3xl"
         />
         <div className="mx-auto flex max-w-2xl flex-col items-center px-6 py-24 text-center sm:py-32">
           <motion.div
             initial={reduceMotion ? false : { opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-            className="mb-8 grid size-20 place-items-center rounded-full bg-gradient-to-br from-rose-100 to-amber-100 ring-1 ring-rose-200/60 dark:from-rose-950/50 dark:to-amber-950/30 dark:ring-rose-900/40"
+            className="mb-8 grid size-20 place-items-center rounded-full bg-gradient-to-br from-rose-100 to-amber-100 ring-1 ring-rose-200/60"
           >
             {ready ? (
-              <Sparkles className="size-9 text-rose-600 dark:text-rose-300" />
+              <Sparkles className="size-9 text-rose-600" />
             ) : stalled ? (
-              <AlertCircle className="size-9 text-amber-600 dark:text-amber-300" />
+              <AlertCircle className="size-9 text-amber-600" />
             ) : (
-              <Loader2 className="size-9 animate-spin text-rose-600 dark:text-rose-300" />
+              <Loader2 className="size-9 animate-spin text-rose-600" />
             )}
           </motion.div>
-          <div className="inline-flex items-center gap-1.5 rounded-full border border-rose-200/70 bg-white/80 px-3 py-1 text-[10px] font-medium tracking-[0.2em] text-rose-700 uppercase backdrop-blur-sm dark:border-rose-900/50 dark:bg-rose-950/40 dark:text-rose-200">
+          <div className="inline-flex items-center gap-1.5 rounded-full border border-rose-200/70 bg-white/80 px-3 py-1 text-[10px] font-medium tracking-[0.2em] text-rose-700 uppercase backdrop-blur-sm">
             {t("successEyebrow")}
           </div>
           <motion.h1

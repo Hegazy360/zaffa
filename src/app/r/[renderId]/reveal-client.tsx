@@ -139,14 +139,14 @@ function RevealInner({ renderId }: { renderId: string }) {
   return (
     <>
       <Navbar />
-      <div className="relative isolate min-h-screen w-full overflow-x-hidden bg-gradient-to-b from-rose-50/50 via-background to-background dark:from-rose-950/15">
+      <div className="relative isolate min-h-screen w-full overflow-x-hidden bg-gradient-to-b from-rose-50/50 via-background to-background">
         <div
           aria-hidden
           className="pointer-events-none absolute inset-0 grain-bg opacity-50"
         />
         <div className="mx-auto max-w-5xl px-6 py-12 sm:py-16">
           <div className="space-y-3 text-center">
-            <div className="inline-flex items-center gap-2 rounded-full border border-rose-200/70 bg-rose-50/70 px-3.5 py-1 text-[11px] font-medium tracking-[0.18em] text-rose-700 uppercase backdrop-blur-sm dark:border-rose-900/50 dark:bg-rose-950/30 dark:text-rose-200">
+            <div className="inline-flex items-center gap-2 rounded-full border border-rose-200/70 bg-rose-50/70 px-3.5 py-1 text-[11px] font-medium tracking-[0.18em] text-rose-700 uppercase backdrop-blur-sm">
               <Sparkles className="size-3" />
               {t("eyebrow")}
             </div>
@@ -210,7 +210,7 @@ function RevealInner({ renderId }: { renderId: string }) {
               second card (Vision Pack) is featured by sort order. */}
           <div className="mt-12 space-y-6">
             <div className="text-center">
-              <div className="text-[10px] font-semibold tracking-[0.2em] text-rose-700 uppercase dark:text-rose-300">
+              <div className="text-[10px] font-semibold tracking-[0.2em] text-rose-700 uppercase">
                 {t("comparePlansEyebrow")}
               </div>
               <h2 className="font-display mt-2 text-3xl font-light tracking-tight sm:text-4xl">

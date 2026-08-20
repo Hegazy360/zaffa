@@ -94,7 +94,7 @@ export function HowItWorks() {
 
       <div className="relative mx-auto max-w-6xl px-4 py-24 sm:py-28">
         <header className="mx-auto mb-14 max-w-2xl text-center sm:mb-20">
-          <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-rose-200/60 bg-rose-50/70 px-4 py-1.5 text-[0.7rem] uppercase tracking-[0.3em] text-rose-700 backdrop-blur-md dark:border-rose-900/40 dark:bg-rose-950/30 dark:text-rose-200">
+          <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-rose-200/60 bg-rose-50/70 px-4 py-1.5 text-[0.7rem] uppercase tracking-[0.3em] text-rose-700 backdrop-blur-md">
             <Sparkles className="h-3.5 w-3.5" />
             {t("howEyebrow")}
           </div>
@@ -133,7 +133,7 @@ export function HowItWorks() {
                   )}
                 >
                   <div className="mb-4 flex items-center gap-3">
-                    <span className="grid size-10 place-items-center rounded-full border border-rose-200/70 bg-gradient-to-br from-rose-50 to-amber-50 text-rose-700 ring-1 ring-rose-200/40 dark:border-rose-900/50 dark:from-rose-950/40 dark:to-amber-950/30 dark:text-rose-200">
+                    <span className="grid size-10 place-items-center rounded-full border border-rose-200/70 bg-gradient-to-br from-rose-50 to-amber-50 text-rose-700 ring-1 ring-rose-200/40">
                       <Icon className="size-4" strokeWidth={2} />
                     </span>
                     <span className="text-[10px] font-medium uppercase tracking-[0.28em] text-muted-foreground">
@@ -183,7 +183,7 @@ function Screenshot({ screenshot, suggestedFilename, altKey }: ScreenshotProps) 
     // aspect — no 16:10 box, no cropping. `max-h-[640px]` caps the portrait
     // step 4 so it doesn't dominate the rest of the section vertically.
     return (
-      <div className="overflow-hidden rounded-2xl border border-brand-line bg-white/70 shadow-glow-lg ring-1 ring-foreground/[0.04] backdrop-blur-sm dark:border-rose-900/40 dark:bg-card/70">
+      <div className="overflow-hidden rounded-2xl border border-brand-line bg-white/70 shadow-glow-lg ring-1 ring-foreground/[0.04] backdrop-blur-sm">
         <Image
           src={screenshot.src}
           alt={t(altKey)}
@@ -199,9 +199,9 @@ function Screenshot({ screenshot, suggestedFilename, altKey }: ScreenshotProps) 
     <div
       role="img"
       aria-label={t("howScreenshotPlaceholderAria")}
-      className="relative flex aspect-[16/10] w-full flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed border-rose-200/70 bg-gradient-to-br from-rose-50/60 via-white/50 to-amber-50/40 p-6 text-center backdrop-blur-sm dark:border-rose-900/40 dark:from-rose-950/20 dark:via-card/40 dark:to-amber-950/10"
+      className="relative flex aspect-[16/10] w-full flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed border-rose-200/70 bg-gradient-to-br from-rose-50/60 via-white/50 to-amber-50/40 p-6 text-center backdrop-blur-sm"
     >
-      <div className="grid size-12 place-items-center rounded-full bg-white/80 text-rose-500/80 ring-1 ring-rose-200/60 dark:bg-card/70">
+      <div className="grid size-12 place-items-center rounded-full bg-white/80 text-rose-500/80 ring-1 ring-rose-200/60">
         <ImagePlus className="size-5" strokeWidth={1.75} />
       </div>
       <p className="font-display text-base font-medium tracking-tight">
@@ -210,7 +210,7 @@ function Screenshot({ screenshot, suggestedFilename, altKey }: ScreenshotProps) 
       <p className="max-w-sm text-xs text-muted-foreground">
         {t("howScreenshotPlaceholderBody")}
       </p>
-      <code className="rounded-md bg-white/70 px-2 py-1 font-mono text-[11px] text-rose-700 ring-1 ring-rose-200/60 dark:bg-card/60 dark:text-rose-200">
+      <code className="rounded-md bg-white/70 px-2 py-1 font-mono text-[11px] text-rose-700 ring-1 ring-rose-200/60">
         public/home/how-it-works/{suggestedFilename}
       </code>
     </div>

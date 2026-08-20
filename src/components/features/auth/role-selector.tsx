@@ -87,7 +87,7 @@ export function RoleSelector({
             tabIndex={0}
             aria-pressed={isSelected}
             className={cn(
-              "relative cursor-pointer overflow-hidden border-brand-line bg-white/80 backdrop-blur-sm ring-1 ring-foreground/[0.04] transition-all duration-200 dark:border-rose-900/30 dark:bg-card/80",
+              "relative cursor-pointer overflow-hidden border-brand-line bg-white/80 backdrop-blur-sm ring-1 ring-foreground/[0.04] transition-all duration-200",
               isSelected
                 ? "border-transparent shadow-[0_20px_50px_-20px_rgba(244,63,94,0.35)] ring-2 ring-rose-500"
                 : "hover:-translate-y-0.5 hover:border-rose-200 hover:shadow-[0_15px_40px_-25px_rgba(244,63,94,0.25)]",
@@ -103,7 +103,7 @@ export function RoleSelector({
             {isSelected && (
               <span
                 aria-hidden
-                className="absolute inset-0 -z-10 bg-gradient-to-br from-rose-50 via-white to-amber-50/60 dark:from-rose-950/40 dark:via-card dark:to-amber-950/30"
+                className="absolute inset-0 -z-10 bg-gradient-to-br from-rose-50 via-white to-amber-50/60"
               />
             )}
             {isSelected && (
@@ -121,7 +121,7 @@ export function RoleSelector({
                   "mb-3 flex size-11 items-center justify-center rounded-xl transition-colors",
                   isSelected
                     ? "bg-gradient-to-br from-rose-500 to-amber-500 text-white shadow-glow-sm"
-                    : "bg-gradient-to-br from-rose-100 to-amber-100 text-rose-600 dark:from-rose-900/40 dark:to-amber-900/40 dark:text-rose-300",
+                    : "bg-gradient-to-br from-rose-100 to-amber-100 text-rose-600",
                 )}
               >
                 <Icon className="size-5" aria-hidden />

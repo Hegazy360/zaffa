@@ -341,7 +341,7 @@ export function ClientSignUpForm() {
               ? "/auth/signin"
               : `/auth/signin?next=${encodeURIComponent(nextPath)}`
           }
-          className="font-medium text-rose-700 underline-offset-4 hover:underline dark:text-rose-300"
+          className="font-medium text-rose-700 underline-offset-4 hover:underline"
         >
           {t("signIn")}
         </Link>

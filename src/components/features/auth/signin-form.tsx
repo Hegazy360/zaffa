@@ -164,7 +164,7 @@ export function SignInForm({ initialError = null }: SignInFormProps) {
               ? "/auth/signup"
               : `/auth/signup?next=${encodeURIComponent(nextPath)}`
           }
-          className="font-medium text-rose-700 underline-offset-4 hover:underline dark:text-rose-300"
+          className="font-medium text-rose-700 underline-offset-4 hover:underline"
         >
           {t("signUp")}
         </Link>

@@ -76,7 +76,7 @@ export function RecommendationsPanel({ eventId }: { eventId: string }) {
             return (
               <li
                 key={rec.id}
-                className="group flex flex-col gap-3 overflow-hidden rounded-2xl border border-brand-line bg-white/80 p-4 backdrop-blur-sm sm:flex-row dark:border-rose-900/30 dark:bg-card/80"
+                className="group flex flex-col gap-3 overflow-hidden rounded-2xl border border-brand-line bg-white/80 p-4 backdrop-blur-sm sm:flex-row"
               >
                 {cover ? (
                   <div className="relative h-32 w-full shrink-0 overflow-hidden rounded-xl bg-muted sm:size-32">
@@ -89,7 +89,7 @@ export function RecommendationsPanel({ eventId }: { eventId: string }) {
                     />
                   </div>
                 ) : (
-                  <div className="grid h-32 w-full shrink-0 place-items-center rounded-xl bg-rose-50/60 sm:size-32 dark:bg-rose-950/20">
+                  <div className="grid h-32 w-full shrink-0 place-items-center rounded-xl bg-rose-50/60 sm:size-32">
                     <Building2 className="size-6 text-rose-400" />
                   </div>
                 )}
@@ -128,7 +128,7 @@ export function RecommendationsPanel({ eventId }: { eventId: string }) {
                     {rec.venue.price_tier ? <> · {rec.venue.price_tier}</> : null}
                   </p>
                   {rec.note ? (
-                    <p className="rounded-md bg-rose-50/60 px-3 py-2 text-xs text-rose-900/90 italic dark:bg-rose-950/30 dark:text-rose-100/90">
+                    <p className="rounded-md bg-rose-50/60 px-3 py-2 text-xs text-rose-900/90 italic">
                       “{rec.note}”
                     </p>
                   ) : null}
@@ -232,8 +232,8 @@ function RecommendDialog({ eventId }: { eventId: string }) {
                     className={
                       "flex w-full items-center gap-3 rounded-md px-2 py-1.5 text-start transition " +
                       (selectedId === hit.id
-                        ? "bg-rose-100/80 dark:bg-rose-950/40"
-                        : "hover:bg-rose-50 dark:hover:bg-rose-950/20")
+                        ? "bg-rose-100/80"
+                        : "hover:bg-rose-50")
                     }
                   >
                     {hit.cover_image ? (

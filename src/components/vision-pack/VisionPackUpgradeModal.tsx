@@ -87,7 +87,7 @@ export function VisionPackUpgradeModal({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <div className="text-[10px] font-semibold tracking-[0.2em] text-rose-700 uppercase dark:text-rose-300">
+          <div className="text-[10px] font-semibold tracking-[0.2em] text-rose-700 uppercase">
             {eyebrow ?? t("upgradeCtaEyebrow")}
           </div>
           <DialogTitle className="font-display text-2xl font-light tracking-tight">

@@ -26,14 +26,14 @@ export default async function AuthLayout({
   const tNav = await getTranslations("nav");
 
   return (
-    <div className="relative isolate flex min-h-screen flex-col overflow-x-clip bg-gradient-to-b from-rose-50/60 via-background to-background dark:from-rose-950/20">
+    <div className="relative isolate flex min-h-screen flex-col overflow-x-clip bg-gradient-to-b from-rose-50/60 via-background to-background">
       <div
         aria-hidden
         className="pointer-events-none absolute inset-0 grain-bg opacity-40"
       />
       <div
         aria-hidden
-        className="pointer-events-none absolute -top-40 -end-32 h-[36rem] w-[36rem] rounded-full bg-gradient-to-br from-rose-200/40 to-amber-200/30 blur-3xl dark:from-rose-900/20 dark:to-amber-900/10"
+        className="pointer-events-none absolute -top-40 -end-32 h-[36rem] w-[36rem] rounded-full bg-gradient-to-br from-rose-200/40 to-amber-200/30 blur-3xl"
       />
 
       {/* Slim brand-only top bar: keeps a "way out" + locale switcher without

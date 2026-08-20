@@ -218,7 +218,7 @@ export default function EventDetailPage() {
   };
 
   return (
-    <div className="relative isolate min-h-[calc(100vh-4rem)] w-full overflow-x-hidden bg-gradient-to-b from-rose-50/40 via-background to-background dark:from-rose-950/15">
+    <div className="relative isolate min-h-[calc(100vh-4rem)] w-full overflow-x-hidden bg-gradient-to-b from-rose-50/40 via-background to-background">
       <div
         aria-hidden
         className="pointer-events-none absolute inset-0 grain-bg opacity-30"
@@ -441,7 +441,7 @@ function Stat({
   hint?: string;
 }) {
   return (
-    <div className="rounded-2xl border border-brand-line bg-white/70 p-4 backdrop-blur-sm dark:border-rose-900/30 dark:bg-card/70">
+    <div className="rounded-2xl border border-brand-line bg-white/70 p-4 backdrop-blur-sm">
       <p className="text-[0.6rem] font-medium uppercase tracking-[0.25em] text-muted-foreground">
         {label}
       </p>
@@ -499,7 +499,7 @@ function ApprovedDesignCard({
   return (
     <Link
       href={`/venue-designer/${design.id}`}
-      className="group relative block overflow-hidden rounded-2xl border border-brand-line bg-white/80 ring-1 ring-foreground/[0.04] backdrop-blur-sm transition-shadow hover:shadow-[0_20px_50px_-20px_rgba(244,63,94,0.25)] dark:border-rose-900/30 dark:bg-card/80"
+      className="group relative block overflow-hidden rounded-2xl border border-brand-line bg-white/80 ring-1 ring-foreground/[0.04] backdrop-blur-sm transition-shadow hover:shadow-[0_20px_50px_-20px_rgba(244,63,94,0.25)]"
     >
       <div className="relative aspect-[16/10] overflow-hidden bg-gradient-to-br from-rose-50 to-amber-50/60">
         {heroImage ? (
@@ -626,8 +626,8 @@ function OverviewTab({
     <div className="grid gap-6 lg:grid-cols-3">
       {/* Details */}
       <div className="lg:col-span-2">
-        <div className="overflow-hidden rounded-2xl border border-brand-line bg-white/80 backdrop-blur-sm dark:border-rose-900/30 dark:bg-card/80">
-          <div className="flex items-center justify-between border-b border-brand-line px-5 py-3 dark:border-rose-900/30">
+        <div className="overflow-hidden rounded-2xl border border-brand-line bg-white/80 backdrop-blur-sm">
+          <div className="flex items-center justify-between border-b border-brand-line px-5 py-3">
             <h3 className="font-display text-base font-medium tracking-tight">
               {tc("eventDetails")}
             </h3>
@@ -781,7 +781,7 @@ function OverviewTab({
         </div>
 
         {/* Danger zone */}
-        <div className="mt-6 rounded-2xl border border-stone-200/70 bg-stone-50/50 p-4 dark:border-stone-800 dark:bg-card/40">
+        <div className="mt-6 rounded-2xl border border-stone-200/70 bg-stone-50/50 p-4">
           <div className="flex items-center justify-between gap-3">
             <div>
               <p className="text-sm font-medium">{tc("deleteEvent")}</p>
@@ -809,8 +809,8 @@ function OverviewTab({
 
       {/* Planner sidebar */}
       <div className="lg:col-span-1">
-        <div className="sticky top-24 overflow-hidden rounded-2xl border border-brand-line bg-white/80 backdrop-blur-sm dark:border-rose-900/30 dark:bg-card/80">
-          <div className="border-b border-brand-line px-5 py-3 dark:border-rose-900/30">
+        <div className="sticky top-24 overflow-hidden rounded-2xl border border-brand-line bg-white/80 backdrop-blur-sm">
+          <div className="border-b border-brand-line px-5 py-3">
             <p className="text-[0.65rem] font-medium uppercase tracking-[0.3em] text-rose-700/80">
               {tc("yourPlanner")}
             </p>
@@ -925,8 +925,8 @@ function DesignTab({
 
   return (
     <div className="space-y-6">
-      <div className="overflow-hidden rounded-2xl border border-brand-line bg-white/80 backdrop-blur-sm dark:border-rose-900/30 dark:bg-card/80">
-        <div className="flex items-center justify-between border-b border-brand-line px-5 py-3 dark:border-rose-900/30">
+      <div className="overflow-hidden rounded-2xl border border-brand-line bg-white/80 backdrop-blur-sm">
+        <div className="flex items-center justify-between border-b border-brand-line px-5 py-3">
           <h3 className="font-display text-base font-medium tracking-tight">
             {tc("designWeAreBuilding")}
           </h3>
@@ -969,7 +969,7 @@ function DesignTab({
                             designId: d.id,
                           })
                         }
-                        className="flex w-full items-center gap-3 rounded-xl border border-brand-line bg-white/60 p-2.5 text-start transition-all hover:bg-rose-50/60 disabled:opacity-50 dark:border-rose-900/30 dark:bg-card/60"
+                        className="flex w-full items-center gap-3 rounded-xl border border-brand-line bg-white/60 p-2.5 text-start transition-all hover:bg-rose-50/60 disabled:opacity-50"
                       >
                         <div className="size-12 shrink-0 overflow-hidden rounded-lg bg-muted">
                           {img ? (
@@ -1156,8 +1156,8 @@ function MessagesTab({ eventId }: { eventId: string }) {
   };
 
   return (
-    <div className="flex min-h-[60dvh] flex-col overflow-hidden rounded-2xl border border-brand-line bg-white/80 backdrop-blur-sm dark:border-rose-900/30 dark:bg-card/80">
-      <div className="border-b border-brand-line px-5 py-3 dark:border-rose-900/30">
+    <div className="flex min-h-[60dvh] flex-col overflow-hidden rounded-2xl border border-brand-line bg-white/80 backdrop-blur-sm">
+      <div className="border-b border-brand-line px-5 py-3">
         <h3 className="font-display text-base font-medium tracking-tight">
           {tc("messagesTab")}
         </h3>
@@ -1222,7 +1222,7 @@ function MessagesTab({ eventId }: { eventId: string }) {
         )}
       </div>
 
-      <div className="border-t border-brand-line p-3 dark:border-rose-900/30">
+      <div className="border-t border-brand-line p-3">
         <div className="flex items-end gap-2">
           <Textarea
             value={content}
