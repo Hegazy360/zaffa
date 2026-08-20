@@ -10,6 +10,7 @@ import { openGraphLocaleFields } from "@/i18n/config";
 import { uiLocaleTag } from "@/lib/money-format";
 import { GalleryEmptyCta } from "./empty-cta-client";
 import { collectionPageLd, jsonLdScript } from "@/lib/structured-data";
+import { MediaImage } from "@/components/ui/media-image";
 
 export async function generateMetadata(): Promise<Metadata> {
   // Was a static English object, so an Arabic visitor's share of this page
@@ -83,6 +84,7 @@ async function loadGallery(limit = 24): Promise<GalleryItem[]> {
     where: { user_id: { in: recipientIds } },
     orderBy: [{ user_id: "asc" }, { updated_at: "desc" }],
     select: {
+      id: true,
       user_id: true,
       palette: true,
       thumbnail: true,
@@ -95,11 +97,19 @@ async function loadGallery(limit = 24): Promise<GalleryItem[]> {
     },
   });
 
-  // First-seen wins (the orderBy above ensures we encounter each user's
-  // most-recent design first).
+  // Two different "most recent" questions, and conflating them is why this
+  // gallery was showing placeholder icons for a couple with fourteen renders.
+  //
+  // The palette should come from their newest design — that is what they are
+  // working on. The *image* has to come from their newest design **that
+  // actually has a render**, which is frequently not the same one: the newest
+  // design is often an empty draft opened and abandoned.
   const byUser = new Map<string, (typeof designs)[number]>();
+  const imageByUser = new Map<string, string>();
   for (const d of designs) {
     if (!byUser.has(d.user_id)) byUser.set(d.user_id, d);
+    const url = d.media[0]?.url ?? d.thumbnail;
+    if (url && !imageByUser.has(d.user_id)) imageByUser.set(d.user_id, url);
   }
 
   return packs
@@ -123,7 +133,9 @@ async function loadGallery(limit = 24): Promise<GalleryItem[]> {
         slug: p.microsite_slug!,
         publishedAt: p.microsite_published_at,
         recipientName: p.recipient?.full_name ?? null,
-        heroImage: design?.media[0]?.url ?? design?.thumbnail ?? null,
+        heroImage: p.recipient_user_id
+        ? (imageByUser.get(p.recipient_user_id) ?? null)
+        : null,
         palette,
         rendersGenerated: p.renders_used,
       };
@@ -226,12 +238,12 @@ export default async function GalleryPage() {
                 >
                   <div className="relative aspect-[4/3] overflow-hidden bg-muted">
                     {item.heroImage ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
+                      <MediaImage
                         src={item.heroImage}
                         alt={name}
-                        loading="lazy"
-                        className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+                        fill
+                        sizes="card"
+                        className="transition-transform duration-500 group-hover:scale-[1.03]"
                       />
                     ) : (
                       <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-rose-50 via-rose-50/60 to-amber-50">

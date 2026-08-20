@@ -19,6 +19,7 @@ import { useVisionPackPricing } from "@/components/vision-pack/use-pricing";
 import { DEFAULT_PACK_SKU, PURCHASABLE_PACK_SKUS } from "@/lib/vision-pack";
 import { minorToMajor } from "@/lib/vision-pack-pricing";
 import { ttTrack, TIKTOK_EVENTS } from "@/lib/tiktok";
+import { MediaImage } from "@/components/ui/media-image";
 
 interface PageProps {
   params: Promise<{ renderId: string }>;
@@ -160,11 +161,17 @@ function RevealInner({ renderId }: { renderId: string }) {
 
           <div className="mt-10 overflow-hidden rounded-2xl border border-rose-200/70 bg-card shadow-xl">
             <div className="relative">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
+              {/* Natural aspect: this is the reveal, and cropping the thing
+                  the visitor came to see would be absurd. Explicit dimensions
+                  keep the reserved box right so the page does not jump. */}
+              <MediaImage
                 src={render.url}
                 alt={render.design.name}
-                className="block h-auto w-full"
+                width={1600}
+                height={900}
+                sizes="half"
+                priority
+                className="block h-auto w-full object-contain"
               />
               {render.watermarked ? (
                 <div className="pointer-events-none absolute bottom-3 end-3 inline-flex items-center gap-1.5 rounded-full bg-black/65 px-3 py-1 text-xs font-medium tracking-wide text-white backdrop-blur">

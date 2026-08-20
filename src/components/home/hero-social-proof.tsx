@@ -86,6 +86,12 @@ async function loadProof(): Promise<{ count: number; thumbs: string[] }> {
 
   // One render per couple — four thumbnails of the same wedding is not proof
   // that four couples exist.
+  //
+  // Note the loop keeps scanning a user's designs until it finds one with a
+  // render, rather than taking their newest design and giving up if it is
+  // empty. The newest design is frequently an abandoned draft, which is how
+  // the gallery ended up showing placeholder icons for a couple with fourteen
+  // renders.
   const seen = new Set<string>();
   const thumbs: string[] = [];
   for (const d of designs) {

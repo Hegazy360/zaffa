@@ -6,6 +6,7 @@ import { useTranslations } from "next-intl";
 import { motion, useReducedMotion } from "framer-motion";
 import { Sparkles, ArrowRight, Camera, Film, Heart } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { MediaImage } from "@/components/ui/media-image";
 
 // Navbar / Footer are RSCs that call `getTranslations` from
 // `next-intl/server`. Hoisting them into the server `page.tsx` (which
@@ -213,11 +214,14 @@ export function Microsite({
                 className="lg:col-span-7"
               >
                 <div className="relative aspect-[4/3] overflow-hidden rounded-2xl ring-1 ring-rose-200/60 shadow-[0_30px_80px_-30px_rgba(244,63,94,0.45)]">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
+                  {/* The one image a couple sends to their family. Priority,
+                      because it is the LCP on the surface that matters most. */}
+                  <MediaImage
                     src={heroImg}
                     alt={recipientName}
-                    className="h-full w-full object-cover"
+                    fill
+                    sizes="half"
+                    priority
                   />
                 </div>
                 {renders.length > 1 && (
@@ -233,12 +237,7 @@ export function Microsite({
                             : "ring-transparent hover:ring-rose-200"
                         }`}
                       >
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img
-                          src={r.url}
-                          alt=""
-                          className="h-full w-full object-cover"
-                        />
+                        <MediaImage src={r.url} alt="" fill sizes="thumb" />
                       </button>
                     ))}
                   </div>
@@ -268,12 +267,12 @@ export function Microsite({
                   className="group overflow-hidden rounded-2xl bg-card ring-1 ring-foreground/[0.06]"
                 >
                   <div className="relative aspect-[4/3] overflow-hidden">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
+                    <MediaImage
                       src={r.url}
                       alt=""
-                      loading="lazy"
-                      className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.02]"
+                      fill
+                      sizes="card"
+                      className="transition-transform duration-500 group-hover:scale-[1.02]"
                     />
                   </div>
                 </motion.div>
@@ -345,13 +344,7 @@ export function Microsite({
                         key={r.id}
                         className="aspect-square overflow-hidden rounded-lg bg-muted ring-1 ring-foreground/[0.05]"
                       >
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img
-                          src={r.url}
-                          alt=""
-                          loading="lazy"
-                          className="h-full w-full object-cover"
-                        />
+                        <MediaImage src={r.url} alt="" fill sizes="card" />
                       </div>
                     ))}
                   </div>
