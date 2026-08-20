@@ -653,7 +653,11 @@
       "homeLink": "Unsere Honorare ansehen",
       "tableCaption": "Unser Honorar nach Hochzeitsbudget, für {market}"
     },
-    "footerPricing": "Preise"
+    "footerPricing": "Preise",
+    "askZaffaEyebrow": "Fragt uns alles",
+    "askZaffaTitle": "Verloren in der Hochzeitsplanung? Fragt einfach.",
+    "askZaffaSubtitle": "Preise, Abläufe, was enthalten ist, ob wir eure Stadt abdecken — der Assistent antwortet in eurer Sprache, und ein echter Mensch ist einen Klick entfernt.",
+    "askZaffaOpen": "Oder öffnet den Chat und fragt selbst"
   },
   "dashboard": {
     "vendorWelcome": "Willkommen zurück,{name}",
@@ -2486,5 +2490,27 @@
     "makeItRealEyebrow": "Macht es real",
     "makeItRealTitle": "Das ist ein Plan, nicht nur ein Traum.",
     "makeItRealBody": "Schickt uns dieses Lookbook per WhatsApp und unser Team sagt euch genau, was es braucht, um es zu bauen — die Location, die Dienstleister und einen klaren Preis. Wir antworten innerhalb von {hours} Stunden."
+  },
+  "chat": {
+    "launcherLabel": "Frag Zaffa alles",
+    "title": "Frag Zaffa",
+    "subtitle": "Preise, Abläufe, wie es funktioniert — in deiner Sprache.",
+    "greeting": "Willkommen! Frag mich alles über Zaffa — was enthalten ist, was es bei dir kostet, wie das kostenlose Rendering funktioniert.",
+    "suggested1": "Was bekomme ich kostenlos?",
+    "suggested2": "Was kostet es?",
+    "suggested3": "Plant ihr meine ganze Hochzeit?",
+    "suggested4": "Wie funktioniert der KI-Designer?",
+    "placeholder": "Schreib deine Frage…",
+    "send": "Senden",
+    "typing": "Zaffa schreibt",
+    "retry": "Nochmal versuchen",
+    "rateLimited": "Viele Fragen auf einmal — warte kurz, oder schreib uns unten auf WhatsApp.",
+    "errorFallback": "Ich konnte gerade nicht antworten. Ein Mensch antwortet auf WhatsApp innerhalb von 24 Stunden — der Button ist direkt darunter.",
+    "unavailable": "Der Assistent macht Pause. Schreib uns unten auf WhatsApp — Antwort innerhalb von 24 Stunden.",
+    "whatsappCta": "Auf WhatsApp schreiben",
+    "enquireCta": "Erzählt uns von eurer Hochzeit",
+    "whatsappPrefill": "Hallo Zaffa! Ich habe eine Frage zu meiner Hochzeit.",
+    "close": "Chat schließen",
+    "disclaimer": "KI-Assistent. Preise werden beim Bezahlen bestätigt, Angebote kommen von unserem Team."
   }
 }

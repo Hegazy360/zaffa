@@ -33,7 +33,8 @@ export type WhatsAppSurface =
   | "enquire_confirmation"
   | "enquire_form"
   | "dashboard_enquiry"
-  | "microsite";
+  | "microsite"
+  | "chat_widget";
 
 export function WhatsAppCta({
   surface,

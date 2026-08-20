@@ -7,6 +7,8 @@ import { SpeedInsights } from "@vercel/speed-insights/next";
 import "./globals.css";
 import { Providers } from "./providers";
 import { Toaster } from "@/components/ui/sonner";
+import { ChatWidgetRoot } from "@/components/chat/chat-widget-root";
+import { isFlagEnabled } from "@/lib/flags";
 import { TikTokPixel } from "@/components/analytics/tiktok-pixel";
 import { isRtlLocale, openGraphLocaleFields } from "@/i18n/config";
 import {
@@ -153,6 +155,9 @@ export default async function RootLayout({
         <NextIntlClientProvider locale={locale} messages={messages}>
           <Providers>
             {children}
+            {/* Flag off = no launcher markup and no panel chunk anywhere —
+                the server-side check is the whole-widget kill. */}
+            {isFlagEnabled("aiChat") ? <ChatWidgetRoot /> : null}
             <Toaster />
           </Providers>
         </NextIntlClientProvider>

@@ -18,6 +18,8 @@ import {
 } from "@/components/home/marketplace-teaser-section";
 
 import { TierComparisonSection } from "@/components/home/tier-comparison-section";
+import { AskZaffaSection } from "@/components/home/ask-zaffa-section";
+import { isFlagEnabled } from "@/lib/flags";
 import { getTranslations } from "next-intl/server";
 import { jsonLdScript, serviceLd } from "@/lib/structured-data";
 import { pricedMarkets } from "@/lib/concierge-pricing";
@@ -113,6 +115,11 @@ export default async function HomePage() {
         <TestimonialsSection />
 
         <ShareSection />
+
+        {/* Ask Zaffa — the chat's visible invitation. Rendered only when
+            the aiChat flag is on, so the section and the floating widget
+            appear and disappear together. */}
+        {isFlagEnabled("aiChat") && <AskZaffaSection />}
 
         {/* Tier comparison — sits *after* the artefacts walkthrough so
             visitors see the full feature set before the price split.

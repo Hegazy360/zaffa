@@ -653,7 +653,11 @@
       "homeLink": "See what we charge",
       "tableCaption": "Our fee by wedding budget, for {market}"
     },
-    "footerPricing": "Pricing"
+    "footerPricing": "Pricing",
+    "askZaffaEyebrow": "Ask us anything",
+    "askZaffaTitle": "Lost in wedding planning? Just ask.",
+    "askZaffaSubtitle": "Prices, timings, what's included, whether we cover your city — the assistant answers in your language, and a real person is one tap away.",
+    "askZaffaOpen": "Or open the chat and ask your own"
   },
   "dashboard": {
     "vendorWelcome": "Welcome back, {name}",
@@ -2486,5 +2490,27 @@
     "makeItRealEyebrow": "Make it real",
     "makeItRealTitle": "This is a plan, not just a dream.",
     "makeItRealBody": "Send this lookbook to us on WhatsApp and our team will tell you exactly what it takes to build it — the venue, the vendors, and one clear price. We reply within {hours} hours."
+  },
+  "chat": {
+    "launcherLabel": "Ask Zaffa anything",
+    "title": "Ask Zaffa",
+    "subtitle": "Questions about prices, timings, how it works — in your language.",
+    "greeting": "Ahlan! Ask me anything about Zaffa — what's included, what it costs where you are, how the free render works.",
+    "suggested1": "What do I get for free?",
+    "suggested2": "How much does it cost?",
+    "suggested3": "Can you plan my whole wedding?",
+    "suggested4": "How does the AI designer work?",
+    "placeholder": "Type your question…",
+    "send": "Send",
+    "typing": "Zaffa is typing",
+    "retry": "Try again",
+    "rateLimited": "That's a lot of questions at once — give it a minute, or message us on WhatsApp below and a person will answer.",
+    "errorFallback": "I couldn't answer just now. A person replies on WhatsApp within 24 hours — the button is right below.",
+    "unavailable": "The assistant is taking a break. Message us on WhatsApp below and a person will answer within 24 hours.",
+    "whatsappCta": "Chat on WhatsApp",
+    "enquireCta": "Tell us about your wedding",
+    "whatsappPrefill": "Hi Zaffa! I have a question about my wedding.",
+    "close": "Close chat",
+    "disclaimer": "AI assistant. Prices are confirmed at checkout and quotes by our team."
   }
 }

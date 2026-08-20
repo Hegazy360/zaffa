@@ -653,7 +653,11 @@
       "homeLink": "Voir nos honoraires",
       "tableCaption": "Nos honoraires selon le budget du mariage, pour {market}"
     },
-    "footerPricing": "Tarifs"
+    "footerPricing": "Tarifs",
+    "askZaffaEyebrow": "Demandez-nous tout",
+    "askZaffaTitle": "Perdus dans l'organisation ? Demandez.",
+    "askZaffaSubtitle": "Prix, délais, ce qui est inclus, si nous couvrons votre ville — l'assistant répond dans votre langue, et une vraie personne est à un clic.",
+    "askZaffaOpen": "Ou ouvrez le chat et posez la vôtre"
   },
   "dashboard": {
     "vendorWelcome": "Bon retour,{name}",
@@ -2486,5 +2490,27 @@
     "makeItRealEyebrow": "Rendez-le réel",
     "makeItRealTitle": "C'est un plan, pas seulement un rêve.",
     "makeItRealBody": "Envoyez-nous ce lookbook sur WhatsApp et notre équipe vous dira exactement ce qu'il faut pour le construire — le lieu, les prestataires et un prix unique et clair. Nous répondons sous {hours} heures."
+  },
+  "chat": {
+    "launcherLabel": "Demandez tout à Zaffa",
+    "title": "Demandez à Zaffa",
+    "subtitle": "Prix, délais, fonctionnement — dans votre langue.",
+    "greeting": "Bienvenue ! Posez-moi vos questions sur Zaffa — ce qui est inclus, le prix chez vous, comment marche le rendu gratuit.",
+    "suggested1": "Qu'est-ce que j'ai gratuitement ?",
+    "suggested2": "Combien ça coûte ?",
+    "suggested3": "Pouvez-vous organiser tout mon mariage ?",
+    "suggested4": "Comment marche le designer IA ?",
+    "placeholder": "Écrivez votre question…",
+    "send": "Envoyer",
+    "typing": "Zaffa écrit",
+    "retry": "Réessayer",
+    "rateLimited": "Beaucoup de questions d'un coup — patientez une minute, ou écrivez-nous sur WhatsApp ci-dessous.",
+    "errorFallback": "Je n'ai pas pu répondre. Une personne répond sur WhatsApp sous 24 heures — le bouton est juste en dessous.",
+    "unavailable": "L'assistant fait une pause. Écrivez-nous sur WhatsApp ci-dessous — réponse sous 24 heures.",
+    "whatsappCta": "Discuter sur WhatsApp",
+    "enquireCta": "Parlez-nous de votre mariage",
+    "whatsappPrefill": "Bonjour Zaffa ! J'ai une question sur mon mariage.",
+    "close": "Fermer le chat",
+    "disclaimer": "Assistant IA. Les prix sont confirmés au paiement et les devis par notre équipe."
   }
 }
