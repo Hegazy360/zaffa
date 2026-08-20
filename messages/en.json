@@ -2295,7 +2295,8 @@
     "tierDesignName": "Design Pack",
     "tierDesignTagline": "Design + microsite + PDF, no matching.",
     "tierVisionName": "Vision Pack",
-    "tierVisionTagline": "Everything in Design, plus venue & planner matching."
+    "tierVisionTagline": "Everything in Design, plus venue & planner matching.",
+    "micrositeOgKicker": "A wedding designed in Zaffa"
   },
   "emailGate": {
     "eyebrow": "Your render is ready",

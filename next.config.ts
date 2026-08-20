@@ -53,6 +53,16 @@ const securityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
+  // The OG cards read their fonts off disk with `fs.readFile`, which Next's
+  // tracer cannot follow through `path.join(process.cwd(), ...)`. Without this
+  // the files are pruned from the deployment and every share card 500s in
+  // production while working perfectly in dev — the worst possible failure
+  // shape for a growth surface nobody looks at directly.
+  outputFileTracingIncludes: {
+    "/opengraph-image": ["./src/assets/fonts/**"],
+    "/r/[renderId]/opengraph-image": ["./src/assets/fonts/**"],
+    "/v/[slug]/opengraph-image": ["./src/assets/fonts/**"],
+  },
   images: {
     remotePatterns: [
       {

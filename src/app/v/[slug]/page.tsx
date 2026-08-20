@@ -86,10 +86,6 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   }
   const t = await getTranslations("visionPack");
   const recipientName = data.recipient.full_name ?? "Our wedding";
-  const heroUrl =
-    data.design?.media.find((m) => m.type === "render")?.url ??
-    data.design?.thumbnail ??
-    null;
   const title = t("micrositeShareTitle", { names: recipientName });
   const description = t("micrositeShareDescription", { names: recipientName });
   return {
@@ -106,13 +102,18 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       description,
       url: `/v/${slug}`,
       type: "article",
-      ...(heroUrl ? { images: [{ url: heroUrl }] } : {}),
+      // No `images` here on purpose. Setting them would override the
+      // `opengraph-image.tsx` file convention in this folder, which is what
+      // used to happen: the share preview was the raw full-resolution
+      // Cloudinary render — a megabyte or more, unbranded, and routinely
+      // cropped by the chat client into a meaningless slice of a table.
+      // WhatsApp also declines to fetch preview images much over ~300 KB, so
+      // the most-shared surface in the product often previewed as nothing.
     },
     twitter: {
       card: "summary_large_image",
       title,
       description,
-      ...(heroUrl ? { images: [heroUrl] } : {}),
     },
   };
 }

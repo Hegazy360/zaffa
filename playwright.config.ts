@@ -38,13 +38,21 @@ export default defineConfig({
       // The visual net runs in its own projects below — keeping it out of
       // the functional project stops every feature PR from re-rendering
       // 12 full-page screenshots.
-      testIgnore: /(visual|rtl)\.spec\.ts/,
+      testIgnore: /(visual|rtl|share-cards)\.spec\.ts/,
     },
     // RTL correctness assertions (ZAF-36). Public surfaces only, so no auth
     // setup dependency — these must be runnable without a seeded database.
     {
       name: "rtl",
       testMatch: /rtl\.spec\.ts/,
+      use: { ...devices["Desktop Chrome"] },
+    },
+    // Share cards (ZAF-49). Public surfaces, no auth setup dependency — the
+    // whole point is that a link preview works for someone who has never
+    // signed in.
+    {
+      name: "share-cards",
+      testMatch: /share-cards\.spec\.ts/,
       use: { ...devices["Desktop Chrome"] },
     },
     // Visual-regression net (ZAF-31). Public surfaces only, no auth setup
