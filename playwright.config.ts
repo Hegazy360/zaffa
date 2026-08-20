@@ -16,6 +16,14 @@ export default defineConfig({
   retries: process.env.CI ? 1 : 0,
   workers: 1,
   reporter: process.env.CI ? [["github"], ["list"]] : "list",
+
+  // The visual baselines are platform-specific — Playwright suffixes them
+  // `-darwin`, and font rasterisation differs enough between macOS and the
+  // Linux runner that a shared set is not possible without a container.
+  // Rather than let CI fail on missing snapshots or, worse, silently write
+  // Linux ones alongside, the visual projects are skipped there. They are a
+  // local pre-push net; the correctness projects below are the CI gate.
+  ignoreSnapshots: !!process.env.CI,
   timeout: 60_000,
   expect: { timeout: 10_000 },
 

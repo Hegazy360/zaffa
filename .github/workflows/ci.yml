@@ -198,7 +198,15 @@ jobs:
           echo $! > stripe-listen.pid
 
       - name: Run Playwright tests
-        run: npm run test:e2e
+        # Every project except the visual net: its baselines are macOS-
+        # rasterised and a Linux runner cannot match them. `ignoreSnapshots`
+        # in the config covers the same ground; naming the projects here makes
+        # the CI gate legible from the workflow alone.
+        run: |
+          npx playwright test \
+            --project=chromium \
+            --project=desktop-en \
+            --project=mobile-ar
 
       - name: Stop Stripe listener
         if: always()
