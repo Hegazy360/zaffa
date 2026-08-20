@@ -269,7 +269,7 @@ function LookbookPreview() {
             />
           ))}
         </div>
-        <div className="mt-auto flex items-center justify-between text-eyebrow font-medium text-muted-foreground/80 sm:text-xs">
+        <div className="mt-auto flex items-center justify-between text-eyebrow font-medium text-muted-foreground sm:text-xs">
           <span>Zaffa</span>
           <span>PDF · 12 pages</span>
         </div>

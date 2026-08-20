@@ -150,7 +150,7 @@ export default function AdminVenuesPage() {
                         </>
                       ) : null}
                     </p>
-                    <p className="text-xs text-muted-foreground/85">
+                    <p className="text-xs text-muted-foreground">
                       {venue._count.recommendations} recommendation
                       {venue._count.recommendations === 1 ? "" : "s"}
                     </p>

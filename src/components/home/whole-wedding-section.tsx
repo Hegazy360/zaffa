@@ -118,9 +118,9 @@ export function WholeWeddingSection() {
         </Rise>
 
         <div className="mx-auto mt-16 grid max-w-5xl gap-12 lg:grid-cols-2 lg:gap-16">
-          <Rise as="div" delay={0.15}
-          className="space-y-5"
-        >
+          {/* A real <ul>: these are `<li>`s, and axe was right to say so. The
+              `Rise` wrapper renders the element it is told to. */}
+          <Rise as="ul" delay={0.15} className="space-y-5">
             {BULLETS.map((key) => (
               <li key={key} className="flex gap-3.5">
                 <span
@@ -185,7 +185,7 @@ export function WholeWeddingSection() {
                   className="w-full border-white/25 bg-transparent text-foreground hover:bg-white/10 hover:text-white sm:w-auto"
                 />
               </div>
-              <p className="mt-3 text-xs text-stone-500">{t("ctaHint")}</p>
+              <p className="mt-3 text-xs text-muted-foreground">{t("ctaHint")}</p>
             </div>
           </Rise>
         </div>

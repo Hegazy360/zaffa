@@ -16,7 +16,7 @@ export function InspirationSlide({ imageUrls, vibe }: InspirationSlideProps) {
           <p className="text-eyebrow font-semibold text-rose-700">
             INSPIRATION
           </p>
-          <p className="text-eyebrow font-medium text-stone-500">
+          <p className="text-eyebrow font-medium text-muted-foreground">
             ZAFFA.AI
           </p>
         </div>

@@ -300,7 +300,7 @@ function TierSection({
                 })}
               </span>
               {row.note ? (
-                <span className="shrink-0 text-muted-foreground/85">
+                <span className="shrink-0 text-muted-foreground">
                   {row.note}
                 </span>
               ) : null}

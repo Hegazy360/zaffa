@@ -323,7 +323,7 @@ export function Sidebar({ role }: SidebarProps) {
                 <Icon
                   className={cn(
                     "h-4 w-4 transition-colors",
-                    active ? "text-rose-600" : "text-muted-foreground/80"
+                    active ? "text-rose-600" : "text-muted-foreground"
                   )}
                 />
                 {t(link.labelKey)}

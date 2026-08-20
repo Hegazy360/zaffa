@@ -111,7 +111,7 @@ const statusStyles: Record<string, string> = {
   confirmed: "bg-rose-50 text-rose-700 ring-rose-200",
   in_progress: "bg-amber-100 text-amber-900 ring-amber-300",
   completed: "bg-emerald-50 text-emerald-700 ring-emerald-200",
-  cancelled: "bg-stone-50 text-stone-500 ring-stone-200",
+  cancelled: "bg-stone-50 text-muted-foreground ring-stone-200",
 };
 
 function normalizePalette(value: unknown): string[] {
@@ -1422,7 +1422,7 @@ function ProposalsTab({
 
       {released.length > 0 && (
         <section>
-          <p className="mb-3 text-eyebrow font-medium text-stone-500">
+          <p className="mb-3 text-eyebrow font-medium text-muted-foreground">
             {tc("pastPlanners")}
           </p>
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
@@ -1443,7 +1443,7 @@ function ProposalsTab({
 
       {declined.length > 0 && (
         <section>
-          <p className="mb-3 text-eyebrow font-medium text-stone-500">
+          <p className="mb-3 text-eyebrow font-medium text-muted-foreground">
             {tc("withdrew")}
           </p>
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
@@ -1789,7 +1789,7 @@ function ProposalCard({
             {tc("released")}
           </span>
         ) : isDeclined ? (
-          <span className="inline-flex items-center gap-1 rounded-full bg-stone-100 px-2.5 py-1 text-xs font-medium text-stone-500 ring-1 ring-stone-200">
+          <span className="inline-flex items-center gap-1 rounded-full bg-stone-100 px-2.5 py-1 text-xs font-medium text-muted-foreground ring-1 ring-stone-200">
             {tc("withdrew")}
           </span>
         ) : someoneEngaged ? (
@@ -1928,7 +1928,7 @@ function ReviewSection({
               remove.mutate({ id: review.id });
             }
           }}
-          className="mt-2 text-xs text-stone-500 underline-offset-4 hover:text-rose-700 hover:underline disabled:opacity-50"
+          className="mt-2 text-xs text-muted-foreground underline-offset-4 hover:text-rose-700 hover:underline disabled:opacity-50"
         >
           {remove.isPending ? tc("removingReview") : tc("removeReview")}
         </button>

@@ -115,7 +115,7 @@ export default function NotificationsInboxPage() {
             </div>
           ) : items.length === 0 ? (
             <div className="px-6 py-16 text-center">
-              <Bell className="mx-auto size-8 text-muted-foreground/50" />
+              <Bell className="mx-auto size-8 text-muted-foreground" />
               <p className="mt-3 text-sm text-muted-foreground">
                 {t("empty")}
               </p>
@@ -156,7 +156,7 @@ export default function NotificationsInboxPage() {
                             {n.body}
                           </p>
                         )}
-                        <p className="mt-1.5 text-xs text-muted-foreground/80">
+                        <p className="mt-1.5 text-xs text-muted-foreground">
                           {formatDateTime(n.created_at)}
                         </p>
                       </div>

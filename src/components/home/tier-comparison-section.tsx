@@ -326,7 +326,7 @@ function WholeWeddingCard({ idx }: { idx: number }) {
           {w("cta")}
           <ArrowRight className="h-4 w-4 transition-transform rtl:-scale-x-100 group-hover:translate-x-0.5 rtl:group-hover:-translate-x-0.5" />
         </Button>
-        <p className="mt-3 text-center text-xs text-stone-500">{w("ctaHint")}</p>
+        <p className="mt-3 text-center text-xs text-muted-foreground">{w("ctaHint")}</p>
       </div>
     </Rise>
   );

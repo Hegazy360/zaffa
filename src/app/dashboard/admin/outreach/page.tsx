@@ -118,7 +118,7 @@ export default function OutreachKanbanPage() {
                           </>
                         )}
                       </p>
-                      <p className="text-xs text-muted-foreground/80">
+                      <p className="text-xs text-muted-foreground">
                         {f.relativeTime(p.created_at)}
                       </p>
                     </Link>

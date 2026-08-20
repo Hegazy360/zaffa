@@ -214,7 +214,7 @@ export function MediaGalleryDialog({
         ) : media.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16 text-center">
             <div className="rounded-full bg-muted p-4 mb-3">
-              <ImageIcon className="h-8 w-8 text-muted-foreground/40" />
+              <ImageIcon className="h-8 w-8 text-muted-foreground" />
             </div>
             <p className="text-sm font-medium">{t("noMediaTitle")}</p>
             <p className="text-xs text-muted-foreground mt-1 max-w-xs">

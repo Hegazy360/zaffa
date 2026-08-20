@@ -2135,7 +2135,9 @@
     "guestBand_medium": "50–150 guests",
     "guestBand_large": "150+ guests",
     "guestBandUnknown": "Guest count TBD",
-    "homeCtaFullService": "Have us run it"
+    "homeCtaFullService": "Have us run it",
+    "briefMonthLabel": "Month",
+    "briefGuestsLabel": "Guests"
   },
   "common": {
     "cancel": "Cancel",

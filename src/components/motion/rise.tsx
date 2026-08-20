@@ -37,7 +37,7 @@ export function Rise({
   /** Stagger, in seconds. */
   delay?: number;
   className?: string;
-  as?: "div" | "section" | "header" | "li" | "article";
+  as?: "div" | "section" | "header" | "ul" | "li" | "article";
 } & React.HTMLAttributes<HTMLElement>) {
   // `HTMLElement`, and the cast below, because `as` can be any of five tags
   // and TypeScript will not unify their ref types on a polymorphic component

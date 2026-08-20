@@ -29,7 +29,7 @@ export default function Error({
         <h2 className="text-2xl font-bold mb-2">{t("title")}</h2>
         <p className="text-muted-foreground mb-2">{t("body")}</p>
         {error.digest && (
-          <p className="mb-6 font-mono text-xs text-muted-foreground/80">
+          <p className="mb-6 font-mono text-xs text-muted-foreground">
             {t("reference", { id: error.digest })}
           </p>
         )}

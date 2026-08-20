@@ -261,7 +261,7 @@ export default function MarketplacePage() {
                           {budget}
                         </span>
                       ) : (
-                        <span className="text-xs italic text-muted-foreground/80">
+                        <span className="text-xs italic text-muted-foreground">
                           {t("notShared")}
                         </span>
                       )}

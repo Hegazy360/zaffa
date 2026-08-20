@@ -478,7 +478,7 @@ function DraftsPanel({
           {text}
         </pre>
       ) : (
-        <p className="rounded-lg bg-stone-50 p-3 text-xs text-stone-500 ring-1 ring-stone-200">
+        <p className="rounded-lg bg-stone-50 p-3 text-xs text-muted-foreground ring-1 ring-stone-200">
           {t("noDraftYet")}
         </p>
       )}

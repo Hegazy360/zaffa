@@ -1,0 +1,22 @@
+{
+  "_comment": [
+    "A ratchet, not an amnesty. `axe.spec.ts` fails on any serious or critical",
+    "violation not listed here, so adding a row is a deliberate act that shows",
+    "up in review. Rows may be deleted freely.",
+    "",
+    "`allow` suppresses a rule on named pages — use sparingly, it blinds that",
+    "rule on the whole page.",
+    "",
+    "`exclude` removes specific elements from the scan. Prefer it: it is the",
+    "narrow tool, and every entry has to say what was measured and why the",
+    "finding is wrong."
+  ],
+  "allow": [],
+  "exclude": [
+    {
+      "pages": ["home"],
+      "selector": "a.bg-white",
+      "reason": "axe false positive, measured. It reports 'contrast 1.05:1, foreground #0c0a09 on background #121217' for the white CTA on the dark plate — reading the plate's colour instead of the button's. The element's own computed style is backgroundColor rgb(255,255,255), opacity 1, colour stone-950: about 18:1. Every ancestor is opacity 1, so this is not the mid-animation artefact (that one was real and is fixed by the reducedMotion setting in the spec). Most likely axe's background resolution and the button's `bg-clip-padding` + transparent border. Re-check on the next axe-core upgrade."
+    }
+  ]
+}

@@ -166,7 +166,7 @@ export function PackCheckoutCard({
         )}
       </Button>
 
-      <p className="mt-2 text-center text-xs text-muted-foreground/85">
+      <p className="mt-2 text-center text-xs text-muted-foreground">
         {t("refundPolicyShort")}
       </p>
     </div>

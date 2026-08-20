@@ -201,7 +201,7 @@ export function Microsite({
                 </div>
               )}
               <div className="champagne-hairline mt-8 h-px w-32" aria-hidden />
-              <p className="mt-6 max-w-md text-sm text-muted-foreground/85 leading-relaxed">
+              <p className="mt-6 max-w-md text-sm text-muted-foreground leading-relaxed">
                 {pack.rendersGenerated} renders · {pack.videosGenerated} videos · made on Zaffa
               </p>
             </div>

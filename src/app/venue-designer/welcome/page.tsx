@@ -261,7 +261,7 @@ export default function VenueDesignerWelcomePage() {
               </Button>
             )}
           </div>
-          <p className="mt-10 max-w-md text-pretty text-xs text-muted-foreground/80 leading-relaxed">
+          <p className="mt-10 max-w-md text-pretty text-xs text-muted-foreground leading-relaxed">
             {t("refundPolicyShort")}
           </p>
         </div>

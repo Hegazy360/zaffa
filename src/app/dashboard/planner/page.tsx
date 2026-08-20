@@ -155,7 +155,7 @@ export default function PlannerDashboardPage() {
           <StatCard
             label={tPlanner("statReleased")}
             value={stats?.releasedCount ?? 0}
-            icon={<CalendarDays className="size-4 text-stone-500" />}
+            icon={<CalendarDays className="size-4 text-muted-foreground" />}
             sublabel={tPlanner("statReleasedHint")}
           />
         </section>

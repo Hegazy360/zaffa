@@ -338,7 +338,7 @@ export function PostMetadataSidebar({
                   <button
                     type="button"
                     onClick={() => removeHashtag(i)}
-                    className="rounded-full p-0.5 text-stone-500 hover:bg-rose-100 hover:text-stone-800"
+                    className="rounded-full p-0.5 text-muted-foreground hover:bg-rose-100 hover:text-stone-800"
                   >
                     <X className="size-3" />
                   </button>

@@ -77,7 +77,7 @@ export function LookbookCoverSlide({
                 scale="lg"
               />
             </div>
-            <p className="mt-6 text-eyebrow font-semibold text-stone-500">
+            <p className="mt-6 text-eyebrow font-semibold text-muted-foreground">
               DESIGNED WITH ZAFFA.AI
             </p>
           </div>

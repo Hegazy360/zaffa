@@ -197,7 +197,7 @@ export function ShareAndFinishPanel({ designId }: Props) {
             </div>
           ) : (
             <div className="space-y-2">
-              <p className="text-xs text-muted-foreground/85">
+              <p className="text-xs text-muted-foreground">
                 {onFreeTier
                   ? t("micrositeFreeTierHint")
                   : t("micrositeUnpublishedHint")}
@@ -241,7 +241,7 @@ export function ShareAndFinishPanel({ designId }: Props) {
         >
           {onFreeTier ? (
             <div className="space-y-2">
-              <p className="text-xs text-muted-foreground/85">
+              <p className="text-xs text-muted-foreground">
                 {t("lookbookFreeTierHint")}
               </p>
               <LockableAction

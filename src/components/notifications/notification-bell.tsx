@@ -104,7 +104,7 @@ export function NotificationBell({ userId }: { userId: string }) {
             </div>
           ) : recent.length === 0 ? (
             <div className="px-4 py-10 text-center">
-              <Bell className="mx-auto h-6 w-6 text-muted-foreground/60" />
+              <Bell className="mx-auto h-6 w-6 text-muted-foreground" />
               <p className="mt-2 text-sm text-muted-foreground">{t("empty")}</p>
             </div>
           ) : (
@@ -142,7 +142,7 @@ export function NotificationBell({ userId }: { userId: string }) {
                             {n.body}
                           </p>
                         )}
-                        <p className="mt-1 text-xs text-muted-foreground/80">
+                        <p className="mt-1 text-xs text-muted-foreground">
                           {formatRelative(n.created_at)}
                         </p>
                       </div>

@@ -920,7 +920,9 @@
     "guestBand_medium": "50–150 مدعوًّا",
     "guestBand_large": "أكثر من 150 مدعوًّا",
     "guestBandUnknown": "عدد المدعوّين قيد التحديد",
-    "homeCtaFullService": "خلّونا نتولّاه"
+    "homeCtaFullService": "خلّونا نتولّاه",
+    "briefMonthLabel": "الشهر",
+    "briefGuestsLabel": "عدد الضيوف"
   },
   "common": {
     "cancel": "إلغاء",

@@ -50,7 +50,7 @@ const statusStyles: Record<EventStatus | string, string> = {
   confirmed: "bg-rose-50 text-rose-700 ring-rose-200",
   in_progress: "bg-amber-100 text-amber-900 ring-amber-300",
   completed: "bg-emerald-50 text-emerald-700 ring-emerald-200",
-  cancelled: "bg-stone-50 text-stone-500 ring-stone-200",
+  cancelled: "bg-stone-50 text-muted-foreground ring-stone-200",
 };
 
 export default function ClientDashboardPage() {

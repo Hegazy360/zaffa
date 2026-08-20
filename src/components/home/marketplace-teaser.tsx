@@ -276,6 +276,7 @@ function BriefCard({
   signInLabel,
   compact,
 }: BriefCardProps) {
+  const t = useTranslations("marketplaceTeaser");
   return (
     <article
       className={cn(
@@ -340,14 +341,20 @@ function BriefCard({
       </div>
 
       <div className="flex flex-1 flex-col gap-2 p-4">
-        <dl className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-[12px] text-foreground/85">
+        {/* Real `dt`/`dd` pairs. It was a `<dl>` wrapping bare divs, which axe
+            flags — but the deeper problem is that each label existed only as
+            an icon, so a screen reader announced two values with nothing to
+            say what they were. The `dt` is visually hidden, not absent. */}
+        <dl className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-foreground/85">
           <div className="flex items-center gap-1.5 text-muted-foreground">
-            <CalendarDays className="size-3.5 text-rose-500/80" />
-            <span className="truncate">{monthLabel}</span>
+            <CalendarDays className="size-3.5 shrink-0 text-rose-500/80" aria-hidden />
+            <dt className="sr-only">{t("briefMonthLabel")}</dt>
+            <dd className="truncate">{monthLabel}</dd>
           </div>
           <div className="flex items-center gap-1.5 text-muted-foreground">
-            <Users className="size-3.5 text-rose-500/80" />
-            <span className="truncate">{guestLabel}</span>
+            <Users className="size-3.5 shrink-0 text-rose-500/80" aria-hidden />
+            <dt className="sr-only">{t("briefGuestsLabel")}</dt>
+            <dd className="truncate">{guestLabel}</dd>
           </div>
         </dl>
       </div>

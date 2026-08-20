@@ -55,7 +55,7 @@ const statusStyles: Record<string, string> = {
   confirmed: "bg-rose-50 text-rose-700 ring-rose-200",
   in_progress: "bg-amber-100 text-amber-900 ring-amber-300",
   completed: "bg-emerald-50 text-emerald-700 ring-emerald-200",
-  cancelled: "bg-stone-50 text-stone-500 ring-stone-200",
+  cancelled: "bg-stone-50 text-muted-foreground ring-stone-200",
 };
 
 function normalizePalette(value: unknown): string[] {
@@ -724,7 +724,7 @@ const ENGAGEMENT_STATUS_TONE: Record<string, string> = {
   declined: "bg-stone-100 text-stone-700",
   active: "bg-amber-100 text-amber-900",
   completed: "bg-stone-100 text-stone-700",
-  cancelled: "bg-stone-100 text-stone-500",
+  cancelled: "bg-stone-100 text-muted-foreground",
 };
 
 function VendorsTab({ event }: { event: VendorsTabEvent }) {
@@ -1021,7 +1021,7 @@ function EngagementRow({
                       r.status === "paid"
                         ? "bg-emerald-100 text-emerald-800"
                         : r.status === "cancelled"
-                          ? "bg-stone-100 text-stone-500"
+                          ? "bg-stone-100 text-muted-foreground"
                           : "bg-amber-100 text-amber-900",
                     )}
                   >

@@ -2135,7 +2135,9 @@
     "homeAlsoDesigning": "{count, plural, =0 {} one {Und # weitere werden gerade mit uns geplant.} other {Und # weitere werden gerade mit uns geplant.}}",
     "homeEmptyTitle": "Zaffa öffnet gerade seine Türen",
     "homeEmptyBody": "Wir gestalten gerade die ersten Hochzeiten auf der Plattform. Starten Sie kostenlos und sehen Sie Ihren Tag, bevor Sie eine Entscheidung treffen.",
-    "homeCtaFullService": "Lassen Sie uns die Planung übernehmen"
+    "homeCtaFullService": "Lassen Sie uns die Planung übernehmen",
+    "briefMonthLabel": "Monat",
+    "briefGuestsLabel": "Gäste"
   },
   "common": {
     "cancel": "Abbrechen",

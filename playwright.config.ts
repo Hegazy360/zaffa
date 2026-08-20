@@ -54,7 +54,7 @@ export default defineConfig({
       name: "desktop-en",
       use: { ...devices["Desktop Chrome"], locale: "en-US" },
       testMatch:
-        /(rtl|eyebrow|eyebrow-live|confirm|media|keyboard|share-cards|first-impression)\.spec\.ts/,
+        /(rtl|eyebrow|eyebrow-live|confirm|media|keyboard|share-cards|first-impression|axe)\.spec\.ts/,
     },
     {
       name: "mobile-ar",
@@ -66,7 +66,7 @@ export default defineConfig({
       // Share cards and first-impression states iterate locales internally, so
       // running them here would only repeat work. Everything else is a genuine
       // second environment.
-      testMatch: /(rtl|eyebrow|eyebrow-live|confirm|media|keyboard)\.spec\.ts/,
+      testMatch: /(rtl|eyebrow|eyebrow-live|confirm|media|keyboard|axe)\.spec\.ts/,
     },
 
     // Visual-regression net (ZAF-31). Iterates locales internally, and pins

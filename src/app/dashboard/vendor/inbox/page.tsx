@@ -35,7 +35,7 @@ const STATUS_TONE: Record<EngagementStatus, string> = {
   declined: "bg-stone-100 text-stone-700",
   active: "bg-amber-100 text-amber-900",
   completed: "bg-stone-100 text-stone-700",
-  cancelled: "bg-stone-100 text-stone-500",
+  cancelled: "bg-stone-100 text-muted-foreground",
 };
 
 export default function VendorInboxPage() {

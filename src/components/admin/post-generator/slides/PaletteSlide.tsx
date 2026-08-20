@@ -59,7 +59,7 @@ export function PaletteSlide({ palette, vibe }: PaletteSlideProps) {
           <p className="text-eyebrow font-semibold text-rose-700">
             PALETTE STUDY
           </p>
-          <p className="text-eyebrow font-medium text-stone-500">
+          <p className="text-eyebrow font-medium text-muted-foreground">
             ZAFFA.AI
           </p>
         </div>
@@ -98,7 +98,7 @@ export function PaletteSlide({ palette, vibe }: PaletteSlideProps) {
       <div className="absolute inset-x-0 bottom-0 px-16 pb-12">
         <div className="flex items-center justify-between gap-6">
           <div className="h-px flex-1 bg-stone-300" />
-          <p className="font-display text-[16px] font-light italic tracking-wide text-stone-500">
+          <p className="font-display text-[16px] font-light italic tracking-wide text-muted-foreground">
             Composed for editorial wedding photography.
           </p>
           <div className="h-px flex-1 bg-stone-300" />
@@ -180,7 +180,7 @@ function ColorCard({ color, role, featured, compact }: ColorCardProps) {
         </p>
         <p
           className={cn(
-            "mt-0.5 font-mono text-eyebrow text-stone-500",
+            "mt-0.5 font-mono text-eyebrow text-muted-foreground",
             featured ? "text-[13px]" : compact ? "text-xs" : "text-xs",
           )}
         >

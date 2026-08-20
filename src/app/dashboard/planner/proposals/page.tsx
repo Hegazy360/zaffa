@@ -283,7 +283,7 @@ function ProposalCard({ proposal }: { proposal: ProposalRow }) {
         )}
         {isReleased && proposal.release_rating && (
           <div className="rounded-xl bg-stone-50 p-3 text-xs text-stone-700">
-            <p className="flex items-center gap-1 text-eyebrow font-medium text-stone-500">
+            <p className="flex items-center gap-1 text-eyebrow font-medium text-muted-foreground">
               {t("theirFeedback")}
               <span className="inline-flex items-center gap-0.5 text-amber-600">
                 {Array.from({ length: 5 }).map((_, i) => (

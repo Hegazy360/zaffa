@@ -141,7 +141,12 @@
   --secondary: oklch(97% 0.001 106.424); /* stone-100 */
   --secondary-foreground: oklch(21.6% 0.006 56.043); /* stone-900 */
   --muted: oklch(97% 0.001 106.424);
-  --muted-foreground: oklch(55.3% 0.013 58.071); /* stone-500 */
+  /* stone-600, not stone-500. At stone-500 this is about 4.0:1 on white —
+     under the 4.5:1 floor, and axe flagged it on every page. It is the colour
+     of most secondary copy in the product, so it is also the single highest-
+     leverage contrast fix available. stone-600 is ~6.4:1 and still reads as
+     secondary. */
+  --muted-foreground: oklch(44.4% 0.011 73.639); /* stone-600 */
   --accent: oklch(97% 0.001 106.424);
   --accent-foreground: oklch(21.6% 0.006 56.043);
   --destructive: oklch(0.58 0.22 27);

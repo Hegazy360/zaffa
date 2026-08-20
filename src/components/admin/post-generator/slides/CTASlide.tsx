@@ -48,7 +48,7 @@ export function CTASlide({
         <p className="mt-10 font-display text-3xl font-medium tracking-[0.02em] text-rose-700">
           {subline}
         </p>
-        <p className="mt-3 text-eyebrow font-semibold text-stone-500">
+        <p className="mt-3 text-eyebrow font-semibold text-muted-foreground">
           DESIGNED WITH ZAFFA
         </p>
       </div>

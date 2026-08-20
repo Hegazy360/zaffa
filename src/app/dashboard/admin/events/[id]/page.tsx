@@ -85,7 +85,7 @@ export default async function AdminEventPage({
             {event.venue ? <> · {event.venue}</> : null}
           </p>
           {event.vision_packs[0] ? (
-            <p className="text-xs text-muted-foreground/85">
+            <p className="text-xs text-muted-foreground">
               Vision Pack: <span className="font-mono">{event.vision_packs[0].sku}</span>
               {" · "}
               {event.vision_packs[0].status}

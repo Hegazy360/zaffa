@@ -451,7 +451,7 @@ function MyProposalState({
     },
     declined: {
       label: t("statusWithdrawn"),
-      className: "bg-stone-100 text-stone-500 ring-stone-200",
+      className: "bg-stone-100 text-muted-foreground ring-stone-200",
     },
   };
   const s = statusLabel[proposal.status] ?? statusLabel.pending;

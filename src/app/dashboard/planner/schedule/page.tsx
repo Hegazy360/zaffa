@@ -285,7 +285,7 @@ export default function SchedulePage() {
                     key={d.toISOString()}
                     className={cn(
                       "group relative min-h-[110px] border-b border-e border-brand-line p-2 text-xs",
-                      !inMonth && "bg-stone-50/40 text-muted-foreground/70"
+                      !inMonth && "bg-stone-50/40 text-muted-foreground"
                     )}
                   >
                     <div className="mb-1 flex items-center justify-between">

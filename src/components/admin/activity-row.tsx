@@ -176,7 +176,7 @@ export function ActivityRow({ item }: { item: ActivityItem }) {
           </span>{" "}
           <span className="font-mono">
             {"★".repeat(rating)}
-            <span className="text-muted-foreground/60">
+            <span className="text-muted-foreground">
               {"★".repeat(5 - rating)}
             </span>
           </span>

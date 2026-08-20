@@ -99,7 +99,7 @@ export function IGCarouselPreview({
         </div>
         <div className="min-w-0 flex-1">
           <p className="text-xs font-semibold">zaffa.ai</p>
-          <p className="text-xs text-stone-500">sponsored</p>
+          <p className="text-xs text-muted-foreground">sponsored</p>
         </div>
         <MoreHorizontal className="size-5 text-stone-700" />
       </div>
@@ -229,7 +229,7 @@ export function IGCarouselPreview({
           <Send className="size-6 text-stone-700" />
           <Bookmark className="ms-auto size-6 text-stone-700" />
         </div>
-        <p className="mt-2 text-xs text-stone-500">
+        <p className="mt-2 text-xs text-muted-foreground">
           slide {index + 1} of {slides.length}
         </p>
       </div>

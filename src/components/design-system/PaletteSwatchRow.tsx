@@ -170,7 +170,7 @@ export function PaletteSwatchRow({
           {showHex && (
             <span
               className={cn(
-                "mt-1 font-mono text-stone-500",
+                "mt-1 font-mono text-muted-foreground",
                 NAMED_HEX_TEXT[scale],
               )}
             >
