@@ -36,6 +36,22 @@ export async function GET(req: Request) {
   const cutoff = new Date();
   cutoff.setUTCDate(cutoff.getUTCDate() - RETENTION_DAYS);
 
+  // Chat transcripts age out at 90 days — they exist as a prompt-tuning
+  // corpus and an abuse trail, not a permanent record. Cascade removes
+  // the messages. Rides this cron rather than its own entry because a
+  // daily sweep is a daily sweep.
+  const chatCutoff = new Date();
+  chatCutoff.setUTCDate(chatCutoff.getUTCDate() - 90);
+  const chatSwept = await prisma.chatConversation
+    .deleteMany({ where: { last_message_at: { lt: chatCutoff } } })
+    .catch((err: unknown) => {
+      reportError("cron.cleanup_anon.chat_sweep_failed", err);
+      return { count: 0 };
+    });
+  if (chatSwept.count > 0) {
+    logger.info("cron.cleanup_anon.chat_swept", { count: chatSwept.count });
+  }
+
   // Anon users that haven't claimed an email yet AND haven't even
   // hit the gate (no `free_render_email`). Email-claimed-but-not-
   // confirmed rows are also fair game because the lock falls away

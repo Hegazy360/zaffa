@@ -50,6 +50,12 @@ export const KNOWN = {
   // (`Enquiry.pricing_published`), which keeps that comparison possible if it
   // is ever wanted. See docs/pricing-published-2026-08.md.
   publishedPricing: "PUBLISHED_PRICING",
+  // The AI chat widget (floating launcher + homepage section) AND its
+  // backend: `chat.ask` refuses when this is off, which is the instant
+  // kill — the ISR'd homepage can lag a flag flip by up to 300s, but the
+  // procedure check cannot. OFF by default until the launch QA in en+ar
+  // passes and the OpenRouter account has credits (ZAF-85).
+  aiChat: "AI_CHAT",
 } as const;
 
 export type FlagKey = keyof typeof KNOWN;
@@ -65,6 +71,8 @@ const DEFAULTS: Record<FlagKey, boolean> = {
   testimonials: false,
   // ON — see comment on `publishedPricing` above.
   publishedPricing: true,
+  // OFF — see comment on `aiChat` above.
+  aiChat: false,
 };
 
 export function parseFlagValue(value: string | undefined): boolean | null {

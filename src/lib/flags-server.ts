@@ -17,6 +17,7 @@ const DEFAULTS_FOR_FALLBACK: Record<FlagKey, boolean> = {
   professionalSurfaces: false,
   testimonials: false,
   publishedPricing: true,
+  aiChat: false,
 };
 
 /**

@@ -115,6 +115,13 @@ export const accountRouter = router({
  * runs.
  */
 export async function hardDeleteUser(userId: string): Promise<void> {
+  // Chat transcripts are SetNull on the profile FK (an anonymized
+  // transcript is fine to keep for a *live* account that merely signs
+  // out) — but account deletion is a PII erasure request, and whatever
+  // the user typed into the chat goes with it. Explicit delete because
+  // the cascade won't reach them.
+  await prisma.chatConversation.deleteMany({ where: { user_id: userId } });
+
   const supabase = getSupabaseAdmin();
   // Delete the auth.users row first; the public.profiles cascade picks
   // up everything else through Prisma onDelete cascades. If the auth

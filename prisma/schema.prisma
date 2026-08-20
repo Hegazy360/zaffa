@@ -244,6 +244,7 @@ model Profile {
   bought_vision_packs   VisionPack[]        @relation("PackBuyer")
   received_vision_packs VisionPack[]        @relation("PackRecipient")
   email_capture_events  EmailCaptureEvent[]
+  chat_conversations    ChatConversation[]
 
   @@index([is_anonymous, created_at])
   @@map("profiles")
@@ -1454,4 +1455,39 @@ model EnquiryNote {
 
   @@index([enquiry_id, created_at(sort: Desc)])
   @@map("enquiry_notes")
+}
+
+/// One visitor conversation with the homepage AI chat. Anonymous by
+/// default (`user_id` null); linked when a signed-in user chats. Kept 90
+/// days (cleanup cron) as the tuning corpus for the grounding prompt and
+/// the abuse-forensics trail; account hard-deletion erases them.
+model ChatConversation {
+  id              String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id         String?  @db.Uuid
+  user            Profile? @relation(fields: [user_id], references: [id], onDelete: SetNull)
+  locale          String?  @db.VarChar(5)
+  country         String?  @db.VarChar(2)
+  message_count   Int      @default(0)
+  created_at      DateTime @default(now()) @db.Timestamptz(6)
+  last_message_at DateTime @default(now()) @db.Timestamptz(6)
+
+  messages ChatMessage[]
+
+  @@index([last_message_at])
+  @@index([user_id])
+  @@map("chat_conversations")
+}
+
+/// One turn in a chat conversation. The user message is written BEFORE
+/// the LLM call — a model failure still leaves the question on record.
+model ChatMessage {
+  id              String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  conversation_id String           @db.Uuid
+  conversation    ChatConversation @relation(fields: [conversation_id], references: [id], onDelete: Cascade)
+  role            String
+  content         String
+  created_at      DateTime @default(now()) @db.Timestamptz(6)
+
+  @@index([conversation_id, created_at])
+  @@map("chat_messages")
 }

@@ -19,50 +19,20 @@ import type {
   NamedColor,
   PostFormatId,
 } from "@/types/posts";
+import { chatCompletionJson } from "@/server/llm/openrouter";
 
-const BASE_URL = "https://openrouter.ai/api/v1";
 const MODEL = process.env.POSTS_LLM_MODEL ?? "openai/gpt-4.1-mini";
 
-function authHeaders(): Record<string, string> {
-  if (!process.env.OPENAI_API_KEY) {
-    throw new Error("OPENAI_API_KEY is required for posts LLM calls");
-  }
-  return {
-    Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
-    "Content-Type": "application/json",
-    "HTTP-Referer": process.env.OPENROUTER_REFERER ?? "https://zaffa.ai",
-    "X-Title": "Zaffa post-generator",
-  };
-}
-
 async function callJson<T>(
-  messages: Array<{ role: string; content: string }>,
+  messages: Array<{ role: "system" | "user" | "assistant"; content: string }>,
   temperature = 0.7,
 ): Promise<T> {
-  const res = await fetch(`${BASE_URL}/chat/completions`, {
-    method: "POST",
-    headers: authHeaders(),
-    body: JSON.stringify({
-      model: MODEL,
-      response_format: { type: "json_object" },
-      messages,
-      temperature,
-    }),
+  return chatCompletionJson<T>({
+    model: MODEL,
+    messages,
+    temperature,
+    appTitle: "Zaffa post-generator",
   });
-  if (!res.ok) {
-    const text = await res.text();
-    throw new Error(`Posts LLM ${res.status}: ${text.slice(0, 400)}`);
-  }
-  const raw = await res.text();
-  let data: { choices?: Array<{ message?: { content?: string } }> };
-  try {
-    data = JSON.parse(raw);
-  } catch {
-    throw new Error(`Posts LLM returned non-JSON body: ${raw.slice(0, 200)}`);
-  }
-  const content = data.choices?.[0]?.message?.content;
-  if (!content) throw new Error("Posts LLM returned empty content");
-  return JSON.parse(content) as T;
 }
 
 // ---------- Vibe generation ----------

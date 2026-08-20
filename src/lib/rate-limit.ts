@@ -53,6 +53,13 @@ export const limiters = {
   // burning legitimate same-household visitors (parents + couple
   // sharing a router).
   aiRenderFreePerIp: makeLimiter("rl:ai:render:free:ip", 3, "1 d"),
+  // Public homepage chat, keyed per IP. Cheap per message (~$0.001 at
+  // gpt-4.1-mini with max_tokens 350) but reachable without any session,
+  // so both a burst cap and a daily ceiling. NOTE: `consume` fails OPEN
+  // when Upstash is down — the Postgres-backed global daily cap inside
+  // `chat.ask` is the guarantee, these buckets are the first line.
+  chat: makeLimiter("rl:chat", 10, "5 m"),
+  chatDaily: makeLimiter("rl:chat:d", 40, "1 d"),
   // Admin-triggered discovery / outreach. Per-user (admin) limits keep a
   // single rogue admin from blowing budgets.
   discoveryRun: makeLimiter("rl:discovery:run", 30, "1 h"),

@@ -21,6 +21,12 @@ export const ANALYTICS_EVENTS = {
   VISION_PACK_LOOKBOOK_DOWNLOADED: "vision_pack.lookbook_downloaded",
   VISION_PACK_FIND_PLANNER_CLICKED: "vision_pack.find_planner_clicked",
   ENQUIRY_SUBMITTED: "enquiry.submitted",
+  // The homepage chat funnel: opened → message_sent → handoff_clicked.
+  // handoff carries { target: "whatsapp" | "enquire", surface }.
+  CHAT_OPENED: "chat.opened",
+  CHAT_MESSAGE_SENT: "chat.message_sent",
+  CHAT_REPLY_FAILED: "chat.reply_failed",
+  CHAT_HANDOFF_CLICKED: "chat.handoff_clicked",
   // Fired with a `surface` property, because "how many people tapped
   // WhatsApp" is useless next to "which page made them do it".
   WHATSAPP_CTA_CLICKED: "whatsapp.cta_clicked",

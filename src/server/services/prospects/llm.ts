@@ -13,47 +13,19 @@
 // All calls use response_format: json_object so we can parse safely.
 
 import type { ProspectType, VendorCategory } from "@/generated/prisma/client";
+import { chatCompletionJson } from "@/server/llm/openrouter";
 
-const BASE_URL = "https://openrouter.ai/api/v1";
 const MODEL = process.env.PROSPECTS_LLM_MODEL ?? "openai/gpt-4.1-mini";
 
-function authHeaders(): Record<string, string> {
-  if (!process.env.OPENAI_API_KEY) {
-    throw new Error("OPENAI_API_KEY is required for prospect LLM calls");
-  }
-  return {
-    Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
-    "Content-Type": "application/json",
-    "HTTP-Referer": process.env.OPENROUTER_REFERER ?? "https://zaffa.ai",
-    "X-Title": "Zaffa prospects",
-  };
-}
-
-async function callJson<T>(messages: Array<{ role: string; content: string }>): Promise<T> {
-  const res = await fetch(`${BASE_URL}/chat/completions`, {
-    method: "POST",
-    headers: authHeaders(),
-    body: JSON.stringify({
-      model: MODEL,
-      response_format: { type: "json_object" },
-      messages,
-      temperature: 0.2,
-    }),
+async function callJson<T>(
+  messages: Array<{ role: "system" | "user" | "assistant"; content: string }>,
+): Promise<T> {
+  return chatCompletionJson<T>({
+    model: MODEL,
+    messages,
+    temperature: 0.2,
+    appTitle: "Zaffa prospects",
   });
-  if (!res.ok) {
-    const text = await res.text();
-    throw new Error(`LLM ${res.status}: ${text.slice(0, 400)}`);
-  }
-  const raw = await res.text();
-  let data: { choices?: Array<{ message?: { content?: string } }> };
-  try {
-    data = JSON.parse(raw);
-  } catch {
-    throw new Error(`LLM returned non-JSON body: ${raw.slice(0, 200)}`);
-  }
-  const content = data.choices?.[0]?.message?.content;
-  if (!content) throw new Error("LLM returned empty content");
-  return JSON.parse(content) as T;
 }
 
 export interface ExtractedContact {
