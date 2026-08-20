@@ -458,7 +458,8 @@
     "visionPackPricing": "Tarification des packs",
     "events": "Événements",
     "venues": "Lieux",
-    "enquiries": "Demandes"
+    "enquiries": "Demandes",
+    "navLabel": "Tableau de bord"
   },
   "marketing": {
     "heroTitleTail": ".",

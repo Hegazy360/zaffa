@@ -458,7 +458,8 @@
     "visionPackPricing": "Paketpreis",
     "events": "Veranstaltungen",
     "venues": "Veranstaltungsorte",
-    "enquiries": "Anfragen"
+    "enquiries": "Anfragen",
+    "navLabel": "Dashboard"
   },
   "marketing": {
     "heroTitleTail": ".",

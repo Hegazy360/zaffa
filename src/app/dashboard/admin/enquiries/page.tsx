@@ -148,7 +148,7 @@ export default function AdminEnquiriesPage() {
                           real anchor so middle-click and long-press-share work. */}
                       <Link
                         href={`/dashboard/admin/enquiries/${e.id}`}
-                        className="after:absolute after:inset-0 after:content-[''] outline-none"
+                        className="outline-none after:absolute after:inset-0 after:content-['']"
                       >
                         {e.full_name}
                       </Link>

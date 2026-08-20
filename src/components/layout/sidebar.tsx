@@ -296,7 +296,11 @@ export function Sidebar({ role }: SidebarProps) {
           className="champagne-hairline relative z-10 mb-5 h-px w-full"
         />
 
-        <nav className="relative z-10 space-y-1">
+        {/* `aria-current="page"` is the single source of truth for "you are
+            here": the styling below is driven by it rather than by a separate
+            boolean, so the visual state and the announced state cannot drift.
+            Before this, the active item was communicated by colour alone. */}
+        <nav aria-label={t("navLabel")} className="relative z-10 space-y-1">
           {links.map((link) => {
             const Icon = link.icon;
             const active = isLinkActive(pathname, link);
@@ -304,11 +308,10 @@ export function Sidebar({ role }: SidebarProps) {
               <Link
                 key={link.href}
                 href={link.href}
+                aria-current={active ? "page" : undefined}
                 className={cn(
-                  "group relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-all",
-                  active
-                    ? "bg-white/80 font-medium text-rose-700 shadow-sm ring-1 ring-rose-200/60 backdrop-blur-sm"
-                    : "text-muted-foreground hover:bg-white/50 hover:text-foreground"
+                  "group relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-muted-foreground transition-all hover:bg-white/50 hover:text-foreground",
+                  "aria-[current=page]:bg-white/80 aria-[current=page]:font-medium aria-[current=page]:text-brand-strong aria-[current=page]:shadow-sm aria-[current=page]:ring-1 aria-[current=page]:ring-brand-line aria-[current=page]:backdrop-blur-sm",
                 )}
               >
                 {active && (
@@ -339,7 +342,10 @@ export function MobileSidebar({ role }: SidebarProps) {
   const links = roleLinks[role];
 
   return (
-    <div className="sticky top-16 z-30 mask-fade-x flex snap-x scroll-px-3 gap-2 overflow-x-auto border-b border-brand-line bg-background/85 px-3 py-2.5 backdrop-blur-md lg:hidden">
+    <nav
+      aria-label={t("navLabel")}
+      className="sticky top-16 z-30 mask-fade-x flex snap-x scroll-px-3 gap-2 overflow-x-auto border-b border-brand-line bg-background/85 px-3 py-2.5 backdrop-blur-md lg:hidden"
+    >
       {links.map((link) => {
         const Icon = link.icon;
         const active = isLinkActive(pathname, link);
@@ -347,11 +353,10 @@ export function MobileSidebar({ role }: SidebarProps) {
           <Link
             key={link.href}
             href={link.href}
+            aria-current={active ? "page" : undefined}
             className={cn(
-              "flex shrink-0 snap-start items-center gap-2 whitespace-nowrap rounded-full px-3.5 py-2 text-xs transition-all",
-              active
-                ? "bg-gradient-to-r from-rose-500 to-amber-500 font-medium text-white shadow-sm"
-                : "border border-brand-line bg-white/70 text-muted-foreground"
+              "flex shrink-0 snap-start items-center gap-2 whitespace-nowrap rounded-full border border-brand-line bg-white/70 px-3.5 py-2 text-xs text-muted-foreground transition-all",
+              "aria-[current=page]:border-transparent aria-[current=page]:bg-brand-gradient aria-[current=page]:font-medium aria-[current=page]:text-white aria-[current=page]:shadow-sm",
             )}
           >
             <Icon className="h-4 w-4" />
@@ -359,6 +364,6 @@ export function MobileSidebar({ role }: SidebarProps) {
           </Link>
         );
       })}
-    </div>
+    </nav>
   );
 }

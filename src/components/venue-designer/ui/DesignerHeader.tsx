@@ -115,7 +115,7 @@ export function DesignerHeader({
           type="text"
           value={name}
           onChange={(e) => onNameChange(e.target.value)}
-          className="min-w-0 flex-1 border-none bg-transparent text-sm font-medium outline-none placeholder:text-muted-foreground md:w-48 md:flex-none"
+          className="min-w-0 flex-1 rounded-sm border-none bg-transparent text-sm font-medium outline-none focus-visible:ring-2 focus-visible:ring-ring placeholder:text-muted-foreground md:w-48 md:flex-none"
           placeholder={t("designNamePlaceholder")}
         />
 

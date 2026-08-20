@@ -458,7 +458,8 @@
     "visionPackPricing": "تسعير الحزم",
     "events": "المناسبات",
     "venues": "الأماكن",
-    "enquiries": "الطلبات"
+    "enquiries": "الطلبات",
+    "navLabel": "لوحة التحكم"
   },
   "marketing": {
     "heroCtaFree": "شوفوا يومكم — مجانًا",

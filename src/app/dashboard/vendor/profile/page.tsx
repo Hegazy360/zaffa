@@ -321,7 +321,7 @@ export default function VendorProfilePage() {
                     onChange={(e) => setSpecialtyDraft(e.target.value)}
                     onKeyDown={onSpecialtyKey}
                     placeholder={specialties.length === 0 ? t("specialtiesPlaceholder") : ""}
-                    className="flex-1 min-w-[120px] bg-transparent text-sm outline-none"
+                    className="flex-1 min-w-[120px] rounded-sm bg-transparent text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
                   />
                   <Button
                     type="button"
@@ -720,7 +720,7 @@ function PortfolioForm({
             onChange={(e) => setTagDraft(e.target.value)}
             onKeyDown={onTagKey}
             placeholder={tags.length === 0 ? t("styleTagsPlaceholder") : ""}
-            className="flex-1 min-w-[100px] bg-transparent text-sm outline-none"
+            className="flex-1 min-w-[100px] rounded-sm bg-transparent text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
           />
         </div>
       </div>

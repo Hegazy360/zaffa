@@ -232,7 +232,7 @@ function PlannerServiceAreaCard() {
                     ? t("serviceAreaCitiesPlaceholder")
                     : ""
                 }
-                className="flex-1 min-w-[140px] bg-transparent text-sm outline-none"
+                className="flex-1 min-w-[140px] rounded-sm bg-transparent text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
               />
               <Button
                 type="button"

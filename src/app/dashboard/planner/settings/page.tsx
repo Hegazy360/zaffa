@@ -225,7 +225,7 @@ export default function PlannerSettingsPage() {
                     placeholder={
                       specialties.length === 0 ? t("specialtyPlaceholder") : ""
                     }
-                    className="flex-1 min-w-[120px] bg-transparent text-sm outline-none"
+                    className="flex-1 min-w-[120px] rounded-sm bg-transparent text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
                   />
                   <Button
                     type="button"

@@ -202,7 +202,7 @@ export function PlannerOnboardingWizard() {
                         ? t("wizardSpecialtyPlaceholder")
                         : ""
                     }
-                    className="min-w-[120px] flex-1 bg-transparent text-sm outline-none disabled:opacity-50"
+                    className="min-w-[120px] flex-1 rounded-sm bg-transparent text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50"
                   />
                   <Button
                     type="button"
