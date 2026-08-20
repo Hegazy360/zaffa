@@ -1,11 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { motion, useReducedMotion } from "framer-motion";
 import { useTranslations } from "next-intl";
 import { ArrowRight, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { WhatsAppCta } from "@/components/marketing/whatsapp-cta";
+import { Rise } from "@/components/motion/rise";
 
 // The Whole Wedding (الزفّة الكاملة) — the full-service plan, where Zaffa
 // runs the wedding instead of handing the couple a tool. See ZAF-25 (scope
@@ -56,7 +56,6 @@ const BULLETS = [
 export function WholeWeddingSection() {
   const t = useTranslations("marketing.wholeWedding");
   const tp = useTranslations("marketing.pricing");
-  const reduce = useReducedMotion();
   const covers = parseCovers(t("covers"));
 
   return (
@@ -80,11 +79,7 @@ export function WholeWeddingSection() {
       />
 
       <div className="relative mx-auto max-w-6xl px-4 py-24 sm:py-28">
-        <motion.header
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-15% 0px" }}
-          transition={{ duration: reduce ? 0 : 0.6 }}
+        <Rise as="header"
           className="mx-auto max-w-3xl text-center"
         >
           {/* `rtl:tracking-normal` because wide letter-spacing breaks Arabic
@@ -101,14 +96,10 @@ export function WholeWeddingSection() {
           <p className="mx-auto mt-5 max-w-2xl text-pretty text-base leading-relaxed text-muted-foreground sm:text-lg">
             {t("tagline")}
           </p>
-        </motion.header>
+        </Rise>
 
         {/* What's covered — nouns, not ticks. */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          viewport={{ once: true, margin: "-15% 0px" }}
-          transition={{ duration: reduce ? 0 : 0.7, delay: 0.1 }}
+        <Rise as="div" delay={0.1}
           className="mx-auto mt-12 flex max-w-3xl flex-wrap items-center justify-center gap-x-4 gap-y-2 text-sm text-muted-foreground sm:gap-x-5"
         >
           {covers.map((item, i) => (
@@ -124,16 +115,12 @@ export function WholeWeddingSection() {
               )}
             </span>
           ))}
-        </motion.div>
+        </Rise>
 
         <div className="mx-auto mt-16 grid max-w-5xl gap-12 lg:grid-cols-2 lg:gap-16">
-          <motion.ul
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-15% 0px" }}
-            transition={{ duration: reduce ? 0 : 0.6, delay: 0.15 }}
-            className="space-y-5"
-          >
+          <Rise as="div" delay={0.15}
+          className="space-y-5"
+        >
             {BULLETS.map((key) => (
               <li key={key} className="flex gap-3.5">
                 <span
@@ -145,15 +132,11 @@ export function WholeWeddingSection() {
                 </span>
               </li>
             ))}
-          </motion.ul>
+          </Rise>
 
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-15% 0px" }}
-            transition={{ duration: reduce ? 0 : 0.6, delay: 0.2 }}
-            className="relative overflow-hidden rounded-3xl border border-white/10 bg-white/[0.03] p-7 backdrop-blur-md md:p-9"
-          >
+          <Rise as="div" delay={0.2}
+          className="relative overflow-hidden rounded-3xl border border-white/10 bg-white/[0.03] p-7 backdrop-blur-md md:p-9"
+        >
             <div
               aria-hidden
               className="pointer-events-none absolute inset-0 bg-gradient-to-br from-white/5 via-transparent to-transparent"
@@ -204,7 +187,7 @@ export function WholeWeddingSection() {
               </div>
               <p className="mt-3 text-xs text-stone-500">{t("ctaHint")}</p>
             </div>
-          </motion.div>
+          </Rise>
         </div>
       </div>
     </section>

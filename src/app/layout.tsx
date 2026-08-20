@@ -25,18 +25,25 @@ const inter = Inter({
   subsets: ["latin"],
 });
 
+// `axes: ["SOFT"]` dropped — nothing in the tree sets
+// `font-variation-settings`, so the axis was downloaded and never moved off
+// its default. `opsz` stays because `font-optical-sizing: auto` (set by the
+// `font-display` utility) actually drives it.
 const fraunces = Fraunces({
   variable: "--font-display",
   subsets: ["latin"],
-  axes: ["SOFT", "opsz"],
+  axes: ["opsz"],
 });
 
 // Arabic display companion to Fraunces. Rendered into a CSS variable so
 // globals.css can pick it when [dir="rtl"].
+// Four weights for a display face used at exactly two: `font-light` headlines
+// (which round to 400, its lightest) and `font-medium`. 600 and 700 were never
+// requested by anything.
 const reemKufi = Reem_Kufi({
   variable: "--font-display-ar",
   subsets: ["arabic", "latin"],
-  weight: ["400", "500", "600", "700"],
+  weight: ["400", "500"],
 });
 
 function siteUrl(): string {

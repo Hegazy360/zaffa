@@ -1,8 +1,8 @@
 "use client";
 
-import { motion, useReducedMotion } from "framer-motion";
 import { useTranslations } from "next-intl";
 import { Building2, ShieldCheck, Sparkles, Users, type LucideIcon } from "lucide-react";
+import { Rise } from "@/components/motion/rise";
 
 // The one new UI surface in the ZAF-18/ZAF-19 homepage rebrand — sits
 // between `HowItWorks` (which ends at the reinstated step 4, "hand it to
@@ -47,7 +47,6 @@ const PILLARS: Pillar[] = [
 
 export function ConciergePillarsSection() {
   const t = useTranslations("marketing");
-  const reduce = useReducedMotion();
 
   return (
     <section
@@ -81,17 +80,7 @@ export function ConciergePillarsSection() {
           {PILLARS.map((pillar, idx) => {
             const Icon = pillar.icon;
             return (
-              <motion.div
-                key={pillar.id}
-                initial={{ opacity: 0, y: 24 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: "-15% 0px" }}
-                transition={{
-                  duration: reduce ? 0 : 0.6,
-                  delay: reduce ? 0 : idx * 0.1,
-                }}
-                className="text-center"
-              >
+              <Rise as="div" delay={idx * 0.08} key={pillar.id} className="text-center">
                 <span className="mx-auto grid size-12 place-items-center rounded-full border border-white/15 bg-gradient-to-br from-rose-500/20 to-amber-400/10 text-rose-200 ring-1 ring-white/10">
                   <Icon className="size-5" strokeWidth={2} />
                 </span>
@@ -101,7 +90,7 @@ export function ConciergePillarsSection() {
                 <p className="mx-auto mt-2 max-w-xs text-sm leading-relaxed text-muted-foreground">
                   {t(pillar.bodyKey)}
                 </p>
-              </motion.div>
+              </Rise>
             );
           })}
         </div>

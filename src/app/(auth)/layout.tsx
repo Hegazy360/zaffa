@@ -14,7 +14,7 @@ export const dynamic = "force-dynamic";
 // wedding. Three separate problems: we did not own the rights, Pinterest can
 // break or swap the URL at any time, and the image did not show our own work.
 // Now it is a Zaffa render from this repo, which fixes all three.
-const ATELIER_IMAGE = "/home/examples/hero.jpeg";
+const ATELIER_IMAGE = "/home/examples/hero.avif";
 
 export default async function AuthLayout({
   children,

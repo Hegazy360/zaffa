@@ -1,7 +1,6 @@
 "use client";
 
 import Image from "next/image";
-import { motion, useReducedMotion } from "framer-motion";
 import { useTranslations } from "next-intl";
 import {
   ImagePlus,
@@ -10,6 +9,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Rise } from "@/components/motion/rise";
 
 // Drop the matching screenshot into `public/home/how-it-works/` with the
 // filename listed below, then point the `screenshot` field at it and pass the
@@ -38,9 +38,9 @@ const STEPS: StepDef[] = [
     titleKey: "howStep1Title",
     bodyKey: "howStep1Body",
     screenshot: {
-      src: "/home/how-it-works/step-1-inspirations.png",
-      width: 1537,
-      height: 873,
+      src: "/home/how-it-works/step-1-inspirations.avif",
+      width: 1400,
+      height: 795,
     },
     suggestedFilename: "step-1-inspirations.png",
   },
@@ -50,9 +50,9 @@ const STEPS: StepDef[] = [
     titleKey: "howStep2Title",
     bodyKey: "howStep2Body",
     screenshot: {
-      src: "/home/how-it-works/step-2-palette.png",
-      width: 1464,
-      height: 966,
+      src: "/home/how-it-works/step-2-palette.avif",
+      width: 1400,
+      height: 924,
     },
     suggestedFilename: "step-2-palette.png",
   },
@@ -62,9 +62,9 @@ const STEPS: StepDef[] = [
     titleKey: "howStep3Title",
     bodyKey: "howStep3Body",
     screenshot: {
-      src: "/home/how-it-works/step-3-ai-render.png",
-      width: 1464,
-      height: 948,
+      src: "/home/how-it-works/step-3-ai-render.avif",
+      width: 1400,
+      height: 907,
     },
     suggestedFilename: "step-3-ai-render.png",
   },
@@ -79,7 +79,6 @@ const STEPS: StepDef[] = [
 
 export function HowItWorks() {
   const t = useTranslations("marketing");
-  const reduce = useReducedMotion();
 
   return (
     <section
@@ -113,19 +112,12 @@ export function HowItWorks() {
             // editorial cadence on desktop. On mobile everything stacks.
             const flip = idx % 2 === 1;
             return (
-              <motion.li
-                key={step.id}
-                initial={{ opacity: 0, y: 24 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: "-15% 0px" }}
-                transition={{
-                  duration: reduce ? 0 : 0.7,
-                  ease: [0.16, 1, 0.3, 1],
-                }}
-                className={cn(
+              <Rise as="li"
+          key={step.id}
+          className={cn(
                   "grid items-center gap-10 lg:grid-cols-12 lg:gap-16",
                 )}
-              >
+        >
                 <div
                   className={cn(
                     "lg:col-span-5",
@@ -160,7 +152,7 @@ export function HowItWorks() {
                     altKey={step.titleKey}
                   />
                 </div>
-              </motion.li>
+              </Rise>
             );
           })}
         </ol>

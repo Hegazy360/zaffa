@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { useLocale, useTranslations } from "next-intl";
-import { motion, useReducedMotion } from "framer-motion";
 import {
   ArrowRight,
   CalendarDays,
@@ -16,6 +15,7 @@ import type {
   MarketplaceTeaserData,
   PublicBriefTeaser,
 } from "@/lib/marketplace-teaser";
+import { Rise } from "@/components/motion/rise";
 
 type Variant = "home" | "planner-signup";
 
@@ -49,7 +49,6 @@ export function MarketplaceTeaser({
   className,
 }: MarketplaceTeaserProps) {
   const t = useTranslations("marketplaceTeaser");
-  const reduce = useReducedMotion();
   const locale = useLocale();
   const visible = visibleTeasers(data.teasers, variant);
 
@@ -188,17 +187,7 @@ export function MarketplaceTeaser({
           )}
         >
           {visible.map((b, i) => (
-            <motion.li
-              key={b.id}
-              initial={{ opacity: 0, y: 16 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-10% 0px" }}
-              transition={{
-                duration: reduce ? 0 : 0.55,
-                delay: reduce ? 0 : 0.05 + i * 0.05,
-                ease: [0.16, 1, 0.3, 1],
-              }}
-            >
+            <Rise as="li" delay={i * 0.06} key={b.id}>
               <BriefCard
                 brief={b}
                 eventTypeLabel={t(`eventType_${b.event_type}` as `eventType_${string}`)}
@@ -213,7 +202,7 @@ export function MarketplaceTeaser({
                 signInLabel={t("signInToSee")}
                 compact={isSignup}
               />
-            </motion.li>
+            </Rise>
           ))}
         </ul>
 

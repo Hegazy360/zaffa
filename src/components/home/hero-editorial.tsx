@@ -21,7 +21,7 @@ import { minorToMajor } from "@/lib/vision-pack-pricing";
 // One AI-rendered example — a representative output of the kind of room our
 // platform helps couples design. Static (no parallax) so the hero reads as a
 // magazine spread, not an interactive toy.
-const HERO_IMAGE = "/home/examples/hero.jpeg";
+const HERO_IMAGE = "/home/examples/hero.avif";
 
 export function HeroEditorial({
   socialProof,

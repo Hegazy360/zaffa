@@ -27,7 +27,8 @@
     "test:e2e": "playwright test",
     "test:e2e:local": "npx dotenvx run --env-file=.env.test -- playwright test",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "prepare": "husky"
+    "prepare": "husky",
+    "assets:compress": "node scripts/compress-home-assets.mjs"
   },
   "prisma": {
     "seed": "npx tsx prisma/seed.ts"
@@ -109,6 +110,7 @@
     "husky": "^9.1.7",
     "jsdom": "^29.1.1",
     "lint-staged": "^16.4.0",
+    "sharp": "^0.35.3",
     "tailwindcss": "^4",
     "typescript": "^5",
     "vitest": "^4.1.5",

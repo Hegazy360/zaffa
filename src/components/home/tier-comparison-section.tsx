@@ -1,7 +1,6 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { motion, useReducedMotion } from "framer-motion";
 import {
   ArrowRight,
   Building2,
@@ -19,6 +18,7 @@ import { useTierPricing, type TierPrice } from "@/components/vision-pack/use-pri
 import Link from "next/link";
 import { usePackCheckoutAction } from "@/components/vision-pack/use-pack-checkout-action";
 import { PACK_SKUS, type PackSkuId } from "@/lib/vision-pack";
+import { Rise } from "@/components/motion/rise";
 
 // Two-up tier comparison shown on the home page between the "How it
 // works" walkthrough and the share-the-artefacts section. Reuses the
@@ -37,7 +37,6 @@ const TIER_TO_LABEL_KEY: Partial<Record<PackSkuId, string>> = {
 
 export function TierComparisonSection() {
   const t = useTranslations("marketing");
-  const reduce = useReducedMotion();
   const { ordered } = useTierPricing();
 
   return (
@@ -71,14 +70,14 @@ export function TierComparisonSection() {
 
         <div className="mt-12 grid gap-6 md:grid-cols-3">
           {ordered.map((tier, idx) => (
-            <TierCard key={tier.sku} tier={tier} idx={idx} reduce={reduce} />
+            <TierCard key={tier.sku} tier={tier} idx={idx} />
           ))}
           {/* The Whole Wedding. Rendered explicitly rather than through
               `ordered`, which is priced SKUs only — this tier has no SKU, no
               Stripe price and no checkout. Keeping it outside the loop is
               what stops it inheriting `usePackCheckoutAction`, so its button
               can never open Checkout. */}
-          <WholeWeddingCard idx={ordered.length} reduce={reduce} />
+          <WholeWeddingCard idx={ordered.length} />
         </div>
       </div>
     </section>
@@ -88,10 +87,6 @@ export function TierComparisonSection() {
 interface TierCardProps {
   tier: { sku: PackSkuId } & TierPrice;
   idx: number;
-  // `useReducedMotion()` returns `boolean | null` (null while the
-  // media query is resolving); accept that shape directly so callers
-  // can pass it through without a non-null assertion.
-  reduce: boolean | null;
 }
 
 /**
@@ -109,7 +104,7 @@ interface TierCardProps {
  * gallery `useEffect` redirect drops the `sku` query along the way),
  * so they never reached the paywall or signup.
  */
-function TierCard({ tier, idx, reduce }: TierCardProps) {
+function TierCard({ tier, idx }: TierCardProps) {
   const t = useTranslations("marketing");
   const tv = useTranslations("visionPack");
   const meta = PACK_SKUS[tier.sku];
@@ -118,21 +113,14 @@ function TierCard({ tier, idx, reduce }: TierCardProps) {
   const { buy, isPending, isAnon } = usePackCheckoutAction();
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 24 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: "-64px" }}
-      transition={{
-        duration: reduce ? 0 : 0.6,
-        delay: reduce ? 0 : idx * 0.1,
-      }}
-      className={cn(
+    <Rise as="div" delay={idx * 0.08}
+          className={cn(
         "relative flex flex-col overflow-hidden rounded-3xl border bg-white/90 p-7",
         isVision
           ? "border-rose-300 shadow-glow-lg ring-1 ring-rose-200/60"
           : "border-brand-line",
       )}
-    >
+        >
       {isVision ? (
         <span className="absolute end-6 top-6 rounded-full bg-brand-gradient px-3 py-1 text-eyebrow font-medium text-white">
           {t("tierBadgeMostPopular")}
@@ -238,7 +226,7 @@ function TierCard({ tier, idx, reduce }: TierCardProps) {
           )}
         </Button>
       </div>
-    </motion.div>
+    </Rise>
   );
 }
 
@@ -287,24 +275,13 @@ function ExcludedRow({ label }: { label: string }) {
  * `usePackCheckoutAction` — a "tell us about your wedding" button that opens
  * Stripe Checkout would be the worst outcome available on this page.
  */
-function WholeWeddingCard({
-  idx,
-  reduce,
-}: {
-  idx: number;
-  reduce: boolean | null;
-}) {
+function WholeWeddingCard({ idx }: { idx: number }) {
   const w = useTranslations("marketing.wholeWedding");
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 24 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: "-64px" }}
-      transition={{
-        duration: reduce ? 0 : 0.6,
-        delay: reduce ? 0 : idx * 0.1,
-      }}
+    <Rise
+      as="div"
+      delay={idx * 0.08}
       className="surface-dark relative flex flex-col overflow-hidden rounded-plate border border-border p-7 shadow-xl shadow-zinc-900/20"
     >
       <div
@@ -351,6 +328,6 @@ function WholeWeddingCard({
         </Button>
         <p className="mt-3 text-center text-xs text-stone-500">{w("ctaHint")}</p>
       </div>
-    </motion.div>
+    </Rise>
   );
 }

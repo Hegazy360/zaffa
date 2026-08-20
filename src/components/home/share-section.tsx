@@ -1,10 +1,10 @@
 "use client";
 
 import Image from "next/image";
-import { motion, useReducedMotion } from "framer-motion";
 import { useTranslations } from "next-intl";
 import { FileDown, Globe, Heart, Sparkles, Users } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Rise } from "@/components/motion/rise";
 
 // Sits between "How it works" and the marketplace teaser on the home page.
 // Closes the loop on the four steps by showing the *artefacts* a couple
@@ -12,17 +12,16 @@ import { cn } from "@/lib/utils";
 // printable lookbook PDF — and the audiences they're designed for
 // (family + friends + every planner they speak to).
 
-const MICROSITE_PREVIEW_IMAGE = "/home/examples/hero.jpeg";
+const MICROSITE_PREVIEW_IMAGE = "/home/examples/hero.avif";
 const MICROSITE_THUMB_IMAGES = [
-  "/home/examples/collage-1.jpeg",
-  "/home/examples/collage-2.png",
-  "/home/examples/collage-3.png",
-  "/home/examples/collage-4.png",
+  "/home/examples/collage-1.avif",
+  "/home/examples/collage-2.avif",
+  "/home/examples/collage-3.avif",
+  "/home/examples/collage-4.avif",
 ] as const;
 
 export function ShareSection() {
   const t = useTranslations("marketing");
-  const reduce = useReducedMotion();
 
   return (
     <section
@@ -69,7 +68,6 @@ export function ShareSection() {
               t("shareMicrositeBullet1"),
               t("shareMicrositeBullet2"),
             ]}
-            reduce={!!reduce}
           />
           <ArtefactCard
             kind="lookbook"
@@ -80,15 +78,10 @@ export function ShareSection() {
               t("shareLookbookBullet1"),
               t("shareLookbookBullet2"),
             ]}
-            reduce={!!reduce}
           />
         </div>
 
-        <motion.div
-          initial={{ opacity: 0, y: 12 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-15% 0px" }}
-          transition={{ duration: reduce ? 0 : 0.7, delay: 0.2 }}
+        <Rise as="div" delay={0.2}
           className="mt-12 flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-center text-sm text-muted-foreground sm:mt-16"
         >
           <span className="inline-flex items-center gap-2">
@@ -108,7 +101,7 @@ export function ShareSection() {
           <span className="font-display italic font-light tracking-tight text-foreground/85">
             {t("shareAudiencePlanners")}
           </span>
-        </motion.div>
+        </Rise>
       </div>
     </section>
   );
@@ -120,7 +113,6 @@ interface ArtefactCardProps {
   title: string;
   body: string;
   bullets: readonly string[];
-  reduce: boolean;
 }
 
 function ArtefactCard({
@@ -129,17 +121,12 @@ function ArtefactCard({
   title,
   body,
   bullets,
-  reduce,
 }: ArtefactCardProps) {
   const Icon = kind === "microsite" ? Globe : FileDown;
   return (
-    <motion.article
-      initial={{ opacity: 0, y: 24 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: "-15% 0px" }}
-      transition={{ duration: reduce ? 0 : 0.8, ease: [0.16, 1, 0.3, 1] }}
-      className="group relative flex flex-col overflow-hidden rounded-3xl border border-brand-line bg-white/70 p-6 shadow-glow-lg backdrop-blur-sm sm:p-8"
-    >
+    <Rise as="article"
+          className="group relative flex flex-col overflow-hidden rounded-3xl border border-brand-line bg-white/70 p-6 shadow-glow-lg backdrop-blur-sm sm:p-8"
+        >
       <div className="mb-6">
         {kind === "microsite" ? <MicrositePreview /> : <LookbookPreview />}
       </div>
@@ -169,7 +156,7 @@ function ArtefactCard({
           </li>
         ))}
       </ul>
-    </motion.article>
+    </Rise>
   );
 }
 
