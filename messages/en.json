@@ -1115,8 +1115,6 @@
     "viewAll": "View all",
     "approvedTag": "Approved",
     "open": "Open",
-    "approveCreateEvent": "Approve & create event",
-    "createdFromDesignToast": "Event created from design",
     "yourEvents": "Your events",
     "everythingInOnePlace": "Everything in one place",
     "linkedTo": "linked to {name}",
@@ -1259,7 +1257,9 @@
     "signOutHint": "End this session on this device.",
     "deleteAccount": "Delete account",
     "deleteAccountHint": "Permanently remove your profile and all associated events. Reach out to support to complete this.",
-    "contactSupport": "Contact support"
+    "contactSupport": "Contact support",
+    "approveDesign": "This is the one — plan it for us",
+    "approvedToast": "Beautiful choice. We'll be in touch soon."
   },
   "admin": {
     "eyebrow": "Admin",
@@ -1897,8 +1897,6 @@
     "gallery": "Gallery",
     "save": "Save",
     "openEvent": "Open event",
-    "approveCreateEvent": "Approve & create event",
-    "createdToast": "Event created from design",
     "atelierEyebrow": "Your atelier",
     "gallerySubtitle": "Each design is a complete brief — basics, palette, references, and the AI renders you've generated for it.",
     "newDesign": "New design",
@@ -2094,7 +2092,10 @@
     "renderFailed": "Render failed. Please try again.",
     "videoFailed": "Video generation failed. Please try again.",
     "needRefBeforeRender": "Add at least one inspiration reference before rendering.",
-    "metaTitle": "Design your day — Zaffa"
+    "metaTitle": "Design your day — Zaffa",
+    "approveDesign": "This is the one — plan it for us",
+    "approvedToast": "Beautiful choice. We'll be in touch soon.",
+    "approvedCta": "Approved — we're on it"
   },
   "plannerInspiration": {
     "sectionAria": "Couple's inspiration board",
@@ -2213,9 +2214,6 @@
     "upgradeCtaBody": "Get more renders, short videos, planner matching, and venue recommendations. You'll only pay the difference — and your existing renders stay exactly where they are.",
     "upgradeCtaButton": "Upgrade for {delta}",
     "upgradeCtaInline": "Upgrade for {delta}",
-    "upgradeApproveEyebrow": "Planner matching",
-    "upgradeApproveTitle": "Approve & create event is part of Vision Pack",
-    "upgradeApproveBody": "Turning a design into a real event opens the planner marketplace — matched planners, curated venue recommendations, and an event workspace. Upgrade from Design Pack to Vision Pack to unlock it; you'll only pay the difference and your renders stay exactly where they are.",
     "quotaRemaining": "{used}/{quota} renders · {videoUsed}/{videoQuota} videos · {days, plural, =0 {Window closed} one {# day left} other {# days left}}",
     "quotaExhaustedTitle": "You've used everything in your pack",
     "quotaExhaustedBody": "Your pack has been delivered in full. The renders and videos you generated are yours to keep.",
@@ -2262,7 +2260,6 @@
     "findPlannerEyebrow": "Next step",
     "findPlannerTitle": "Make it real",
     "findPlannerBody": "Love what you've designed? Match with one of Zaffa's verified planners. We add a {pct}% platform fee on the planner's bill at close — that's it.",
-    "findPlannerCta": "Find my planner",
     "alreadyEvent": "Open my event",
     "marketingHeroEyebrow": "AI-designed weddings",
     "marketingHeroTitle": "Your wedding — visualized — before you book a thing",
@@ -2299,8 +2296,6 @@
     "shareSectionMicrositeBody": "Share your vision via your own zaffa.ai/v/… link or in the public gallery.",
     "shareSectionLookbookTitle": "Lookbook PDF",
     "shareSectionLookbookBody": "A printable PDF of your mood board, palette and renders to share with family.",
-    "shareSectionPlannerTitle": "Find a planner",
-    "shareSectionPlannerBody": "Match with one of Zaffa's verified planners. {pct}% platform fee on their bill at close — that's it.",
     "venueRecsTitle": "Recommended venues",
     "venueRecsCuratedBy": "Hand-picked by Zaffa",
     "venueRecsEmpty": "Zaffa is curating venue options for you — check back soon.",
@@ -2321,7 +2316,12 @@
     "galleryAnonymousCouple": "A Zaffa couple",
     "galleryRenderCount": "{count, plural, one {# render} other {# renders}}",
     "revealMetaTitle": "Your render — Zaffa",
-    "revealMetaDescription": "Your wedding, visualized. Open on the device you requested it from."
+    "revealMetaDescription": "Your wedding, visualized. Open on the device you requested it from.",
+    "shareSectionApproveTitle": "Make it real",
+    "shareSectionApproveBody": "Approve this design and our team will contact you about bringing it to life — venues, vendors, the whole day.",
+    "approveCta": "This is the one",
+    "approvedState": "Approved — we'll be in touch",
+    "approvedToast": "Beautiful choice. We'll be in touch soon."
   },
   "emailGate": {
     "eyebrow": "Your render is ready",

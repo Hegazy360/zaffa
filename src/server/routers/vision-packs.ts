@@ -24,7 +24,6 @@ import {
   getPackSku,
   isFreePack,
   isPackWindowExpired,
-  packIncludesPlannerMatch,
   requirePackSku,
 } from "@/lib/vision-pack";
 import {
@@ -35,7 +34,6 @@ import {
 import { reportError } from "@/lib/logger";
 import { trackServer } from "@/lib/posthog";
 import { ANALYTICS_EVENTS } from "@/lib/analytics-events";
-import { notifyEventInServiceArea } from "@/server/services/notifications/dispatchers";
 
 const packSkuSchema = z.enum(
   Object.keys(PACK_SKUS) as [PackSkuId, ...PackSkuId[]],
@@ -648,127 +646,6 @@ export const visionPacksRouter = router({
     }),
 
   /**
-   * Hand-off into the marketplace. Picks the most-recently-touched
-   * design owned by the recipient, materialises it as an Event with
-   * the design `approved_at`, and links the pack to the event so the
-   * marketplace teaser picks it up. Couples without any saved design
-   * yet are blocked client-side, but we double-check here too.
-   */
-  findPlanner: protectedProcedure
-    .input(z.object({ packId: z.string().uuid() }).optional())
-    .mutation(async ({ ctx, input }) => {
-      const pack = input?.packId
-        ? await prisma.visionPack.findFirst({
-            where: { id: input.packId, recipient_user_id: ctx.user.id },
-          })
-        : await loadPackForUser(ctx.user.id);
-      if (!pack) {
-        throw new TRPCError({ code: "NOT_FOUND", message: "PACK_NOT_FOUND" });
-      }
-      // Lower-tier Design Pack doesn't unlock the planner marketplace —
-      // gate explicitly so the upsell button surfaces a clear error rather
-      // than silently creating an event the user can't act on.
-      if (!packIncludesPlannerMatch(pack.sku)) {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "PACK_TIER_NO_PLANNER_MATCH",
-        });
-      }
-      // If the pack is already linked to an event, just bounce.
-      if (pack.event_id) {
-        return { id: pack.event_id, alreadyLinked: true };
-      }
-
-      const design = await prisma.venueDesign.findFirst({
-        where: { user_id: ctx.user.id },
-        orderBy: { updated_at: "desc" },
-        select: {
-          id: true,
-          name: true,
-          event_type: true,
-          event_id: true,
-        },
-      });
-      if (!design) {
-        throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: "NO_DESIGN_FOUND",
-        });
-      }
-
-      // Reuse the design's existing event if one was already created.
-      if (design.event_id) {
-        await prisma.visionPack.update({
-          where: { id: pack.id },
-          data: { event_id: design.event_id },
-        });
-        return { id: design.event_id, alreadyLinked: true };
-      }
-
-      const allowed = ["wedding", "engagement", "birthday", "corporate", "other"] as const;
-      type AllowedEventType = (typeof allowed)[number];
-      const eventType: AllowedEventType = (allowed as readonly string[]).includes(design.event_type)
-        ? (design.event_type as AllowedEventType)
-        : "wedding";
-
-      const event = await prisma.$transaction(async (tx) => {
-        const created = await tx.event.create({
-          data: {
-            client_id: ctx.user.id,
-            title: design.name,
-            event_type: eventType,
-            status: "planning",
-          },
-          select: {
-            id: true,
-            title: true,
-            event_type: true,
-            venue: true,
-            client_id: true,
-          },
-        });
-        await tx.venueDesign.update({
-          where: { id: design.id },
-          data: { event_id: created.id, approved_at: new Date() },
-        });
-        await tx.visionPack.update({
-          where: { id: pack.id },
-          data: { event_id: created.id },
-        });
-        return created;
-      });
-
-      await trackServer(
-        ctx.user.id,
-        ANALYTICS_EVENTS.VISION_PACK_FIND_PLANNER_CLICKED,
-        { pack_id: pack.id, event_id: event.id },
-      );
-      await trackServer(ctx.user.id, ANALYTICS_EVENTS.EVENT_CREATED, {
-        event_id: event.id,
-        event_type: String(event.event_type),
-        from: "vision_pack",
-      });
-      await trackServer(ctx.user.id, ANALYTICS_EVENTS.DESIGN_APPROVED, {
-        event_id: event.id,
-        design_id: design.id,
-      });
-
-      // If the design happens to already have a venue (rare in this
-      // path), fan out to planners in the area. Mirrors `events.ts`.
-      if (event.venue) {
-        await notifyEventInServiceArea({
-          eventId: event.id,
-          clientUserId: event.client_id,
-          venue: event.venue,
-          eventType: String(event.event_type),
-          eventTitle: event.title,
-        });
-      }
-
-      return { id: event.id, alreadyLinked: false };
-    }),
-
-  /**
    * Public microsite read by slug. Returns the minimal shape the
    * `/v/<slug>` page needs. Always public — the route is the share
    * surface, so no auth is required. `microsite_public` only controls
@@ -935,7 +812,7 @@ export async function ensureFreePack(userId: string) {
       expires_at: expiresAt,
       renders_quota: skuMeta.quotas.renders,
       videos_quota: skuMeta.quotas.videos,
-      // Self-purchase shape so `findPlanner` + microsite paths behave
+      // Self-purchase shape so the microsite paths behave
       // even though those features are blocked at the SKU layer.
       redeemed_at: now,
     },

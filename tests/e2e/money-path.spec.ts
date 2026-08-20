@@ -2,13 +2,14 @@
  * Money path — the single critical-flow E2E that protects Zaffa's revenue
  * pipeline end-to-end:
  *
- *   1. Client approves a venue design and gets a real event
- *   2. Planner discovers it on the marketplace and sends a proposal with
+ *   1. Client approves a venue design — files a design_approved lead
+ *   2. Admin converts the lead into a real event in the CRM
+ *   3. Planner discovers it on the marketplace and sends a proposal with
  *      a two-installment schedule
- *   3. Client accepts the plan, pays the deposit through Stripe Checkout
+ *   4. Client accepts the plan, pays the deposit through Stripe Checkout
  *      (test mode, card 4242 4242 4242 4242), and the webhook flips the
  *      payment row to `paid`
- *   4. Admin records the off-Stripe payout to the planner
+ *   5. Admin records the off-Stripe payout to the planner
  *
  * Everything runs in one worker, serial mode, so `eventId` / `installmentId`
  * / `plannerUserId` can flow between tests through a module-scoped object.
@@ -27,6 +28,7 @@ import path from "node:path";
 import {
   closeTestDb,
   getE2EPlannerProfileId,
+  getEnquiryByEmail,
   getPaymentStatus,
   getPayoutForInstallment,
   getProposalSnapshot,
@@ -44,12 +46,14 @@ test.describe.configure({ mode: "serial" });
 const ctx: {
   designName: string;
   coverLetter: string;
+  enquiryId: string;
   eventId: string;
   depositInstallmentId: string;
   plannerProfileId: string;
 } = {
   designName: "",
   coverLetter: "",
+  enquiryId: "",
   eventId: "",
   depositInstallmentId: "",
   plannerProfileId: "",
@@ -72,7 +76,7 @@ test.describe("money path: design → proposal → stripe pay → admin payout",
     await closeTestDb();
   });
 
-  test("client creates an event by approving a design", async ({ browser }) => {
+  test("client approves a design and it files a lead", async ({ browser }) => {
     const browserCtx = await browser.newContext({ storageState: CLIENT_STATE });
     const page = await browserCtx.newPage();
     try {
@@ -116,31 +120,64 @@ test.describe("money path: design → proposal → stripe pay → admin payout",
         });
       });
 
-      await test.step("approve the design to create a real event", async () => {
+      await test.step("approve the design — it files a lead, not an event", async () => {
+        // The pivot reshaped approval: no pack gate, no event creation.
+        // Approving writes a design_approved Enquiry the concierge follows
+        // up on; the event is created by the admin when the conversation
+        // is real (next step).
         const approveBtn = page.getByRole("button", {
-          name: /approve.*create event/i,
+          name: /this is the one/i,
         });
         await approveBtn.waitFor({ state: "visible", timeout: 10_000 });
         await approveBtn.click();
-        await page.waitForURL(
-          /\/dashboard\/client\/event\/[0-9a-f-]{36}/i,
-          { timeout: 20_000 },
-        );
-        const match = page.url().match(/\/event\/([0-9a-f-]{36})/i);
-        expect(match, "eventId should be in the URL").not.toBeNull();
-        ctx.eventId = match![1];
+        // The header CTA flips to the approved state once the mutation
+        // settles — that's the observable success signal.
+        await expect(
+          page.getByRole("button", { name: /approved/i }),
+        ).toBeVisible({ timeout: 20_000 });
       });
 
-      await test.step("event page surfaces the design name as its title", async () => {
-        // Design name appears in both the page h1 and the linked design card
-        // (h3). Pin to the page-level h1 to avoid strict-mode collisions.
-        await expect(
-          page.getByRole("heading", {
-            level: 1,
-            name: new RegExp(ctx.designName, "i"),
-          }),
-        ).toBeVisible({ timeout: 10_000 });
+      await test.step("the lead landed with the design attached", async () => {
+        const enquiry = await getEnquiryByEmail(
+          process.env.E2E_CLIENT_EMAIL ?? "client@test.zaffa",
+        );
+        expect(enquiry, "approval must persist an enquiry row").not.toBeNull();
+        expect(enquiry!.design_id, "the render is the brief").not.toBeNull();
+        ctx.enquiryId = enquiry!.id;
       });
+    } finally {
+      await browserCtx.close();
+    }
+  });
+
+  test("admin converts the lead into a real event", async ({ browser }) => {
+    expect(ctx.enquiryId, "test 1 must have populated enquiryId").toBeTruthy();
+    const browserCtx = await browser.newContext({ storageState: ADMIN_STATE });
+    const page = await browserCtx.newPage();
+    try {
+      await page.goto(`/dashboard/admin/enquiries/${ctx.enquiryId}`);
+      const convertBtn = page.getByRole("button", {
+        name: /accept.*create event/i,
+      });
+      await convertBtn.waitFor({ state: "visible", timeout: 15_000 });
+      await convertBtn.click();
+      // Conversion stamps event_id on the enquiry; poll the row rather than
+      // the UI so the assertion doesn't depend on the quote panel's layout.
+      await expect
+        .poll(
+          async () =>
+            (
+              await getEnquiryByEmail(
+                process.env.E2E_CLIENT_EMAIL ?? "client@test.zaffa",
+              )
+            )?.event_id,
+          { timeout: 20_000 },
+        )
+        .not.toBeNull();
+      const enquiry = await getEnquiryByEmail(
+        process.env.E2E_CLIENT_EMAIL ?? "client@test.zaffa",
+      );
+      ctx.eventId = enquiry!.event_id!;
     } finally {
       await browserCtx.close();
     }
@@ -149,7 +186,7 @@ test.describe("money path: design → proposal → stripe pay → admin payout",
   test("planner sends a proposal with a 50/50 payment plan", async ({
     browser,
   }) => {
-    expect(ctx.eventId, "test 1 must have populated eventId").toBeTruthy();
+    expect(ctx.eventId, "the admin-convert test must have populated eventId").toBeTruthy();
     const browserCtx = await browser.newContext({ storageState: PLANNER_STATE });
     const page = await browserCtx.newPage();
     try {

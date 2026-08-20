@@ -141,7 +141,18 @@ export default function AdminEnquiriesPage() {
               Mail;
             return (
               <li key={e.id} className="relative">
-                <div className="rounded-2xl border border-brand-line p-4 transition-colors hover:border-rose-200 focus-within:ring-2 focus-within:ring-rose-300">
+                <div className="flex items-start gap-3 rounded-2xl border border-brand-line p-4 transition-colors hover:border-rose-200 focus-within:ring-2 focus-within:ring-rose-300">
+                  {/* A design_approved lead IS its render — show it on the
+                      row so the operator recognises the wedding at a glance. */}
+                  {e.design?.thumbnail && (
+                    // eslint-disable-next-line @next/next/no-img-element -- admin-only inbox chip, tiny fixed size, Cloudinary thumb already sized
+                    <img
+                      src={e.design.thumbnail}
+                      alt=""
+                      className="size-12 shrink-0 rounded-lg object-cover"
+                    />
+                  )}
+                  <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-baseline justify-between gap-2">
                     <h2 className="font-medium">
                       {/* Link overlay: the whole card is clickable, but it's a
@@ -179,7 +190,13 @@ export default function AdminEnquiriesPage() {
                     <span className="rounded-full bg-stone-100 px-2 py-0.5">
                       {LABEL[e.status as Status]}
                     </span>
+                    {e.source === "design_approved" && (
+                      <span className="rounded-full bg-rose-100 px-2 py-0.5 font-medium text-rose-700">
+                        Approved their design
+                      </span>
+                    )}
                   </p>
+                  </div>
                 </div>
               </li>
             );

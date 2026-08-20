@@ -65,21 +65,22 @@ export default function VenueDesignerGalleryPage() {
   useEffect(() => {
     if (isAnon) router.replace("/venue-designer/new");
   }, [isAnon, router]);
-  // The "Approve & create event" handoff is a paid-pack feature — free
-  // pack users can save and revisit designs but the approval flow stays
-  // gated until they upgrade.
+  // Only the navbar chrome cares about the tier now — approval doesn't.
+  // Free-pack users keep the chrome-less feel of the try-it-free flow.
   const onFreeTier = !pack || isFreePack(pack.sku);
 
   const deleteMutation = trpc.venueDesigns.delete.useMutation({
     onSuccess: () => utils.venueDesigns.list.invalidate(),
   });
 
-  const approveMutation = trpc.events.createFromDesign.useMutation({
-    onSuccess: (event) => {
-      toast.success(t("createdToast"));
-      utils.events.list.invalidate();
+  // Approval is a lead ("I want this wedding — contact me"), free on every
+  // tier. The old events.createFromDesign path was Vision-Pack-gated because
+  // it opened the hidden planner marketplace.
+  const approveMutation = trpc.venueDesigns.approve.useMutation({
+    onSuccess: () => {
+      toast.success(t("approvedToast"));
       utils.venueDesigns.list.invalidate();
-      router.push(`/dashboard/client/event/${event.id}`);
+      utils.enquiries.mine.invalidate();
     },
     onError: (err) => toast.error(err.message),
   });
@@ -405,10 +406,10 @@ export default function VenueDesignerGalleryPage() {
                       )}
                     </div>
 
-                    {/* Approve/Open-event handoff is paid-pack only. We
-                        still surface "Open event" if the design is
-                        somehow already linked (e.g. legacy data) so
-                        free-tier users aren't stranded mid-flow. */}
+                    {/* "Open event" survives for legacy designs already
+                        linked to an event; otherwise approval is open to
+                        every permanent account — it files the lead the
+                        concierge follows up on. */}
                     {design.event_id ? (
                       <button
                         type="button"
@@ -421,7 +422,12 @@ export default function VenueDesignerGalleryPage() {
                         {t("approvedOpenEvent")}
                         <ArrowRight className="size-3 rtl:-scale-x-100" />
                       </button>
-                    ) : onFreeTier ? null : (
+                    ) : design.approved_at ? (
+                      <div className="inline-flex w-full items-center justify-center gap-1.5 rounded-lg border border-rose-200/70 bg-rose-50/60 px-3 py-1.5 text-xs font-medium text-rose-700">
+                        <CheckCircle2 className="size-3.5" />
+                        {t("approvedCta")}
+                      </div>
+                    ) : (
                       <button
                         type="button"
                         disabled={
@@ -437,7 +443,7 @@ export default function VenueDesignerGalleryPage() {
                         ) : (
                           <CheckCircle2 className="size-3.5" />
                         )}
-                        {t("approveCreateEvent")}
+                        {t("approveDesign")}
                       </button>
                     )}
                   </div>

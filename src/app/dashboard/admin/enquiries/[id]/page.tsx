@@ -113,9 +113,16 @@ export default function EnquiryDetailPage({
             {format(new Date(e.created_at), "d MMM yyyy")}
           </p>
         </div>
-        <span className="rounded-full bg-stone-100 px-3 py-1 text-xs font-medium">
-          {LABEL[e.status] ?? e.status}
-        </span>
+        <div className="flex items-center gap-2">
+          {e.source === "design_approved" && (
+            <span className="rounded-full bg-rose-100 px-3 py-1 text-xs font-medium text-rose-700">
+              Approved their design
+            </span>
+          )}
+          <span className="rounded-full bg-stone-100 px-3 py-1 text-xs font-medium">
+            {LABEL[e.status] ?? e.status}
+          </span>
+        </div>
       </header>
 
       <div className="grid gap-6 lg:grid-cols-3">
@@ -416,6 +423,21 @@ export default function EnquiryDetailPage({
                 <Sparkles className="size-3.5 text-rose-600" />
                 Their designs
               </h2>
+              {/* The render is the brief for design_approved leads —
+                  the operator should see the wedding, not just a name. */}
+              {e.design?.thumbnail && (
+                <Link
+                  href={`/venue-designer/${e.design.id}`}
+                  className="mt-3 block overflow-hidden rounded-xl"
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element -- admin-only detail, Cloudinary thumb */}
+                  <img
+                    src={e.design.thumbnail}
+                    alt={e.design.name}
+                    className="aspect-video w-full object-cover transition-transform hover:scale-[1.02]"
+                  />
+                </Link>
+              )}
               <ul className="mt-2 space-y-1.5 text-sm">
                 {e.design && (
                   <li>
@@ -426,7 +448,13 @@ export default function EnquiryDetailPage({
                       {e.design.name}
                     </Link>{" "}
                     <span className="text-xs text-muted-foreground">
-                      — attached to this enquiry
+                      {[
+                        e.design.setting,
+                        e.design.size,
+                        e.design.guest_count ? `${e.design.guest_count} guests` : null,
+                      ]
+                        .filter(Boolean)
+                        .join(" · ") || "— attached to this enquiry"}
                     </span>
                   </li>
                 )}

@@ -13,14 +13,11 @@ import {
   Image as ImageIcon,
   CheckCircle2,
   ExternalLink,
-  Lock,
 } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { MediaGalleryDialog } from "./MediaGalleryDialog";
 import { VisionPackQuotaBadge } from "@/components/vision-pack/VisionPackQuotaBadge";
-import { VisionPackUpgradeModal } from "@/components/vision-pack/VisionPackUpgradeModal";
 import { useIsAnonymous } from "@/lib/use-is-anonymous";
-import { isFreePack } from "@/lib/vision-pack";
 
 interface DesignerHeaderProps {
   name: string;
@@ -41,48 +38,33 @@ export function DesignerHeader({
 }: DesignerHeaderProps) {
   const router = useRouter();
   const t = useTranslations("designer");
-  const tVp = useTranslations("visionPack");
   const [mediaGalleryOpen, setMediaGalleryOpen] = useState(false);
-  const [upgradeOpen, setUpgradeOpen] = useState(false);
-  // Three tiers of access for "Approve & create event":
-  //   - Anonymous + Free-tier visitors don't see the button at all
-  //     — they're still pre-purchase and the paywall is the right
-  //     conversion surface, not a planner-matching CTA.
-  //   - Design Pack users (paid, but no planner-marketplace access)
-  //     see the button rendered in a "locked" style; clicking it
-  //     opens the delta-priced Vision Pack upgrade modal instead of
-  //     creating an empty event under a tier that can't follow
-  //     through with planner matching.
-  //   - Vision Pack users see the regular active CTA that fires
-  //     `events.createFromDesign`.
+  // Approval is a lead, not a feature unlock: any permanent account can
+  // approve, whatever their pack tier. The three-tier gate that used to
+  // live here (hidden / locked-upgrade / active) existed to sell the
+  // planner marketplace, which is hidden — it surfaced to a real client
+  // as a raw PACK_TIER_NO_PLANNER_MATCH toast. Anonymous visitors still
+  // don't see the button: an approval without contact details is
+  // unactionable, and the email gate is where they acquire one.
   const isAnon = useIsAnonymous();
-  const { data: currentPack } = trpc.visionPacks.current.useQuery();
-  const onFreeTier = !currentPack || isFreePack(currentPack.sku);
-  const onPaidLowerTier =
-    !!currentPack && !isFreePack(currentPack.sku) && !currentPack.includes_planner_match;
-  const canApprove =
-    !isAnon && !onFreeTier && (currentPack?.includes_planner_match ?? false);
-  // Show the approve cluster (active or locked) for anyone past the
-  // free tier; the locked variant is the conversion hook from Design
-  // Pack → Vision Pack.
-  const showApproveCluster = !isAnon && (canApprove || onPaidLowerTier);
 
-  // Look up which event (if any) this design is already attached to so we
-  // can show "Open event" instead of "Approve & create event".
+  // Look up the design's state so the CTA can reflect it: already
+  // approved → confirmation; historic event link → "Open event".
   const { data: design } = trpc.venueDesigns.getById.useQuery(
     { id: designId ?? "" },
     { enabled: Boolean(designId) }
   );
   const linkedEventId = design?.event_id ?? null;
+  const isApproved = Boolean(design?.approved_at);
 
   const utils = trpc.useUtils();
-  const createFromDesign = trpc.events.createFromDesign.useMutation({
-    onSuccess: (event) => {
-      toast.success(t("createdToast"));
-      utils.events.list.invalidate();
+  const approve = trpc.venueDesigns.approve.useMutation({
+    onSuccess: () => {
+      toast.success(t("approvedToast"));
       utils.venueDesigns.list.invalidate();
       if (designId) utils.venueDesigns.getById.invalidate({ id: designId });
-      router.push(`/dashboard/client/event/${event.id}`);
+      // The dashboard's "we're on it" card reads enquiries.mine.
+      utils.enquiries.mine.invalidate();
     },
     onError: (err) => toast.error(err.message),
   });
@@ -201,7 +183,7 @@ export function DesignerHeader({
           <span className="hidden md:inline">{t("save")}</span>
         </Button>
 
-        {designId && showApproveCluster &&
+        {designId && !isAnon &&
           (linkedEventId ? (
             <Button
               size="sm"
@@ -214,52 +196,32 @@ export function DesignerHeader({
               <ExternalLink className="h-3.5 w-3.5 md:h-3 md:w-3" />
               {t("openEvent")}
             </Button>
-          ) : canApprove ? (
+          ) : isApproved ? (
+            <Button
+              size="sm"
+              variant="outline"
+              className="h-9 flex-1 gap-1.5 border-rose-200 bg-rose-50/60 text-xs text-rose-700 hover:bg-rose-100/70 md:h-7 md:flex-none"
+              onClick={() => router.push("/dashboard/client")}
+            >
+              <CheckCircle2 className="h-3.5 w-3.5 md:h-3 md:w-3" />
+              {t("approvedCta")}
+            </Button>
+          ) : (
             <Button
               size="sm"
               className="h-9 flex-1 gap-1.5 bg-brand-gradient text-xs text-white hover:opacity-90 md:h-7 md:flex-none"
-              disabled={createFromDesign.isPending}
-              onClick={() => createFromDesign.mutate({ designId })}
+              disabled={approve.isPending}
+              onClick={() => approve.mutate({ designId })}
             >
-              {createFromDesign.isPending ? (
+              {approve.isPending ? (
                 <Loader2 className="h-3.5 w-3.5 animate-spin md:h-3 md:w-3" />
               ) : (
                 <CheckCircle2 className="h-3.5 w-3.5 md:h-3 md:w-3" />
               )}
-              {t("approveCreateEvent")}
-            </Button>
-          ) : (
-            // Design Pack: the active gradient pill would imply the
-            // user can actually approve, so we render a subdued
-            // outline + lock icon and route the click into the
-            // upgrade modal instead.
-            <Button
-              size="sm"
-              variant="outline"
-              className="h-9 flex-1 gap-1.5 border-rose-200/70 bg-background text-xs text-rose-700 hover:bg-rose-50 md:h-7 md:flex-none"
-              onClick={() => setUpgradeOpen(true)}
-              aria-label={tVp("upgradeApproveTitle")}
-            >
-              <Lock className="h-3.5 w-3.5 md:h-3 md:w-3" />
-              {t("approveCreateEvent")}
+              {t("approveDesign")}
             </Button>
           ))}
       </div>
-
-      {onPaidLowerTier && (
-        <VisionPackUpgradeModal
-          open={upgradeOpen}
-          onOpenChange={setUpgradeOpen}
-          returnPath={
-            typeof window !== "undefined"
-              ? `${window.location.pathname}${window.location.hash}`
-              : undefined
-          }
-          eyebrow={tVp("upgradeApproveEyebrow")}
-          title={tVp("upgradeApproveTitle")}
-          body={tVp("upgradeApproveBody")}
-        />
-      )}
     </div>
   );
 }

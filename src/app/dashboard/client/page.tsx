@@ -66,12 +66,15 @@ export default function ClientDashboardPage() {
   const { data: events, isLoading: eventsLoading } =
     trpc.events.list.useQuery();
 
-  const createFromDesign = trpc.events.createFromDesign.useMutation({
-    onSuccess: (event) => {
-      utils.events.list.invalidate();
+  // Approval is a lead ("I want this wedding — contact me"), not an event
+  // factory: it creates a design_approved enquiry the concierge follows up
+  // on. The EnquiryStatusCard above reads enquiries.mine, so invalidating it
+  // makes the "we're on it" state appear without a navigation.
+  const approve = trpc.venueDesigns.approve.useMutation({
+    onSuccess: () => {
       utils.venueDesigns.list.invalidate();
-      toast.success(tc("createdFromDesignToast"));
-      router.push(`/dashboard/client/event/${event.id}`);
+      utils.enquiries.mine.invalidate();
+      toast.success(tc("approvedToast"));
     },
     onError: (err) => toast.error(err.message),
   });
@@ -169,6 +172,9 @@ export default function ClientDashboardPage() {
                 const isAttached = events?.some((e) =>
                   e.designs.some((d) => d.id === design.id)
                 );
+                // Approved covers both worlds: legacy designs attached to an
+                // event, and pivot-era approvals that only created a lead.
+                const isApproved = isAttached || Boolean(design.approved_at);
 
                 return (
                   <article
@@ -204,7 +210,7 @@ export default function ClientDashboardPage() {
                             ))}
                           </div>
                         )}
-                        {isAttached && (
+                        {isApproved && (
                           <div className="absolute end-3 top-3 inline-flex items-center gap-1 rounded-full bg-rose-600/90 px-2 py-1 text-xs font-medium tracking-wide text-white backdrop-blur-sm">
                             <CheckCircle2 className="size-3" />
                             {tc("approvedTag")}
@@ -224,7 +230,7 @@ export default function ClientDashboardPage() {
                       </div>
 
                       <div className="flex items-center gap-2">
-                        {isAttached ? (
+                        {isApproved ? (
                           <Button
                             variant="outline"
                             size="sm"
@@ -239,19 +245,19 @@ export default function ClientDashboardPage() {
                         ) : (
                           <Button
                             size="sm"
-                            disabled={createFromDesign.isPending}
+                            disabled={approve.isPending}
                             onClick={() =>
-                              createFromDesign.mutate({ designId: design.id })
+                              approve.mutate({ designId: design.id })
                             }
                             className="h-8 flex-1 gap-1 bg-brand-gradient text-xs text-white hover:opacity-90"
                           >
-                            {createFromDesign.isPending &&
-                            createFromDesign.variables?.designId === design.id ? (
+                            {approve.isPending &&
+                            approve.variables?.designId === design.id ? (
                               <Loader2 className="size-3 animate-spin" />
                             ) : (
                               <CheckCircle2 className="size-3" />
                             )}
-                            {tc("approveCreateEvent")}
+                            {tc("approveDesign")}
                           </Button>
                         )}
                       </div>

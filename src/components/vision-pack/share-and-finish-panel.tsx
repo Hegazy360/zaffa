@@ -7,6 +7,7 @@ import { useTranslations } from "next-intl";
 import {
   ArrowRight,
   Check,
+  CheckCircle2,
   Copy,
   ExternalLink,
   FileDown,
@@ -26,11 +27,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import {
-  VISION_PACK_DEFAULT_PLATFORM_FEE_PCT,
-  isFreePack,
-  packIncludesPlannerMatch,
-} from "@/lib/vision-pack";
+import { isFreePack } from "@/lib/vision-pack";
 import { LockableAction } from "@/components/ui/lockable-action";
 import { LookbookDownloadButton } from "./lookbook-download-button";
 
@@ -78,22 +75,21 @@ export function ShareAndFinishPanel({ designId }: Props) {
     onError: (err) => toast.error(err.message),
   });
 
-  const findPlanner = trpc.visionPacks.findPlanner.useMutation({
-    onSuccess: ({ id }) => {
-      utils.visionPacks.current.invalidate();
-      utils.events.list.invalidate();
+  // "This is the one" — approval files the lead the concierge follows up
+  // on. Replaces the old findPlanner marketplace handoff, which was gated
+  // by SKU and pointed at surfaces that now 404.
+  const { data: design } = trpc.venueDesigns.getById.useQuery(
+    { id: designId ?? "" },
+    { enabled: Boolean(designId) },
+  );
+  const approve = trpc.venueDesigns.approve.useMutation({
+    onSuccess: () => {
+      toast.success(t("approvedToast"));
       utils.venueDesigns.list.invalidate();
-      router.push(`/dashboard/client/event/${id}`);
+      if (designId) utils.venueDesigns.getById.invalidate({ id: designId });
+      utils.enquiries.mine.invalidate();
     },
-    onError: (err) => {
-      if (err.message === "NO_DESIGN_FOUND") {
-        toast.error(
-          "Save at least one design before matching with a planner.",
-        );
-        return;
-      }
-      toast.error(err.message);
-    },
+    onError: (err) => toast.error(err.message),
   });
 
   if (isLoading || !pack) return null;
@@ -268,16 +264,13 @@ export function ShareAndFinishPanel({ designId }: Props) {
           )}
         </Section>
 
-        {/* Find a planner — only surfaced for tiers that actually
-            include the marketplace handoff. Lower tiers would otherwise
-            hit a PACK_TIER_NO_PLANNER_MATCH server error. */}
-        {packIncludesPlannerMatch(pack.sku) && (
+        {/* "This is the one" — every tier can approve; it files the lead
+            the concierge follows up on. Replaces the old SKU-gated
+            find-a-planner marketplace handoff. */}
         <Section
           icon={<Users className="size-4" />}
-          title={t("shareSectionPlannerTitle")}
-          description={t("shareSectionPlannerBody", {
-            pct: VISION_PACK_DEFAULT_PLATFORM_FEE_PCT,
-          })}
+          title={t("shareSectionApproveTitle")}
+          description={t("shareSectionApproveBody")}
         >
           {pack.event_id ? (
             <Button
@@ -293,25 +286,29 @@ export function ShareAndFinishPanel({ designId }: Props) {
               {t("alreadyEvent")}
               <ArrowRight className="size-3 rtl:-scale-x-100" />
             </Button>
+          ) : design?.approved_at ? (
+            <div className="inline-flex items-center gap-1.5 rounded-lg border border-rose-200/70 bg-rose-50/60 px-3 py-1.5 text-xs font-medium text-rose-700">
+              <CheckCircle2 className="size-3.5" />
+              {t("approvedState")}
+            </div>
           ) : (
             <Button
               type="button"
               size="sm"
-              disabled={findPlanner.isPending || !designId}
-              onClick={() => findPlanner.mutate({ packId: pack.id })}
+              disabled={approve.isPending || !designId}
+              onClick={() => designId && approve.mutate({ designId })}
               className="h-8 gap-1.5 bg-brand-gradient text-xs text-white hover:opacity-90"
             >
-              {findPlanner.isPending ? (
+              {approve.isPending ? (
                 <Loader2 className="size-3 animate-spin" />
               ) : (
-                <Users className="size-3" />
+                <CheckCircle2 className="size-3" />
               )}
-              {t("findPlannerCta")}
+              {t("approveCta")}
               <ArrowRight className="size-3 rtl:-scale-x-100" />
             </Button>
           )}
         </Section>
-        )}
       </CardContent>
     </Card>
   );

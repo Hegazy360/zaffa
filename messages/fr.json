@@ -1115,8 +1115,6 @@
     "viewAll": "Tout afficher",
     "approvedTag": "Approuvé",
     "open": "Ouvert",
-    "approveCreateEvent": "Approuver et créer l'événement",
-    "createdFromDesignToast": "Événement créé à partir de la conception",
     "yourEvents": "Vos événements",
     "everythingInOnePlace": "Tout au même endroit",
     "linkedTo": "lié à{name}",
@@ -1259,7 +1257,9 @@
     "signOutHint": "Terminer cette session sur cet appareil.",
     "deleteAccount": "Supprimer le compte",
     "deleteAccountHint": "Supprimez définitivement votre profil et tous les événements associés. Contactez le support pour terminer cette opération.",
-    "contactSupport": "Contacter le support"
+    "contactSupport": "Contacter le support",
+    "approveDesign": "C'est celui-là — organisez-le pour nous",
+    "approvedToast": "Très beau choix. Nous vous contactons très vite."
   },
   "admin": {
     "eyebrow": "Administrateur",
@@ -1897,8 +1897,6 @@
     "gallery": "Galerie",
     "save": "Enregistrer",
     "openEvent": "Événement ouvert",
-    "approveCreateEvent": "Approuver et créer l'événement",
-    "createdToast": "Événement créé à partir de la conception",
     "atelierEyebrow": "Votre atelier",
     "gallerySubtitle": "Chaque design constitue un brief complet : les bases, la palette, les références et les rendus IA que vous avez générés pour celui-ci.",
     "newDesign": "Nouveau design",
@@ -2094,7 +2092,10 @@
     "renderFailed": "Échec du rendu. Veuillez réessayer.",
     "videoFailed": "La génération de la vidéo a échoué. Veuillez réessayer.",
     "needRefBeforeRender": "Ajoutez au moins une référence d'inspiration avant le rendu.",
-    "metaTitle": "Composez votre journée — Zaffa"
+    "metaTitle": "Composez votre journée — Zaffa",
+    "approveDesign": "C'est celui-là — organisez-le pour nous",
+    "approvedToast": "Très beau choix. Nous vous contactons très vite.",
+    "approvedCta": "Approuvé — on s'en occupe"
   },
   "plannerInspiration": {
     "sectionAria": "Tableau d'inspiration de couple",
@@ -2213,9 +2214,6 @@
     "upgradeCtaBody": "Obtenez plus de rendus, de courtes vidéos, de mises en relation avec des organisateurs et de recommandations de lieux. Vous ne paierez que la différence — et vos rendus existants resteront exactement là où ils sont.",
     "upgradeCtaButton": "Mise à niveau pour{delta}",
     "upgradeCtaInline": "Mise à niveau pour{delta}",
-    "upgradeApproveEyebrow": "Mise en correspondance des planificateurs",
-    "upgradeApproveTitle": "« Approuver et créer un événement » fait partie du Vision Pack",
-    "upgradeApproveBody": "Transformer un design en un événement réel ouvre le marché des organisateurs : des organisateurs adaptés, des recommandations de lieux sélectionnés et un espace de travail dédié à l'événement. Passez du Design Pack au Vision Pack pour le débloquer ; vous ne paierez que la différence et vos rendus resteront exactement là où ils sont.",
     "quotaRemaining": "{used}/{quota} rendus · {videoUsed}/{videoQuota} vidéos · {days, plural, =0 {Fenêtre fermée} one {# jour restant} other {# jours restants}}",
     "quotaExhaustedTitle": "Vous avez utilisé tout ce qui se trouvait dans votre sac.",
     "quotaExhaustedBody": "Votre colis a été livré dans son intégralité. Les rendus et les vidéos que vous avez générés vous appartiennent.",
@@ -2262,7 +2260,6 @@
     "findPlannerEyebrow": "Étape suivante",
     "findPlannerTitle": "Concrétisez-le",
     "findPlannerBody": "Vous aimez ce que vous avez conçu ? Trouvez votre partenaire parmi les organisateurs vérifiés de Zaffa. Nous ajoutons des frais de plateforme de {pct}% sur la facture de l'organisateur à la clôture — c'est tout.",
-    "findPlannerCta": "Trouver mon agenda",
     "alreadyEvent": "Ouvrir mon événement",
     "marketingHeroEyebrow": "Mariages conçus par l'IA",
     "marketingHeroTitle": "Votre mariage — visualisé — avant même de réserver quoi que ce soit",
@@ -2299,8 +2296,6 @@
     "shareSectionMicrositeBody": "Partagez votre vision via votre propre lien zaffa.ai/v/… ou dans la galerie publique.",
     "shareSectionLookbookTitle": "PDF de lookbook",
     "shareSectionLookbookBody": "Un PDF imprimable de votre planche de tendances, de votre palette et de vos rendus à partager avec votre famille.",
-    "shareSectionPlannerTitle": "Trouver un planificateur",
-    "shareSectionPlannerBody": "Trouvez l'un des organisateurs vérifiés de Zaffa. {pct}% de frais de plateforme sur leur facture à la clôture — c'est tout.",
     "venueRecsTitle": "Lieux recommandés",
     "venueRecsCuratedBy": "Sélectionné par Zaffa",
     "venueRecsEmpty": "Zaffa sélectionne actuellement des options de lieux pour vous — revenez bientôt.",
@@ -2321,7 +2316,12 @@
     "galleryAnonymousCouple": "Un couple sur Zaffa",
     "galleryRenderCount": "{count, plural, one {# rendu} other {# rendus}}",
     "revealMetaTitle": "Votre rendu — Zaffa",
-    "revealMetaDescription": "Votre mariage, en images. À ouvrir depuis l'appareil qui l'a demandé."
+    "revealMetaDescription": "Votre mariage, en images. À ouvrir depuis l'appareil qui l'a demandé.",
+    "shareSectionApproveTitle": "Rendez-le réel",
+    "shareSectionApproveBody": "Approuvez ce design et notre équipe vous contactera pour le concrétiser — lieux, prestataires, la journée entière.",
+    "approveCta": "C'est celui-là",
+    "approvedState": "Approuvé — nous vous contactons",
+    "approvedToast": "Très beau choix. Nous vous contactons très vite."
   },
   "emailGate": {
     "eyebrow": "Votre rendu est prêt",

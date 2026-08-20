@@ -682,8 +682,6 @@
     "gallery": "المعرض",
     "save": "حفظ",
     "openEvent": "فتح المناسبة",
-    "approveCreateEvent": "اعتماد وإنشاء مناسبة",
-    "createdToast": "تم إنشاء المناسبة من التصميم",
     "atelierEyebrow": "ورشتك",
     "gallerySubtitle": "كل تصميم ملف متكامل — الأساسيات، ولوحة الألوان، والمراجع، والصور التي أنتجها الذكاء الاصطناعي.",
     "newDesign": "تصميم جديد",
@@ -879,7 +877,10 @@
     "renderFailed": "تعذّر إنشاء التصميم. حاول مرة أخرى.",
     "videoFailed": "تعذّر إنشاء الفيديو. حاول مرة أخرى.",
     "needRefBeforeRender": "أضف صورة إلهام واحدة على الأقل قبل إنشاء التصميم.",
-    "metaTitle": "صمّموا يومكم — زفّة"
+    "metaTitle": "صمّموا يومكم — زفّة",
+    "approveDesign": "ده هو — نظّموه لنا",
+    "approvedToast": "اختيار جميل. هنتواصل معاك قريب.",
+    "approvedCta": "معتمد — إحنا عليه"
   },
   "plannerInspiration": {
     "sectionAria": "لوحة إلهام العروسين",
@@ -1391,8 +1392,6 @@
     "viewAll": "عرض الكل",
     "approvedTag": "معتمد",
     "open": "مفتوح",
-    "approveCreateEvent": "اعتمد وأنشئ المناسبة",
-    "createdFromDesignToast": "تم إنشاء المناسبة من التصميم",
     "yourEvents": "مناسباتك",
     "everythingInOnePlace": "كل شيء في مكان واحد",
     "linkedTo": "مرتبط بـ {name}",
@@ -1535,7 +1534,9 @@
     "signOutHint": "إنهاء هذه الجلسة على هذا الجهاز.",
     "deleteAccount": "حذف الحساب",
     "deleteAccountHint": "إزالة ملفك الشخصي وجميع الفعاليات المرتبطة به بشكل دائم. يرجى التواصل مع الدعم لإتمام العملية.",
-    "contactSupport": "تواصل مع الدعم"
+    "contactSupport": "تواصل مع الدعم",
+    "approveDesign": "ده هو — نظّموه لنا",
+    "approvedToast": "اختيار جميل. هنتواصل معاك قريب."
   },
   "admin": {
     "eyebrow": "الإدارة",
@@ -2213,9 +2214,6 @@
     "upgradeCtaBody": "احصل على رندرات إضافية، فيديوهات قصيرة، توافق مع منظمي حفلات، وتوصيات قاعات. لن تدفع سوى الفرق — وتبقى رندراتك الحالية كما هي.",
     "upgradeCtaButton": "ترقية مقابل {delta}",
     "upgradeCtaInline": "ترقية مقابل {delta}",
-    "upgradeApproveEyebrow": "التوافق مع منظِّم",
-    "upgradeApproveTitle": "زر «اعتماد المناسبة وإنشاؤها» ضمن حزمة الرؤية",
-    "upgradeApproveBody": "تحويل التصميم إلى مناسبة فعلية يفتح سوق منظّمي الحفلات: توافق مع منظِّم/ة، توصيات قاعات منتقاة، ومساحة عمل مشتركة للمناسبة. ارفع باقتك من حزمة التصميم إلى حزمة الرؤية لتفعيل ذلك — لن تدفع سوى الفرق، وكل تصاميمك تبقى كما هي.",
     "quotaRemaining": "{used}/{quota} صور · {videoUsed}/{videoQuota} فيديو · {days, plural, =0 {انتهت النافذة} one {# يوم متبقّ} other {# أيام متبقية}}",
     "quotaExhaustedTitle": "استنفدت كل ما في باقتك",
     "quotaExhaustedBody": "تمّ تسليم باقتك بالكامل. الصور والفيديوهات التي ولّدتها ملكك للأبد.",
@@ -2263,7 +2261,6 @@
     "findPlannerTitle": "خلّ الحلم حقيقة",
     "findPlannerTitleAlt": "احجز منظّمك",
     "findPlannerBody": "أعجبك التصميم؟ تواصل مع أحد منظّمي زفّة الموثّقين. نضيف رسوم منصّة بنسبة {pct}% على فاتورة المنظّم عند الإغلاق — هذا كل شيء.",
-    "findPlannerCta": "ابحث عن منظّمي",
     "alreadyEvent": "افتح مناسبتي",
     "marketingHeroEyebrow": "زفاف يصمّمه الذكاء الاصطناعي",
     "marketingHeroTitle": "زفافك — أمام عينيك — قبل أن تحجز أي شيء",
@@ -2300,8 +2297,6 @@
     "shareSectionMicrositeBody": "شاركوا تصميمكم عبر رابط zaffa.ai/v/… الخاص بكم أو في المعرض العام.",
     "shareSectionLookbookTitle": "كتيّب PDF",
     "shareSectionLookbookBody": "ملف PDF قابل للطباعة بلوحة الألوان واللقطات يمكن مشاركته مع العائلة.",
-    "shareSectionPlannerTitle": "اعثروا على منظّم",
-    "shareSectionPlannerBody": "تواصلوا مع أحد منظّمي زفّة الموثّقين. عمولتنا {pct}% على فاتورة المنظّم عند الإقفال فقط — لا غير.",
     "venueRecsTitle": "أماكن مقترحة",
     "venueRecsCuratedBy": "اختيار زفّة",
     "venueRecsEmpty": "زفّة تجهّز خيارات أماكن مناسبة لكم — تابعوا قريبًا.",
@@ -2322,7 +2317,12 @@
     "galleryAnonymousCouple": "عروسان على زفّة",
     "galleryRenderCount": "{count, plural, zero {لا تصاميم} one {تصميم واحد} two {تصميمان} few {# تصاميم} many {# تصميمًا} other {# تصميم}}",
     "revealMetaTitle": "تصميمكم — زفّة",
-    "revealMetaDescription": "يومكم كما تخيّلتموه. افتحوه من الجهاز الذي طلبتموه منها."
+    "revealMetaDescription": "يومكم كما تخيّلتموه. افتحوه من الجهاز الذي طلبتموه منها.",
+    "shareSectionApproveTitle": "خلّيه حقيقة",
+    "shareSectionApproveBody": "اعتمد هذا التصميم وسيتواصل معك فريقنا لتحويله إلى حقيقة — الأماكن، ومقدّمو الخدمات، واليوم كاملًا.",
+    "approveCta": "ده هو",
+    "approvedState": "معتمد — سنتواصل معك",
+    "approvedToast": "اختيار جميل. هنتواصل معاك قريب."
   },
   "emailGate": {
     "eyebrow": "تصميمكم جاهز",

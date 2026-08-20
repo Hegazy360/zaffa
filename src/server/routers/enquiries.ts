@@ -264,6 +264,9 @@ export const enquiriesRouter = router({
           budget_currency: true,
           source: true,
           created_at: true,
+          // The render chip that marks a design_approved lead in the inbox —
+          // this lead type IS the render, so the row should show it.
+          design: { select: { id: true, thumbnail: true } },
         },
       });
       const nextCursor = items.length > input.limit ? items.pop()!.id : null;
@@ -396,7 +399,17 @@ export const enquiriesRouter = router({
         where: { id: input.id },
         include: {
           design: {
-            select: { id: true, name: true, event_type: true, created_at: true },
+            select: {
+              id: true,
+              name: true,
+              event_type: true,
+              created_at: true,
+              // For design_approved leads the render is the brief — show it.
+              thumbnail: true,
+              setting: true,
+              size: true,
+              guest_count: true,
+            },
           },
           user: { select: { id: true, full_name: true, avatar_url: true } },
           event: { select: { id: true, title: true } },
@@ -553,6 +566,23 @@ export const enquiriesRouter = router({
           status_changed_at: new Date(),
         },
       });
+
+      // Their render is the brief: when the lead carries a design (the
+      // design_approved path always does), link it to the event so the
+      // client's event page and the admin both open on the wedding the
+      // couple actually approved. Scoped to the client's own design as a
+      // guard against a forged design_id on an old row. Two writes so an
+      // already-approved design keeps its original approval timestamp.
+      if (enquiry.design_id) {
+        await prisma.venueDesign.updateMany({
+          where: { id: enquiry.design_id, user_id: clientId, event_id: null },
+          data: { event_id: event.id },
+        });
+        await prisma.venueDesign.updateMany({
+          where: { id: enquiry.design_id, user_id: clientId, approved_at: null },
+          data: { approved_at: new Date() },
+        });
+      }
 
       return { eventId: event.id, created: true as const };
     }),
