@@ -2436,5 +2436,43 @@
     "prefillPricing": "أهلاً زفّة — إحنا بنتجوز وشُفنا أتعابكم، وعايزين نتكلّم.",
     "contextDesign": "ده اللي في بالنا: {url}",
     "replyPromise": "بيردّ عليكم شخص حقيقي، وغالبًا قبل {hours} ساعة بكتير."
+  },
+  "lookbook": {
+    "title": "باقة رؤية الزفاف",
+    "untitled": "زفاف كما تخيّلتموه",
+    "printed": "طُبعت في {date}",
+    "moodboard": "لوحة الإلهام",
+    "theReferences": "المراجع",
+    "pictureCount": "{count, plural, zero {لا صور} one {صورة واحدة} two {صورتان} few {# صور} many {# صورة} other {# صورة}}",
+    "renderCounter": "التصميم {index} من {total}",
+    "madeWith": "صُنعت مع زفّة",
+    "closingTitle": "زفافكم، كما رأيتموه.",
+    "category": {
+      "overall_vibe": "الإحساس العام",
+      "venue_decor": "القاعة والديكور",
+      "tables": "الطاولات",
+      "flowers": "الزهور",
+      "lighting": "الإضاءة"
+    },
+    "eventType": {
+      "wedding": "زفاف",
+      "engagement": "خطوبة",
+      "reception": "حفل استقبال",
+      "henna": "ليلة الحنّة"
+    },
+    "setting": {
+      "indoor": "داخلي",
+      "outdoor": "خارجي",
+      "beach": "على الشاطئ",
+      "garden": "حديقة",
+      "ballroom": "قاعة كبرى",
+      "rooftop": "سطح"
+    },
+    "size": {
+      "intimate": "حميم",
+      "medium": "متوسط",
+      "large": "كبير",
+      "grand": "فخم"
+    }
   }
 }

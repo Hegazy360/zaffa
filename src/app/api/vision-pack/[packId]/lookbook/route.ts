@@ -1,12 +1,18 @@
 import { NextResponse } from "next/server";
-import { renderToBuffer } from "@react-pdf/renderer";
+import { getLocale } from "next-intl/server";
 import { createClient } from "@/lib/supabase/server";
 import { prisma } from "@/lib/prisma";
-import { LookbookDocument } from "@/components/vision-pack/lookbook-pdf";
+import { htmlToPdf } from "@/lib/pdf";
+import { renderLookbookHtml } from "@/lib/lookbook-html";
 import { reportError } from "@/lib/logger";
 import { trackServer } from "@/lib/posthog";
 import { ANALYTICS_EVENTS } from "@/lib/analytics-events";
 import { isFreePack } from "@/lib/vision-pack";
+
+// Chromium has to start before it can print. A warm instance renders in a
+// second or two; a cold one takes longer, and timing out mid-download would
+// look to the customer like the artefact they paid for is broken.
+export const maxDuration = 60;
 
 interface RouteParams {
   params: Promise<{ packId: string }>;
@@ -135,11 +141,16 @@ export async function GET(_req: Request, { params }: RouteParams) {
     return NextResponse.json({ error: "no_design" }, { status: 409 });
   }
 
+  // Rendered by headless Chromium rather than react-pdf. react-pdf cannot
+  // shape Arabic — joined words come out malformed and the lam-alef ligature
+  // is mangled (ZAF-61's spike) — and this is a paid artefact in a market that
+  // reads Arabic. Chromium shapes, does bidi, and mirrors RTL correctly.
   let buffer: Buffer;
   try {
-    buffer = await renderToBuffer(
-      LookbookDocument({
-        recipientName: pack.recipient!.full_name ?? "Our wedding",
+    const locale = await getLocale();
+    const html = await renderLookbookHtml(
+      {
+        recipientName: pack.recipient!.full_name ?? "",
         publishedAt: pack.microsite_published_at,
         design: {
           name: design.name,
@@ -147,12 +158,16 @@ export async function GET(_req: Request, { params }: RouteParams) {
           setting: design.setting,
           size: design.size,
           palette: paletteOf(design.palette),
-          references: referencesOf(design.references),
+          // `RefBuckets` is a closed shape; the template takes an open one
+          // so an unknown category reads as empty rather than crashing.
+          references: { ...referencesOf(design.references) },
           style_notes: design.style_notes,
           media: design.media,
         },
-      }),
+      },
+      locale,
     );
+    buffer = await htmlToPdf(html);
   } catch (err) {
     reportError("vision_pack.lookbook.render_failed", err, { packId });
     return NextResponse.json({ error: "render_failed" }, { status: 500 });
@@ -182,9 +197,8 @@ export async function GET(_req: Request, { params }: RouteParams) {
     .replace(/^-+|-+$/g, "")
     .slice(0, 60) || "wedding-vision";
 
-  // react-pdf's `renderToBuffer` returns a node Buffer. Wrap it in a
-  // Uint8Array view so we can hand it to NextResponse without copying;
-  // the underlying ArrayBuffer is what `Response` expects.
+  // Wrap the Buffer in a Uint8Array view so it can go to NextResponse
+  // without copying; the underlying ArrayBuffer is what `Response` expects.
   const body = new Uint8Array(buffer);
 
   return new NextResponse(body, {

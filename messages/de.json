@@ -2435,5 +2435,43 @@
     "prefillPricing": "Hallo Zaffa – wir heiraten, haben Ihr Honorar gesehen und würden gerne sprechen.",
     "contextDesign": "So stellen wir es uns vor: {url}",
     "replyPromise": "Ein Mensch antwortet, meist deutlich innerhalb von {hours} Stunden."
+  },
+  "lookbook": {
+    "title": "Hochzeits-Vision-Paket",
+    "untitled": "Eine Hochzeit, sichtbar gemacht",
+    "printed": "Gedruckt {date}",
+    "moodboard": "Moodboard",
+    "theReferences": "Die Referenzen",
+    "pictureCount": "{count, plural, one {# Bild} other {# Bilder}}",
+    "renderCounter": "Rendering {index} von {total}",
+    "madeWith": "Erstellt mit Zaffa",
+    "closingTitle": "Ihre Hochzeit, sichtbar gemacht.",
+    "category": {
+      "overall_vibe": "Gesamtstimmung",
+      "venue_decor": "Location & Dekor",
+      "tables": "Tische",
+      "flowers": "Blumen",
+      "lighting": "Licht"
+    },
+    "eventType": {
+      "wedding": "Hochzeit",
+      "engagement": "Verlobung",
+      "reception": "Empfang",
+      "henna": "Henna-Abend"
+    },
+    "setting": {
+      "indoor": "Innen",
+      "outdoor": "Außen",
+      "beach": "Strand",
+      "garden": "Garten",
+      "ballroom": "Ballsaal",
+      "rooftop": "Dachterrasse"
+    },
+    "size": {
+      "intimate": "Intim",
+      "medium": "Mittel",
+      "large": "Groß",
+      "grand": "Grandios"
+    }
   }
 }

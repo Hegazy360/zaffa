@@ -2435,5 +2435,43 @@
     "prefillPricing": "Hi Zaffa — we're getting married and we saw your fee. We'd like to talk.",
     "contextDesign": "This is what we have in mind: {url}",
     "replyPromise": "A person replies, usually well inside {hours} hours."
+  },
+  "lookbook": {
+    "title": "Wedding Vision Pack",
+    "untitled": "A wedding, visualised",
+    "printed": "Printed {date}",
+    "moodboard": "Mood board",
+    "theReferences": "The references",
+    "pictureCount": "{count, plural, one {# picture} other {# pictures}}",
+    "renderCounter": "Render {index} of {total}",
+    "madeWith": "Made with Zaffa",
+    "closingTitle": "Your wedding, visualised.",
+    "category": {
+      "overall_vibe": "Overall vibe",
+      "venue_decor": "Venue & decor",
+      "tables": "Tables",
+      "flowers": "Florals",
+      "lighting": "Lighting"
+    },
+    "eventType": {
+      "wedding": "Wedding",
+      "engagement": "Engagement",
+      "reception": "Reception",
+      "henna": "Henna night"
+    },
+    "setting": {
+      "indoor": "Indoor",
+      "outdoor": "Outdoor",
+      "beach": "Beach",
+      "garden": "Garden",
+      "ballroom": "Ballroom",
+      "rooftop": "Rooftop"
+    },
+    "size": {
+      "intimate": "Intimate",
+      "medium": "Medium",
+      "large": "Large",
+      "grand": "Grand"
+    }
   }
 }

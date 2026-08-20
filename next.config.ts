@@ -70,6 +70,10 @@ const nextConfig: NextConfig = {
     "/opengraph-image": ["./src/assets/fonts/**"],
     "/r/[renderId]/opengraph-image": ["./src/assets/fonts/**"],
     "/v/[slug]/opengraph-image": ["./src/assets/fonts/**"],
+    // The lookbook inlines its fonts from disk for the same reason, and its
+    // failure mode is worse: a missing Arabic face in a paid PDF is tofu, not
+    // a fallback.
+    "/api/vision-pack/[packId]/lookbook": ["./src/assets/fonts/**"],
   },
   images: {
     remotePatterns: [

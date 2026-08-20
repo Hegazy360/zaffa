@@ -2435,5 +2435,43 @@
     "prefillPricing": "Bonjour Zaffa — nous nous marions, nous avons vu vos honoraires et nous aimerions en parler.",
     "contextDesign": "Voici ce que nous avons en tête : {url}",
     "replyPromise": "Une vraie personne répond, généralement bien avant {hours} heures."
+  },
+  "lookbook": {
+    "title": "Pack Vision Mariage",
+    "untitled": "Un mariage, en images",
+    "printed": "Imprimé en {date}",
+    "moodboard": "Planche d'ambiance",
+    "theReferences": "Les références",
+    "pictureCount": "{count, plural, one {# image} other {# images}}",
+    "renderCounter": "Rendu {index} sur {total}",
+    "madeWith": "Réalisé avec Zaffa",
+    "closingTitle": "Votre mariage, en images.",
+    "category": {
+      "overall_vibe": "Ambiance générale",
+      "venue_decor": "Lieu et décor",
+      "tables": "Tables",
+      "flowers": "Fleurs",
+      "lighting": "Lumière"
+    },
+    "eventType": {
+      "wedding": "Mariage",
+      "engagement": "Fiançailles",
+      "reception": "Réception",
+      "henna": "Soirée du henné"
+    },
+    "setting": {
+      "indoor": "Intérieur",
+      "outdoor": "Extérieur",
+      "beach": "Plage",
+      "garden": "Jardin",
+      "ballroom": "Salle de bal",
+      "rooftop": "Toit-terrasse"
+    },
+    "size": {
+      "intimate": "Intime",
+      "medium": "Moyen",
+      "large": "Grand",
+      "grand": "Grandiose"
+    }
   }
 }
