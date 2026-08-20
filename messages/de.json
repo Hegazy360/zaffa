@@ -2080,7 +2080,8 @@
     "deleteRenderConfirm": "Diesen Render löschen? Dies kann nicht rückgängig gemacht werden.",
     "renderFailed": "Rendering fehlgeschlagen. Bitte versuchen Sie es noch einmal.",
     "videoFailed": "Die Videoerstellung ist fehlgeschlagen. Bitte versuchen Sie es noch einmal.",
-    "needRefBeforeRender": "Fügen Sie vor dem Rendern mindestens eine Inspirationsquelle hinzu."
+    "needRefBeforeRender": "Fügen Sie vor dem Rendern mindestens eine Inspirationsquelle hinzu.",
+    "metaTitle": "Gestalten Sie Ihren Tag — Zaffa"
   },
   "plannerInspiration": {
     "sectionAria": "Inspirationsboard für Paare",
@@ -2296,7 +2297,13 @@
     "tierDesignTagline": "Design + Microsite + PDF, kein Matching.",
     "tierVisionName": "Vision-Paket",
     "tierVisionTagline": "Alles aus Design, plus Vermittlung von Veranstaltungsort & Planer.",
-    "micrositeOgKicker": "Eine Hochzeit, gestaltet in Zaffa"
+    "micrositeOgKicker": "Eine Hochzeit, gestaltet in Zaffa",
+    "galleryMetaTitle": "Visionsgalerie — Zaffa",
+    "galleryMetaDescription": "Echte Hochzeitsvisionen, in Minuten auf Zaffa gestaltet. Stöbern Sie in Moodboards, Renderings und Microsites und starten Sie Ihre eigene.",
+    "galleryAnonymousCouple": "Ein Paar auf Zaffa",
+    "galleryRenderCount": "{count, plural, one {# Rendering} other {# Renderings}}",
+    "revealMetaTitle": "Ihr Rendering — Zaffa",
+    "revealMetaDescription": "Ihre Hochzeit, sichtbar gemacht. Auf dem Gerät öffnen, von dem Sie es angefordert haben."
   },
   "emailGate": {
     "eyebrow": "Ihr Render ist fertig",

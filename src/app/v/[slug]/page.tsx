@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { cookies, headers } from "next/headers";
 import { notFound } from "next/navigation";
-import { getTranslations } from "next-intl/server";
+import { getLocale, getTranslations } from "next-intl/server";
 import { prisma } from "@/lib/prisma";
 import {
   VISION_PACK_COUNTRY_COOKIE,
@@ -12,6 +12,7 @@ import { resolveVisionPackPricing } from "@/server/services/vision-pack-pricing"
 import { Navbar } from "@/components/layout/navbar";
 import { Footer } from "@/components/layout/footer";
 import { Microsite } from "./microsite-client";
+import { openGraphLocaleFields } from "@/i18n/config";
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -84,7 +85,10 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   if (!data) {
     return { robots: { index: false, follow: false } };
   }
-  const t = await getTranslations("visionPack");
+  const [locale, t] = await Promise.all([
+    getLocale(),
+    getTranslations("visionPack"),
+  ]);
   const recipientName = data.recipient.full_name ?? "Our wedding";
   const title = t("micrositeShareTitle", { names: recipientName });
   const description = t("micrositeShareDescription", { names: recipientName });
@@ -102,6 +106,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       description,
       url: `/v/${slug}`,
       type: "article",
+      ...openGraphLocaleFields(locale),
       // No `images` here on purpose. Setting them would override the
       // `opengraph-image.tsx` file convention in this folder, which is what
       // used to happen: the share preview was the raw full-resolution

@@ -2080,7 +2080,8 @@
     "deleteRenderConfirm": "Supprimer ce rendu ? Ceci ne peut pas être annulé.",
     "renderFailed": "Échec du rendu. Veuillez réessayer.",
     "videoFailed": "La génération de la vidéo a échoué. Veuillez réessayer.",
-    "needRefBeforeRender": "Ajoutez au moins une référence d'inspiration avant le rendu."
+    "needRefBeforeRender": "Ajoutez au moins une référence d'inspiration avant le rendu.",
+    "metaTitle": "Composez votre journée — Zaffa"
   },
   "plannerInspiration": {
     "sectionAria": "Tableau d'inspiration de couple",
@@ -2296,7 +2297,13 @@
     "tierDesignTagline": "Design + microsite + PDF, sans correspondance.",
     "tierVisionName": "Pack Vision",
     "tierVisionTagline": "Tout ce qui est inclus dans Design, plus la mise en relation avec des lieux et des organisateurs.",
-    "micrositeOgKicker": "Un mariage conçu dans Zaffa"
+    "micrositeOgKicker": "Un mariage conçu dans Zaffa",
+    "galleryMetaTitle": "Galerie de visions — Zaffa",
+    "galleryMetaDescription": "De vrais mariages imaginés en quelques minutes sur Zaffa. Parcourez les planches d'ambiance, les rendus et les microsites, puis créez le vôtre.",
+    "galleryAnonymousCouple": "Un couple sur Zaffa",
+    "galleryRenderCount": "{count, plural, one {# rendu} other {# rendus}}",
+    "revealMetaTitle": "Votre rendu — Zaffa",
+    "revealMetaDescription": "Votre mariage, en images. À ouvrir depuis l'appareil qui l'a demandé."
   },
   "emailGate": {
     "eyebrow": "Votre rendu est prêt",

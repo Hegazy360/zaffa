@@ -1,5 +1,24 @@
 import { type ReactNode } from "react";
+import type { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
 import { VisionPackPaywallProvider } from "@/components/vision-pack/VisionPackPaywallProvider";
+
+/**
+ * The designer is an application, not a page.
+ *
+ * It had no metadata at all, which meant every designer route inherited the
+ * homepage's marketing title and, worse, was indexable. A crawler landing on
+ * `/venue-designer/[id]` indexes a per-user workspace it cannot render; a
+ * crawler landing on `/venue-designer/new` burns crawl budget minting
+ * anonymous sessions. `noindex` on the layout covers every route beneath it.
+ */
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations("designer");
+  return {
+    title: t("metaTitle"),
+    robots: { index: false, follow: false },
+  };
+}
 
 /**
  * Mounts the shared Vision Pack paywall once for all designer pages so

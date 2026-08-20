@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Cairo, Fraunces, Inter, Reem_Kufi } from "next/font/google";
 import { NextIntlClientProvider } from "next-intl";
-import { getLocale, getMessages } from "next-intl/server";
+import { getLocale, getMessages, getTranslations } from "next-intl/server";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import "./globals.css";
@@ -9,6 +9,11 @@ import { Providers } from "./providers";
 import { Toaster } from "@/components/ui/sonner";
 import { TikTokPixel } from "@/components/analytics/tiktok-pixel";
 import { isRtlLocale, openGraphLocaleFields } from "@/i18n/config";
+import {
+  jsonLdScript,
+  organizationLd,
+  webSiteLd,
+} from "@/lib/structured-data";
 
 const cairo = Cairo({
   variable: "--font-cairo",
@@ -40,6 +45,13 @@ function siteUrl(): string {
     process.env.NEXT_PUBLIC_SITE_URL ??
     "https://www.zaffa.ai"
   );
+}
+
+/** One sentence describing the company, in the reader's language, shared by
+ *  the metadata description and the structured data so they cannot drift. */
+async function siteDescription(): Promise<string> {
+  const t = await getTranslations("marketing");
+  return t("heroSubtitle");
 }
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -114,6 +126,17 @@ export default async function RootLayout({
         <script
           dangerouslySetInnerHTML={{
             __html: `(function(){try{var h=window.location.hash;if(!h)return;var p=window.location.pathname;if(p==="/auth/reset-password")return;if(h.indexOf("type=recovery")!==-1){window.location.replace("/auth/reset-password"+h);}}catch(e){}})();`,
+          }}
+        />
+        {/* Organization + WebSite, once, at the root. Everything else
+            references these by @id rather than repeating them. */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: jsonLdScript(
+              organizationLd(await siteDescription()),
+              webSiteLd(await siteDescription()),
+            ),
           }}
         />
       </head>

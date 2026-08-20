@@ -865,7 +865,8 @@
     "deleteRenderConfirm": "هل تريد حذف هذا التصميم؟ لا يمكن التراجع عن هذا الإجراء.",
     "renderFailed": "تعذّر إنشاء التصميم. حاول مرة أخرى.",
     "videoFailed": "تعذّر إنشاء الفيديو. حاول مرة أخرى.",
-    "needRefBeforeRender": "أضف صورة إلهام واحدة على الأقل قبل إنشاء التصميم."
+    "needRefBeforeRender": "أضف صورة إلهام واحدة على الأقل قبل إنشاء التصميم.",
+    "metaTitle": "صمّموا يومكم — زفّة"
   },
   "plannerInspiration": {
     "sectionAria": "لوحة إلهام العروسين",
@@ -2297,7 +2298,13 @@
     "tierDesignTagline": "تصميم + موقع مصغر + كتيّب PDF، بدون مطابقة.",
     "tierVisionName": "حزمة الرؤية",
     "tierVisionTagline": "كل ما في التصميم، إضافةً إلى مطابقة الأماكن والمنظّمين.",
-    "micrositeOgKicker": "زفاف صُمّم في زفّة"
+    "micrositeOgKicker": "زفاف صُمّم في زفّة",
+    "galleryMetaTitle": "معرض الرؤى — زفّة",
+    "galleryMetaDescription": "رؤى زفاف حقيقية صُمّمت في دقائق على زفّة. تصفّحوا لوحات الإلهام والتصاميم والمواقع الخاصة، ثم ابدأوا رؤيتكم.",
+    "galleryAnonymousCouple": "عروسان على زفّة",
+    "galleryRenderCount": "{count, plural, zero {لا تصاميم} one {تصميم واحد} two {تصميمان} few {# تصاميم} many {# تصميمًا} other {# تصميم}}",
+    "revealMetaTitle": "تصميمكم — زفّة",
+    "revealMetaDescription": "يومكم كما تخيّلتموه. افتحوه من الجهاز الذي طلبتموه منها."
   },
   "emailGate": {
     "eyebrow": "تصميمكم جاهز",

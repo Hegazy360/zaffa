@@ -18,6 +18,9 @@ import {
 } from "@/components/home/marketplace-teaser-section";
 
 import { TierComparisonSection } from "@/components/home/tier-comparison-section";
+import { getTranslations } from "next-intl/server";
+import { jsonLdScript, serviceLd } from "@/lib/structured-data";
+import { pricedMarkets } from "@/lib/concierge-pricing";
 
 // Metadata deliberately carries no price. It used to open with "from $19",
 // which was the first thing anyone saw in a search result or a shared link —
@@ -51,10 +54,28 @@ export async function generateMetadata(): Promise<Metadata> {
 // well within budget even on a busy day.
 export const revalidate = 300;
 
-export default function HomePage() {
+export default async function HomePage() {
+  const t = await getTranslations("marketing");
+
   return (
     <div className="flex min-h-screen flex-col">
       <Navbar />
+      {/* Service, not Product: we sell a service and have no ratings. An
+          AggregateRating here would be the invented "4.9" ZAF-45 deleted,
+          reappearing as markup — where it is worse, because a rich result
+          showing stars we made up is a manual action waiting to happen. */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: jsonLdScript(
+            serviceLd({
+              name: t("wholeWedding.eyebrow"),
+              description: t("wholeWedding.tagline"),
+              areaServed: pricedMarkets(),
+            }),
+          ),
+        }}
+      />
 
       <main className="flex-1">
         {/* What the platform is */}

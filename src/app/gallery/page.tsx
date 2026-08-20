@@ -1,26 +1,39 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { getTranslations } from "next-intl/server";
+import { getLocale, getTranslations } from "next-intl/server";
 import { ArrowRight, Sparkles } from "lucide-react";
 import { Navbar } from "@/components/layout/navbar";
 import { Footer } from "@/components/layout/footer";
 import { Button } from "@/components/ui/button";
 import { prisma } from "@/lib/prisma";
+import { openGraphLocaleFields } from "@/i18n/config";
+import { uiLocaleTag } from "@/lib/money-format";
 import { GalleryEmptyCta } from "./empty-cta-client";
+import { collectionPageLd, jsonLdScript } from "@/lib/structured-data";
 
-export const metadata: Metadata = {
-  title: "Vision gallery — Zaffa",
-  description:
-    "Real wedding visions designed in minutes on Zaffa. Browse mood boards, AI renders, and microsites then start your own.",
-  alternates: { canonical: "/gallery" },
-  openGraph: {
-    title: "Vision gallery — Zaffa",
-    description:
-      "Real wedding visions designed in minutes on Zaffa. Browse mood boards, AI renders, and microsites then start your own.",
-    url: "/gallery",
-    type: "website",
-  },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  // Was a static English object, so an Arabic visitor's share of this page
+  // previewed in English and carried no `og:locale` at all. `openGraph` is
+  // replaced wholesale by Next, so the locale fields have to be spread in
+  // here rather than inherited from the root layout — the exact failure
+  // documented in `i18n/config.ts`, which has already shipped once.
+  const [locale, t] = await Promise.all([
+    getLocale(),
+    getTranslations("visionPack"),
+  ]);
+  return {
+    title: t("galleryMetaTitle"),
+    description: t("galleryMetaDescription"),
+    alternates: { canonical: "/gallery" },
+    openGraph: {
+      title: t("galleryMetaTitle"),
+      description: t("galleryMetaDescription"),
+      url: "/gallery",
+      type: "website",
+      ...openGraphLocaleFields(locale),
+    },
+  };
+}
 
 // ISR: refresh the gallery snapshot every 5 minutes. Public, indexable,
 // and cheap to render — a single batched DB hit serves the whole page.
@@ -29,7 +42,9 @@ export const revalidate = 300;
 interface GalleryItem {
   slug: string;
   publishedAt: Date | null;
-  recipientName: string;
+  /** Null when the couple has no name on file — the caller localizes the
+   *  fallback, which used to be a hardcoded English string. */
+  recipientName: string | null;
   heroImage: string | null;
   palette: string[];
   rendersGenerated: number;
@@ -107,7 +122,7 @@ async function loadGallery(limit = 24): Promise<GalleryItem[]> {
       return {
         slug: p.microsite_slug!,
         publishedAt: p.microsite_published_at,
-        recipientName: p.recipient?.full_name ?? "A Zaffa couple",
+        recipientName: p.recipient?.full_name ?? null,
         heroImage: design?.media[0]?.url ?? design?.thumbnail ?? null,
         palette,
         rendersGenerated: p.renders_used,
@@ -117,11 +132,40 @@ async function loadGallery(limit = 24): Promise<GalleryItem[]> {
 
 export default async function GalleryPage() {
   const items = await loadGallery();
-  const t = await getTranslations("visionPack");
+  const [locale, t] = await Promise.all([
+    getLocale(),
+    getTranslations("visionPack"),
+  ]);
+
+  // Dates and counts follow the reader's locale. This was pinned to "en-US",
+  // so an Arabic visitor read "Mar 2026" in Latin script on an otherwise
+  // Arabic page.
+  const monthYear = new Intl.DateTimeFormat(uiLocaleTag(locale), {
+    month: "short",
+    year: "numeric",
+  });
 
   return (
     <div className="flex min-h-screen flex-col">
       <Navbar />
+      {/* CollectionPage over the microsites actually listed below — the item
+          list is built from the same query the page renders, so the markup
+          cannot describe a gallery the visitor is not seeing. */}
+      {items.length > 0 && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: jsonLdScript(
+              collectionPageLd({
+                name: t("galleryMetaTitle"),
+                description: t("galleryMetaDescription"),
+                url: "/gallery",
+                itemUrls: items.map((i) => `/v/${i.slug}`),
+              }),
+            ),
+          }}
+        />
+      )}
       <main className="flex-1">
         <section className="relative isolate overflow-hidden bg-gradient-to-b from-rose-50/60 via-background to-background pb-12 pt-20 dark:from-rose-950/15 sm:pb-16 sm:pt-28">
           <div
@@ -171,7 +215,10 @@ export default async function GalleryPage() {
             </div>
           ) : (
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-              {items.map((item) => (
+              {items.map((item) => {
+                const name =
+                  item.recipientName ?? t("galleryAnonymousCouple");
+                return (
                 <Link
                   key={item.slug}
                   href={`/v/${item.slug}`}
@@ -182,7 +229,7 @@ export default async function GalleryPage() {
                       // eslint-disable-next-line @next/next/no-img-element
                       <img
                         src={item.heroImage}
-                        alt={item.recipientName}
+                        alt={name}
                         loading="lazy"
                         className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
                       />
@@ -205,15 +252,14 @@ export default async function GalleryPage() {
                   </div>
                   <div className="space-y-2 p-5">
                     <h3 className="font-display text-lg leading-tight font-medium tracking-tight">
-                      {item.recipientName}
+                      {name}
                     </h3>
                     <p className="text-[11px] text-muted-foreground">
-                      {item.rendersGenerated} renders ·{" "}
+                      {t("galleryRenderCount", {
+                        count: item.rendersGenerated,
+                      })}
                       {item.publishedAt
-                        ? new Date(item.publishedAt).toLocaleDateString("en-US", {
-                            month: "short",
-                            year: "numeric",
-                          })
+                        ? ` · ${monthYear.format(new Date(item.publishedAt))}`
                         : ""}
                     </p>
                     <span className="mt-3 inline-flex items-center gap-1 text-xs font-medium text-rose-700 dark:text-rose-300">
@@ -222,7 +268,8 @@ export default async function GalleryPage() {
                     </span>
                   </div>
                 </Link>
-              ))}
+                );
+              })}
             </div>
           )}
         </section>

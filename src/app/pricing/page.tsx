@@ -13,6 +13,7 @@ import { formatCount, formatMoney } from "@/lib/money-format";
 import { VISION_PACK_COUNTRY_COOKIE } from "@/lib/vision-pack-pricing";
 import { pricedMarkets, quoteGuidanceFor } from "@/lib/concierge-pricing";
 import { MarketSwitcher } from "./_components/market-switcher";
+import { jsonLdScript, serviceLd } from "@/lib/structured-data";
 
 export async function generateMetadata(): Promise<Metadata> {
   const locale = await getLocale();
@@ -118,14 +119,15 @@ export default async function PricingPage({
   };
 
   // Service + Offer, so the fee is legible to search engines rather than
-  // living only in a <table> nobody parses.
+  // living only in a <table> nobody parses. `Offer` is only ever emitted here,
+  // where the exact figures are printed on the page beside it — markup that
+  // states a price the visitor cannot see is what gets penalised.
   const jsonLd = {
-    "@context": "https://schema.org",
-    "@type": "Service",
-    name: "The Whole Wedding",
-    serviceType: "Wedding planning",
-    provider: { "@type": "Organization", name: "Zaffa", url: "https://www.zaffa.ai" },
-    areaServed: markets.map((code) => ({ "@type": "Country", identifier: code })),
+    ...serviceLd({
+      name: tw("eyebrow"),
+      description: tw("tagline"),
+      areaServed: markets,
+    }),
     offers: guidance.bands.map((band) => ({
       "@type": "Offer",
       price: band.fee,
@@ -144,8 +146,7 @@ export default async function PricingPage({
       <Navbar />
       <script
         type="application/ld+json"
-        // Values are our own constants and integers, not user input.
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        dangerouslySetInnerHTML={{ __html: jsonLdScript(jsonLd) }}
       />
 
       <main className="flex-1">

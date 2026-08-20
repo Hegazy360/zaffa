@@ -51,6 +51,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
           },
         ] satisfies MetadataRoute.Sitemap)
       : []),
+    // The gallery is the only public surface showing real customer work, so
+    // it is the strongest indexable page after the homepage.
+    { url: `${base}/gallery`, lastModified: now, changeFrequency: "daily", priority: 0.8 },
     { url: `${base}/about`, lastModified: now, changeFrequency: "monthly", priority: 0.5 },
     { url: `${base}/contact`, lastModified: now, changeFrequency: "monthly", priority: 0.5 },
     { url: `${base}/privacy`, lastModified: now, changeFrequency: "yearly", priority: 0.3 },

@@ -2080,7 +2080,8 @@
     "deleteRenderConfirm": "Delete this render? This cannot be undone.",
     "renderFailed": "Render failed. Please try again.",
     "videoFailed": "Video generation failed. Please try again.",
-    "needRefBeforeRender": "Add at least one inspiration reference before rendering."
+    "needRefBeforeRender": "Add at least one inspiration reference before rendering.",
+    "metaTitle": "Design your day — Zaffa"
   },
   "plannerInspiration": {
     "sectionAria": "Couple's inspiration board",
@@ -2296,7 +2297,13 @@
     "tierDesignTagline": "Design + microsite + PDF, no matching.",
     "tierVisionName": "Vision Pack",
     "tierVisionTagline": "Everything in Design, plus venue & planner matching.",
-    "micrositeOgKicker": "A wedding designed in Zaffa"
+    "micrositeOgKicker": "A wedding designed in Zaffa",
+    "galleryMetaTitle": "Vision gallery — Zaffa",
+    "galleryMetaDescription": "Real wedding visions designed in minutes on Zaffa. Browse mood boards, AI renders and microsites, then start your own.",
+    "galleryAnonymousCouple": "A Zaffa couple",
+    "galleryRenderCount": "{count, plural, one {# render} other {# renders}}",
+    "revealMetaTitle": "Your render — Zaffa",
+    "revealMetaDescription": "Your wedding, visualized. Open on the device you requested it from."
   },
   "emailGate": {
     "eyebrow": "Your render is ready",
