@@ -193,7 +193,7 @@ export function PostMetadataSidebar({
 
   return (
     <aside className="space-y-4 sm:space-y-6">
-      <section className="rounded-2xl border border-rose-100/70 bg-white/80 p-3 shadow-sm backdrop-blur-sm sm:p-4 dark:border-rose-900/30 dark:bg-card/80">
+      <section className="rounded-2xl border border-brand-line bg-white/80 p-3 shadow-sm backdrop-blur-sm sm:p-4 dark:border-rose-900/30 dark:bg-card/80">
         <div className="space-y-4">
           <div className="flex flex-wrap items-center gap-2">
             <span className="rounded-full bg-stone-100 px-2.5 py-0.5 text-[10px] font-medium uppercase tracking-[0.18em] text-stone-700 ring-1 ring-stone-200">
@@ -384,7 +384,7 @@ export function PostMetadataSidebar({
         </div>
       </section>
 
-      <section className="rounded-2xl border border-rose-100/70 bg-white/80 p-3 shadow-sm backdrop-blur-sm sm:p-4 dark:border-rose-900/30 dark:bg-card/80">
+      <section className="rounded-2xl border border-brand-line bg-white/80 p-3 shadow-sm backdrop-blur-sm sm:p-4 dark:border-rose-900/30 dark:bg-card/80">
         <p className="mb-3 text-[10px] font-medium uppercase tracking-[0.3em] text-rose-700/85">
           Actions
         </p>
@@ -392,7 +392,7 @@ export function PostMetadataSidebar({
           <Button
             onClick={onRasterizeAll}
             disabled={isRasterizing}
-            className="h-10 w-full gap-1.5 bg-gradient-to-r from-rose-600 to-amber-500 text-white hover:opacity-90"
+            className="h-10 w-full gap-1.5 bg-brand-gradient text-white hover:opacity-90"
           >
             {isRasterizing ? (
               <Loader2 className="size-3.5 animate-spin" />

@@ -76,7 +76,7 @@ export default function OutreachTemplatesPage() {
         <TemplateDialog />
       </header>
 
-      <div className="rounded-2xl border border-rose-100/70 bg-white/80">
+      <div className="rounded-2xl border border-brand-line bg-white/80">
         {list.isLoading ? (
           <div className="flex h-32 items-center justify-center">
             <Loader2 className="size-5 animate-spin text-rose-500" />
@@ -198,7 +198,7 @@ function TemplateDialog({ template }: { template?: Template }) {
           isEdit ? (
             <Button size="sm" variant="ghost" />
           ) : (
-            <Button className="bg-gradient-to-r from-rose-600 to-amber-500 text-white" />
+            <Button className="bg-brand-gradient text-white" />
           )
         }
       >
@@ -325,7 +325,7 @@ function TemplateDialog({ template }: { template?: Template }) {
             <Button
               type="submit"
               disabled={upsert.isPending}
-              className="bg-gradient-to-r from-rose-600 to-amber-500 text-white"
+              className="bg-brand-gradient text-white"
             >
               {upsert.isPending ? (
                 <Loader2 className="me-2 size-4 animate-spin" />

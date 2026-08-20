@@ -84,7 +84,7 @@ export default function VendorCatalogPage() {
   if (!me.data) {
     return (
       <div className="mx-auto max-w-3xl px-6 py-16">
-        <div className="rounded-2xl border border-rose-100/70 bg-white/80 p-8 backdrop-blur-sm">
+        <div className="rounded-2xl border border-brand-line bg-white/80 p-8 backdrop-blur-sm">
           <p className="mb-1 text-[0.65rem] font-medium uppercase tracking-[0.3em] text-rose-700/80">
             {t("almostThere")}
           </p>
@@ -96,7 +96,7 @@ export default function VendorCatalogPage() {
           </p>
           <Button
             render={<a href="/dashboard/vendor/profile" />}
-            className="mt-4 bg-gradient-to-r from-rose-600 to-amber-500 text-white"
+            className="mt-4 bg-brand-gradient text-white"
           >
             {tMarketplace("setUpProfile")}
           </Button>
@@ -126,7 +126,7 @@ export default function VendorCatalogPage() {
           </div>
           <Button
             onClick={() => setOpen({ mode: "create" })}
-            className="w-full gap-1 bg-gradient-to-r from-rose-600 to-amber-500 text-white sm:w-auto"
+            className="w-full gap-1 bg-brand-gradient text-white sm:w-auto"
           >
             <Plus className="size-4" />
             {t("newService")}
@@ -138,7 +138,7 @@ export default function VendorCatalogPage() {
             <Loader2 className="size-5 animate-spin text-rose-500" />
           </div>
         ) : (list.data?.length ?? 0) === 0 ? (
-          <div className="rounded-2xl border border-rose-100/70 bg-white/70 p-12 text-center backdrop-blur-sm">
+          <div className="rounded-2xl border border-brand-line bg-white/70 p-12 text-center backdrop-blur-sm">
             <ImageIcon className="mx-auto mb-3 size-8 text-rose-500" />
             <p className="font-display text-xl font-light tracking-tight">
               {t("noServicesYet")}
@@ -148,7 +148,7 @@ export default function VendorCatalogPage() {
             </p>
             <Button
               onClick={() => setOpen({ mode: "create" })}
-              className="mt-4 gap-1 bg-gradient-to-r from-rose-600 to-amber-500 text-white"
+              className="mt-4 gap-1 bg-brand-gradient text-white"
             >
               <Plus className="size-4" />
               {t("addService")}
@@ -161,7 +161,7 @@ export default function VendorCatalogPage() {
               return (
                 <div
                   key={s.id}
-                  className="overflow-hidden rounded-2xl border border-rose-100/70 bg-white/85 backdrop-blur-sm"
+                  className="overflow-hidden rounded-2xl border border-brand-line bg-white/85 backdrop-blur-sm"
                 >
                   <div className="relative aspect-[4/3] overflow-hidden bg-rose-50">
                     {imgs[0] ? (
@@ -210,7 +210,7 @@ export default function VendorCatalogPage() {
                         </span>
                       )}
                     </div>
-                    <div className="mt-2 flex justify-end gap-2 border-t border-rose-100/70 pt-2">
+                    <div className="mt-2 flex justify-end gap-2 border-t border-brand-line pt-2">
                       <Button
                         size="sm"
                         variant="ghost"
@@ -524,7 +524,7 @@ function ServiceForm({
         </p>
       </div>
 
-      <label className="flex cursor-pointer items-center justify-between rounded-xl border border-rose-100/70 bg-white/60 px-4 py-3">
+      <label className="flex cursor-pointer items-center justify-between rounded-xl border border-brand-line bg-white/60 px-4 py-3">
         <span>
           <span className="block text-sm font-medium">{t("visibleToPlanners")}</span>
           <span className="block text-xs text-muted-foreground">
@@ -543,7 +543,7 @@ function ServiceForm({
         <Button
           type="submit"
           disabled={submitting}
-          className="gap-1 bg-gradient-to-r from-rose-600 to-amber-500 text-white"
+          className="gap-1 bg-brand-gradient text-white"
         >
           {submitting && <Loader2 className="size-4 animate-spin" />}
           {mode === "create" ? t("addToCatalog") : t("saveChanges")}

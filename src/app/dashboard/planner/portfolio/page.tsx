@@ -109,7 +109,7 @@ export default function PortfolioPage() {
   if (!planner) {
     return (
       <div className="mx-auto max-w-3xl px-6 py-16">
-        <div className="rounded-2xl border border-rose-100/70 bg-white/70 p-8 backdrop-blur-sm">
+        <div className="rounded-2xl border border-brand-line bg-white/70 p-8 backdrop-blur-sm">
           <p className="mb-1 text-[0.65rem] font-medium uppercase tracking-[0.3em] text-rose-700/80">
             {t("almostThereEyebrow")}
           </p>
@@ -146,7 +146,7 @@ export default function PortfolioPage() {
           </div>
           <Button
             onClick={() => setOpen({ mode: "create" })}
-            className="gap-1.5 bg-gradient-to-r from-rose-600 to-amber-500 text-white"
+            className="gap-1.5 bg-brand-gradient text-white"
           >
             <Plus className="size-4" />
             {t("addPiece")}
@@ -175,7 +175,7 @@ export default function PortfolioPage() {
             </p>
             <Button
               onClick={() => setOpen({ mode: "create" })}
-              className="mt-6 gap-1.5 bg-gradient-to-r from-rose-600 to-amber-500 text-white"
+              className="mt-6 gap-1.5 bg-brand-gradient text-white"
             >
               <Plus className="size-4" />
               {t("addFirstPiece")}
@@ -188,7 +188,7 @@ export default function PortfolioPage() {
               return (
                 <article
                   key={item.id}
-                  className="group relative overflow-hidden rounded-2xl border border-rose-100/70 bg-white/80 ring-1 ring-foreground/[0.04] backdrop-blur-sm"
+                  className="group relative overflow-hidden rounded-2xl border border-brand-line bg-white/80 ring-1 ring-foreground/[0.04] backdrop-blur-sm"
                 >
                   <div className="relative aspect-[4/3] overflow-hidden bg-gradient-to-br from-rose-50 to-amber-50/60">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -401,7 +401,7 @@ function PortfolioForm({
             }}
           />
           {imageUrl ? (
-            <div className="group relative overflow-hidden rounded-xl border border-rose-100/70">
+            <div className="group relative overflow-hidden rounded-xl border border-brand-line">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={imageUrl}
@@ -537,7 +537,7 @@ function PortfolioForm({
         <Button
           type="submit"
           disabled={submitting}
-          className="bg-gradient-to-r from-rose-600 to-amber-500 text-white"
+          className="bg-brand-gradient text-white"
         >
           {submitting ? <Loader2 className="me-2 size-4 animate-spin" /> : null}
           {mode === "create" ? t("addPiece") : t("saveChanges")}

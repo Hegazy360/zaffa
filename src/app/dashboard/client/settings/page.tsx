@@ -84,7 +84,7 @@ export default function SettingsPage() {
           </p>
         </header>
 
-        <div className="overflow-hidden rounded-2xl border border-rose-100/70 bg-white/80 backdrop-blur-sm dark:border-rose-900/30 dark:bg-card/80">
+        <div className="overflow-hidden rounded-2xl border border-brand-line bg-white/80 backdrop-blur-sm dark:border-rose-900/30 dark:bg-card/80">
           <div className="space-y-5 p-6">
             <AvatarUploader
               currentUrl={profile?.avatar_url ?? null}
@@ -128,7 +128,7 @@ export default function SettingsPage() {
               <Button
                 disabled={update.isPending}
                 onClick={handleSave}
-                className="gap-1 bg-gradient-to-r from-rose-600 to-amber-500 text-white hover:opacity-90"
+                className="gap-1 bg-brand-gradient text-white hover:opacity-90"
               >
                 {update.isPending ? (
                   <Loader2 className="size-4 animate-spin" />
@@ -148,7 +148,7 @@ export default function SettingsPage() {
 
           <PasswordChangeCard email={profile?.email ?? null} />
 
-          <div className="rounded-2xl border border-rose-100/70 bg-white/70 p-4 backdrop-blur-sm dark:border-rose-900/30 dark:bg-card/70">
+          <div className="rounded-2xl border border-brand-line bg-white/70 p-4 backdrop-blur-sm dark:border-rose-900/30 dark:bg-card/70">
             <div className="flex items-center justify-between gap-3">
               <div>
                 <p className="text-sm font-medium">{tc("signOut")}</p>

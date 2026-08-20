@@ -214,11 +214,14 @@
   }
 }
 
-/* One canonical brand gradient. There were ~120 literal
-   `from-rose-600 to-amber-500` gradients in the tree; interpolating in oklab
-   makes this pixel-identical to what Tailwind was already producing, so the
-   codemod that replaces them can be proved by the visual net rather than
-   argued about. */
+/* One canonical brand gradient, replacing 118 literal
+   `bg-gradient-to-r from-rose-600 to-amber-500` copies.
+
+   Pixel-identical to what Tailwind was emitting — verified by comparing the
+   two computed `background-image` values in the browser rather than assumed:
+   both resolve to `linear-gradient(to right, <rose-600>, <amber-500>)` in the
+   same colour space. That equality is what lets the visual net prove the
+   codemod instead of the codemod being argued about. */
 @utility bg-brand-gradient {
   background-image: linear-gradient(
     to right,

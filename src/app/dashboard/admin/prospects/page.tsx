@@ -138,7 +138,7 @@ export default function AdminProspectsPage() {
           ).map((s) => (
             <div
               key={s}
-              className="rounded-xl border border-rose-100/70 bg-white/80 px-3 py-2 backdrop-blur-sm"
+              className="rounded-xl border border-brand-line bg-white/80 px-3 py-2 backdrop-blur-sm"
             >
               <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-rose-700/80">
                 {t(`prospectStatus.${s}`)}
@@ -198,7 +198,7 @@ export default function AdminProspectsPage() {
         </p>
       )}
 
-      <div className="rounded-2xl border border-rose-100/70 bg-white/80">
+      <div className="rounded-2xl border border-brand-line bg-white/80">
         {list.isLoading ? (
           <div className="flex h-40 items-center justify-center">
             <Loader2 className="size-5 animate-spin text-rose-500" />
@@ -330,7 +330,7 @@ function FilterRow<T extends string>({
           className={`rounded-full border px-2.5 py-1 text-[11px] font-medium transition-all ${
             active === v
               ? "border-rose-300 bg-gradient-to-r from-rose-500 to-amber-500 text-white shadow-sm"
-              : "border-rose-100/70 bg-white/70 text-muted-foreground hover:bg-white"
+              : "border-brand-line bg-white/70 text-muted-foreground hover:bg-white"
           }`}
         >
           {renderLabel(v)}
@@ -463,7 +463,7 @@ function ManualEntryDialog() {
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger
         render={
-          <Button className="gap-1.5 bg-gradient-to-r from-rose-600 to-amber-500 text-white" />
+          <Button className="gap-1.5 bg-brand-gradient text-white" />
         }
       >
         <Plus className="size-4" />
@@ -630,7 +630,7 @@ function ManualEntryDialog() {
             <Button
               type="submit"
               disabled={create.isPending || !form.display_name.trim()}
-              className="bg-gradient-to-r from-rose-600 to-amber-500 text-white"
+              className="bg-brand-gradient text-white"
             >
               {create.isPending ? (
                 <Loader2 className="me-2 size-4 animate-spin" />

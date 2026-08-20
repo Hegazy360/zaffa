@@ -229,7 +229,7 @@ export function AmendmentDialog({
             />
           </div>
 
-          <div className="rounded-xl border border-rose-100/70 bg-rose-50/40 px-3 py-2 text-xs">
+          <div className="rounded-xl border border-brand-line bg-rose-50/40 px-3 py-2 text-xs">
             <div className="flex justify-between">
               <span className="text-muted-foreground">{t("lockedSubtotal")}</span>
               <span className="font-mono tabular-nums">
@@ -242,7 +242,7 @@ export function AmendmentDialog({
                 {f.currency(proposedOpenTotal, schedule.currency)}
               </span>
             </div>
-            <div className="mt-1 flex justify-between border-t border-rose-100/60 pt-1 font-medium">
+            <div className="mt-1 flex justify-between border-t border-brand-line pt-1 font-medium">
               <span>{t("proposedNewTotal")}</span>
               <span className="font-mono tabular-nums">
                 {f.currency(proposedTotal, schedule.currency)}
@@ -262,7 +262,7 @@ export function AmendmentDialog({
             <Button
               type="submit"
               disabled={request.isPending}
-              className="bg-gradient-to-r from-rose-600 to-amber-500 text-white"
+              className="bg-brand-gradient text-white"
             >
               {request.isPending ? (
                 <Loader2 className="me-2 size-4 animate-spin" />

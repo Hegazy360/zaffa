@@ -39,8 +39,8 @@ export default function AdminVendorPayoutsPage() {
         </p>
       </header>
 
-      <div className="rounded-2xl border border-rose-100/70 bg-white/80">
-        <div className="border-b border-rose-100/70 px-5 py-3">
+      <div className="rounded-2xl border border-brand-line bg-white/80">
+        <div className="border-b border-brand-line px-5 py-3">
           <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-rose-700/80">
             {t("awaitingPayout")}
           </p>
@@ -164,7 +164,7 @@ function RecordVendorPayoutDialog({
         render={
           <Button
             size="sm"
-            className="gap-1.5 bg-gradient-to-r from-rose-600 to-amber-500 text-white"
+            className="gap-1.5 bg-brand-gradient text-white"
           />
         }
       >
@@ -178,7 +178,7 @@ function RecordVendorPayoutDialog({
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={onSubmit} className="space-y-4">
-          <div className="max-h-72 overflow-y-auto rounded-xl border border-rose-100/70">
+          <div className="max-h-72 overflow-y-auto rounded-xl border border-brand-line">
             {releases.isLoading ? (
               <div className="px-5 py-8 text-center">
                 <Loader2 className="mx-auto size-4 animate-spin text-rose-500" />
@@ -273,7 +273,7 @@ function RecordVendorPayoutDialog({
             </div>
           </div>
 
-          <div className="flex items-center justify-between rounded-xl border border-rose-100/70 bg-rose-50/40 px-4 py-2">
+          <div className="flex items-center justify-between rounded-xl border border-brand-line bg-rose-50/40 px-4 py-2">
             <span className="text-xs text-muted-foreground">{t("total")}</span>
             <span className="font-mono tabular-nums">
               {f.currency(total, currency)}
@@ -283,7 +283,7 @@ function RecordVendorPayoutDialog({
             <Button
               type="submit"
               disabled={record.isPending}
-              className="gap-1 bg-gradient-to-r from-rose-600 to-amber-500 text-white"
+              className="gap-1 bg-brand-gradient text-white"
             >
               {record.isPending && <Loader2 className="size-4 animate-spin" />}
               {t("recordPayout")}

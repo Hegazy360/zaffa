@@ -63,7 +63,7 @@ export default function AdminPostsPage() {
           <Button
             size="sm"
             onClick={() => setGenerateOpen(true)}
-            className="h-10 w-full gap-1.5 bg-gradient-to-r from-rose-600 to-amber-500 text-white hover:opacity-90 sm:h-9 sm:w-auto"
+            className="h-10 w-full gap-1.5 bg-brand-gradient text-white hover:opacity-90 sm:h-9 sm:w-auto"
           >
             <Wand2 className="size-3.5" />
             Generate new post
@@ -84,7 +84,7 @@ export default function AdminPostsPage() {
           </TabsList>
         </Tabs>
 
-        <section className="rounded-2xl border border-rose-100/70 bg-white/80 p-1.5 backdrop-blur-sm sm:p-2 dark:border-rose-900/30 dark:bg-card/80">
+        <section className="rounded-2xl border border-brand-line bg-white/80 p-1.5 backdrop-blur-sm sm:p-2 dark:border-rose-900/30 dark:bg-card/80">
           {isLoading ? (
             <div className="flex items-center justify-center py-16">
               <Loader2 className="size-5 animate-spin text-rose-500" />

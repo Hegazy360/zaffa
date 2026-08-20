@@ -371,7 +371,7 @@ function Stat({
   hint?: string;
 }) {
   return (
-    <div className="rounded-2xl border border-rose-100/70 bg-white/70 p-4 backdrop-blur-sm">
+    <div className="rounded-2xl border border-brand-line bg-white/70 p-4 backdrop-blur-sm">
       <p className="text-[0.6rem] font-medium uppercase tracking-[0.25em] text-muted-foreground">
         {label}
       </p>
@@ -413,7 +413,7 @@ function ApprovedDesignCard({
   }
 
   return (
-    <div className="overflow-hidden rounded-2xl border border-rose-100/70 bg-white/80 ring-1 ring-foreground/[0.04] backdrop-blur-sm">
+    <div className="overflow-hidden rounded-2xl border border-brand-line bg-white/80 ring-1 ring-foreground/[0.04] backdrop-blur-sm">
       <div className="relative aspect-[16/10] overflow-hidden bg-gradient-to-br from-rose-50 to-amber-50/60">
         {heroImage ? (
           // eslint-disable-next-line @next/next/no-img-element
@@ -469,8 +469,8 @@ function OverviewTab({ event }: { event: OverviewEventProps }) {
   return (
     <div className="grid gap-6 lg:grid-cols-3">
       <div className="lg:col-span-2">
-        <div className="overflow-hidden rounded-2xl border border-rose-100/70 bg-white/80 backdrop-blur-sm">
-          <div className="flex items-center justify-between border-b border-rose-100/70 px-5 py-3">
+        <div className="overflow-hidden rounded-2xl border border-brand-line bg-white/80 backdrop-blur-sm">
+          <div className="flex items-center justify-between border-b border-brand-line px-5 py-3">
             <h3 className="font-display text-base font-medium tracking-tight">
               {t("eventDetails")}
             </h3>
@@ -518,8 +518,8 @@ function OverviewTab({ event }: { event: OverviewEventProps }) {
       </div>
 
       <div className="lg:col-span-1">
-        <div className="sticky top-24 overflow-hidden rounded-2xl border border-rose-100/70 bg-white/80 backdrop-blur-sm">
-          <div className="border-b border-rose-100/70 px-5 py-3">
+        <div className="sticky top-24 overflow-hidden rounded-2xl border border-brand-line bg-white/80 backdrop-blur-sm">
+          <div className="border-b border-brand-line px-5 py-3">
             <p className="text-[0.65rem] font-medium uppercase tracking-[0.3em] text-rose-700/80">
               {t("theCouple")}
             </p>
@@ -633,7 +633,7 @@ function DesignTab({ design }: { design: DesignSnapshot | null }) {
       <InspirationBoard references={design.references} />
 
       {styleNotes && (
-        <div className="rounded-2xl border border-rose-100/70 bg-white/80 p-5 backdrop-blur-sm">
+        <div className="rounded-2xl border border-brand-line bg-white/80 p-5 backdrop-blur-sm">
           <p className="mb-2 text-[10px] font-medium uppercase tracking-[0.2em] text-rose-700/80">
             {t("coupleStyleNotesHeading")}
           </p>
@@ -643,8 +643,8 @@ function DesignTab({ design }: { design: DesignSnapshot | null }) {
         </div>
       )}
 
-      <div className="overflow-hidden rounded-2xl border border-rose-100/70 bg-white/80 backdrop-blur-sm">
-        <div className="flex items-center justify-between border-b border-rose-100/70 px-5 py-3">
+      <div className="overflow-hidden rounded-2xl border border-brand-line bg-white/80 backdrop-blur-sm">
+        <div className="flex items-center justify-between border-b border-brand-line px-5 py-3">
           <div>
             <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-rose-700/80">
               {t("aiRenderHeading")}
@@ -677,7 +677,7 @@ function DesignTab({ design }: { design: DesignSnapshot | null }) {
                 {palette.map((c) => (
                   <div
                     key={c}
-                    className="flex items-center gap-2 rounded-full border border-rose-100/70 bg-white px-2 py-1 text-[11px]"
+                    className="flex items-center gap-2 rounded-full border border-brand-line bg-white px-2 py-1 text-[11px]"
                   >
                     <span
                       className="block size-3 rounded-full ring-1 ring-foreground/10"
@@ -693,7 +693,7 @@ function DesignTab({ design }: { design: DesignSnapshot | null }) {
       </div>
 
       {videos.length > 0 && (
-        <div className="rounded-2xl border border-rose-100/70 bg-white/80 p-5 backdrop-blur-sm">
+        <div className="rounded-2xl border border-brand-line bg-white/80 p-5 backdrop-blur-sm">
           <p className="mb-3 text-[10px] font-medium uppercase tracking-[0.2em] text-muted-foreground">
             {t("cinematicPreview")}
           </p>
@@ -763,7 +763,7 @@ function VendorsTab({ event }: { event: VendorsTabEvent }) {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between gap-3 rounded-2xl border border-rose-100/70 bg-gradient-to-br from-rose-50 to-amber-50/60 px-5 py-3">
+      <div className="flex items-center justify-between gap-3 rounded-2xl border border-brand-line bg-gradient-to-br from-rose-50 to-amber-50/60 px-5 py-3">
         <div>
           <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-rose-700/80">
             {t("availableForEvent")}
@@ -791,15 +791,15 @@ function VendorsTab({ event }: { event: VendorsTabEvent }) {
         </div>
         <Button
           render={<Link href="/dashboard/planner/vendors" />}
-          className="gap-1 bg-gradient-to-r from-rose-600 to-amber-500 text-white"
+          className="gap-1 bg-brand-gradient text-white"
         >
           <Plus className="size-4" />
           {t("addVendor")}
         </Button>
       </div>
 
-      <div className="overflow-hidden rounded-2xl border border-rose-100/70 bg-white/80 backdrop-blur-sm">
-        <div className="flex items-center justify-between border-b border-rose-100/70 px-5 py-3">
+      <div className="overflow-hidden rounded-2xl border border-brand-line bg-white/80 backdrop-blur-sm">
+        <div className="flex items-center justify-between border-b border-brand-line px-5 py-3">
           <h3 className="font-display text-base font-medium tracking-tight">
             {t("engagementsHeading")}
           </h3>
@@ -823,7 +823,7 @@ function VendorsTab({ event }: { event: VendorsTabEvent }) {
             <Button
               render={<Link href="/dashboard/planner/vendors" />}
               size="sm"
-              className="mt-4 gap-1 bg-gradient-to-r from-rose-600 to-amber-500 text-white"
+              className="mt-4 gap-1 bg-brand-gradient text-white"
             >
               {t("browseVendors")}
             </Button>
@@ -949,7 +949,7 @@ function EngagementRow({
         </p>
       )}
 
-      <ul className="divide-y divide-rose-100/70 rounded-xl border border-rose-100/70 text-sm">
+      <ul className="divide-y divide-rose-100/70 rounded-xl border border-brand-line text-sm">
         {engagement.items.map((i) => (
           <li
             key={i.id}
@@ -982,8 +982,8 @@ function EngagementRow({
       </ul>
 
       {engagement.releases.length > 0 && (
-        <div className="rounded-xl border border-rose-100/70">
-          <p className="border-b border-rose-100/70 px-3 py-2 text-[10px] font-medium uppercase tracking-[0.2em] text-rose-700/80">
+        <div className="rounded-xl border border-brand-line">
+          <p className="border-b border-brand-line px-3 py-2 text-[10px] font-medium uppercase tracking-[0.2em] text-rose-700/80">
             {t("releasesRemaining", {
               amount: f.currency(
                 Math.max(0, remaining),
@@ -1196,7 +1196,7 @@ function ReleaseDialog({
                 notes: notes.trim() || null,
               });
             }}
-            className="gap-1 bg-gradient-to-r from-rose-600 to-amber-500 text-white"
+            className="gap-1 bg-brand-gradient text-white"
           >
             {create.isPending && <Loader2 className="size-4 animate-spin" />}
             {t("queueRelease")}
@@ -1301,7 +1301,7 @@ function ReviewDialog({
                 comment: comment.trim() || undefined,
               })
             }
-            className="gap-1 bg-gradient-to-r from-rose-600 to-amber-500 text-white"
+            className="gap-1 bg-brand-gradient text-white"
           >
             {upsert.isPending && <Loader2 className="size-4 animate-spin" />}
             {t("saveReview")}
@@ -1357,8 +1357,8 @@ function MessagesTab({ eventId }: { eventId: string }) {
   };
 
   return (
-    <div className="flex min-h-[60dvh] flex-col overflow-hidden rounded-2xl border border-rose-100/70 bg-white/80 backdrop-blur-sm">
-      <div className="border-b border-rose-100/70 px-5 py-3">
+    <div className="flex min-h-[60dvh] flex-col overflow-hidden rounded-2xl border border-brand-line bg-white/80 backdrop-blur-sm">
+      <div className="border-b border-brand-line px-5 py-3">
         <h3 className="font-display text-base font-medium tracking-tight">
           {t("messagesTitle")}
         </h3>
@@ -1423,7 +1423,7 @@ function MessagesTab({ eventId }: { eventId: string }) {
         )}
       </div>
 
-      <div className="border-t border-rose-100/70 p-3">
+      <div className="border-t border-brand-line p-3">
         <div className="flex items-end gap-2">
           <Textarea
             value={content}

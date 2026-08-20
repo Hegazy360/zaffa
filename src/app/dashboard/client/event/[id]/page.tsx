@@ -441,7 +441,7 @@ function Stat({
   hint?: string;
 }) {
   return (
-    <div className="rounded-2xl border border-rose-100/70 bg-white/70 p-4 backdrop-blur-sm dark:border-rose-900/30 dark:bg-card/70">
+    <div className="rounded-2xl border border-brand-line bg-white/70 p-4 backdrop-blur-sm dark:border-rose-900/30 dark:bg-card/70">
       <p className="text-[0.6rem] font-medium uppercase tracking-[0.25em] text-muted-foreground">
         {label}
       </p>
@@ -499,7 +499,7 @@ function ApprovedDesignCard({
   return (
     <Link
       href={`/venue-designer/${design.id}`}
-      className="group relative block overflow-hidden rounded-2xl border border-rose-100/70 bg-white/80 ring-1 ring-foreground/[0.04] backdrop-blur-sm transition-shadow hover:shadow-[0_20px_50px_-20px_rgba(244,63,94,0.25)] dark:border-rose-900/30 dark:bg-card/80"
+      className="group relative block overflow-hidden rounded-2xl border border-brand-line bg-white/80 ring-1 ring-foreground/[0.04] backdrop-blur-sm transition-shadow hover:shadow-[0_20px_50px_-20px_rgba(244,63,94,0.25)] dark:border-rose-900/30 dark:bg-card/80"
     >
       <div className="relative aspect-[16/10] overflow-hidden bg-gradient-to-br from-rose-50 to-amber-50/60">
         {heroImage ? (
@@ -626,8 +626,8 @@ function OverviewTab({
     <div className="grid gap-6 lg:grid-cols-3">
       {/* Details */}
       <div className="lg:col-span-2">
-        <div className="overflow-hidden rounded-2xl border border-rose-100/70 bg-white/80 backdrop-blur-sm dark:border-rose-900/30 dark:bg-card/80">
-          <div className="flex items-center justify-between border-b border-rose-100/70 px-5 py-3 dark:border-rose-900/30">
+        <div className="overflow-hidden rounded-2xl border border-brand-line bg-white/80 backdrop-blur-sm dark:border-rose-900/30 dark:bg-card/80">
+          <div className="flex items-center justify-between border-b border-brand-line px-5 py-3 dark:border-rose-900/30">
             <h3 className="font-display text-base font-medium tracking-tight">
               {tc("eventDetails")}
             </h3>
@@ -670,7 +670,7 @@ function OverviewTab({
                   size="sm"
                   disabled={update.isPending}
                   onClick={handleSave}
-                  className="h-8 gap-1 bg-gradient-to-r from-rose-600 to-amber-500 text-xs text-white hover:opacity-90"
+                  className="h-8 gap-1 bg-brand-gradient text-xs text-white hover:opacity-90"
                 >
                   {update.isPending ? (
                     <Loader2 className="size-3 animate-spin" />
@@ -809,8 +809,8 @@ function OverviewTab({
 
       {/* Planner sidebar */}
       <div className="lg:col-span-1">
-        <div className="sticky top-24 overflow-hidden rounded-2xl border border-rose-100/70 bg-white/80 backdrop-blur-sm dark:border-rose-900/30 dark:bg-card/80">
-          <div className="border-b border-rose-100/70 px-5 py-3 dark:border-rose-900/30">
+        <div className="sticky top-24 overflow-hidden rounded-2xl border border-brand-line bg-white/80 backdrop-blur-sm dark:border-rose-900/30 dark:bg-card/80">
+          <div className="border-b border-brand-line px-5 py-3 dark:border-rose-900/30">
             <p className="text-[0.65rem] font-medium uppercase tracking-[0.3em] text-rose-700/80">
               {tc("yourPlanner")}
             </p>
@@ -925,8 +925,8 @@ function DesignTab({
 
   return (
     <div className="space-y-6">
-      <div className="overflow-hidden rounded-2xl border border-rose-100/70 bg-white/80 backdrop-blur-sm dark:border-rose-900/30 dark:bg-card/80">
-        <div className="flex items-center justify-between border-b border-rose-100/70 px-5 py-3 dark:border-rose-900/30">
+      <div className="overflow-hidden rounded-2xl border border-brand-line bg-white/80 backdrop-blur-sm dark:border-rose-900/30 dark:bg-card/80">
+        <div className="flex items-center justify-between border-b border-brand-line px-5 py-3 dark:border-rose-900/30">
           <h3 className="font-display text-base font-medium tracking-tight">
             {tc("designWeAreBuilding")}
           </h3>
@@ -969,7 +969,7 @@ function DesignTab({
                             designId: d.id,
                           })
                         }
-                        className="flex w-full items-center gap-3 rounded-xl border border-rose-100/70 bg-white/60 p-2.5 text-start transition-all hover:bg-rose-50/60 disabled:opacity-50 dark:border-rose-900/30 dark:bg-card/60"
+                        className="flex w-full items-center gap-3 rounded-xl border border-brand-line bg-white/60 p-2.5 text-start transition-all hover:bg-rose-50/60 disabled:opacity-50 dark:border-rose-900/30 dark:bg-card/60"
                       >
                         <div className="size-12 shrink-0 overflow-hidden rounded-lg bg-muted">
                           {img ? (
@@ -1062,7 +1062,7 @@ function DesignTab({
               <Button
                 size="sm"
                 render={<Link href={`/venue-designer/${approvedDesign.id}`} />}
-                className="gap-1 bg-gradient-to-r from-rose-600 to-amber-500 text-white hover:opacity-90"
+                className="gap-1 bg-brand-gradient text-white hover:opacity-90"
               >
                 {tc("openInVenueDesigner")}
                 <ArrowRight className="size-3.5 rtl:-scale-x-100" />
@@ -1156,8 +1156,8 @@ function MessagesTab({ eventId }: { eventId: string }) {
   };
 
   return (
-    <div className="flex min-h-[60dvh] flex-col overflow-hidden rounded-2xl border border-rose-100/70 bg-white/80 backdrop-blur-sm dark:border-rose-900/30 dark:bg-card/80">
-      <div className="border-b border-rose-100/70 px-5 py-3 dark:border-rose-900/30">
+    <div className="flex min-h-[60dvh] flex-col overflow-hidden rounded-2xl border border-brand-line bg-white/80 backdrop-blur-sm dark:border-rose-900/30 dark:bg-card/80">
+      <div className="border-b border-brand-line px-5 py-3 dark:border-rose-900/30">
         <h3 className="font-display text-base font-medium tracking-tight">
           {tc("messagesTab")}
         </h3>
@@ -1222,7 +1222,7 @@ function MessagesTab({ eventId }: { eventId: string }) {
         )}
       </div>
 
-      <div className="border-t border-rose-100/70 p-3 dark:border-rose-900/30">
+      <div className="border-t border-brand-line p-3 dark:border-rose-900/30">
         <div className="flex items-end gap-2">
           <Textarea
             value={content}
@@ -1539,7 +1539,7 @@ function ProposalCard({
     : [];
 
   return (
-    <article className="rounded-2xl border border-rose-100/70 bg-white/80 p-5 backdrop-blur-sm">
+    <article className="rounded-2xl border border-brand-line bg-white/80 p-5 backdrop-blur-sm">
       <div className="flex items-start gap-3">
         {planner.profile.avatar_url ? (
           // eslint-disable-next-line @next/next/no-img-element
@@ -1637,7 +1637,7 @@ function ProposalCard({
               )
             : [];
           return (
-            <div className="mt-3 overflow-hidden rounded-xl border border-rose-100/70 bg-white/60">
+            <div className="mt-3 overflow-hidden rounded-xl border border-brand-line bg-white/60">
               <div className="flex items-center justify-between gap-3 px-3 py-2.5">
                 <span className="text-[10px] font-medium uppercase tracking-[0.2em] text-muted-foreground">
                   {tc("quote")}
@@ -1647,7 +1647,7 @@ function ProposalCard({
                 </span>
               </div>
               {breakdown.length > 0 && (
-                <div className="border-t border-rose-100/70 bg-rose-50/30 px-3 py-2">
+                <div className="border-t border-brand-line bg-rose-50/30 px-3 py-2">
                   <p className="mb-1.5 text-[10px] font-medium uppercase tracking-[0.2em] text-rose-700/80">
                     {tc("breakdown")}
                   </p>
@@ -1678,7 +1678,7 @@ function ProposalCard({
           {planner.reviews.slice(0, 1).map((r) => (
             <div
               key={r.id}
-              className="rounded-xl border border-rose-100/60 bg-white/60 p-3"
+              className="rounded-xl border border-brand-line bg-white/60 p-3"
             >
               <div className="flex items-center gap-1 text-amber-500">
                 {Array.from({ length: 5 }).map((_, i) => (
@@ -1705,8 +1705,8 @@ function ProposalCard({
       )}
 
       {proposedSchedule && proposedSchedule.status === "proposed" && (
-        <div className="mt-3 overflow-hidden rounded-xl border border-rose-100/70 bg-rose-50/30">
-          <div className="flex items-center justify-between gap-3 border-b border-rose-100/70 bg-white/60 px-3 py-2">
+        <div className="mt-3 overflow-hidden rounded-xl border border-brand-line bg-rose-50/30">
+          <div className="flex items-center justify-between gap-3 border-b border-brand-line bg-white/60 px-3 py-2">
             <span className="text-[10px] font-medium uppercase tracking-[0.2em] text-rose-700/80">
               {tc("paymentPlan")}
             </span>
@@ -1737,7 +1737,7 @@ function ProposalCard({
               </li>
             ))}
           </ul>
-          <div className="flex items-center justify-between gap-3 border-t border-rose-100/70 bg-white/60 px-3 py-2 text-sm font-medium">
+          <div className="flex items-center justify-between gap-3 border-t border-brand-line bg-white/60 px-3 py-2 text-sm font-medium">
             <span>{tc("total")}</span>
             <span className="font-mono tabular-nums">
               {f.currency(
@@ -1786,7 +1786,7 @@ function ProposalCard({
           <Button
             size="sm"
             onClick={onSwitch}
-            className="gap-1.5 bg-gradient-to-r from-rose-600 to-amber-500 text-white"
+            className="gap-1.5 bg-brand-gradient text-white"
           >
             {tc("switchToThisPlanner")}
           </Button>
@@ -1797,7 +1797,7 @@ function ProposalCard({
             onClick={() =>
               acceptSchedule.mutate({ scheduleId: proposedSchedule.id })
             }
-            className="gap-1.5 bg-gradient-to-r from-rose-600 to-amber-500 text-white"
+            className="gap-1.5 bg-brand-gradient text-white"
           >
             {acceptingSchedule ? (
               <Loader2 className="size-3.5 animate-spin" />
@@ -1811,7 +1811,7 @@ function ProposalCard({
             size="sm"
             disabled={isAccepting || !isPending}
             onClick={onAccept}
-            className="gap-1.5 bg-gradient-to-r from-rose-600 to-amber-500 text-white"
+            className="gap-1.5 bg-brand-gradient text-white"
           >
             {isAccepting ? (
               <Loader2 className="size-3.5 animate-spin" />
@@ -1933,7 +1933,7 @@ function ReviewSection({
           render={
             <Button
               size="sm"
-              className="gap-1.5 bg-gradient-to-r from-rose-600 to-amber-500 text-white"
+              className="gap-1.5 bg-brand-gradient text-white"
             />
           }
         >
@@ -2066,7 +2066,7 @@ function ReviewDialogContent({
           <Button
             type="submit"
             disabled={upsert.isPending}
-            className="bg-gradient-to-r from-rose-600 to-amber-500 text-white"
+            className="bg-brand-gradient text-white"
           >
             {upsert.isPending ? (
               <Loader2 className="me-2 size-4 animate-spin" />
@@ -2157,7 +2157,7 @@ function SwitchPlannerForm({
         <Button
           type="submit"
           disabled={switchMutation.isPending}
-          className="bg-gradient-to-r from-rose-600 to-amber-500 text-white"
+          className="bg-brand-gradient text-white"
         >
           {switchMutation.isPending ? (
             <Loader2 className="me-2 size-4 animate-spin" />

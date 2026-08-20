@@ -148,8 +148,8 @@ export default function PlannerSettingsPage() {
         </header>
 
         {/* Business profile */}
-        <section className="mb-10 overflow-hidden rounded-2xl border border-rose-100/70 bg-white/80 backdrop-blur-sm">
-          <div className="border-b border-rose-100/70 px-6 py-4">
+        <section className="mb-10 overflow-hidden rounded-2xl border border-brand-line bg-white/80 backdrop-blur-sm">
+          <div className="border-b border-brand-line px-6 py-4">
             <h2 className="font-display text-lg font-medium tracking-tight">
               {t("businessProfile")}
             </h2>
@@ -247,7 +247,7 @@ export default function PlannerSettingsPage() {
               <Button
                 disabled={plannerUpdate.isPending || !businessName.trim()}
                 onClick={handleSavePlanner}
-                className="gap-1 bg-gradient-to-r from-rose-600 to-amber-500 text-white hover:opacity-90"
+                className="gap-1 bg-brand-gradient text-white hover:opacity-90"
               >
                 {plannerUpdate.isPending ? (
                   <Loader2 className="size-4 animate-spin" />
@@ -261,8 +261,8 @@ export default function PlannerSettingsPage() {
         </section>
 
         {/* Personal profile */}
-        <section className="mb-10 overflow-hidden rounded-2xl border border-rose-100/70 bg-white/80 backdrop-blur-sm">
-          <div className="border-b border-rose-100/70 px-6 py-4">
+        <section className="mb-10 overflow-hidden rounded-2xl border border-brand-line bg-white/80 backdrop-blur-sm">
+          <div className="border-b border-brand-line px-6 py-4">
             <h2 className="font-display text-lg font-medium tracking-tight">
               {t("personalDetails")}
             </h2>
@@ -308,7 +308,7 @@ export default function PlannerSettingsPage() {
               <Button
                 disabled={profileUpdate.isPending}
                 onClick={handleSaveProfile}
-                className="gap-1 bg-gradient-to-r from-rose-600 to-amber-500 text-white hover:opacity-90"
+                className="gap-1 bg-brand-gradient text-white hover:opacity-90"
               >
                 {profileUpdate.isPending ? (
                   <Loader2 className="size-4 animate-spin" />
@@ -326,7 +326,7 @@ export default function PlannerSettingsPage() {
             {t("accountHeading")}
           </h2>
           <PasswordChangeCard email={profile?.email ?? null} />
-          <div className="rounded-2xl border border-rose-100/70 bg-white/70 p-4 backdrop-blur-sm">
+          <div className="rounded-2xl border border-brand-line bg-white/70 p-4 backdrop-blur-sm">
             <div className="flex items-center justify-between gap-3">
               <div>
                 <p className="text-sm font-medium">{t("signOut")}</p>

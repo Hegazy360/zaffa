@@ -89,7 +89,7 @@ export default function AdminEnquiriesPage() {
             "rounded-full border px-3 py-1.5 text-xs transition-colors",
             status === null
               ? "border-rose-300 bg-rose-50 text-rose-700"
-              : "border-rose-100 hover:border-rose-200",
+              : "border-brand-line hover:border-rose-200",
           )}
         >
           All
@@ -106,7 +106,7 @@ export default function AdminEnquiriesPage() {
                 "rounded-full border px-3 py-1.5 text-xs transition-colors",
                 status === s
                   ? "border-rose-300 bg-rose-50 text-rose-700"
-                  : "border-rose-100 hover:border-rose-200",
+                  : "border-brand-line hover:border-rose-200",
                 n === 0 && "text-muted-foreground",
               )}
             >
@@ -141,7 +141,7 @@ export default function AdminEnquiriesPage() {
               Mail;
             return (
               <li key={e.id} className="relative">
-                <div className="rounded-2xl border border-rose-100 p-4 transition-colors hover:border-rose-200 focus-within:ring-2 focus-within:ring-rose-300">
+                <div className="rounded-2xl border border-brand-line p-4 transition-colors hover:border-rose-200 focus-within:ring-2 focus-within:ring-rose-300">
                   <div className="flex flex-wrap items-baseline justify-between gap-2">
                     <h2 className="font-medium">
                       {/* Link overlay: the whole card is clickable, but it's a

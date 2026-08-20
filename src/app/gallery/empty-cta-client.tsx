@@ -17,7 +17,7 @@ export function GalleryEmptyCta() {
   return (
     <Button
       render={<Link href="/venue-designer" />}
-      className="h-10 gap-2 bg-gradient-to-r from-rose-600 to-amber-500 px-4 text-white hover:opacity-90"
+      className="h-10 gap-2 bg-brand-gradient px-4 text-white hover:opacity-90"
     >
       {t("buyCtaShort", { price: pricing.label })}
     </Button>

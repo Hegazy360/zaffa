@@ -91,7 +91,7 @@ export function VisionPackUpgradeCta({
         size="lg"
         disabled={startUpgrade.isPending}
         onClick={() => startUpgrade.mutate({ returnPath })}
-        className="mt-3 w-full gap-2 bg-gradient-to-r from-rose-600 to-amber-500 text-white shadow-lg shadow-rose-500/20 hover:opacity-90"
+        className="mt-3 w-full gap-2 bg-brand-gradient text-white shadow-glow hover:opacity-90"
       >
         {startUpgrade.isPending ? (
           <>

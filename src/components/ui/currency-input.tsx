@@ -147,7 +147,7 @@ export function CurrencyInput({
       />
       {open && (
         <div
-          className="absolute start-0 end-0 top-full z-50 mt-1 max-h-56 overflow-y-auto rounded-md border border-rose-100/70 bg-popover text-popover-foreground shadow-md"
+          className="absolute start-0 end-0 top-full z-50 mt-1 max-h-56 overflow-y-auto rounded-md border border-brand-line bg-popover text-popover-foreground shadow-md"
           // Keep the popup open while clicking inside (mousedown happens
           // before blur so onMouseDown.preventDefault keeps focus on input).
           onMouseDown={(e) => e.preventDefault()}

@@ -225,7 +225,7 @@ export default function VenueDesignerWelcomePage() {
                   type="button"
                   size="lg"
                   onClick={onManualRefresh}
-                  className="h-11 gap-2 bg-gradient-to-r from-rose-600 to-amber-500 px-5 text-white shadow-lg shadow-rose-500/20 hover:opacity-90"
+                  className="h-11 gap-2 bg-brand-gradient px-5 text-white shadow-glow hover:opacity-90"
                 >
                   <Loader2 className="size-4" />
                   {t("stalledRefresh")}
@@ -245,7 +245,7 @@ export default function VenueDesignerWelcomePage() {
                 render={<Link href={returnPath} />}
                 size="lg"
                 disabled={!ready}
-                className="h-11 gap-2 bg-gradient-to-r from-rose-600 to-amber-500 px-5 text-white shadow-lg shadow-rose-500/20 hover:opacity-90 disabled:opacity-60"
+                className="h-11 gap-2 bg-brand-gradient px-5 text-white shadow-glow hover:opacity-90 disabled:opacity-60"
               >
                 {ready ? (
                   <>

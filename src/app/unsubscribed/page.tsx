@@ -25,7 +25,7 @@ export default async function UnsubscribedPage({
         className="pointer-events-none absolute inset-0 grain-bg opacity-30"
       />
 
-      <div className="relative w-full max-w-md rounded-3xl border border-rose-100/70 bg-white/85 p-10 text-center shadow-sm backdrop-blur-sm">
+      <div className="relative w-full max-w-md rounded-3xl border border-brand-line bg-white/85 p-10 text-center shadow-sm backdrop-blur-sm">
         <div className="mb-4 flex justify-center">
           {ok ? (
             <span className="grid size-14 place-items-center rounded-full bg-emerald-50 text-emerald-600 ring-1 ring-emerald-100">
@@ -47,7 +47,7 @@ export default async function UnsubscribedPage({
         <div className="mt-8 flex flex-col items-center gap-3">
           <Link
             href="/dashboard/notifications/preferences"
-            className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-rose-600 to-amber-500 px-5 py-2 text-sm font-medium text-white shadow-sm transition-opacity hover:opacity-90"
+            className="inline-flex items-center gap-2 rounded-full bg-brand-gradient px-5 py-2 text-sm font-medium text-white shadow-sm transition-opacity hover:opacity-90"
           >
             <Mail className="size-4" />
             {t("settingsTitle")}

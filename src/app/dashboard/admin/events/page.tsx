@@ -70,7 +70,7 @@ export default async function AdminEventsPage() {
             </p>
           </div>
         ) : (
-          <ul className="divide-y divide-rose-100/70 rounded-2xl border border-rose-100/70 bg-white/80 backdrop-blur-sm dark:divide-rose-900/30 dark:border-rose-900/30 dark:bg-card/80">
+          <ul className="divide-y divide-rose-100/70 rounded-2xl border border-brand-line bg-white/80 backdrop-blur-sm dark:divide-rose-900/30 dark:border-rose-900/30 dark:bg-card/80">
             {events.map((event) => (
               <li key={event.id}>
                 <Link

@@ -208,7 +208,7 @@ export default function AdminVenueEditPage() {
             size="sm"
             onClick={handleSave}
             disabled={create.isPending || update.isPending}
-            className="h-8 gap-1.5 bg-gradient-to-r from-rose-600 to-amber-500 text-white hover:opacity-90"
+            className="h-8 gap-1.5 bg-brand-gradient text-white hover:opacity-90"
           >
             {create.isPending || update.isPending ? (
               <Loader2 className="size-3 animate-spin" />
@@ -251,7 +251,7 @@ export default function AdminVenueEditPage() {
                 rows={3}
               />
             </Field>
-            <div className="flex items-start justify-between gap-3 rounded-md border border-rose-100/70 bg-white/60 p-3 dark:border-rose-900/30 dark:bg-card/60">
+            <div className="flex items-start justify-between gap-3 rounded-md border border-brand-line bg-white/60 p-3 dark:border-rose-900/30 dark:bg-card/60">
               <Label htmlFor="published" className="text-sm">
                 Published
                 <p className="text-[11px] font-normal text-muted-foreground">
@@ -437,7 +437,7 @@ interface SectionProps {
 
 function Section({ title, children }: SectionProps) {
   return (
-    <section className="space-y-3 rounded-2xl border border-rose-100/70 bg-white/80 p-5 backdrop-blur-sm dark:border-rose-900/30 dark:bg-card/80">
+    <section className="space-y-3 rounded-2xl border border-brand-line bg-white/80 p-5 backdrop-blur-sm dark:border-rose-900/30 dark:bg-card/80">
       <h2 className="text-[10px] font-semibold uppercase tracking-[0.3em] text-rose-700/80">
         {title}
       </h2>

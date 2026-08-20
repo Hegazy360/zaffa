@@ -26,7 +26,7 @@ export function AuthCheckEmail({ email, title, body }: AuthCheckEmailProps) {
             aria-hidden
             className="absolute inset-0 -m-2 rounded-full bg-gradient-to-br from-rose-500/30 to-amber-500/30 blur-xl"
           />
-          <div className="relative flex size-20 items-center justify-center rounded-full bg-gradient-to-br from-rose-500 to-amber-500 text-white shadow-lg shadow-rose-500/30 ring-1 ring-white/40">
+          <div className="relative flex size-20 items-center justify-center rounded-full bg-gradient-to-br from-rose-500 to-amber-500 text-white shadow-glow ring-1 ring-white/40">
             <Mail className="size-9" aria-hidden />
           </div>
         </div>

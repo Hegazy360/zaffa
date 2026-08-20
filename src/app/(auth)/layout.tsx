@@ -45,7 +45,7 @@ export default async function AuthLayout({
           aria-label={tNav("ariaHome")}
         >
           <ArrowLeft className="size-4 text-muted-foreground transition-colors rtl:-scale-x-100 group-hover:text-foreground" />
-          <span className="font-display bg-gradient-to-br from-rose-600 via-rose-500 to-amber-500 bg-clip-text text-2xl font-light italic tracking-tight text-transparent">
+          <span className="font-display text-brand-gradient text-2xl font-light italic tracking-tight">
             {tBrand("name")}
           </span>
           <span className="font-arabic hidden text-sm text-muted-foreground sm:inline">

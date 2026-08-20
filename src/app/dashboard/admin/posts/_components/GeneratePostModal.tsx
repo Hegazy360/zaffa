@@ -130,7 +130,7 @@ export function GeneratePostModal({
             <Button
               onClick={() => submit()}
               disabled={generate.isPending}
-              className="h-10 flex-1 gap-1.5 bg-gradient-to-r from-rose-600 to-amber-500 text-white hover:opacity-90 sm:h-9 sm:flex-none sm:text-sm"
+              className="h-10 flex-1 gap-1.5 bg-brand-gradient text-white hover:opacity-90 sm:h-9 sm:flex-none sm:text-sm"
             >
               {generate.isPending ? (
                 <Loader2 className="size-3.5 animate-spin" />

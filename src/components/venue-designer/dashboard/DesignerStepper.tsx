@@ -209,7 +209,7 @@ export function DesignerStepper({
                     "relative grid size-10 place-items-center rounded-full border transition-colors duration-300",
                     "focus-visible:ring-2 focus-visible:ring-rose-400 focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:outline-none",
                     isActive
-                      ? "border-rose-500 bg-gradient-to-br from-rose-500 to-rose-600 text-white shadow-lg shadow-rose-500/30 ring-4 ring-rose-100 dark:ring-rose-950/60"
+                      ? "border-rose-500 bg-gradient-to-br from-rose-500 to-rose-600 text-white shadow-glow ring-4 ring-rose-100 dark:ring-rose-950/60"
                       : isPastOrCurrent
                         ? "border-rose-300 bg-rose-50 text-rose-600 dark:border-rose-900 dark:bg-rose-950/40 dark:text-rose-300"
                         : "border-border bg-background text-muted-foreground hover:border-rose-300 hover:text-rose-500"
@@ -323,7 +323,7 @@ export function StepNavFooter({ step, onStepChange }: StepNavFooterProps) {
           className={cn(
             "h-12 flex-1 gap-2 px-5 text-base sm:h-11 sm:flex-none sm:text-sm",
             next === "generate"
-              ? "bg-gradient-to-r from-rose-600 to-amber-500 text-white shadow-lg shadow-rose-500/20 hover:opacity-90 hover:shadow-rose-500/30"
+              ? "bg-brand-gradient text-white shadow-glow hover:opacity-90 hover:shadow-glow-lg"
               : "bg-foreground text-background hover:bg-foreground/90"
           )}
         >

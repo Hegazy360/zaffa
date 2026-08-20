@@ -94,7 +94,7 @@ export async function Footer() {
           }`}
         >
           <div>
-            <h3 className="text-lg font-bold bg-gradient-to-r from-rose-600 to-amber-500 bg-clip-text text-transparent">
+            <h3 className="text-lg font-bold bg-brand-gradient bg-clip-text text-transparent">
               {tBrand("name")}
             </h3>
             <p className="mt-2 text-sm text-muted-foreground">
@@ -114,7 +114,7 @@ export async function Footer() {
                     aria-label={
                       ariaSuffix ? `${t(labelKey)} — ${ariaSuffix}` : t(labelKey)
                     }
-                    className="inline-flex size-9 items-center justify-center rounded-full border border-rose-100/70 bg-white/80 text-rose-700 transition hover:border-rose-200 hover:bg-rose-50"
+                    className="inline-flex size-9 items-center justify-center rounded-full border border-brand-line bg-white/80 text-rose-700 transition hover:border-rose-200 hover:bg-rose-50"
                   >
                     <Icon className="size-4" />
                   </a>

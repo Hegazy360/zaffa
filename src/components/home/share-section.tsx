@@ -27,7 +27,7 @@ export function ShareSection() {
   return (
     <section
       aria-label={t("shareAria")}
-      className="relative isolate overflow-hidden border-y border-rose-100/70 bg-gradient-to-b from-rose-50/40 via-background to-amber-50/30 dark:border-rose-900/40 dark:from-rose-950/20 dark:to-amber-950/10"
+      className="relative isolate overflow-hidden border-y border-brand-line bg-gradient-to-b from-rose-50/40 via-background to-amber-50/30 dark:border-rose-900/40 dark:from-rose-950/20 dark:to-amber-950/10"
     >
       <div
         aria-hidden
@@ -138,7 +138,7 @@ function ArtefactCard({
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: "-15% 0px" }}
       transition={{ duration: reduce ? 0 : 0.8, ease: [0.16, 1, 0.3, 1] }}
-      className="group relative flex flex-col overflow-hidden rounded-3xl border border-rose-100/70 bg-white/70 p-6 shadow-xl shadow-rose-900/[0.06] backdrop-blur-sm sm:p-8 dark:border-rose-900/40 dark:bg-card/70"
+      className="group relative flex flex-col overflow-hidden rounded-3xl border border-brand-line bg-white/70 p-6 shadow-glow-lg backdrop-blur-sm sm:p-8 dark:border-rose-900/40 dark:bg-card/70"
     >
       <div className="mb-6">
         {kind === "microsite" ? <MicrositePreview /> : <LookbookPreview />}
@@ -179,8 +179,8 @@ function ArtefactCard({
 // not pixel-accurate UI.
 function MicrositePreview() {
   return (
-    <div className="relative overflow-hidden rounded-2xl border border-rose-100/70 bg-gradient-to-br from-rose-50/80 via-white to-amber-50/60 ring-1 ring-foreground/[0.04] dark:border-rose-900/40 dark:from-rose-950/30 dark:via-card/80 dark:to-amber-950/20">
-      <div className="flex items-center gap-2 border-b border-rose-100/70 bg-white/60 px-3 py-2 dark:border-rose-900/40 dark:bg-card/40">
+    <div className="relative overflow-hidden rounded-2xl border border-brand-line bg-gradient-to-br from-rose-50/80 via-white to-amber-50/60 ring-1 ring-foreground/[0.04] dark:border-rose-900/40 dark:from-rose-950/30 dark:via-card/80 dark:to-amber-950/20">
+      <div className="flex items-center gap-2 border-b border-brand-line bg-white/60 px-3 py-2 dark:border-rose-900/40 dark:bg-card/40">
         <div className="flex items-center gap-1.5">
           <span className="size-2 rounded-full bg-rose-300/70" />
           <span className="size-2 rounded-full bg-amber-300/70" />
@@ -252,9 +252,9 @@ function LookbookPreview() {
     <div className="relative aspect-[16/10] w-full">
       <div
         aria-hidden
-        className="absolute end-[6%] top-[8%] h-[88%] w-[58%] rotate-[4deg] rounded-xl border border-rose-100/70 bg-gradient-to-br from-rose-50/80 via-white to-amber-50/60 shadow-lg shadow-rose-900/[0.06] dark:border-rose-900/40 dark:from-rose-950/30 dark:via-card/80 dark:to-amber-950/20"
+        className="absolute end-[6%] top-[8%] h-[88%] w-[58%] rotate-[4deg] rounded-xl border border-brand-line bg-gradient-to-br from-rose-50/80 via-white to-amber-50/60 shadow-glow dark:border-rose-900/40 dark:from-rose-950/30 dark:via-card/80 dark:to-amber-950/20"
       />
-      <div className="absolute start-[4%] top-[4%] flex h-[92%] w-[62%] -rotate-[2deg] flex-col overflow-hidden rounded-xl border border-rose-100/70 bg-gradient-to-br from-white via-rose-50/40 to-amber-50/40 p-4 shadow-2xl shadow-rose-900/[0.10] ring-1 ring-foreground/[0.04] sm:p-5 dark:border-rose-900/40 dark:from-card dark:via-rose-950/20 dark:to-amber-950/10">
+      <div className="absolute start-[4%] top-[4%] flex h-[92%] w-[62%] -rotate-[2deg] flex-col overflow-hidden rounded-xl border border-brand-line bg-gradient-to-br from-white via-rose-50/40 to-amber-50/40 p-4 shadow-glow-lg ring-1 ring-foreground/[0.04] sm:p-5 dark:border-rose-900/40 dark:from-card dark:via-rose-950/20 dark:to-amber-950/10">
         <p className="text-[8px] font-medium uppercase tracking-[0.32em] text-rose-700/80 sm:text-[9px]">
           Wedding Vision Pack
         </p>
@@ -287,7 +287,7 @@ function LookbookPreview() {
           <span>PDF · 12 pages</span>
         </div>
       </div>
-      <span className="absolute bottom-3 end-3 inline-flex items-center gap-1.5 rounded-full bg-rose-600/90 px-2.5 py-1 text-[9px] font-medium uppercase tracking-[0.22em] text-white shadow-md shadow-rose-900/20 backdrop-blur-sm sm:text-[10px]">
+      <span className="absolute bottom-3 end-3 inline-flex items-center gap-1.5 rounded-full bg-rose-600/90 px-2.5 py-1 text-[9px] font-medium uppercase tracking-[0.22em] text-white shadow-glow-sm backdrop-blur-sm sm:text-[10px]">
         <FileDown className="size-3" strokeWidth={2.25} />
         PDF
       </span>

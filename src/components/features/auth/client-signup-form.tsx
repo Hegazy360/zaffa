@@ -311,7 +311,7 @@ export function ClientSignUpForm() {
         type="submit"
         size="lg"
         disabled={!canSubmit || loading}
-        className="group h-11 w-full gap-2 bg-gradient-to-r from-rose-600 to-amber-500 text-white shadow-lg shadow-rose-600/20 transition-all hover:opacity-90 hover:shadow-rose-600/30"
+        className="group h-11 w-full gap-2 bg-brand-gradient text-white shadow-glow transition-all hover:opacity-90 hover:shadow-glow-lg"
       >
         {loading ? t("creatingAccount") : t("createAccount")}
         {!loading && (

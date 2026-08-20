@@ -67,7 +67,7 @@ export function PackCheckoutCard({
       }
     >
       {featured ? (
-        <div className="absolute -top-3 start-6 inline-flex items-center gap-1 rounded-full bg-gradient-to-r from-rose-600 to-amber-500 px-2.5 py-0.5 text-[10px] font-semibold tracking-[0.15em] text-white uppercase shadow-md">
+        <div className="absolute -top-3 start-6 inline-flex items-center gap-1 rounded-full bg-brand-gradient px-2.5 py-0.5 text-[10px] font-semibold tracking-[0.15em] text-white uppercase shadow-md">
           {t("featuredBadge")}
         </div>
       ) : null}

@@ -180,7 +180,7 @@ export default async function PricingPage({
               />
             </div>
 
-            <div className="mt-6 overflow-hidden rounded-2xl border border-rose-100 bg-white/70">
+            <div className="mt-6 overflow-hidden rounded-2xl border border-brand-line bg-white/70">
               <table className="w-full text-start">
                 {/* A caption naming the market, not repeating the headline —
                     a screen reader announcing "Here is our number" twice tells
@@ -189,7 +189,7 @@ export default async function PricingPage({
                   {t("tableCaption", { market: regionName })}
                 </caption>
                 <thead>
-                  <tr className="border-b border-rose-100 bg-rose-50/40 text-xs uppercase tracking-wider text-muted-foreground rtl:tracking-normal">
+                  <tr className="border-b border-brand-line bg-rose-50/40 text-xs uppercase tracking-wider text-muted-foreground rtl:tracking-normal">
                     <th scope="col" className="px-5 py-3 text-start font-medium">
                       {t("tableBudget")}
                     </th>
@@ -244,12 +244,12 @@ export default async function PricingPage({
         </section>
 
         {/* The worked example */}
-        <section className="border-t border-rose-100/70 py-16 sm:py-20">
+        <section className="border-t border-brand-line py-16 sm:py-20">
           <div className="mx-auto max-w-3xl px-4">
             <h2 className="font-display text-2xl font-light tracking-tight sm:text-3xl">
               {t("exampleTitle")}
             </h2>
-            <div className="mt-6 space-y-4 rounded-2xl border border-rose-100 bg-white/70 p-6 text-pretty text-sm leading-relaxed sm:text-base">
+            <div className="mt-6 space-y-4 rounded-2xl border border-brand-line bg-white/70 p-6 text-pretty text-sm leading-relaxed sm:text-base">
               <p className="font-medium">
                 {t("exampleSetup", { amount: example.budget })}
               </p>
@@ -261,7 +261,7 @@ export default async function PricingPage({
         </section>
 
         {/* The guarantee, with its limit in the same block — never apart */}
-        <section className="border-t border-rose-100/70 bg-rose-50/30 py-16 sm:py-20">
+        <section className="border-t border-brand-line bg-rose-50/30 py-16 sm:py-20">
           <div className="mx-auto max-w-3xl px-4">
             <h2 className="flex items-center gap-2 font-display text-2xl font-light tracking-tight sm:text-3xl">
               <Check className="size-5 shrink-0 text-rose-600" aria-hidden />
@@ -274,7 +274,7 @@ export default async function PricingPage({
         </section>
 
         {/* How we run it — process as the substitute for a portfolio */}
-        <section className="border-t border-rose-100/70 py-16 sm:py-20">
+        <section className="border-t border-brand-line py-16 sm:py-20">
           <div className="mx-auto max-w-3xl px-4">
             <h2 className="font-display text-2xl font-light tracking-tight sm:text-3xl">
               {t("weekTitle")}
@@ -303,7 +303,7 @@ export default async function PricingPage({
           </div>
         </section>
 
-        <section className="border-t border-rose-100/70 bg-gradient-to-b from-background to-rose-50/40 py-16 sm:py-20">
+        <section className="border-t border-brand-line bg-gradient-to-b from-background to-rose-50/40 py-16 sm:py-20">
           <div className="mx-auto max-w-3xl px-4 text-center">
             <h2 className="font-display text-3xl font-light tracking-tight sm:text-4xl">
               {t("ctaTitle")}

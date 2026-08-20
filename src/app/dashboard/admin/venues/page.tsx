@@ -69,7 +69,7 @@ export default function AdminVenuesPage() {
           <Button
             size="sm"
             render={<Link href="/dashboard/admin/venues/new" />}
-            className="h-9 gap-1.5 bg-gradient-to-r from-rose-600 to-amber-500 text-white hover:opacity-90"
+            className="h-9 gap-1.5 bg-brand-gradient text-white hover:opacity-90"
           >
             <Plus className="size-3.5" />
             Add venue
@@ -103,7 +103,7 @@ export default function AdminVenuesPage() {
             {items.map((venue) => (
               <li
                 key={venue.id}
-                className="group relative overflow-hidden rounded-2xl border border-rose-100/70 bg-white/80 backdrop-blur-sm transition hover:border-rose-200 dark:border-rose-900/30 dark:bg-card/80 dark:hover:border-rose-800"
+                className="group relative overflow-hidden rounded-2xl border border-brand-line bg-white/80 backdrop-blur-sm transition hover:border-rose-200 dark:border-rose-900/30 dark:bg-card/80 dark:hover:border-rose-800"
               >
                 <Link
                   href={`/dashboard/admin/venues/${venue.id}`}

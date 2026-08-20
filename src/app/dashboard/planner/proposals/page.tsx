@@ -205,7 +205,7 @@ function ProposalCard({ proposal }: { proposal: ProposalRow }) {
     : `/dashboard/planner/marketplace/${proposal.event.id}`;
 
   return (
-    <article className="group relative overflow-hidden rounded-2xl border border-rose-100/70 bg-white/80 backdrop-blur-sm ring-1 ring-foreground/[0.04] transition-all hover:-translate-y-0.5 hover:shadow-[0_20px_50px_-20px_rgba(244,63,94,0.25)]">
+    <article className="group relative overflow-hidden rounded-2xl border border-brand-line bg-white/80 backdrop-blur-sm ring-1 ring-foreground/[0.04] transition-all hover:-translate-y-0.5 hover:shadow-[0_20px_50px_-20px_rgba(244,63,94,0.25)]">
       <Link href={href} className="block">
         <div className="relative aspect-[16/9] overflow-hidden bg-gradient-to-br from-rose-50 to-amber-50/60">
           {proposal.event.heroImage ? (

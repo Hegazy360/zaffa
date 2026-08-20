@@ -110,8 +110,8 @@ export function VendorOnboardingWizard() {
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-12 sm:px-6 sm:py-16">
-      <div className="overflow-hidden rounded-2xl border border-rose-100/70 bg-white/80 shadow-sm backdrop-blur-sm dark:border-rose-900/30 dark:bg-card/80">
-        <header className="border-b border-rose-100/70 bg-gradient-to-r from-rose-50/80 to-amber-50/60 px-6 py-5 dark:border-rose-900/30 dark:from-rose-950/30 dark:to-amber-950/20">
+      <div className="overflow-hidden rounded-2xl border border-brand-line bg-white/80 shadow-sm backdrop-blur-sm dark:border-rose-900/30 dark:bg-card/80">
+        <header className="border-b border-brand-line bg-gradient-to-r from-rose-50/80 to-amber-50/60 px-6 py-5 dark:border-rose-900/30 dark:from-rose-950/30 dark:to-amber-950/20">
           <div className="flex items-center gap-2 text-rose-700/80">
             <Sparkles className="size-4" />
             <span className="text-[11px] font-medium uppercase tracking-[0.25em]">
@@ -124,7 +124,7 @@ export function VendorOnboardingWizard() {
                 key={i}
                 className={`h-1.5 flex-1 rounded-full ${
                   i + 1 <= step
-                    ? "bg-gradient-to-r from-rose-600 to-amber-500"
+                    ? "bg-brand-gradient"
                     : "bg-rose-100 dark:bg-rose-900/30"
                 }`}
               />
@@ -169,7 +169,7 @@ export function VendorOnboardingWizard() {
                         className={`rounded-xl border px-3 py-2 text-center text-sm transition ${
                           active
                             ? "border-rose-300 bg-gradient-to-br from-rose-50 to-amber-50 text-rose-900 ring-2 ring-rose-200 dark:border-rose-700 dark:from-rose-950/40 dark:to-amber-950/30 dark:text-rose-100"
-                            : "border-rose-100/70 bg-white/60 text-foreground/80 hover:border-rose-200 hover:bg-rose-50/40 dark:border-rose-900/30 dark:bg-card/40 dark:hover:border-rose-800/50 dark:hover:bg-rose-950/20"
+                            : "border-brand-line bg-white/60 text-foreground/80 hover:border-rose-200 hover:bg-rose-50/40 dark:border-rose-900/30 dark:bg-card/40 dark:hover:border-rose-800/50 dark:hover:bg-rose-950/20"
                         }`}
                       >
                         {t(`wizardCategory_${c}` as const)}
@@ -284,7 +284,7 @@ export function VendorOnboardingWizard() {
                   {t("wizardSummarySubtitle")}
                 </p>
               </div>
-              <dl className="divide-y divide-rose-100/70 rounded-xl border border-rose-100/70 bg-rose-50/40 dark:divide-rose-900/30 dark:border-rose-900/30 dark:bg-rose-950/20">
+              <dl className="divide-y divide-rose-100/70 rounded-xl border border-brand-line bg-rose-50/40 dark:divide-rose-900/30 dark:border-rose-900/30 dark:bg-rose-950/20">
                 <SummaryRow
                   label={t("wizardBusinessName")}
                   value={businessName.trim() || "—"}
@@ -318,7 +318,7 @@ export function VendorOnboardingWizard() {
             </div>
           )}
 
-          <div className="flex items-center justify-between gap-2 border-t border-rose-100/70 pt-5 dark:border-rose-900/30">
+          <div className="flex items-center justify-between gap-2 border-t border-brand-line pt-5 dark:border-rose-900/30">
             <Button
               type="button"
               variant="ghost"
@@ -333,7 +333,7 @@ export function VendorOnboardingWizard() {
               <Button
                 type="button"
                 onClick={handleNext}
-                className="gap-1 bg-gradient-to-r from-rose-600 to-amber-500 text-white"
+                className="gap-1 bg-brand-gradient text-white"
               >
                 {t("wizardNext")}
                 <ArrowRight className="size-4 rtl:-scale-x-100" />
@@ -343,7 +343,7 @@ export function VendorOnboardingWizard() {
                 type="button"
                 onClick={handleSubmit}
                 disabled={update.isPending}
-                className="gap-1 bg-gradient-to-r from-rose-600 to-amber-500 text-white"
+                className="gap-1 bg-brand-gradient text-white"
               >
                 {update.isPending ? (
                   <Loader2 className="size-4 animate-spin" />

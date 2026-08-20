@@ -217,7 +217,7 @@ export function ShareAndFinishPanel({ designId }: Props) {
                   aria-label={
                     onFreeTier ? t("micrositeFreeTierHint") : undefined
                   }
-                  className="h-8 gap-1.5 bg-gradient-to-r from-rose-600 to-amber-500 text-xs text-white hover:opacity-90"
+                  className="h-8 gap-1.5 bg-brand-gradient text-xs text-white hover:opacity-90"
                 >
                   {setPublic.isPending ? (
                     <Loader2 className="size-3 animate-spin" />
@@ -299,7 +299,7 @@ export function ShareAndFinishPanel({ designId }: Props) {
               size="sm"
               disabled={findPlanner.isPending || !designId}
               onClick={() => findPlanner.mutate({ packId: pack.id })}
-              className="h-8 gap-1.5 bg-gradient-to-r from-rose-600 to-amber-500 text-xs text-white hover:opacity-90"
+              className="h-8 gap-1.5 bg-brand-gradient text-xs text-white hover:opacity-90"
             >
               {findPlanner.isPending ? (
                 <Loader2 className="size-3 animate-spin" />

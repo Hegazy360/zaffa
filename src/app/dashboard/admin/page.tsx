@@ -125,8 +125,8 @@ export default function AdminOverview() {
           </section>
 
           <section className="grid gap-6 lg:grid-cols-[1fr_320px]">
-            <div className="rounded-2xl border border-rose-100/70 bg-white/80 backdrop-blur-sm">
-              <div className="flex items-center justify-between border-b border-rose-100/70 px-5 py-4">
+            <div className="rounded-2xl border border-brand-line bg-white/80 backdrop-blur-sm">
+              <div className="flex items-center justify-between border-b border-brand-line px-5 py-4">
                 <div>
                   <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-rose-700/80">
                     {t("recentActivity")}
@@ -249,7 +249,7 @@ function KpiCard({
       className={
         tone === "rose"
           ? "rounded-2xl border border-rose-200 bg-gradient-to-br from-rose-50 to-amber-50/60 p-5"
-          : "rounded-2xl border border-rose-100/70 bg-white/80 p-5 backdrop-blur-sm"
+          : "rounded-2xl border border-brand-line bg-white/80 p-5 backdrop-blur-sm"
       }
     >
       <div className="flex items-center justify-between text-rose-700/80">
@@ -304,7 +304,7 @@ function ShortcutCard({
   return (
     <Link
       href={href}
-      className="group relative flex items-start gap-3 rounded-2xl border border-rose-100/70 bg-white/80 p-4 transition-all hover:-translate-y-0.5 hover:shadow-[0_15px_40px_-20px_rgba(244,63,94,0.25)]"
+      className="group relative flex items-start gap-3 rounded-2xl border border-brand-line bg-white/80 p-4 transition-all hover:-translate-y-0.5 hover:shadow-[0_15px_40px_-20px_rgba(244,63,94,0.25)]"
     >
       <span className="mt-0.5 grid size-8 shrink-0 place-items-center rounded-lg bg-gradient-to-br from-rose-100 to-amber-100 text-rose-700">
         {icon}

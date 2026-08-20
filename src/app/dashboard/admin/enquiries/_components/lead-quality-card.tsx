@@ -43,7 +43,7 @@ export function LeadQualityCard() {
   const latest = weeks.at(-1);
 
   return (
-    <section className="rounded-2xl border border-rose-100 bg-white/70 px-5 py-4">
+    <section className="rounded-2xl border border-brand-line bg-white/70 px-5 py-4">
       <div className="flex flex-wrap items-baseline justify-between gap-3">
         <h2 className="text-sm font-medium">Lead quality</h2>
         <p className="text-xs text-muted-foreground">

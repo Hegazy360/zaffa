@@ -225,7 +225,7 @@ export default function PlannerVendorProfilePage({
           {t("backToVendors")}
         </Link>
 
-        <header className="overflow-hidden rounded-2xl border border-rose-100/70 bg-white/85 backdrop-blur-sm">
+        <header className="overflow-hidden rounded-2xl border border-brand-line bg-white/85 backdrop-blur-sm">
           <div className="flex flex-wrap items-start justify-between gap-4 px-6 py-5">
             <div className="min-w-0 space-y-2">
               <p className="text-[0.65rem] font-medium uppercase tracking-[0.3em] text-rose-700/80">
@@ -258,7 +258,7 @@ export default function PlannerVendorProfilePage({
             <Button
               disabled={cart.length === 0 || events.length === 0}
               onClick={() => setOpen(true)}
-              className="gap-1 bg-gradient-to-r from-rose-600 to-amber-500 text-white"
+              className="gap-1 bg-brand-gradient text-white"
             >
               <ShoppingCart className="size-4" />
               {cart.length === 0
@@ -276,8 +276,8 @@ export default function PlannerVendorProfilePage({
 
         <div className="grid gap-6 lg:grid-cols-[2fr_1fr]">
           <section className="space-y-6">
-            <div className="rounded-2xl border border-rose-100/70 bg-white/85 backdrop-blur-sm">
-              <div className="border-b border-rose-100/70 px-5 py-3">
+            <div className="rounded-2xl border border-brand-line bg-white/85 backdrop-blur-sm">
+              <div className="border-b border-brand-line px-5 py-3">
                 <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-rose-700/80">
                   {t("catalog")}
                 </p>
@@ -296,7 +296,7 @@ export default function PlannerVendorProfilePage({
                     return (
                       <div
                         key={s.id}
-                        className="flex flex-col overflow-hidden rounded-xl border border-rose-100/70"
+                        className="flex flex-col overflow-hidden rounded-xl border border-brand-line"
                       >
                         <div className="relative aspect-[4/3] bg-rose-50">
                           {imgs[0] ? (
@@ -354,8 +354,8 @@ export default function PlannerVendorProfilePage({
             </div>
 
             {v.portfolio_items.length > 0 && (
-              <div className="rounded-2xl border border-rose-100/70 bg-white/85 backdrop-blur-sm">
-                <div className="border-b border-rose-100/70 px-5 py-3">
+              <div className="rounded-2xl border border-brand-line bg-white/85 backdrop-blur-sm">
+                <div className="border-b border-brand-line px-5 py-3">
                   <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-rose-700/80">
                     {t("portfolioHeading")}
                   </p>
@@ -364,7 +364,7 @@ export default function PlannerVendorProfilePage({
                   {v.portfolio_items.map((p) => (
                     <div
                       key={p.id}
-                      className="overflow-hidden rounded-xl border border-rose-100/70"
+                      className="overflow-hidden rounded-xl border border-brand-line"
                     >
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
@@ -383,8 +383,8 @@ export default function PlannerVendorProfilePage({
               </div>
             )}
 
-            <div className="rounded-2xl border border-rose-100/70 bg-white/85 backdrop-blur-sm">
-              <div className="border-b border-rose-100/70 px-5 py-3">
+            <div className="rounded-2xl border border-brand-line bg-white/85 backdrop-blur-sm">
+              <div className="border-b border-brand-line px-5 py-3">
                 <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-rose-700/80">
                   {t("reviewsHeading")}
                 </p>
@@ -425,8 +425,8 @@ export default function PlannerVendorProfilePage({
           </section>
 
           <aside className="lg:sticky lg:top-20 lg:self-start">
-            <div className="rounded-2xl border border-rose-100/70 bg-white/85 backdrop-blur-sm">
-              <div className="border-b border-rose-100/70 px-5 py-3">
+            <div className="rounded-2xl border border-brand-line bg-white/85 backdrop-blur-sm">
+              <div className="border-b border-brand-line px-5 py-3">
                 <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-rose-700/80">
                   {t("engagementCart")}
                 </p>
@@ -518,7 +518,7 @@ export default function PlannerVendorProfilePage({
                   ))}
                 </ul>
               )}
-              <div className="space-y-2 border-t border-rose-100/70 px-5 py-3">
+              <div className="space-y-2 border-t border-brand-line px-5 py-3">
                 <div className="flex items-center justify-between text-sm">
                   <span>{t("total")}</span>
                   <span className="font-mono tabular-nums">
@@ -609,7 +609,7 @@ export default function PlannerVendorProfilePage({
                   className="resize-none"
                 />
               </div>
-              <div className="rounded-xl border border-rose-100/70 bg-rose-50/30 px-3 py-2 text-xs">
+              <div className="rounded-xl border border-brand-line bg-rose-50/30 px-3 py-2 text-xs">
                 <span className="text-muted-foreground">{t("total")}</span>{" "}
                 <span className="font-mono tabular-nums">
                   {f.currency(total, currency)}
@@ -620,7 +620,7 @@ export default function PlannerVendorProfilePage({
               <Button
                 disabled={request.isPending}
                 onClick={submit}
-                className="gap-1 bg-gradient-to-r from-rose-600 to-amber-500 text-white"
+                className="gap-1 bg-brand-gradient text-white"
               >
                 {request.isPending ? (
                   <Loader2 className="size-4 animate-spin" />

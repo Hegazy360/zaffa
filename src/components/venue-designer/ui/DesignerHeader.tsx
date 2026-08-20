@@ -217,7 +217,7 @@ export function DesignerHeader({
           ) : canApprove ? (
             <Button
               size="sm"
-              className="h-9 flex-1 gap-1.5 bg-gradient-to-r from-rose-600 to-amber-500 text-xs text-white hover:opacity-90 md:h-7 md:flex-none"
+              className="h-9 flex-1 gap-1.5 bg-brand-gradient text-xs text-white hover:opacity-90 md:h-7 md:flex-none"
               disabled={createFromDesign.isPending}
               onClick={() => createFromDesign.mutate({ designId })}
             >

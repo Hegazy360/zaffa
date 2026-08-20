@@ -22,7 +22,7 @@ export default async function SignUpPage() {
         <h1 className="font-display text-balance text-4xl font-light leading-[1.05] tracking-tight sm:text-5xl">
           {t("signUpHeadlinePart1")}{" "}
           <span className="italic">{t("signUpHeadlineItalic")}</span>{" "}
-          <span className="bg-gradient-to-br from-rose-600 via-rose-500 to-amber-500 bg-clip-text text-transparent">
+          <span className="text-brand-gradient">
             {t("signUpHeadlineHighlight")}
           </span>
         </h1>
@@ -40,7 +40,7 @@ export default async function SignUpPage() {
           entirely while the professional surfaces are off, since the
           destination 404s at the edge and linking to it would be a dead end. */}
       {isFlagEnabled("professionalSurfaces") ? (
-        <div className="rounded-2xl border border-rose-100/70 bg-white/70 p-4 text-sm backdrop-blur-sm dark:border-rose-900/30 dark:bg-card/60">
+        <div className="rounded-2xl border border-brand-line bg-white/70 p-4 text-sm backdrop-blur-sm dark:border-rose-900/30 dark:bg-card/60">
           <p className="text-muted-foreground">
             {t("areYouProfessional")}{" "}
             <Link

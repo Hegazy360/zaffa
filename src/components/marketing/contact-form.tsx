@@ -89,7 +89,7 @@ export function ContactForm({ kind }: ContactFormProps) {
   return (
     <form
       onSubmit={handleSubmit}
-      className="not-prose mt-8 space-y-5 rounded-2xl border border-rose-100/70 bg-white/80 p-6 backdrop-blur-sm"
+      className="not-prose mt-8 space-y-5 rounded-2xl border border-brand-line bg-white/80 p-6 backdrop-blur-sm"
       aria-label={t("formAriaLabel")}
     >
       <div className="grid gap-4 sm:grid-cols-2">
@@ -178,7 +178,7 @@ export function ContactForm({ kind }: ContactFormProps) {
           type="submit"
           size="lg"
           disabled={!canSubmit}
-          className="gap-2 bg-gradient-to-r from-rose-600 to-amber-500 text-white"
+          className="gap-2 bg-brand-gradient text-white"
         >
           {submit.isPending ? (
             <Loader2 className="size-4 animate-spin" aria-hidden />

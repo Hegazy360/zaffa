@@ -215,7 +215,7 @@ export default function SchedulePage() {
             </Button>
             <Button
               onClick={() => setBlockDialog({ mode: "create" })}
-              className="ms-auto gap-1.5 bg-gradient-to-r from-rose-600 to-amber-500 text-white sm:ms-0"
+              className="ms-auto gap-1.5 bg-brand-gradient text-white sm:ms-0"
             >
               <Plus className="size-4" />
               {t("blockDates")}
@@ -226,7 +226,7 @@ export default function SchedulePage() {
         {/* Mobile: agenda list view (the month grid is too dense for narrow viewports). */}
         <div className="md:hidden">
           {isLoading ? (
-            <div className="flex h-64 items-center justify-center rounded-2xl border border-rose-100/70 bg-white/70">
+            <div className="flex h-64 items-center justify-center rounded-2xl border border-brand-line bg-white/70">
               <Loader2 className="size-5 animate-spin text-rose-500" />
             </div>
           ) : (
@@ -249,9 +249,9 @@ export default function SchedulePage() {
         </div>
 
         {/* Desktop: full month grid. */}
-        <div className="hidden overflow-hidden rounded-2xl border border-rose-100/70 bg-white/70 backdrop-blur-sm md:block">
+        <div className="hidden overflow-hidden rounded-2xl border border-brand-line bg-white/70 backdrop-blur-sm md:block">
           {/* Weekday header */}
-          <div className="grid grid-cols-7 border-b border-rose-100/70 bg-rose-50/40 text-[10px] font-medium uppercase tracking-[0.2em] text-muted-foreground">
+          <div className="grid grid-cols-7 border-b border-brand-line bg-rose-50/40 text-[10px] font-medium uppercase tracking-[0.2em] text-muted-foreground">
             {WEEKDAY_KEYS.map((key) => (
               <div key={key} className="px-2 py-2 text-center">
                 {t(key)}
@@ -284,7 +284,7 @@ export default function SchedulePage() {
                   <div
                     key={d.toISOString()}
                     className={cn(
-                      "group relative min-h-[110px] border-b border-e border-rose-100/70 p-2 text-xs",
+                      "group relative min-h-[110px] border-b border-e border-brand-line p-2 text-xs",
                       !inMonth && "bg-stone-50/40 text-muted-foreground/70"
                     )}
                   >
@@ -518,7 +518,7 @@ function BlockForm({
         <Button
           type="submit"
           disabled={submitting}
-          className="bg-gradient-to-r from-rose-600 to-amber-500 text-white"
+          className="bg-brand-gradient text-white"
         >
           {submitting ? (
             <Loader2 className="me-2 size-4 animate-spin" />
@@ -600,8 +600,8 @@ function AgendaList({
   }
 
   return (
-    <div className="overflow-hidden rounded-2xl border border-rose-100/70 bg-white/70 backdrop-blur-sm">
-      <div className="border-b border-rose-100/70 bg-rose-50/40 px-4 py-2 text-[10px] font-medium uppercase tracking-[0.2em] text-muted-foreground">
+    <div className="overflow-hidden rounded-2xl border border-brand-line bg-white/70 backdrop-blur-sm">
+      <div className="border-b border-brand-line bg-rose-50/40 px-4 py-2 text-[10px] font-medium uppercase tracking-[0.2em] text-muted-foreground">
         {labels.title}
       </div>
       <ul className="divide-y divide-rose-100/70">

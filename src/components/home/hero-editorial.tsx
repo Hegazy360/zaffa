@@ -94,7 +94,7 @@ export function HeroEditorial({
           >
             {t("heroTitlePart1")}{" "}
             <span className="italic">{t("heroTitleItalic")}</span>{" "}
-            <span className="bg-gradient-to-br from-rose-600 via-rose-500 to-amber-500 bg-clip-text text-transparent">
+            <span className="text-brand-gradient">
               {t("heroTitleHighlight")}
             </span>
             {/* No separator space before the tail — it holds the sentence's
@@ -116,7 +116,7 @@ export function HeroEditorial({
         >
           {/* No aspect-ratio container: render the image at its natural shape
              (here 16:9 landscape) so it isn't cropped. */}
-          <div className="relative mx-auto w-full max-w-md overflow-hidden rounded-[1.5rem] shadow-xl shadow-rose-900/10 ring-1 ring-black/5 sm:rounded-[2rem] sm:shadow-2xl lg:max-w-none">
+          <div className="relative mx-auto w-full max-w-md overflow-hidden rounded-[1.5rem] shadow-glow-lg ring-1 ring-black/5 sm:rounded-[2rem] sm:shadow-2xl lg:max-w-none">
             <Image
               src={HERO_IMAGE}
               alt="An AI-rendered wedding venue example produced on the platform"

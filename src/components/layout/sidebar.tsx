@@ -278,7 +278,7 @@ export function Sidebar({ role }: SidebarProps) {
   const links = roleLinks[role];
 
   return (
-    <aside className="hidden min-h-[calc(100vh-4rem)] w-64 shrink-0 border-e border-rose-100/70 bg-gradient-to-b from-background via-rose-50/25 to-background lg:block">
+    <aside className="hidden min-h-[calc(100vh-4rem)] w-64 shrink-0 border-e border-brand-line bg-gradient-to-b from-background via-rose-50/25 to-background lg:block">
       <div className="relative isolate flex h-full flex-col px-5 py-6">
         <div
           aria-hidden
@@ -339,7 +339,7 @@ export function MobileSidebar({ role }: SidebarProps) {
   const links = roleLinks[role];
 
   return (
-    <div className="sticky top-16 z-30 mask-fade-x flex snap-x scroll-px-3 gap-2 overflow-x-auto border-b border-rose-100/60 bg-background/85 px-3 py-2.5 backdrop-blur-md lg:hidden">
+    <div className="sticky top-16 z-30 mask-fade-x flex snap-x scroll-px-3 gap-2 overflow-x-auto border-b border-brand-line bg-background/85 px-3 py-2.5 backdrop-blur-md lg:hidden">
       {links.map((link) => {
         const Icon = link.icon;
         const active = isLinkActive(pathname, link);
@@ -351,7 +351,7 @@ export function MobileSidebar({ role }: SidebarProps) {
               "flex shrink-0 snap-start items-center gap-2 whitespace-nowrap rounded-full px-3.5 py-2 text-xs transition-all",
               active
                 ? "bg-gradient-to-r from-rose-500 to-amber-500 font-medium text-white shadow-sm"
-                : "border border-rose-100/60 bg-white/70 text-muted-foreground"
+                : "border border-brand-line bg-white/70 text-muted-foreground"
             )}
           >
             <Icon className="h-4 w-4" />

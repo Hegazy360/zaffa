@@ -46,7 +46,7 @@ export function TierComparisonSection() {
       // is non-deterministic in screenshots — masked in the visual net.
       data-visual-mask
       aria-labelledby="tier-comparison-title"
-      className="relative isolate overflow-hidden border-y border-rose-100/70 bg-background"
+      className="relative isolate overflow-hidden border-y border-brand-line bg-background"
     >
       <div
         aria-hidden
@@ -129,12 +129,12 @@ function TierCard({ tier, idx, reduce }: TierCardProps) {
       className={cn(
         "relative flex flex-col overflow-hidden rounded-3xl border bg-white/90 p-7 dark:bg-card/80",
         isVision
-          ? "border-rose-300 shadow-xl shadow-rose-600/10 ring-1 ring-rose-200/60 dark:border-rose-700"
-          : "border-rose-100/70 dark:border-rose-900/30",
+          ? "border-rose-300 shadow-glow-lg ring-1 ring-rose-200/60 dark:border-rose-700"
+          : "border-brand-line dark:border-rose-900/30",
       )}
     >
       {isVision ? (
-        <span className="absolute end-6 top-6 rounded-full bg-gradient-to-r from-rose-600 to-amber-500 px-3 py-1 text-[10px] font-medium uppercase tracking-[0.18em] text-white">
+        <span className="absolute end-6 top-6 rounded-full bg-brand-gradient px-3 py-1 text-[10px] font-medium uppercase tracking-[0.18em] text-white">
           {t("tierBadgeMostPopular")}
         </span>
       ) : null}
@@ -208,7 +208,7 @@ function TierCard({ tier, idx, reduce }: TierCardProps) {
         )}
       </ul>
 
-      <div className="mt-7 pt-6 border-t border-rose-100/70 dark:border-rose-900/30">
+      <div className="mt-7 pt-6 border-t border-brand-line dark:border-rose-900/30">
         <Button
           type="button"
           size="lg"

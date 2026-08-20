@@ -30,7 +30,7 @@ export function ConciergePackageCard({ eventId }: { eventId: string }) {
   const dateFmt = (d: string | Date) => formatMoneyDate(d, locale);
 
   return (
-    <section className="rounded-2xl border border-rose-100 bg-white/70 p-5">
+    <section className="rounded-2xl border border-brand-line bg-white/70 p-5">
       <h2 className="font-display text-xl font-light tracking-tight">
         {t("packageTitle")}
       </h2>
@@ -79,7 +79,7 @@ export function ConciergePackageCard({ eventId }: { eventId: string }) {
                 {canPay && (
                   <Button
                     size="sm"
-                    className="gap-1.5 bg-gradient-to-r from-rose-600 to-amber-500 text-white"
+                    className="gap-1.5 bg-brand-gradient text-white"
                     render={
                       <a
                         href={p.payment_link_url!}

@@ -154,7 +154,7 @@ export function MarketplaceTeaser({
                   // so this number is about couple momentum, not supply.
                   count: data.total_active,
                   highlight: (chunks) => (
-                    <span className="bg-gradient-to-br from-rose-600 via-rose-500 to-amber-500 bg-clip-text text-transparent">
+                    <span className="text-brand-gradient">
                       {chunks}
                     </span>
                   ),
@@ -162,7 +162,7 @@ export function MarketplaceTeaser({
               : t.rich("signupTitle", {
                   count: data.total_open,
                   highlight: (chunks) => (
-                    <span className="bg-gradient-to-br from-rose-600 via-rose-500 to-amber-500 bg-clip-text text-transparent">
+                    <span className="text-brand-gradient">
                       {chunks}
                     </span>
                   ),
@@ -229,7 +229,7 @@ export function MarketplaceTeaser({
               <Button
                 size="lg"
                 render={<Link href="/venue-designer/new" />}
-                className="group h-12 gap-2 bg-gradient-to-r from-rose-600 to-amber-500 px-7 text-base text-white shadow-lg shadow-rose-600/20 transition-all hover:opacity-90 hover:shadow-rose-600/30"
+                className="group h-12 gap-2 bg-brand-gradient px-7 text-base text-white shadow-glow transition-all hover:opacity-90 hover:shadow-glow-lg"
               >
                 {t("homeCtaCouple")}
                 <ArrowRight className="h-4 w-4 transition-transform rtl:-scale-x-100 group-hover:translate-x-0.5 rtl:group-hover:-translate-x-0.5" />
@@ -290,7 +290,7 @@ function BriefCard({
   return (
     <article
       className={cn(
-        "group relative flex h-full flex-col overflow-hidden rounded-2xl border border-rose-100/70 bg-white/80 ring-1 ring-foreground/[0.04] backdrop-blur-sm transition-shadow hover:shadow-lg hover:shadow-rose-600/10 dark:border-rose-900/40 dark:bg-card/70",
+        "group relative flex h-full flex-col overflow-hidden rounded-2xl border border-brand-line bg-white/80 ring-1 ring-foreground/[0.04] backdrop-blur-sm transition-shadow hover:shadow-lg hover:shadow-glow-lg dark:border-rose-900/40 dark:bg-card/70",
       )}
     >
       <div

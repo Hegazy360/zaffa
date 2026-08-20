@@ -80,8 +80,8 @@ export default function VendorEarningsPage() {
           />
         </div>
 
-        <section className="rounded-2xl border border-rose-100/70 bg-white/85 backdrop-blur-sm">
-          <div className="border-b border-rose-100/70 px-5 py-3">
+        <section className="rounded-2xl border border-brand-line bg-white/85 backdrop-blur-sm">
+          <div className="border-b border-brand-line px-5 py-3">
             <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-rose-700/80">
               {t("pendingReleases")}
             </p>
@@ -144,8 +144,8 @@ export default function VendorEarningsPage() {
           )}
         </section>
 
-        <section className="rounded-2xl border border-rose-100/70 bg-white/85 backdrop-blur-sm">
-          <div className="border-b border-rose-100/70 px-5 py-3">
+        <section className="rounded-2xl border border-brand-line bg-white/85 backdrop-blur-sm">
+          <div className="border-b border-brand-line px-5 py-3">
             <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-rose-700/80">
               {t("paidReleases")}
             </p>
@@ -215,7 +215,7 @@ function Stat({
       className={
         tone === "rose"
           ? "rounded-2xl border border-rose-200 bg-gradient-to-br from-rose-50 to-amber-50/60 px-5 py-4"
-          : "rounded-2xl border border-rose-100/70 bg-white/80 px-5 py-4 backdrop-blur-sm"
+          : "rounded-2xl border border-brand-line bg-white/80 px-5 py-4 backdrop-blur-sm"
       }
     >
       <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-rose-700/80">

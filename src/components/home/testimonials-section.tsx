@@ -19,7 +19,7 @@ export async function TestimonialsSection() {
   const t = await getTranslations("marketing");
 
   return (
-    <section className="border-t border-rose-100/70 bg-background py-20 md:py-28">
+    <section className="border-t border-brand-line bg-background py-20 md:py-28">
       <div className="container mx-auto max-w-6xl px-4">
         <h2 className="font-display text-3xl font-light tracking-tight md:text-4xl">
           {t("testimonialsTitle")}
@@ -28,7 +28,7 @@ export async function TestimonialsSection() {
           {TESTIMONIALS.map((item) => (
             <li
               key={item.id}
-              className="rounded-2xl border border-rose-100 bg-white/70 p-6"
+              className="rounded-2xl border border-brand-line bg-white/70 p-6"
             >
               {/* `lang` and `dir` per quote: a quote given in Arabic stays
                   Arabic on the English page, and must still shape and align

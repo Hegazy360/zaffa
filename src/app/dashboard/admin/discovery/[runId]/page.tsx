@@ -109,8 +109,8 @@ export default function DiscoveryRunDetailPage({
         )}
       </header>
 
-      <section className="rounded-2xl border border-rose-100/70 bg-white/80">
-        <div className="border-b border-rose-100/70 px-5 py-3">
+      <section className="rounded-2xl border border-brand-line bg-white/80">
+        <div className="border-b border-brand-line px-5 py-3">
           <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-rose-700/80">
             {t("prospectsFromRun")}
           </p>

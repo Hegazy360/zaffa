@@ -113,8 +113,8 @@ export default function VendorDashboardPage() {
         </section>
 
         <section className="grid gap-6 lg:grid-cols-[2fr_1fr]">
-          <div className="rounded-2xl border border-rose-100/70 bg-white/80 backdrop-blur-sm">
-            <div className="flex items-center justify-between border-b border-rose-100/70 px-5 py-4">
+          <div className="rounded-2xl border border-brand-line bg-white/80 backdrop-blur-sm">
+            <div className="flex items-center justify-between border-b border-brand-line px-5 py-4">
               <div>
                 <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-rose-700/80">
                   {tSidebarLabel("inbox")}
@@ -176,8 +176,8 @@ export default function VendorDashboardPage() {
           </div>
 
           <div className="space-y-6">
-            <div className="rounded-2xl border border-rose-100/70 bg-white/80 backdrop-blur-sm">
-              <div className="border-b border-rose-100/70 px-5 py-4">
+            <div className="rounded-2xl border border-brand-line bg-white/80 backdrop-blur-sm">
+              <div className="border-b border-brand-line px-5 py-4">
                 <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-rose-700/80">
                   {tVendor("activeEngagementsLabel")}
                 </p>
@@ -207,8 +207,8 @@ export default function VendorDashboardPage() {
               )}
             </div>
 
-            <div className="rounded-2xl border border-rose-100/70 bg-white/80 backdrop-blur-sm">
-              <div className="border-b border-rose-100/70 px-5 py-4">
+            <div className="rounded-2xl border border-brand-line bg-white/80 backdrop-blur-sm">
+              <div className="border-b border-brand-line px-5 py-4">
                 <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-rose-700/80">
                   {tVendor("recentReviews")}
                 </p>
@@ -267,7 +267,7 @@ function Stat({
       className={
         tone === "rose"
           ? "rounded-2xl border border-rose-200 bg-gradient-to-br from-rose-50 to-amber-50/60 px-5 py-4"
-          : "rounded-2xl border border-rose-100/70 bg-white/80 px-5 py-4 backdrop-blur-sm"
+          : "rounded-2xl border border-brand-line bg-white/80 px-5 py-4 backdrop-blur-sm"
       }
     >
       <div className="flex items-center justify-between text-rose-700/80">

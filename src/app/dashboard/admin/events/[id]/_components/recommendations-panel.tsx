@@ -76,7 +76,7 @@ export function RecommendationsPanel({ eventId }: { eventId: string }) {
             return (
               <li
                 key={rec.id}
-                className="group flex flex-col gap-3 overflow-hidden rounded-2xl border border-rose-100/70 bg-white/80 p-4 backdrop-blur-sm sm:flex-row dark:border-rose-900/30 dark:bg-card/80"
+                className="group flex flex-col gap-3 overflow-hidden rounded-2xl border border-brand-line bg-white/80 p-4 backdrop-blur-sm sm:flex-row dark:border-rose-900/30 dark:bg-card/80"
               >
                 {cover ? (
                   <div className="relative h-32 w-full shrink-0 overflow-hidden rounded-xl bg-muted sm:size-32">
@@ -187,7 +187,7 @@ function RecommendDialog({ eventId }: { eventId: string }) {
         render={
           <Button
             size="sm"
-            className="h-8 gap-1.5 bg-gradient-to-r from-rose-600 to-amber-500 text-xs text-white hover:opacity-90"
+            className="h-8 gap-1.5 bg-brand-gradient text-xs text-white hover:opacity-90"
           />
         }
       >
@@ -298,7 +298,7 @@ function RecommendDialog({ eventId }: { eventId: string }) {
                 note: note.trim() || undefined,
               });
             }}
-            className="gap-1.5 bg-gradient-to-r from-rose-600 to-amber-500 text-white hover:opacity-90"
+            className="gap-1.5 bg-brand-gradient text-white hover:opacity-90"
           >
             {recommend.isPending ? (
               <Loader2 className="size-3.5 animate-spin" />

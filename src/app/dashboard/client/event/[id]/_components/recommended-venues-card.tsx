@@ -73,8 +73,8 @@ export function RecommendedVenuesCard({ eventId, packSku }: Props) {
   if (!enabled) return null;
 
   return (
-    <div className="overflow-hidden rounded-2xl border border-rose-100/70 bg-gradient-to-br from-rose-50/40 via-white/80 to-amber-50/30 backdrop-blur-sm dark:border-rose-900/30 dark:from-rose-950/20 dark:via-card/80 dark:to-amber-950/10">
-      <div className="flex items-center justify-between border-b border-rose-100/70 px-5 py-3 dark:border-rose-900/30">
+    <div className="overflow-hidden rounded-2xl border border-brand-line bg-gradient-to-br from-rose-50/40 via-white/80 to-amber-50/30 backdrop-blur-sm dark:border-rose-900/30 dark:from-rose-950/20 dark:via-card/80 dark:to-amber-950/10">
+      <div className="flex items-center justify-between border-b border-brand-line px-5 py-3 dark:border-rose-900/30">
         <div className="flex items-center gap-2">
           <Sparkles className="size-3.5 text-rose-500" />
           <h3 className="font-display text-base font-medium tracking-tight">
@@ -107,7 +107,7 @@ export function RecommendedVenuesCard({ eventId, packSku }: Props) {
               return (
                 <li
                   key={rec.id}
-                  className="flex flex-col overflow-hidden rounded-xl border border-rose-100/70 bg-white/90 dark:border-rose-900/30 dark:bg-card/80"
+                  className="flex flex-col overflow-hidden rounded-xl border border-brand-line bg-white/90 dark:border-rose-900/30 dark:bg-card/80"
                 >
                   {cover ? (
                     <div className="relative aspect-[4/3] w-full overflow-hidden bg-muted">
@@ -171,7 +171,7 @@ export function RecommendedVenuesCard({ eventId, packSku }: Props) {
                           "h-8 gap-1.5 text-xs " +
                           (isInterested
                             ? "bg-emerald-600 text-white hover:bg-emerald-600"
-                            : "bg-gradient-to-r from-rose-600 to-amber-500 text-white hover:opacity-90")
+                            : "bg-brand-gradient text-white hover:opacity-90")
                         }
                       >
                         {interested.isPending ? (

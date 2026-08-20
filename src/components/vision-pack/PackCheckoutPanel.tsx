@@ -126,7 +126,7 @@ export function PackCheckoutPanel({
                 "group rounded-xl border p-3 text-start transition-all " +
                 (active
                   ? "border-rose-400 bg-rose-50/60 shadow-sm ring-1 ring-rose-300 dark:border-rose-700 dark:bg-rose-950/30 dark:ring-rose-700"
-                  : "border-rose-100 bg-background hover:border-rose-200 dark:border-rose-900/40 dark:hover:border-rose-800")
+                  : "border-brand-line bg-background hover:border-rose-200 dark:border-rose-900/40 dark:hover:border-rose-800")
               }
             >
               <div className="text-[10px] font-semibold tracking-[0.18em] text-rose-700 uppercase dark:text-rose-300">
@@ -189,7 +189,7 @@ export function PackCheckoutPanel({
       {/* Stacking note + refund. Only relevant when planner match is
           part of the selected tier — Design Pack is a flat one-off
           with no marketplace fee. */}
-      <div className="px-6 py-4 border-t border-rose-100/70 bg-muted/30 text-xs text-muted-foreground leading-relaxed dark:border-rose-900/40">
+      <div className="px-6 py-4 border-t border-brand-line bg-muted/30 text-xs text-muted-foreground leading-relaxed dark:border-rose-900/40">
         {sku.includesPlannerMatch ? (
           <p>
             {t("stackingNote", {
@@ -209,7 +209,7 @@ export function PackCheckoutPanel({
           page (see `handleBuyClick`); permanent users go straight to
           Stripe. The label adapts so the visitor knows what'll happen
           next. */}
-      <div className="px-6 py-4 border-t border-rose-100/70 bg-background dark:border-rose-900/40 flex flex-col-reverse gap-2 sm:flex-row sm:items-center sm:justify-between">
+      <div className="px-6 py-4 border-t border-brand-line bg-background dark:border-rose-900/40 flex flex-col-reverse gap-2 sm:flex-row sm:items-center sm:justify-between">
         {onCancel ? (
           <Button
             type="button"
@@ -228,7 +228,7 @@ export function PackCheckoutPanel({
           size="lg"
           disabled={isPending}
           onClick={() => buy(selectedSku)}
-          className="h-11 gap-2 bg-gradient-to-r from-rose-600 to-amber-500 px-5 text-white shadow-lg shadow-rose-500/20 hover:opacity-90"
+          className="h-11 gap-2 bg-brand-gradient px-5 text-white shadow-glow hover:opacity-90"
         >
           {isPending ? (
             <>

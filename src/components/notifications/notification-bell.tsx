@@ -75,7 +75,7 @@ export function NotificationBell({ userId }: { userId: string }) {
         sideOffset={10}
         className="w-96 max-w-[calc(100vw-2rem)] p-0"
       >
-        <div className="flex items-center justify-between border-b border-rose-100/70 px-4 py-3">
+        <div className="flex items-center justify-between border-b border-brand-line px-4 py-3">
           <div>
             <p className="text-sm font-medium">{t("title")}</p>
             {unread > 0 && (
@@ -154,7 +154,7 @@ export function NotificationBell({ userId }: { userId: string }) {
           )}
         </div>
 
-        <div className="border-t border-rose-100/70 p-2">
+        <div className="border-t border-brand-line p-2">
           <Link
             href="/dashboard/notifications"
             className="block rounded-lg px-3 py-2 text-center text-xs font-medium text-rose-700 transition-colors hover:bg-rose-50"

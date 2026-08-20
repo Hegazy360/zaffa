@@ -183,7 +183,7 @@ function Screenshot({ screenshot, suggestedFilename, altKey }: ScreenshotProps) 
     // aspect — no 16:10 box, no cropping. `max-h-[640px]` caps the portrait
     // step 4 so it doesn't dominate the rest of the section vertically.
     return (
-      <div className="overflow-hidden rounded-2xl border border-rose-100/70 bg-white/70 shadow-xl shadow-rose-900/10 ring-1 ring-foreground/[0.04] backdrop-blur-sm dark:border-rose-900/40 dark:bg-card/70">
+      <div className="overflow-hidden rounded-2xl border border-brand-line bg-white/70 shadow-glow-lg ring-1 ring-foreground/[0.04] backdrop-blur-sm dark:border-rose-900/40 dark:bg-card/70">
         <Image
           src={screenshot.src}
           alt={t(altKey)}

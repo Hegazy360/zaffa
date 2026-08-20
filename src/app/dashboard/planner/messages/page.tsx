@@ -55,7 +55,7 @@ export default function PlannerMessagesPage() {
             </p>
             <Button
               render={<Link href="/dashboard/planner/marketplace" />}
-              className="mt-6 h-10 gap-2 bg-gradient-to-r from-rose-600 to-amber-500 px-5 text-white shadow-md shadow-rose-500/20 hover:opacity-90"
+              className="mt-6 h-10 gap-2 bg-brand-gradient px-5 text-white shadow-glow-sm hover:opacity-90"
             >
               {t("browseMarketplace")}
               <ArrowRight className="size-4 rtl:-scale-x-100" />
@@ -67,7 +67,7 @@ export default function PlannerMessagesPage() {
               <li key={row.id}>
                 <Link
                   href={`/dashboard/planner/event/${row.id}?tab=messages`}
-                  className="group flex items-center gap-4 rounded-2xl border border-rose-100/70 bg-white/80 p-4 backdrop-blur-sm transition-all hover:-translate-y-0.5 hover:shadow-[0_15px_40px_-20px_rgba(244,63,94,0.25)]"
+                  className="group flex items-center gap-4 rounded-2xl border border-brand-line bg-white/80 p-4 backdrop-blur-sm transition-all hover:-translate-y-0.5 hover:shadow-[0_15px_40px_-20px_rgba(244,63,94,0.25)]"
                 >
                   <div className="size-16 shrink-0 overflow-hidden rounded-xl bg-gradient-to-br from-rose-50 to-amber-50/60">
                     {row.thumbnail ? (

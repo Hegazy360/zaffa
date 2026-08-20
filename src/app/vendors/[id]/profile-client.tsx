@@ -131,7 +131,7 @@ export default function PublicVendorProfilePage() {
               )}
             </div>
             <div className="md:col-span-4">
-              <div className="overflow-hidden rounded-2xl border border-rose-100/70 bg-white/80 backdrop-blur-sm">
+              <div className="overflow-hidden rounded-2xl border border-brand-line bg-white/80 backdrop-blur-sm">
                 <div className="relative aspect-[4/3] bg-gradient-to-br from-rose-100 to-amber-100">
                   {vendor.profile.avatar_url ? (
                     // eslint-disable-next-line @next/next/no-img-element
@@ -162,7 +162,7 @@ export default function PublicVendorProfilePage() {
                 {vendor.services.map((s) => (
                   <article
                     key={s.id}
-                    className="rounded-2xl border border-rose-100/70 bg-white/80 p-5 backdrop-blur-sm"
+                    className="rounded-2xl border border-brand-line bg-white/80 p-5 backdrop-blur-sm"
                   >
                     <div className="flex items-start justify-between gap-3">
                       <div className="min-w-0">
@@ -205,7 +205,7 @@ export default function PublicVendorProfilePage() {
                 {vendor.portfolio_items.map((item) => (
                   <article
                     key={item.id}
-                    className="group overflow-hidden rounded-2xl border border-rose-100/70 bg-white/80 backdrop-blur-sm"
+                    className="group overflow-hidden rounded-2xl border border-brand-line bg-white/80 backdrop-blur-sm"
                   >
                     <div className="relative aspect-[4/3] overflow-hidden bg-gradient-to-br from-rose-50 to-amber-50/60">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -254,7 +254,7 @@ export default function PublicVendorProfilePage() {
                 {vendor.reviews.map((r) => (
                   <article
                     key={r.id}
-                    className="rounded-2xl border border-rose-100/70 bg-white/80 p-5 backdrop-blur-sm"
+                    className="rounded-2xl border border-brand-line bg-white/80 p-5 backdrop-blur-sm"
                   >
                     <div className="flex items-center gap-3">
                       {r.author.avatar_url ? (

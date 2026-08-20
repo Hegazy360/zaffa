@@ -196,7 +196,7 @@ export default function VenueDesignerGalleryPage() {
             <Button
               size="lg"
               onClick={() => router.push("/venue-designer/new")}
-              className="h-11 gap-2 bg-gradient-to-r from-rose-600 to-amber-500 px-5 text-white shadow-lg shadow-rose-500/20 hover:opacity-90 hover:shadow-rose-500/30"
+              className="h-11 gap-2 bg-brand-gradient px-5 text-white shadow-glow hover:opacity-90 hover:shadow-glow-lg"
             >
               <Plus className="size-4" />
               {t("newDesign")}
@@ -234,7 +234,7 @@ export default function VenueDesignerGalleryPage() {
                 onClick={() =>
                   paywall.open({ returnPath: "/venue-designer/new" })
                 }
-                className="h-11 gap-2 bg-gradient-to-r from-rose-600 to-amber-500 px-5 text-white shadow-lg shadow-rose-500/20 hover:opacity-90"
+                className="h-11 gap-2 bg-brand-gradient px-5 text-white shadow-glow hover:opacity-90"
               >
                 <Sparkles className="size-4" />
                 {tv("buyCtaShort", { price: pricing.label })}
@@ -285,7 +285,7 @@ export default function VenueDesignerGalleryPage() {
             <Button
               size="lg"
               onClick={() => router.push("/venue-designer/new")}
-              className="mt-7 h-11 gap-2 bg-gradient-to-r from-rose-600 to-amber-500 px-5 text-white shadow-lg shadow-rose-500/20 hover:opacity-90"
+              className="mt-7 h-11 gap-2 bg-brand-gradient px-5 text-white shadow-glow hover:opacity-90"
             >
               <Plus className="size-4" />
               {t("createFirstDesign")}
@@ -418,7 +418,7 @@ export default function VenueDesignerGalleryPage() {
                           approveMutation.variables?.designId === design.id
                         }
                         onClick={(e) => handleApprove(e, design.id)}
-                        className="inline-flex w-full items-center justify-center gap-1.5 rounded-lg bg-gradient-to-r from-rose-600 to-amber-500 px-3 py-1.5 text-xs font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-60"
+                        className="inline-flex w-full items-center justify-center gap-1.5 rounded-lg bg-brand-gradient px-3 py-1.5 text-xs font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-60"
                       >
                         {approveMutation.isPending &&
                         approveMutation.variables?.designId === design.id ? (

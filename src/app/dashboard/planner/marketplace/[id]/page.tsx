@@ -231,7 +231,7 @@ export default function BriefDetailPage() {
         <div className="grid gap-8 lg:grid-cols-12">
           {/* Design */}
           <section className="space-y-6 lg:col-span-7">
-            <div className="overflow-hidden rounded-2xl border border-rose-100/70 bg-white/70 backdrop-blur-sm">
+            <div className="overflow-hidden rounded-2xl border border-brand-line bg-white/70 backdrop-blur-sm">
               <div className="relative aspect-[4/3] bg-gradient-to-br from-rose-50 to-amber-50/60">
                 {heroImage ? (
                   // eslint-disable-next-line @next/next/no-img-element
@@ -256,7 +256,7 @@ export default function BriefDetailPage() {
                       {palette.map((c) => (
                         <div
                           key={c}
-                          className="flex items-center gap-2 rounded-full border border-rose-100/70 bg-white px-2 py-1 text-[11px]"
+                          className="flex items-center gap-2 rounded-full border border-brand-line bg-white px-2 py-1 text-[11px]"
                         >
                           <span
                             className="block size-3 rounded-full ring-1 ring-foreground/10"
@@ -333,7 +333,7 @@ export default function BriefDetailPage() {
           {/* Brief facts + proposal */}
           <aside className="lg:col-span-5">
             <div className="space-y-5">
-              <div className="rounded-2xl border border-rose-100/70 bg-white/70 p-5 backdrop-blur-sm">
+              <div className="rounded-2xl border border-brand-line bg-white/70 p-5 backdrop-blur-sm">
                 <p className="mb-3 text-[10px] font-medium uppercase tracking-[0.2em] text-muted-foreground">
                   {t("brief")}
                 </p>
@@ -363,7 +363,7 @@ export default function BriefDetailPage() {
                 </dl>
               </div>
 
-              <div className="rounded-2xl border border-rose-100/70 bg-white/70 p-5 backdrop-blur-sm">
+              <div className="rounded-2xl border border-brand-line bg-white/70 p-5 backdrop-blur-sm">
                 {myProposal ? (
                   <MyProposalState
                     proposal={myProposal}
@@ -483,7 +483,7 @@ function MyProposalState({
               )
             : [];
           return (
-            <div className="overflow-hidden rounded-xl border border-rose-100/70 bg-white/60">
+            <div className="overflow-hidden rounded-xl border border-brand-line bg-white/60">
               <div className="flex items-center justify-between gap-3 px-3 py-2.5">
                 <span className="text-[10px] font-medium uppercase tracking-[0.2em] text-muted-foreground">
                   {t("quote")}
@@ -493,7 +493,7 @@ function MyProposalState({
                 </span>
               </div>
               {breakdown.length > 0 && (
-                <div className="border-t border-rose-100/70 bg-rose-50/30 px-3 py-2">
+                <div className="border-t border-brand-line bg-rose-50/30 px-3 py-2">
                   <p className="mb-1.5 text-[10px] font-medium uppercase tracking-[0.2em] text-rose-700/80">
                     {t("breakdown")}
                   </p>
@@ -589,7 +589,7 @@ function ProposeDialog({
         </p>
         <DialogTrigger
           render={
-            <Button className="bg-gradient-to-r from-rose-600 to-amber-500 text-white" />
+            <Button className="bg-brand-gradient text-white" />
           }
         >
           <Send className="me-2 size-4" />
@@ -965,7 +965,7 @@ function ProposalForm({
         ))}
       </div>
 
-      <div className="space-y-3 rounded-2xl border border-rose-100/70 bg-rose-50/40 p-4">
+      <div className="space-y-3 rounded-2xl border border-brand-line bg-rose-50/40 p-4">
         <div>
           <Label className="text-sm">{t("paymentPlan")}</Label>
           <p className="mt-0.5 text-xs text-muted-foreground">
@@ -983,7 +983,7 @@ function ProposalForm({
                 onClick={() => applyTemplate(key)}
                 className={
                   template === key
-                    ? "h-7 bg-gradient-to-r from-rose-600 to-amber-500 text-white"
+                    ? "h-7 bg-brand-gradient text-white"
                     : "h-7"
                 }
               >
@@ -1079,7 +1079,7 @@ function ProposalForm({
         )}
 
         {installmentTotal > 0 && (
-          <div className="rounded-xl border border-rose-100/70 bg-white/80 px-3 py-2 text-xs">
+          <div className="rounded-xl border border-brand-line bg-white/80 px-3 py-2 text-xs">
             <p className="mb-1 text-[10px] font-medium uppercase tracking-[0.2em] text-rose-700/80">
               {t("takeHomePreview")}
             </p>
@@ -1098,7 +1098,7 @@ function ProposalForm({
                   − {f.currency(feeAmount, currency)}
                 </span>
               </li>
-              <li className="flex justify-between border-t border-rose-100/60 pt-1 font-medium">
+              <li className="flex justify-between border-t border-brand-line pt-1 font-medium">
                 <span>{t("yourTakeHome")}</span>
                 <span className="font-mono tabular-nums">
                   {f.currency(takeHome, currency)}
@@ -1113,7 +1113,7 @@ function ProposalForm({
         <Button
           type="submit"
           disabled={submitting}
-          className="bg-gradient-to-r from-rose-600 to-amber-500 text-white"
+          className="bg-brand-gradient text-white"
         >
           {submitting ? (
             <Loader2 className="me-2 size-4 animate-spin" />

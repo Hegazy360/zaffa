@@ -159,7 +159,7 @@ export function EnquireWizard({
             className={cn(
               "h-1 flex-1 rounded-full transition-colors",
               i <= step
-                ? "bg-gradient-to-r from-rose-600 to-amber-500"
+                ? "bg-brand-gradient"
                 : "bg-rose-100 dark:bg-rose-900/30",
             )}
           />
@@ -234,7 +234,7 @@ export function EnquireWizard({
                       "rounded-full border px-4 py-2 text-sm transition-colors",
                       guests === g
                         ? "border-rose-300 bg-rose-50 text-rose-700"
-                        : "border-rose-100 hover:border-rose-200",
+                        : "border-brand-line hover:border-rose-200",
                     )}
                   >
                     {t(
@@ -260,7 +260,7 @@ export function EnquireWizard({
           <p className="mt-2 text-sm text-muted-foreground">{t("step2Hint")}</p>
 
           {designId && (
-            <p className="mt-4 rounded-2xl border border-rose-100 bg-rose-50/60 px-4 py-3 text-sm text-rose-800">
+            <p className="mt-4 rounded-2xl border border-brand-line bg-rose-50/60 px-4 py-3 text-sm text-rose-800">
               {t("designAttached")}
             </p>
           )}
@@ -276,7 +276,7 @@ export function EnquireWizard({
                   "rounded-2xl border px-4 py-3 text-start text-sm transition-colors",
                   budgetBand === b.id
                     ? "border-rose-300 bg-rose-50 text-rose-800"
-                    : "border-rose-100 hover:border-rose-200",
+                    : "border-brand-line hover:border-rose-200",
                 )}
               >
                 <bdi>{bandLabel(b)}</bdi>
@@ -290,7 +290,7 @@ export function EnquireWizard({
                 "rounded-2xl border px-4 py-3 text-start text-sm text-muted-foreground transition-colors",
                 budgetBand === "unspecified"
                   ? "border-rose-300 bg-rose-50"
-                  : "border-rose-100 hover:border-rose-200",
+                  : "border-brand-line hover:border-rose-200",
               )}
             >
               {t("budgetSkip")}
@@ -372,7 +372,7 @@ export function EnquireWizard({
                       "rounded-full border px-4 py-2 text-sm transition-colors",
                       channel === c
                         ? "border-rose-300 bg-rose-50 text-rose-700"
-                        : "border-rose-100 hover:border-rose-200",
+                        : "border-brand-line hover:border-rose-200",
                     )}
                   >
                     {t(
@@ -435,7 +435,7 @@ export function EnquireWizard({
             type="button"
             size="lg"
             onClick={() => setStep((s) => s + 1)}
-            className="group h-12 flex-1 gap-2 bg-gradient-to-r from-rose-600 to-amber-500 text-white sm:flex-none sm:px-8"
+            className="group h-12 flex-1 gap-2 bg-brand-gradient text-white sm:flex-none sm:px-8"
           >
             {t("next")}
             <ArrowRight className="size-4 transition-transform rtl:-scale-x-100 group-hover:translate-x-0.5 rtl:group-hover:-translate-x-0.5" />
@@ -446,7 +446,7 @@ export function EnquireWizard({
             size="lg"
             disabled={!canSubmit || submit.isPending}
             onClick={handleSubmit}
-            className="group h-12 flex-1 gap-2 bg-gradient-to-r from-rose-600 to-amber-500 text-white sm:flex-none sm:px-8"
+            className="group h-12 flex-1 gap-2 bg-brand-gradient text-white sm:flex-none sm:px-8"
           >
             {submit.isPending ? (
               <>

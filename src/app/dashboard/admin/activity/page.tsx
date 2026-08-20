@@ -59,7 +59,7 @@ export default function AdminActivityPage() {
               className={`rounded-full border px-3 py-1.5 text-xs font-medium transition-all ${
                 active
                   ? "border-rose-300 bg-gradient-to-r from-rose-500 to-amber-500 text-white shadow-sm"
-                  : "border-rose-100/70 bg-white/70 text-muted-foreground hover:bg-white"
+                  : "border-brand-line bg-white/70 text-muted-foreground hover:bg-white"
               }`}
             >
               {t(`activityType.${type}`)}
@@ -68,7 +68,7 @@ export default function AdminActivityPage() {
         })}
       </div>
 
-      <div className="rounded-2xl border border-rose-100/70 bg-white/80">
+      <div className="rounded-2xl border border-brand-line bg-white/80">
         {list.isLoading ? (
           <div className="flex h-40 items-center justify-center">
             <Loader2 className="size-5 animate-spin text-rose-500" />

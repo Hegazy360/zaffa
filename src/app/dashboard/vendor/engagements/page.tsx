@@ -62,7 +62,7 @@ export default function VendorEngagementsListPage() {
         </header>
 
         {items.length === 0 ? (
-          <div className="rounded-2xl border border-rose-100/70 bg-white/70 p-12 text-center backdrop-blur-sm">
+          <div className="rounded-2xl border border-brand-line bg-white/70 p-12 text-center backdrop-blur-sm">
             <Briefcase className="mx-auto mb-3 size-8 text-rose-500" />
             <p className="font-display text-xl font-light tracking-tight">
               {t("noEngagementsYet")}
@@ -76,7 +76,7 @@ export default function VendorEngagementsListPage() {
             {items.map((e) => (
               <li
                 key={e.id}
-                className="overflow-hidden rounded-2xl border border-rose-100/70 bg-white/85 backdrop-blur-sm"
+                className="overflow-hidden rounded-2xl border border-brand-line bg-white/85 backdrop-blur-sm"
               >
                 <Link
                   href={`/dashboard/vendor/engagements/${e.id}`}

@@ -118,7 +118,7 @@ export default function MarketplacePage() {
         </header>
 
         {/* Filters */}
-        <div className="mb-8 flex flex-wrap items-center gap-3 rounded-2xl border border-rose-100/70 bg-white/70 p-3 backdrop-blur-sm">
+        <div className="mb-8 flex flex-wrap items-center gap-3 rounded-2xl border border-brand-line bg-white/70 p-3 backdrop-blur-sm">
           <span className="ms-2 text-[10px] font-medium uppercase tracking-[0.2em] text-muted-foreground">
             {t("filter")}
           </span>
@@ -144,7 +144,7 @@ export default function MarketplacePage() {
               "flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs transition-all",
               hasBudget
                 ? "border-rose-300 bg-rose-50 text-rose-700"
-                : "border-rose-100 bg-transparent text-muted-foreground hover:bg-rose-50/40"
+                : "border-brand-line bg-transparent text-muted-foreground hover:bg-rose-50/40"
             )}
           >
             {hasBudget && <Check className="size-3" />}
@@ -191,7 +191,7 @@ export default function MarketplacePage() {
                 <Link
                   key={brief.id}
                   href={`/dashboard/planner/marketplace/${brief.id}`}
-                  className="group relative flex flex-col overflow-hidden rounded-2xl border border-rose-100/70 bg-white/80 backdrop-blur-sm ring-1 ring-foreground/[0.04] transition-all hover:-translate-y-0.5 hover:shadow-[0_20px_50px_-20px_rgba(244,63,94,0.25)]"
+                  className="group relative flex flex-col overflow-hidden rounded-2xl border border-brand-line bg-white/80 backdrop-blur-sm ring-1 ring-foreground/[0.04] transition-all hover:-translate-y-0.5 hover:shadow-[0_20px_50px_-20px_rgba(244,63,94,0.25)]"
                 >
                   <div className="relative aspect-[4/3] overflow-hidden bg-gradient-to-br from-rose-50 to-amber-50/60">
                     {heroImage ? (
@@ -252,7 +252,7 @@ export default function MarketplacePage() {
                         )}
                       </div>
                     </div>
-                    <div className="mt-4 flex items-baseline justify-between gap-3 border-t border-rose-100/70 pt-3">
+                    <div className="mt-4 flex items-baseline justify-between gap-3 border-t border-brand-line pt-3">
                       <span className="text-[10px] font-medium uppercase tracking-[0.18em] text-muted-foreground">
                         {t("budget")}
                       </span>
@@ -300,7 +300,7 @@ function EmptyState({
       {ctaHref && ctaLabel && (
         <Button
           render={<Link href={ctaHref} />}
-          className="mt-6 h-10 gap-2 bg-gradient-to-r from-rose-600 to-amber-500 px-5 text-white shadow-md shadow-rose-500/20 hover:opacity-90"
+          className="mt-6 h-10 gap-2 bg-brand-gradient px-5 text-white shadow-glow-sm hover:opacity-90"
         >
           {ctaLabel}
           <ArrowRight className="size-4 rtl:-scale-x-100" />

@@ -158,12 +158,12 @@ export function InspirationBoard({
   return (
     <section
       className={cn(
-        "overflow-hidden rounded-2xl border border-rose-100/70 bg-white/80 backdrop-blur-sm",
+        "overflow-hidden rounded-2xl border border-brand-line bg-white/80 backdrop-blur-sm",
         className,
       )}
       aria-label={t("sectionAria")}
     >
-      <header className="flex flex-wrap items-start justify-between gap-3 border-b border-rose-100/70 px-5 py-4">
+      <header className="flex flex-wrap items-start justify-between gap-3 border-b border-brand-line px-5 py-4">
         <div className="min-w-0">
           <p className="text-[0.65rem] font-medium uppercase tracking-[0.3em] text-rose-700/80">
             {t("eyebrow")}
@@ -292,7 +292,7 @@ export function InspirationBoard({
                 />
               </div>
               {(lightbox.ref.attribution || lightbox.ref.sourceUrl) && (
-                <div className="flex flex-wrap items-center justify-between gap-2 border-t border-rose-100/70 bg-rose-50/40 px-5 py-3 text-xs">
+                <div className="flex flex-wrap items-center justify-between gap-2 border-t border-brand-line bg-rose-50/40 px-5 py-3 text-xs">
                   <span className="text-muted-foreground">
                     {lightbox.ref.attribution ?? t("sourcedFromGeneric")}
                   </span>

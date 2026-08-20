@@ -331,7 +331,7 @@ export function Microsite({
             <div className="space-y-12">
               {populatedCategories.map((cat) => (
                 <div key={cat}>
-                  <div className="mb-4 flex items-baseline justify-between gap-3 border-b border-rose-100/80 pb-2 dark:border-rose-900/40">
+                  <div className="mb-4 flex items-baseline justify-between gap-3 border-b border-brand-line pb-2 dark:border-rose-900/40">
                     <h3 className="font-display text-lg font-light tracking-tight sm:text-xl">
                       {tDesigner(CATEGORY_LABEL_KEYS[cat])}
                     </h3>
@@ -385,7 +385,7 @@ export function Microsite({
               <Button
                 render={<Link href="/venue-designer" />}
                 size="lg"
-                className="h-11 gap-2 bg-gradient-to-r from-rose-600 to-amber-500 px-5 text-white shadow-lg shadow-rose-500/20 hover:opacity-90"
+                className="h-11 gap-2 bg-brand-gradient px-5 text-white shadow-glow hover:opacity-90"
               >
                 {t("micrositeCreateYoursCta", { price: visionPackPriceLabel })}
                 <ArrowRight className="size-4 rtl:-scale-x-100" />

@@ -94,7 +94,7 @@ export default function NotificationsInboxPage() {
           </div>
         </header>
 
-        <div className="mb-4 inline-flex rounded-full border border-rose-100/70 bg-white/70 p-1 backdrop-blur-sm">
+        <div className="mb-4 inline-flex rounded-full border border-brand-line bg-white/70 p-1 backdrop-blur-sm">
           <TabButton
             active={tab === "all"}
             onClick={() => setTab("all")}
@@ -108,7 +108,7 @@ export default function NotificationsInboxPage() {
           />
         </div>
 
-        <section className="overflow-hidden rounded-2xl border border-rose-100/70 bg-white/80 backdrop-blur-sm">
+        <section className="overflow-hidden rounded-2xl border border-brand-line bg-white/80 backdrop-blur-sm">
           {query.isLoading ? (
             <div className="flex items-center justify-center py-16">
               <Loader2 className="size-5 animate-spin text-rose-500" />
@@ -207,7 +207,7 @@ function TabButton({
       className={cn(
         "inline-flex items-center gap-1.5 rounded-full px-4 py-1.5 text-sm transition-colors",
         active
-          ? "bg-gradient-to-r from-rose-600 to-amber-500 text-white shadow-sm"
+          ? "bg-brand-gradient text-white shadow-sm"
           : "text-muted-foreground hover:text-foreground",
       )}
     >

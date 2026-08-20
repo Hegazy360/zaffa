@@ -98,7 +98,7 @@ export function VisionPackBuyCta({
   const pricing = useVisionPackPricing();
   const className =
     variant === "primary"
-      ? "gap-2 bg-gradient-to-r from-rose-600 to-amber-500 text-white shadow-lg shadow-rose-500/20 hover:opacity-90"
+      ? "gap-2 bg-brand-gradient text-white shadow-glow hover:opacity-90"
       : "gap-2";
   return (
     <Button

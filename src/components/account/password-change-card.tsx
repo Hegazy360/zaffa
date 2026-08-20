@@ -79,7 +79,7 @@ export function PasswordChangeCard({ email }: PasswordChangeCardProps) {
   return (
     <form
       onSubmit={handleSubmit}
-      className="rounded-2xl border border-rose-100/70 bg-white/70 p-4 backdrop-blur-sm dark:border-rose-900/30 dark:bg-card/70"
+      className="rounded-2xl border border-brand-line bg-white/70 p-4 backdrop-blur-sm dark:border-rose-900/30 dark:bg-card/70"
     >
       <div className="mb-3 flex items-center gap-2">
         <KeyRound className="size-4 text-rose-700" aria-hidden />
@@ -136,7 +136,7 @@ export function PasswordChangeCard({ email }: PasswordChangeCardProps) {
           type="submit"
           size="sm"
           disabled={busy}
-          className="gap-1.5 bg-gradient-to-r from-rose-600 to-amber-500 text-white"
+          className="gap-1.5 bg-brand-gradient text-white"
         >
           {busy ? <Loader2 className="size-3.5 animate-spin" /> : null}
           {t("savePassword")}

@@ -106,7 +106,7 @@ export function ResetPasswordForm() {
               aria-hidden
               className="absolute inset-0 -m-2 rounded-full bg-gradient-to-br from-rose-500/30 to-amber-500/30 blur-xl"
             />
-            <div className="relative flex size-20 items-center justify-center rounded-full bg-gradient-to-br from-rose-500 to-amber-500 text-white shadow-lg shadow-rose-500/30 ring-1 ring-white/40">
+            <div className="relative flex size-20 items-center justify-center rounded-full bg-gradient-to-br from-rose-500 to-amber-500 text-white shadow-glow ring-1 ring-white/40">
               <CheckCircle2 className="size-9" aria-hidden />
             </div>
           </div>
@@ -144,7 +144,7 @@ export function ResetPasswordForm() {
         <Button
           render={<Link href="/auth/forgot-password" />}
           size="lg"
-          className="group h-11 w-full gap-2 bg-gradient-to-r from-rose-600 to-amber-500 text-white shadow-lg shadow-rose-600/20 transition-all hover:opacity-90 hover:shadow-rose-600/30"
+          className="group h-11 w-full gap-2 bg-brand-gradient text-white shadow-glow transition-all hover:opacity-90 hover:shadow-glow-lg"
         >
           {t("resetRequestNew")}
           <ArrowRight className="size-4 transition-transform rtl:-scale-x-100 group-hover:translate-x-0.5 rtl:group-hover:-translate-x-0.5" />
@@ -206,7 +206,7 @@ export function ResetPasswordForm() {
         type="submit"
         size="lg"
         disabled={loading}
-        className="group h-11 w-full gap-2 bg-gradient-to-r from-rose-600 to-amber-500 text-white shadow-lg shadow-rose-600/20 transition-all hover:opacity-90 hover:shadow-rose-600/30"
+        className="group h-11 w-full gap-2 bg-brand-gradient text-white shadow-glow transition-all hover:opacity-90 hover:shadow-glow-lg"
       >
         {loading ? t("resetUpdatingPassword") : t("resetUpdatePassword")}
         {!loading && (

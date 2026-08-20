@@ -84,7 +84,7 @@ export default function VendorInboxPage() {
         </header>
 
         {pending.length === 0 && others.length === 0 ? (
-          <div className="rounded-2xl border border-rose-100/70 bg-white/70 p-12 text-center backdrop-blur-sm">
+          <div className="rounded-2xl border border-brand-line bg-white/70 p-12 text-center backdrop-blur-sm">
             <InboxIcon className="mx-auto mb-3 size-8 text-rose-500" />
             <p className="font-display text-xl font-light tracking-tight">
               {t("inboxZero")}
@@ -186,8 +186,8 @@ function EngagementCard({
   const t = useTranslations("vendor");
   const status = engagement.status;
   return (
-    <li className="overflow-hidden rounded-2xl border border-rose-100/70 bg-white/85 backdrop-blur-sm">
-      <div className="flex flex-wrap items-start justify-between gap-3 border-b border-rose-100/70 px-5 py-4">
+    <li className="overflow-hidden rounded-2xl border border-brand-line bg-white/85 backdrop-blur-sm">
+      <div className="flex flex-wrap items-start justify-between gap-3 border-b border-brand-line px-5 py-4">
         <div className="min-w-0 space-y-1">
           <Link
             href={`/dashboard/vendor/engagements/${engagement.id}`}
@@ -224,7 +224,7 @@ function EngagementCard({
             {engagement.notes}
           </p>
         )}
-        <ul className="divide-y divide-rose-100/70 rounded-xl border border-rose-100/70">
+        <ul className="divide-y divide-rose-100/70 rounded-xl border border-brand-line">
           {engagement.items.map((i) => (
             <li
               key={i.id}
@@ -266,7 +266,7 @@ function EngagementCard({
               size="sm"
               disabled={pending}
               onClick={onAccept}
-              className="gap-1 bg-gradient-to-r from-rose-600 to-amber-500 text-white"
+              className="gap-1 bg-brand-gradient text-white"
             >
               {pending ? (
                 <Loader2 className="size-3.5 animate-spin" />

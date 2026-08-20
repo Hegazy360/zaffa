@@ -19,7 +19,7 @@ export function LegalPage({ eyebrow, title, updated, children }: LegalPageProps)
       <Navbar />
       <main className="flex-1">
         <article className="mx-auto max-w-3xl px-4 py-16 sm:px-6 sm:py-24">
-          <header className="mb-10 border-b border-rose-100/70 pb-6">
+          <header className="mb-10 border-b border-brand-line pb-6">
             <p className="mb-2 text-[0.65rem] font-medium uppercase tracking-[0.3em] text-rose-700/80">
               {eyebrow}
             </p>

@@ -127,7 +127,7 @@ export default function AdminVisionPacksPage() {
         </div>
       </div>
 
-      <div className="rounded-2xl border border-rose-100/70 bg-white/80 backdrop-blur-sm">
+      <div className="rounded-2xl border border-brand-line bg-white/80 backdrop-blur-sm">
         {list.isLoading ? (
           <div className="flex h-32 items-center justify-center">
             <Loader2 className="size-5 animate-spin text-rose-500" />
@@ -145,7 +145,7 @@ export default function AdminVisionPacksPage() {
         )}
 
         {list.hasNextPage ? (
-          <div className="border-t border-rose-100/70 px-5 py-4 text-center">
+          <div className="border-t border-brand-line px-5 py-4 text-center">
             <Button
               variant="outline"
               size="sm"
@@ -251,7 +251,7 @@ function PackRow({ row }: { row: PackRowItem }) {
           <Link
             href={`/v/${row.microsite_slug}`}
             target="_blank"
-            className="inline-flex size-8 items-center justify-center rounded-md border border-rose-100/70 bg-white/80 text-rose-700 transition hover:bg-rose-50"
+            className="inline-flex size-8 items-center justify-center rounded-md border border-brand-line bg-white/80 text-rose-700 transition hover:bg-rose-50"
             title={t("visionPackOpenMicrosite")}
           >
             <ArrowUpRight className="size-3.5" aria-hidden />

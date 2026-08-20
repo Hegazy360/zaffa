@@ -157,7 +157,7 @@ export function Navbar({ initialUser }: NavbarProps = {}) {
           className="group flex items-center gap-2"
           aria-label={t("ariaHome")}
         >
-          <span className="font-display bg-gradient-to-br from-rose-600 via-rose-500 to-amber-500 bg-clip-text text-2xl font-light italic tracking-tight text-transparent transition-opacity group-hover:opacity-90">
+          <span className="font-display text-brand-gradient text-2xl font-light italic tracking-tight transition-opacity group-hover:opacity-90">
             {tBrand("name")}
           </span>
           <span className="font-arabic hidden text-sm text-muted-foreground sm:inline">
@@ -172,7 +172,7 @@ export function Navbar({ initialUser }: NavbarProps = {}) {
 
           <Button
             render={<Link href="/venue-designer" />}
-            className="group gap-2 bg-gradient-to-r from-rose-600 to-amber-500 text-white shadow-md shadow-rose-600/20 hover:opacity-90 hover:shadow-rose-600/30"
+            className="group gap-2 bg-brand-gradient text-white shadow-glow-sm hover:opacity-90 hover:shadow-glow-lg"
           >
             <Wand2 className="h-4 w-4" />
             {t("startDesigning")}
@@ -187,7 +187,7 @@ export function Navbar({ initialUser }: NavbarProps = {}) {
               <DropdownMenu>
               <DropdownMenuTrigger
                 aria-label={t("accountMenu")}
-                className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-rose-600 to-amber-500 text-sm font-semibold text-white shadow-sm shadow-rose-600/20 ring-2 ring-transparent transition-all hover:shadow-md hover:shadow-rose-600/30 hover:ring-rose-200 focus-visible:ring-rose-300 focus-visible:outline-none dark:hover:ring-rose-900/60"
+                className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-rose-600 to-amber-500 text-sm font-semibold text-white shadow-glow-sm ring-2 ring-transparent transition-all hover:shadow-md hover:shadow-glow-lg hover:ring-rose-200 focus-visible:ring-rose-300 focus-visible:outline-none dark:hover:ring-rose-900/60"
               >
                 {userInitial}
               </DropdownMenuTrigger>
@@ -261,7 +261,7 @@ export function Navbar({ initialUser }: NavbarProps = {}) {
               />
               {visibleUser ? (
                 <div className="relative flex items-center gap-3">
-                  <div className="flex h-11 w-11 items-center justify-center rounded-full bg-gradient-to-br from-rose-600 to-amber-500 text-sm font-semibold text-white shadow-md shadow-rose-600/20">
+                  <div className="flex h-11 w-11 items-center justify-center rounded-full bg-gradient-to-br from-rose-600 to-amber-500 text-sm font-semibold text-white shadow-glow-sm">
                     {userInitial}
                   </div>
                   <div className="min-w-0">
@@ -304,7 +304,7 @@ export function Navbar({ initialUser }: NavbarProps = {}) {
                   />
                 }
                 size="lg"
-                className="group w-full justify-center gap-2 bg-gradient-to-r from-rose-600 to-amber-500 text-white shadow-md shadow-rose-600/20 hover:opacity-90"
+                className="group w-full justify-center gap-2 bg-brand-gradient text-white shadow-glow-sm hover:opacity-90"
               >
                 <Wand2 className="h-4 w-4" />
                 {t("startDesigning")}

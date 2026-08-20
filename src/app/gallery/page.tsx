@@ -187,7 +187,7 @@ export default async function GalleryPage() {
               <Button
                 render={<Link href="/venue-designer" />}
                 size="lg"
-                className="h-11 gap-2 bg-gradient-to-r from-rose-600 to-amber-500 px-5 text-white shadow-lg shadow-rose-500/20 hover:opacity-90"
+                className="h-11 gap-2 bg-brand-gradient px-5 text-white shadow-glow hover:opacity-90"
               >
                 {t("galleryCreateYours")}
                 <ArrowRight className="size-4 rtl:-scale-x-100" />

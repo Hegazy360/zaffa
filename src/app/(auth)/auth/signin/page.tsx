@@ -35,7 +35,7 @@ export default async function SignInPage({ searchParams }: PageProps) {
         <h1 className="font-display text-balance text-4xl font-light leading-[1.05] tracking-tight sm:text-5xl">
           {t("signInHeadlinePart1")}{" "}
           <span className="italic">{t("signInHeadlineItalic")}</span>{" "}
-          <span className="bg-gradient-to-br from-rose-600 via-rose-500 to-amber-500 bg-clip-text text-transparent">
+          <span className="text-brand-gradient">
             {t("signInHeadlineHighlight")}
           </span>
         </h1>

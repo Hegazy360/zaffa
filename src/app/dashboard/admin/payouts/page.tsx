@@ -46,7 +46,7 @@ export default function AdminPayoutsPage() {
           {pending.data.totals.map((row) => (
             <div
               key={row.currency}
-              className="rounded-2xl border border-rose-100/70 bg-white/80 px-5 py-4 backdrop-blur-sm"
+              className="rounded-2xl border border-brand-line bg-white/80 px-5 py-4 backdrop-blur-sm"
             >
               <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-rose-700/80">
                 {t("totalOwed", { currency: row.currency })}
@@ -65,8 +65,8 @@ export default function AdminPayoutsPage() {
         </div>
       )}
 
-      <div className="rounded-2xl border border-rose-100/70 bg-white/80">
-        <div className="border-b border-rose-100/70 px-5 py-3">
+      <div className="rounded-2xl border border-brand-line bg-white/80">
+        <div className="border-b border-brand-line px-5 py-3">
           <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-rose-700/80">
             {t("awaitingPayout")}
           </p>
@@ -169,8 +169,8 @@ export default function AdminPayoutsPage() {
         )}
       </div>
 
-      <div className="rounded-2xl border border-rose-100/70 bg-white/80">
-        <div className="border-b border-rose-100/70 px-5 py-3">
+      <div className="rounded-2xl border border-brand-line bg-white/80">
+        <div className="border-b border-brand-line px-5 py-3">
           <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-rose-700/80">
             {t("recentInstallments")}
           </p>
@@ -445,7 +445,7 @@ function RecordPayoutDialog({
         render={
           <Button
             size="sm"
-            className="gap-1.5 bg-gradient-to-r from-rose-600 to-amber-500 text-white"
+            className="gap-1.5 bg-brand-gradient text-white"
           />
         }
       >
@@ -459,7 +459,7 @@ function RecordPayoutDialog({
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={onSubmit} className="space-y-4">
-          <div className="max-h-72 overflow-y-auto rounded-xl border border-rose-100/70">
+          <div className="max-h-72 overflow-y-auto rounded-xl border border-brand-line">
             {installments.isLoading ? (
               <div className="px-5 py-8 text-center">
                 <Loader2 className="mx-auto size-4 animate-spin text-rose-500" />
@@ -581,7 +581,7 @@ function RecordPayoutDialog({
             <Button
               type="submit"
               disabled={record.isPending}
-              className="bg-gradient-to-r from-rose-600 to-amber-500 text-white"
+              className="bg-brand-gradient text-white"
             >
               {record.isPending ? (
                 <Loader2 className="me-2 size-4 animate-spin" />

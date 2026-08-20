@@ -109,7 +109,7 @@ export default function ClientDashboardPage() {
           <Button
             size="lg"
             render={<Link href="/venue-designer/new" />}
-            className="group h-11 gap-2 bg-gradient-to-r from-rose-600 to-amber-500 px-5 text-white shadow-lg shadow-rose-500/20 hover:opacity-90 hover:shadow-rose-500/30"
+            className="group h-11 gap-2 bg-brand-gradient px-5 text-white shadow-glow hover:opacity-90 hover:shadow-glow-lg"
           >
             <Wand2 className="size-4" />
             {t("clientStartNewDesign")}
@@ -171,7 +171,7 @@ export default function ClientDashboardPage() {
                 return (
                   <article
                     key={design.id}
-                    className="group relative overflow-hidden rounded-2xl border border-rose-100/70 bg-white/80 backdrop-blur-sm ring-1 ring-foreground/[0.04] transition-all hover:shadow-[0_20px_50px_-20px_rgba(244,63,94,0.25)] dark:border-rose-900/30 dark:bg-card/80"
+                    className="group relative overflow-hidden rounded-2xl border border-brand-line bg-white/80 backdrop-blur-sm ring-1 ring-foreground/[0.04] transition-all hover:shadow-[0_20px_50px_-20px_rgba(244,63,94,0.25)] dark:border-rose-900/30 dark:bg-card/80"
                   >
                     <Link
                       href={`/venue-designer/${design.id}`}
@@ -240,7 +240,7 @@ export default function ClientDashboardPage() {
                             onClick={() =>
                               createFromDesign.mutate({ designId: design.id })
                             }
-                            className="h-8 flex-1 gap-1 bg-gradient-to-r from-rose-600 to-amber-500 text-xs text-white hover:opacity-90"
+                            className="h-8 flex-1 gap-1 bg-brand-gradient text-xs text-white hover:opacity-90"
                           >
                             {createFromDesign.isPending &&
                             createFromDesign.variables?.designId === design.id ? (
@@ -328,7 +328,7 @@ function EventCard({ event }: { event: EventListItem }) {
   return (
     <Link
       href={`/dashboard/client/event/${event.id}`}
-      className="group relative block overflow-hidden rounded-2xl border border-rose-100/70 bg-white/80 backdrop-blur-sm ring-1 ring-foreground/[0.04] transition-all hover:-translate-y-0.5 hover:shadow-[0_20px_50px_-20px_rgba(244,63,94,0.25)] dark:border-rose-900/30 dark:bg-card/80"
+      className="group relative block overflow-hidden rounded-2xl border border-brand-line bg-white/80 backdrop-blur-sm ring-1 ring-foreground/[0.04] transition-all hover:-translate-y-0.5 hover:shadow-[0_20px_50px_-20px_rgba(244,63,94,0.25)] dark:border-rose-900/30 dark:bg-card/80"
     >
       <div className="relative aspect-[16/9] overflow-hidden bg-gradient-to-br from-rose-50 to-amber-50/60">
         {heroImage ? (
@@ -430,7 +430,7 @@ function DesignsEmptyState({ onStart }: { onStart: () => void }) {
       </p>
       <Button
         onClick={onStart}
-        className="mt-6 h-10 gap-2 bg-gradient-to-r from-rose-600 to-amber-500 px-5 text-white shadow-md shadow-rose-500/20 hover:opacity-90"
+        className="mt-6 h-10 gap-2 bg-brand-gradient px-5 text-white shadow-glow-sm hover:opacity-90"
       >
         <Plus className="size-4" />
         {tc("createFirstDesign")}

@@ -87,7 +87,7 @@ export function RoleSelector({
             tabIndex={0}
             aria-pressed={isSelected}
             className={cn(
-              "relative cursor-pointer overflow-hidden border-rose-100/70 bg-white/80 backdrop-blur-sm ring-1 ring-foreground/[0.04] transition-all duration-200 dark:border-rose-900/30 dark:bg-card/80",
+              "relative cursor-pointer overflow-hidden border-brand-line bg-white/80 backdrop-blur-sm ring-1 ring-foreground/[0.04] transition-all duration-200 dark:border-rose-900/30 dark:bg-card/80",
               isSelected
                 ? "border-transparent shadow-[0_20px_50px_-20px_rgba(244,63,94,0.35)] ring-2 ring-rose-500"
                 : "hover:-translate-y-0.5 hover:border-rose-200 hover:shadow-[0_15px_40px_-25px_rgba(244,63,94,0.25)]",
@@ -109,7 +109,7 @@ export function RoleSelector({
             {isSelected && (
               <span
                 aria-hidden
-                className="absolute end-3 top-3 inline-flex size-6 items-center justify-center rounded-full bg-gradient-to-br from-rose-500 to-amber-500 text-white shadow-sm shadow-rose-500/30"
+                className="absolute end-3 top-3 inline-flex size-6 items-center justify-center rounded-full bg-gradient-to-br from-rose-500 to-amber-500 text-white shadow-glow-sm"
               >
                 <Check className="size-3.5" />
               </span>
@@ -120,7 +120,7 @@ export function RoleSelector({
                 className={cn(
                   "mb-3 flex size-11 items-center justify-center rounded-xl transition-colors",
                   isSelected
-                    ? "bg-gradient-to-br from-rose-500 to-amber-500 text-white shadow-sm shadow-rose-500/30"
+                    ? "bg-gradient-to-br from-rose-500 to-amber-500 text-white shadow-glow-sm"
                     : "bg-gradient-to-br from-rose-100 to-amber-100 text-rose-600 dark:from-rose-900/40 dark:to-amber-900/40 dark:text-rose-300",
                 )}
               >

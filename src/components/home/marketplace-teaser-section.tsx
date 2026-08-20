@@ -61,7 +61,7 @@ export function MarketplaceTeaserSkeleton({
             {Array.from({ length: cards }).map((_, i) => (
               <li
                 key={i}
-                className="overflow-hidden rounded-2xl border border-rose-100/70 bg-white/70 dark:border-rose-900/40 dark:bg-card/70"
+                className="overflow-hidden rounded-2xl border border-brand-line bg-white/70 dark:border-rose-900/40 dark:bg-card/70"
               >
                 <div className="aspect-[4/3] w-full animate-pulse bg-gradient-to-br from-rose-100/60 to-amber-100/40" />
                 <div className="space-y-2 p-4">
@@ -92,7 +92,7 @@ export function MarketplaceTeaserSkeleton({
         {Array.from({ length: cards }).map((_, i) => (
           <li
             key={i}
-            className="overflow-hidden rounded-2xl border border-rose-100/70 bg-white/80 dark:border-rose-900/40 dark:bg-card/70"
+            className="overflow-hidden rounded-2xl border border-brand-line bg-white/80 dark:border-rose-900/40 dark:bg-card/70"
           >
             <div className="aspect-[5/4] w-full animate-pulse bg-gradient-to-br from-rose-100/60 to-amber-100/40" />
             <div className="space-y-2 p-4">

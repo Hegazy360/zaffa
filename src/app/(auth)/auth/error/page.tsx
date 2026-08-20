@@ -39,7 +39,7 @@ export default async function AuthErrorPage({ searchParams }: PageProps) {
               aria-hidden
               className="absolute inset-0 -m-2 rounded-full bg-gradient-to-br from-rose-500/30 to-amber-500/30 blur-xl"
             />
-            <div className="relative flex size-20 items-center justify-center rounded-full bg-gradient-to-br from-rose-500 to-amber-500 text-white shadow-lg shadow-rose-500/30 ring-1 ring-white/40">
+            <div className="relative flex size-20 items-center justify-center rounded-full bg-gradient-to-br from-rose-500 to-amber-500 text-white shadow-glow ring-1 ring-white/40">
               <ShieldAlert className="size-9" aria-hidden />
             </div>
           </div>
@@ -60,7 +60,7 @@ export default async function AuthErrorPage({ searchParams }: PageProps) {
             <Button
               render={<Link href="/auth/forgot-password" />}
               size="lg"
-              className="group h-11 w-full gap-2 bg-gradient-to-r from-rose-600 to-amber-500 text-white shadow-lg shadow-rose-600/20 transition-all hover:opacity-90 hover:shadow-rose-600/30"
+              className="group h-11 w-full gap-2 bg-brand-gradient text-white shadow-glow transition-all hover:opacity-90 hover:shadow-glow-lg"
             >
               {t("errorPageRequestNew")}
               <ArrowRight className="size-4 transition-transform rtl:-scale-x-100 group-hover:translate-x-0.5 rtl:group-hover:-translate-x-0.5" />
@@ -79,7 +79,7 @@ export default async function AuthErrorPage({ searchParams }: PageProps) {
             <Button
               render={<Link href="/auth/signin" />}
               size="lg"
-              className="group h-11 w-full gap-2 bg-gradient-to-r from-rose-600 to-amber-500 text-white shadow-lg shadow-rose-600/20 transition-all hover:opacity-90 hover:shadow-rose-600/30"
+              className="group h-11 w-full gap-2 bg-brand-gradient text-white shadow-glow transition-all hover:opacity-90 hover:shadow-glow-lg"
             >
               {t("errorPageTryAgain")}
               <ArrowRight className="size-4 transition-transform rtl:-scale-x-100 group-hover:translate-x-0.5 rtl:group-hover:-translate-x-0.5" />

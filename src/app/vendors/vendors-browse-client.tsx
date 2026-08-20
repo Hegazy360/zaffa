@@ -108,7 +108,7 @@ export function VendorsBrowseClient() {
         </header>
 
         <form
-          className="mb-10 grid gap-2 rounded-2xl border border-rose-100/70 bg-white/85 p-3 backdrop-blur-sm sm:grid-cols-[1fr_220px_220px_auto]"
+          className="mb-10 grid gap-2 rounded-2xl border border-brand-line bg-white/85 p-3 backdrop-blur-sm sm:grid-cols-[1fr_220px_220px_auto]"
           onSubmit={(e) => {
             e.preventDefault();
             setFilters(draft);
@@ -144,7 +144,7 @@ export function VendorsBrowseClient() {
           </Select>
           <Button
             type="submit"
-            className="gap-1.5 bg-gradient-to-r from-rose-600 to-amber-500 text-white"
+            className="gap-1.5 bg-brand-gradient text-white"
           >
             <Search className="size-4" />
             {t("applyFilters")}
@@ -176,7 +176,7 @@ export function VendorsBrowseClient() {
               return (
                 <article
                   key={v.id}
-                  className="group flex flex-col overflow-hidden rounded-2xl border border-rose-100/70 bg-white/80 ring-1 ring-foreground/[0.04] backdrop-blur-sm transition-shadow hover:shadow-lg"
+                  className="group flex flex-col overflow-hidden rounded-2xl border border-brand-line bg-white/80 ring-1 ring-foreground/[0.04] backdrop-blur-sm transition-shadow hover:shadow-lg"
                 >
                   <div className="relative aspect-[4/3] overflow-hidden bg-gradient-to-br from-rose-50 to-amber-50/60">
                     {v.profile.avatar_url ? (

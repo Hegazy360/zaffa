@@ -80,7 +80,7 @@ export default function AdminDiscoveryPage() {
         </p>
       </header>
 
-      <section className="rounded-2xl border border-rose-100/70 bg-white/80 px-5 py-5">
+      <section className="rounded-2xl border border-brand-line bg-white/80 px-5 py-5">
         <p className="mb-3 text-[10px] font-medium uppercase tracking-[0.2em] text-rose-700/80">
           {t("runNow")}
         </p>
@@ -154,7 +154,7 @@ export default function AdminDiscoveryPage() {
           <Button
             type="submit"
             disabled={enqueue.isPending || !query.trim()}
-            className="h-9 bg-gradient-to-r from-rose-600 to-amber-500 text-white"
+            className="h-9 bg-brand-gradient text-white"
           >
             {enqueue.isPending ? (
               <Loader2 className="me-2 size-4 animate-spin" />
@@ -190,7 +190,7 @@ export default function AdminDiscoveryPage() {
                         setSource(group.source as Source);
                         setQuery(q);
                       }}
-                      className="rounded-full border border-rose-100/70 bg-white/70 px-2.5 py-1 text-[11px] font-medium text-muted-foreground transition-colors hover:bg-rose-50/60 hover:text-foreground"
+                      className="rounded-full border border-brand-line bg-white/70 px-2.5 py-1 text-[11px] font-medium text-muted-foreground transition-colors hover:bg-rose-50/60 hover:text-foreground"
                     >
                       {q}
                     </button>
@@ -202,8 +202,8 @@ export default function AdminDiscoveryPage() {
         )}
       </section>
 
-      <section className="rounded-2xl border border-rose-100/70 bg-white/80">
-        <div className="flex items-center justify-between border-b border-rose-100/70 px-5 py-3">
+      <section className="rounded-2xl border border-brand-line bg-white/80">
+        <div className="flex items-center justify-between border-b border-brand-line px-5 py-3">
           <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-rose-700/80">
             {t("recentRuns")}
           </p>

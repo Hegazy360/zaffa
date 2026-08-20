@@ -144,7 +144,7 @@ export function SchedulePanel({
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center rounded-2xl border border-rose-100/70 bg-white/60 px-5 py-12">
+      <div className="flex items-center justify-center rounded-2xl border border-brand-line bg-white/60 px-5 py-12">
         <Loader2 className="size-5 animate-spin text-rose-500" />
       </div>
     );
@@ -223,7 +223,7 @@ export function SchedulePanel({
 
       {side === "client" && feePct > 0 && (
         <div
-          className="rounded-2xl border border-rose-100/70 bg-rose-50/40 px-4 py-3 text-xs text-rose-900/85"
+          className="rounded-2xl border border-brand-line bg-rose-50/40 px-4 py-3 text-xs text-rose-900/85"
           title={t("feeIncludedTooltip", { pct: f.number(feePct) })}
         >
           <p>{t("feeIncludedClient", { pct: f.number(feePct) })}</p>
@@ -231,8 +231,8 @@ export function SchedulePanel({
         </div>
       )}
 
-      <div className="overflow-hidden rounded-2xl border border-rose-100/70 bg-white/80 backdrop-blur-sm">
-        <div className="flex items-center justify-between gap-3 border-b border-rose-100/70 px-5 py-3">
+      <div className="overflow-hidden rounded-2xl border border-brand-line bg-white/80 backdrop-blur-sm">
+        <div className="flex items-center justify-between gap-3 border-b border-brand-line px-5 py-3">
           <div>
             <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-rose-700/80">
               {t("planEyebrow")}
@@ -364,7 +364,7 @@ export function SchedulePanel({
                         onClick={() =>
                           checkoutMutation.mutate({ installmentId: p.id })
                         }
-                        className="h-9 gap-1.5 bg-gradient-to-r from-rose-600 to-amber-500 text-xs text-white sm:h-7"
+                        className="h-9 gap-1.5 bg-brand-gradient text-xs text-white sm:h-7"
                       >
                         {checkoutMutation.isPending &&
                         checkoutMutation.variables?.installmentId === p.id ? (
@@ -403,7 +403,7 @@ export function SchedulePanel({
 
 function SummaryStat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-2xl border border-rose-100/70 bg-white/80 px-4 py-3 backdrop-blur-sm">
+    <div className="rounded-2xl border border-brand-line bg-white/80 px-4 py-3 backdrop-blur-sm">
       <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-rose-700/80">
         {label}
       </p>

@@ -132,13 +132,13 @@ export default function AdminUserDetailPage({
 
       {/* Bio + meta */}
       {(profile.planner_profile?.bio || profile.vendor_profile?.bio) && (
-        <p className="rounded-2xl border border-rose-100/70 bg-white/80 px-5 py-4 text-sm text-muted-foreground">
+        <p className="rounded-2xl border border-brand-line bg-white/80 px-5 py-4 text-sm text-muted-foreground">
           {profile.planner_profile?.bio ?? profile.vendor_profile?.bio}
         </p>
       )}
 
       {(profile.planner_profile || profile.vendor_profile) && (
-        <div className="flex items-center justify-between gap-3 rounded-2xl border border-rose-100/70 bg-white/80 px-5 py-4">
+        <div className="flex items-center justify-between gap-3 rounded-2xl border border-brand-line bg-white/80 px-5 py-4">
           <div>
             <p className="text-sm font-medium">
               {verified
@@ -304,8 +304,8 @@ function Section({
   children: React.ReactNode;
 }) {
   return (
-    <section className="rounded-2xl border border-rose-100/70 bg-white/80">
-      <div className="border-b border-rose-100/70 px-5 py-3">
+    <section className="rounded-2xl border border-brand-line bg-white/80">
+      <div className="border-b border-brand-line px-5 py-3">
         <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-rose-700/80">
           {title}
         </p>

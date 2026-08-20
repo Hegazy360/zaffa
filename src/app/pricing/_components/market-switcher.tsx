@@ -49,7 +49,7 @@ export async function MarketSwitcher({
               "rounded-full border px-3.5 py-1.5 text-sm transition-colors",
               active
                 ? "border-rose-300 bg-rose-50 text-rose-800"
-                : "border-rose-100 text-muted-foreground hover:border-rose-200 hover:text-foreground",
+                : "border-brand-line text-muted-foreground hover:border-rose-200 hover:text-foreground",
             )}
           >
             {names?.of(code) ?? code}

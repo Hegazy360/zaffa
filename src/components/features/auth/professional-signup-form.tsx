@@ -218,7 +218,7 @@ export function ProfessionalSignUpForm() {
 
       {step === 2 && role && (
         <div className="space-y-5">
-          <div className="rounded-2xl border border-rose-100/70 bg-gradient-to-br from-rose-50 via-white to-amber-50/60 p-4 dark:border-rose-900/30 dark:from-rose-950/40 dark:via-card dark:to-amber-950/30">
+          <div className="rounded-2xl border border-brand-line bg-gradient-to-br from-rose-50 via-white to-amber-50/60 p-4 dark:border-rose-900/30 dark:from-rose-950/40 dark:via-card dark:to-amber-950/30">
             <p className="text-[10px] font-medium uppercase tracking-[0.18em] text-rose-700/80 dark:text-rose-200/80">
               {role === "planner" ? t("plannerEyebrow") : t("vendorEyebrow")}
             </p>
@@ -307,7 +307,7 @@ export function ProfessionalSignUpForm() {
             size="lg"
             onClick={handleNext}
             disabled={!canProceedStep1}
-            className="group ms-auto h-11 gap-2 bg-gradient-to-r from-rose-600 to-amber-500 px-6 text-white shadow-lg shadow-rose-600/20 transition-all hover:opacity-90 hover:shadow-rose-600/30"
+            className="group ms-auto h-11 gap-2 bg-brand-gradient px-6 text-white shadow-glow transition-all hover:opacity-90 hover:shadow-glow-lg"
           >
             {tCommon("next")}
             <ArrowRight className="size-4 transition-transform rtl:-scale-x-100 group-hover:translate-x-0.5 rtl:group-hover:-translate-x-0.5" />
@@ -317,7 +317,7 @@ export function ProfessionalSignUpForm() {
             type="submit"
             size="lg"
             disabled={!canSubmitStep2 || loading}
-            className="group ms-auto h-11 flex-1 gap-2 bg-gradient-to-r from-rose-600 to-amber-500 text-white shadow-lg shadow-rose-600/20 transition-all hover:opacity-90 hover:shadow-rose-600/30"
+            className="group ms-auto h-11 flex-1 gap-2 bg-brand-gradient text-white shadow-glow transition-all hover:opacity-90 hover:shadow-glow-lg"
           >
             {loading ? t("creatingAccount") : t("createAccount")}
             {!loading && (

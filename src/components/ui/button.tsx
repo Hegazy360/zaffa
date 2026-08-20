@@ -24,7 +24,7 @@ const buttonVariants = cva(
          * The money button.
          *
          * There are 141 hand-rolled copies of `bg-gradient-to-r from-rose-600
-         * to-amber-500 text-white shadow-lg shadow-rose-600/20` in this tree,
+         * to-amber-500 text-white shadow-glow` in this tree,
          * and they had already drifted: different shadow opacities, some with
          * a hover state and some without, one with the gradient running the
          * wrong way in RTL. A CTA that looks slightly different on the

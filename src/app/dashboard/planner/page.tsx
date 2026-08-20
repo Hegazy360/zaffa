@@ -120,7 +120,7 @@ export default function PlannerDashboardPage() {
           <Button
             size="lg"
             render={<Link href="/dashboard/planner/marketplace" />}
-            className="group h-11 gap-2 bg-gradient-to-r from-rose-600 to-amber-500 px-5 text-white shadow-lg shadow-rose-500/20 hover:opacity-90 hover:shadow-rose-500/30"
+            className="group h-11 gap-2 bg-brand-gradient px-5 text-white shadow-glow hover:opacity-90 hover:shadow-glow-lg"
           >
             <Compass className="size-4" />
             {tSidebar("marketplace")}
@@ -300,7 +300,7 @@ function StatCard({
   sublabel?: string;
 }) {
   return (
-    <div className="rounded-2xl border border-rose-100/70 bg-white/70 p-5 backdrop-blur-sm ring-1 ring-foreground/[0.04] dark:border-rose-900/30 dark:bg-card/80">
+    <div className="rounded-2xl border border-brand-line bg-white/70 p-5 backdrop-blur-sm ring-1 ring-foreground/[0.04] dark:border-rose-900/30 dark:bg-card/80">
       <div className="mb-3 flex items-center justify-between">
         <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-muted-foreground">
           {label}
@@ -339,7 +339,7 @@ function BriefCard({ brief }: BriefCardProps) {
   return (
     <Link
       href={`/dashboard/planner/marketplace/${brief.id}`}
-      className="group relative block overflow-hidden rounded-2xl border border-rose-100/70 bg-white/80 backdrop-blur-sm ring-1 ring-foreground/[0.04] transition-all hover:-translate-y-0.5 hover:shadow-[0_20px_50px_-20px_rgba(244,63,94,0.25)] dark:border-rose-900/30 dark:bg-card/80"
+      className="group relative block overflow-hidden rounded-2xl border border-brand-line bg-white/80 backdrop-blur-sm ring-1 ring-foreground/[0.04] transition-all hover:-translate-y-0.5 hover:shadow-[0_20px_50px_-20px_rgba(244,63,94,0.25)] dark:border-rose-900/30 dark:bg-card/80"
     >
       <div className="relative aspect-[4/3] overflow-hidden bg-gradient-to-br from-rose-50 to-amber-50/60">
         {heroImage ? (
@@ -411,7 +411,7 @@ function EngagementCard({ proposal }: { proposal: EngagementProposal }) {
   return (
     <Link
       href={`/dashboard/planner/event/${proposal.event.id}`}
-      className="group relative block overflow-hidden rounded-2xl border border-rose-100/70 bg-white/80 backdrop-blur-sm ring-1 ring-foreground/[0.04] transition-all hover:-translate-y-0.5 hover:shadow-[0_20px_50px_-20px_rgba(244,63,94,0.25)] dark:border-rose-900/30 dark:bg-card/80"
+      className="group relative block overflow-hidden rounded-2xl border border-brand-line bg-white/80 backdrop-blur-sm ring-1 ring-foreground/[0.04] transition-all hover:-translate-y-0.5 hover:shadow-[0_20px_50px_-20px_rgba(244,63,94,0.25)] dark:border-rose-900/30 dark:bg-card/80"
     >
       <div className="relative aspect-[16/9] overflow-hidden bg-gradient-to-br from-rose-50 to-amber-50/60">
         {proposal.event.heroImage ? (
@@ -484,7 +484,7 @@ function MonthList({
   accent: "rose" | "stone";
 }) {
   return (
-    <div className="rounded-2xl border border-rose-100/70 bg-white/70 p-5 backdrop-blur-sm ring-1 ring-foreground/[0.04] dark:border-rose-900/30 dark:bg-card/80">
+    <div className="rounded-2xl border border-brand-line bg-white/70 p-5 backdrop-blur-sm ring-1 ring-foreground/[0.04] dark:border-rose-900/30 dark:bg-card/80">
       <p className="mb-3 text-[10px] font-medium uppercase tracking-[0.2em] text-muted-foreground">
         {title}
       </p>
@@ -546,7 +546,7 @@ function EmptyCard({
       {ctaHref && ctaLabel && (
         <Button
           render={<Link href={ctaHref} />}
-          className="mt-6 h-10 gap-2 bg-gradient-to-r from-rose-600 to-amber-500 px-5 text-white shadow-md shadow-rose-500/20 hover:opacity-90"
+          className="mt-6 h-10 gap-2 bg-brand-gradient px-5 text-white shadow-glow-sm hover:opacity-90"
         >
           {ctaLabel}
           <ArrowRight className="size-4 rtl:-scale-x-100" />

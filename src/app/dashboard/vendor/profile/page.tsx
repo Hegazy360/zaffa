@@ -229,8 +229,8 @@ export default function VendorProfilePage() {
           </p>
         </header>
 
-        <section className="overflow-hidden rounded-2xl border border-rose-100/70 bg-white/85 backdrop-blur-sm">
-          <div className="border-b border-rose-100/70 px-6 py-4">
+        <section className="overflow-hidden rounded-2xl border border-brand-line bg-white/85 backdrop-blur-sm">
+          <div className="border-b border-brand-line px-6 py-4">
             <h2 className="font-display text-lg font-medium tracking-tight">
               {t("businessProfileTitle")}
             </h2>
@@ -337,7 +337,7 @@ export default function VendorProfilePage() {
               <Button
                 onClick={handleSave}
                 disabled={update.isPending || !businessName.trim()}
-                className="gap-1 bg-gradient-to-r from-rose-600 to-amber-500 text-white"
+                className="gap-1 bg-brand-gradient text-white"
               >
                 {update.isPending ? (
                   <Loader2 className="size-4 animate-spin" />
@@ -350,8 +350,8 @@ export default function VendorProfilePage() {
           </div>
         </section>
 
-        <section className="overflow-hidden rounded-2xl border border-rose-100/70 bg-white/85 backdrop-blur-sm">
-          <div className="flex flex-col gap-3 border-b border-rose-100/70 px-6 py-4 sm:flex-row sm:items-end sm:justify-between">
+        <section className="overflow-hidden rounded-2xl border border-brand-line bg-white/85 backdrop-blur-sm">
+          <div className="flex flex-col gap-3 border-b border-brand-line px-6 py-4 sm:flex-row sm:items-end sm:justify-between">
             <div>
               <h2 className="font-display text-lg font-medium tracking-tight">
                 {t("portfolioTitle")}
@@ -363,7 +363,7 @@ export default function VendorProfilePage() {
             <Button
               size="sm"
               onClick={() => setOpenItem({ mode: "create" })}
-              className="w-full gap-1 bg-gradient-to-r from-rose-600 to-amber-500 text-white sm:w-auto"
+              className="w-full gap-1 bg-brand-gradient text-white sm:w-auto"
               disabled={!me.data}
             >
               <Plus className="size-3.5" />
@@ -380,7 +380,7 @@ export default function VendorProfilePage() {
                 <Loader2 className="size-5 animate-spin text-rose-500" />
               </div>
             ) : (portfolio.data?.length ?? 0) === 0 ? (
-              <div className="rounded-xl border border-dashed border-rose-100 px-4 py-10 text-center">
+              <div className="rounded-xl border border-dashed border-brand-line px-4 py-10 text-center">
                 <ImageIcon className="mx-auto mb-2 size-6 text-rose-500" />
                 <p className="text-sm text-muted-foreground">
                   {t("noPortfolioPieces")}
@@ -391,7 +391,7 @@ export default function VendorProfilePage() {
                 {portfolio.data!.map((item) => (
                   <div
                     key={item.id}
-                    className="overflow-hidden rounded-xl border border-rose-100/70"
+                    className="overflow-hidden rounded-xl border border-brand-line"
                   >
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
@@ -599,7 +599,7 @@ function PortfolioForm({
             }}
           />
           {imageUrl ? (
-            <div className="group relative overflow-hidden rounded-xl border border-rose-100/70">
+            <div className="group relative overflow-hidden rounded-xl border border-brand-line">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={imageUrl}
@@ -719,7 +719,7 @@ function PortfolioForm({
         <Button
           type="submit"
           disabled={submitting}
-          className="gap-1 bg-gradient-to-r from-rose-600 to-amber-500 text-white"
+          className="gap-1 bg-brand-gradient text-white"
         >
           {submitting && <Loader2 className="size-4 animate-spin" />}
           {mode === "create" ? t("addAction") : t("saveChanges")}

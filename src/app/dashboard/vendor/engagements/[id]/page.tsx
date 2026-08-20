@@ -122,7 +122,7 @@ export default function VendorEngagementDetailPage({
           {t("backToEngagements")}
         </Link>
 
-        <header className="space-y-3 rounded-2xl border border-rose-100/70 bg-white/85 p-6 backdrop-blur-sm">
+        <header className="space-y-3 rounded-2xl border border-brand-line bg-white/85 p-6 backdrop-blur-sm">
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div className="min-w-0">
               <p className="text-[0.65rem] font-medium uppercase tracking-[0.3em] text-rose-700/80">
@@ -178,7 +178,7 @@ export default function VendorEngagementDetailPage({
             )}
           </div>
           {status === "requested" && (
-            <div className="flex flex-wrap justify-end gap-2 border-t border-rose-100/70 pt-3">
+            <div className="flex flex-wrap justify-end gap-2 border-t border-brand-line pt-3">
               <Button
                 variant="outline"
                 size="sm"
@@ -195,7 +195,7 @@ export default function VendorEngagementDetailPage({
                 size="sm"
                 disabled={respond.isPending}
                 onClick={() => respond.mutate({ id: e.id, accept: true })}
-                className="gap-1 bg-gradient-to-r from-rose-600 to-amber-500 text-white"
+                className="gap-1 bg-brand-gradient text-white"
               >
                 {respond.isPending ? (
                   <Loader2 className="size-3.5 animate-spin" />
@@ -207,7 +207,7 @@ export default function VendorEngagementDetailPage({
             </div>
           )}
           {(status === "accepted" || status === "active") && (
-            <div className="flex justify-end border-t border-rose-100/70 pt-3">
+            <div className="flex justify-end border-t border-brand-line pt-3">
               <Button
                 variant="outline"
                 size="sm"
@@ -227,8 +227,8 @@ export default function VendorEngagementDetailPage({
           )}
         </header>
 
-        <section className="rounded-2xl border border-rose-100/70 bg-white/85 backdrop-blur-sm">
-          <div className="border-b border-rose-100/70 px-5 py-3">
+        <section className="rounded-2xl border border-brand-line bg-white/85 backdrop-blur-sm">
+          <div className="border-b border-brand-line px-5 py-3">
             <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-rose-700/80">
               {t("lineItems")}
             </p>
@@ -303,8 +303,8 @@ export default function VendorEngagementDetailPage({
           </ul>
         </section>
 
-        <section className="rounded-2xl border border-rose-100/70 bg-white/85 backdrop-blur-sm">
-          <div className="border-b border-rose-100/70 px-5 py-3">
+        <section className="rounded-2xl border border-brand-line bg-white/85 backdrop-blur-sm">
+          <div className="border-b border-brand-line px-5 py-3">
             <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-rose-700/80">
               {t("releasesSection")}
             </p>

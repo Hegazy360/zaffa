@@ -100,7 +100,7 @@ export default function PlannerVendorsPage() {
         </header>
 
         <form
-          className="mb-8 grid gap-2 rounded-2xl border border-rose-100/70 bg-white/85 p-3 backdrop-blur-sm sm:grid-cols-[1fr_220px_220px_auto]"
+          className="mb-8 grid gap-2 rounded-2xl border border-brand-line bg-white/85 p-3 backdrop-blur-sm sm:grid-cols-[1fr_220px_220px_auto]"
           onSubmit={(e) => {
             e.preventDefault();
             setSubmitted({ category, location, query });
@@ -134,7 +134,7 @@ export default function PlannerVendorsPage() {
           </Select>
           <Button
             type="submit"
-            className="gap-1 bg-gradient-to-r from-rose-600 to-amber-500 text-white"
+            className="gap-1 bg-brand-gradient text-white"
           >
             <Search className="size-4" />
             {t("searchAction")}
@@ -146,7 +146,7 @@ export default function PlannerVendorsPage() {
             <Loader2 className="size-5 animate-spin text-rose-500" />
           </div>
         ) : (search.data?.items.length ?? 0) === 0 ? (
-          <div className="rounded-2xl border border-rose-100/70 bg-white/70 p-12 text-center backdrop-blur-sm">
+          <div className="rounded-2xl border border-brand-line bg-white/70 p-12 text-center backdrop-blur-sm">
             <Store className="mx-auto mb-3 size-8 text-rose-500" />
             <p className="font-display text-xl font-light tracking-tight">
               {t("noVendorsMatchTitle")}
@@ -167,7 +167,7 @@ export default function PlannerVendorsPage() {
                 <Link
                   key={v.id}
                   href={`/dashboard/planner/vendors/${v.id}`}
-                  className="group overflow-hidden rounded-2xl border border-rose-100/70 bg-white/85 backdrop-blur-sm transition hover:-translate-y-0.5 hover:shadow-lg"
+                  className="group overflow-hidden rounded-2xl border border-brand-line bg-white/85 backdrop-blur-sm transition hover:-translate-y-0.5 hover:shadow-lg"
                 >
                   <div className="relative aspect-[4/3] overflow-hidden bg-rose-50">
                     {featuredImg ? (

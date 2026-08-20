@@ -74,9 +74,9 @@ export default function OutreachKanbanPage() {
           {COLUMNS.map((status) => (
             <div
               key={status}
-              className="w-[80vw] max-w-[320px] shrink-0 snap-start rounded-2xl border border-rose-100/70 bg-white/80 lg:w-auto lg:max-w-none lg:shrink"
+              className="w-[80vw] max-w-[320px] shrink-0 snap-start rounded-2xl border border-brand-line bg-white/80 lg:w-auto lg:max-w-none lg:shrink"
             >
-              <div className="flex items-center justify-between border-b border-rose-100/70 px-3 py-2">
+              <div className="flex items-center justify-between border-b border-brand-line px-3 py-2">
                 <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-rose-700/80">
                   {t(`prospectStatus.${status}`)}
                 </p>

@@ -119,7 +119,7 @@ export default function AdminVisionPackPricingPage() {
           <Button
             size="sm"
             onClick={() => setEditing({})}
-            className="h-9 gap-1.5 bg-gradient-to-r from-rose-600 to-amber-500 text-white hover:opacity-90"
+            className="h-9 gap-1.5 bg-brand-gradient text-white hover:opacity-90"
           >
             <Plus className="size-3.5" />
             Add override
@@ -187,7 +187,7 @@ function TierSection({
     .sort((a, b) => a.code.localeCompare(b.code));
 
   return (
-    <section className="space-y-3 rounded-2xl border border-rose-100/70 bg-white/80 p-4 backdrop-blur-sm dark:border-rose-900/30 dark:bg-card/80">
+    <section className="space-y-3 rounded-2xl border border-brand-line bg-white/80 p-4 backdrop-blur-sm dark:border-rose-900/30 dark:bg-card/80">
       <header className="flex items-baseline justify-between gap-3">
         <div>
           <p className="text-[0.6rem] font-semibold uppercase tracking-[0.3em] text-rose-700/80">
@@ -272,7 +272,7 @@ function TierSection({
         )}
       </div>
 
-      <div className="rounded-xl border border-rose-100/40 bg-white/60 p-3 backdrop-blur-sm dark:border-rose-900/20 dark:bg-card/60">
+      <div className="rounded-xl border border-brand-line bg-white/60 p-3 backdrop-blur-sm dark:border-rose-900/20 dark:bg-card/60">
         <div className="mb-2 flex items-center gap-2">
           <Globe className="size-3.5 text-muted-foreground" />
           <h3 className="text-xs font-semibold tracking-tight">
@@ -480,7 +480,7 @@ function PricingDialog({ editing, onClose, onSave, saving }: PricingDialogProps)
             size="sm"
             onClick={handleSubmit}
             disabled={saving}
-            className="gap-1.5 bg-gradient-to-r from-rose-600 to-amber-500 text-white hover:opacity-90"
+            className="gap-1.5 bg-brand-gradient text-white hover:opacity-90"
           >
             {saving ? <Loader2 className="size-3.5 animate-spin" /> : null}
             {isEdit ? "Save changes" : "Add override"}

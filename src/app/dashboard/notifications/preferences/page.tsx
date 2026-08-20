@@ -82,8 +82,8 @@ function EmailPreferenceCard({
   const enabled = !unsubscribed;
 
   return (
-    <section className="mb-8 overflow-hidden rounded-2xl border border-rose-100/70 bg-white/80 backdrop-blur-sm">
-      <div className="border-b border-rose-100/70 px-6 py-4">
+    <section className="mb-8 overflow-hidden rounded-2xl border border-brand-line bg-white/80 backdrop-blur-sm">
+      <div className="border-b border-brand-line px-6 py-4">
         <h2 className="font-display text-lg font-medium tracking-tight">
           {t("settingsTitle")}
         </h2>
@@ -95,7 +95,7 @@ function EmailPreferenceCard({
             {t("unsubscribedBanner")}
           </div>
         )}
-        <div className="flex items-center justify-between gap-4 rounded-xl border border-rose-100/50 bg-white/60 px-4 py-3">
+        <div className="flex items-center justify-between gap-4 rounded-xl border border-brand-line bg-white/60 px-4 py-3">
           <div className="min-w-0">
             <p className="text-sm font-medium">{t("unsubscribeLabel")}</p>
           </div>
@@ -112,7 +112,7 @@ function EmailPreferenceCard({
               "relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full transition-colors",
               "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-300 disabled:opacity-50",
               enabled
-                ? "bg-gradient-to-r from-rose-600 to-amber-500"
+                ? "bg-brand-gradient"
                 : "bg-muted",
             )}
           >
@@ -178,8 +178,8 @@ function PlannerServiceAreaCard() {
   }
 
   return (
-    <section className="mb-8 overflow-hidden rounded-2xl border border-rose-100/70 bg-white/80 backdrop-blur-sm">
-      <div className="border-b border-rose-100/70 px-6 py-4">
+    <section className="mb-8 overflow-hidden rounded-2xl border border-brand-line bg-white/80 backdrop-blur-sm">
+      <div className="border-b border-brand-line px-6 py-4">
         <h2 className="font-display text-lg font-medium tracking-tight">
           {t("serviceAreaTitle")}
         </h2>
@@ -251,7 +251,7 @@ function PlannerServiceAreaCard() {
           <Button
             disabled={mutation.isPending}
             onClick={() => mutation.mutate({ country, cities })}
-            className="gap-1 bg-gradient-to-r from-rose-600 to-amber-500 text-white hover:opacity-90"
+            className="gap-1 bg-brand-gradient text-white hover:opacity-90"
           >
             {mutation.isPending ? (
               <Loader2 className="size-4 animate-spin" />

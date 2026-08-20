@@ -122,7 +122,7 @@ export default function EnquiryDetailPage({
         <div className="space-y-6 lg:col-span-2">
           {/* Pipeline moves. Only legal transitions render — the router
               rejects the rest, so the UI never offers a dead button. */}
-          <section className="rounded-2xl border border-rose-100 p-4">
+          <section className="rounded-2xl border border-brand-line p-4">
             <h2 className="text-sm font-medium">Move it along</h2>
             {e.allowedNext.length === 0 ? (
               <p className="mt-2 text-sm text-muted-foreground">
@@ -148,7 +148,7 @@ export default function EnquiryDetailPage({
 
           {/* Quote. Guidance comes from the internal band model; unpriced
               markets say so rather than showing an invented number. */}
-          <section className="rounded-2xl border border-rose-100 p-4">
+          <section className="rounded-2xl border border-brand-line p-4">
             <h2 className="text-sm font-medium">Quote</h2>
             {guidance ? (
               <div className="mt-2 rounded-xl bg-stone-50 p-3 text-xs text-muted-foreground">
@@ -310,7 +310,7 @@ export default function EnquiryDetailPage({
           </section>
 
           {/* Notes */}
-          <section className="rounded-2xl border border-rose-100 p-4">
+          <section className="rounded-2xl border border-brand-line p-4">
             <h2 className="text-sm font-medium">Notes</h2>
             <Textarea
               value={note}
@@ -330,7 +330,7 @@ export default function EnquiryDetailPage({
             </Button>
             <ul className="mt-4 space-y-3">
               {e.notes.map((n) => (
-                <li key={n.id} className="border-s-2 border-rose-100 ps-3">
+                <li key={n.id} className="border-s-2 border-brand-line ps-3">
                   <p className="text-sm">{n.body}</p>
                   <p className="mt-0.5 text-xs text-muted-foreground">
                     {n.author?.full_name ?? "—"} ·{" "}
@@ -344,7 +344,7 @@ export default function EnquiryDetailPage({
 
         {/* Context rail */}
         <aside className="space-y-4">
-          <section className="rounded-2xl border border-rose-100 p-4">
+          <section className="rounded-2xl border border-brand-line p-4">
             <h2 className="text-sm font-medium">Reach them</h2>
             <dl className="mt-2 space-y-2 text-sm">
               <div>
@@ -378,7 +378,7 @@ export default function EnquiryDetailPage({
             )}
           </section>
 
-          <section className="rounded-2xl border border-rose-100 p-4">
+          <section className="rounded-2xl border border-brand-line p-4">
             <h2 className="text-sm font-medium">Their day</h2>
             <dl className="mt-2 space-y-2 text-sm">
               <div>
@@ -411,7 +411,7 @@ export default function EnquiryDetailPage({
           </section>
 
           {(e.design || e.otherDesigns.length > 0) && (
-            <section className="rounded-2xl border border-rose-100 p-4">
+            <section className="rounded-2xl border border-brand-line p-4">
               <h2 className="flex items-center gap-1.5 text-sm font-medium">
                 <Sparkles className="size-3.5 text-rose-600" />
                 Their designs
@@ -445,7 +445,7 @@ export default function EnquiryDetailPage({
           )}
 
           {e.event_id && (
-            <section className="rounded-2xl border border-rose-100 p-4">
+            <section className="rounded-2xl border border-brand-line p-4">
               <h2 className="text-sm font-medium">Event</h2>
               <Link
                 href={`/dashboard/admin/events/${e.event_id}`}

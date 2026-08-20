@@ -177,7 +177,7 @@ export default function ProspectDetailPage({
       </header>
 
       {/* Status pipeline */}
-      <section className="rounded-2xl border border-rose-100/70 bg-white/80 px-5 py-4">
+      <section className="rounded-2xl border border-brand-line bg-white/80 px-5 py-4">
         <p className="mb-3 text-[10px] font-medium uppercase tracking-[0.2em] text-rose-700/80">
           {t("statusPipeline")}
         </p>
@@ -191,7 +191,7 @@ export default function ProspectDetailPage({
               className={`rounded-full border px-3 py-1.5 text-xs font-medium transition-all ${
                 p.status === s
                   ? "border-rose-300 bg-gradient-to-r from-rose-500 to-amber-500 text-white shadow-sm"
-                  : "border-rose-100/70 bg-white/70 text-muted-foreground hover:bg-white"
+                  : "border-brand-line bg-white/70 text-muted-foreground hover:bg-white"
               }`}
             >
               {t(`prospectStatus.${s}`)}
@@ -209,7 +209,7 @@ export default function ProspectDetailPage({
       </section>
 
       {/* Contact card */}
-      <section className="rounded-2xl border border-rose-100/70 bg-white/80 px-5 py-4">
+      <section className="rounded-2xl border border-brand-line bg-white/80 px-5 py-4">
         <p className="mb-3 text-[10px] font-medium uppercase tracking-[0.2em] text-rose-700/80">
           {t("contact")}
         </p>
@@ -281,7 +281,7 @@ export default function ProspectDetailPage({
 
       {/* Bio */}
       {p.bio && (
-        <section className="rounded-2xl border border-rose-100/70 bg-white/80 px-5 py-4">
+        <section className="rounded-2xl border border-brand-line bg-white/80 px-5 py-4">
           <p className="mb-2 text-[10px] font-medium uppercase tracking-[0.2em] text-rose-700/80">
             {t("bio")}
           </p>
@@ -296,7 +296,7 @@ export default function ProspectDetailPage({
 
       {/* Sample images */}
       {samples.length > 0 && (
-        <section className="rounded-2xl border border-rose-100/70 bg-white/80 px-5 py-4">
+        <section className="rounded-2xl border border-brand-line bg-white/80 px-5 py-4">
           <p className="mb-3 text-[10px] font-medium uppercase tracking-[0.2em] text-rose-700/80">
             {t("samples")}
           </p>
@@ -330,7 +330,7 @@ export default function ProspectDetailPage({
       />
 
       {/* Notes */}
-      <section className="rounded-2xl border border-rose-100/70 bg-white/80 px-5 py-4">
+      <section className="rounded-2xl border border-brand-line bg-white/80 px-5 py-4">
         <p className="mb-2 text-[10px] font-medium uppercase tracking-[0.2em] text-rose-700/80">
           {t("notes")}
         </p>
@@ -359,7 +359,7 @@ export default function ProspectDetailPage({
 
       {/* Raw payload */}
       {p.raw_payload != null && (
-        <details className="rounded-2xl border border-rose-100/70 bg-white/80 px-5 py-4 text-sm">
+        <details className="rounded-2xl border border-brand-line bg-white/80 px-5 py-4 text-sm">
           <summary className="cursor-pointer text-[10px] font-medium uppercase tracking-[0.2em] text-rose-700/80">
             {t("rawPayload")}
           </summary>
@@ -438,7 +438,7 @@ function DraftsPanel({
   })();
 
   return (
-    <section className="rounded-2xl border border-rose-100/70 bg-white/80 px-5 py-4">
+    <section className="rounded-2xl border border-brand-line bg-white/80 px-5 py-4">
       <div className="mb-3 flex items-center justify-between">
         <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-rose-700/80">
           {t("draftsTitle")}
@@ -452,7 +452,7 @@ function DraftsPanel({
               className={`rounded-full border px-2.5 py-1 text-[11px] font-medium transition-all ${
                 activeChannel === ch
                   ? "border-rose-300 bg-gradient-to-r from-rose-500 to-amber-500 text-white shadow-sm"
-                  : "border-rose-100/70 bg-white/70 text-muted-foreground hover:bg-white"
+                  : "border-brand-line bg-white/70 text-muted-foreground hover:bg-white"
               }`}
             >
               {ch}
@@ -488,7 +488,7 @@ function DraftsPanel({
             draft.mutate({ prospectId, channel: activeChannel })
           }
           disabled={draft.isPending}
-          className="bg-gradient-to-r from-rose-600 to-amber-500 text-white"
+          className="bg-brand-gradient text-white"
         >
           {draft.isPending ? (
             <Loader2 className="me-1 size-3.5 animate-spin" />

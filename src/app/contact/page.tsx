@@ -28,7 +28,7 @@ export default async function ContactPage() {
 
       <h2 className="!mt-12">{t("channelsTitle")}</h2>
       <ul className="not-prose mt-4 grid gap-3 sm:grid-cols-2">
-        <li className="flex items-start gap-3 rounded-2xl border border-rose-100/70 bg-white/80 p-4">
+        <li className="flex items-start gap-3 rounded-2xl border border-brand-line bg-white/80 p-4">
           <Mail className="mt-0.5 size-5 text-rose-700" aria-hidden />
           <div className="min-w-0">
             <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-rose-700/80">
@@ -42,7 +42,7 @@ export default async function ContactPage() {
             </a>
           </div>
         </li>
-        <li className="flex items-start gap-3 rounded-2xl border border-rose-100/70 bg-white/80 p-4">
+        <li className="flex items-start gap-3 rounded-2xl border border-brand-line bg-white/80 p-4">
           {/* Brand-coloured WhatsApp glyph kept inline for the same
               reason as in the footer — single consumer, no need for an
               icon-library entry. */}
@@ -68,7 +68,7 @@ export default async function ContactPage() {
             </a>
           </div>
         </li>
-        <li className="flex items-start gap-3 rounded-2xl border border-rose-100/70 bg-white/80 p-4">
+        <li className="flex items-start gap-3 rounded-2xl border border-brand-line bg-white/80 p-4">
           <MessageCircle className="mt-0.5 size-5 text-rose-700" aria-hidden />
           <div className="min-w-0">
             <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-rose-700/80">
@@ -82,7 +82,7 @@ export default async function ContactPage() {
             </a>
           </div>
         </li>
-        <li className="flex items-start gap-3 rounded-2xl border border-rose-100/70 bg-white/80 p-4">
+        <li className="flex items-start gap-3 rounded-2xl border border-brand-line bg-white/80 p-4">
           <MapPin className="mt-0.5 size-5 text-rose-700" aria-hidden />
           <div className="min-w-0">
             <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-rose-700/80">
