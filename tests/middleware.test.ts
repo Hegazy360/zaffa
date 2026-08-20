@@ -377,3 +377,32 @@ describe("middleware: professionalSurfaces flag", () => {
     expect(res.status).toBe(200);
   });
 });
+
+describe("middleware: the dev-only kitchen sink", () => {
+  afterEach(() => vi.unstubAllEnvs());
+
+  // `/kitchen-sink` guards itself with `notFound()` on NODE_ENV, and that
+  // guard works — production served none of its content. It answered **200**
+  // anyway, because a middleware response's status takes precedence over a
+  // page's `notFound()`. A soft 404 is worse than a hard one: it is
+  // indexable, and it tells a crawler the URL is real. Caught by checking
+  // production after the deploy rather than by trusting the guard.
+  it("404s in production", async () => {
+    // `vi.stubEnv` rather than assignment: `process.env.NODE_ENV` is typed
+    // read-only, so a direct write passes at runtime and fails typecheck.
+    vi.stubEnv("NODE_ENV", "production");
+    const res = await middleware(buildRequest("https://app.test/kitchen-sink"));
+    expect(res.status).toBe(404);
+    expect(res.headers.get("x-robots-tag")).toContain("noindex");
+  });
+
+  it("is reachable outside production, where it is the point", async () => {
+    vi.stubEnv("NODE_ENV", "development");
+    const res = await middleware(
+      buildRequest("https://app.test/kitchen-sink", {
+        cookies: { zaffa_locale: "en" },
+      })
+    );
+    expect(res.status).toBe(200);
+  });
+});

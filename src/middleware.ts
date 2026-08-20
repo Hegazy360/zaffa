@@ -37,6 +37,15 @@ const PUBLIC_BROWSE_ROUTE = /^\/(planners|vendors)(\/.*)?$/;
 const PROFESSIONAL_ROUTE =
   /^\/(dashboard\/(planner|vendor)|auth\/signup\/professional)(\/.*)?$/;
 
+// The design-token scratch page. It guards itself with `notFound()` on
+// NODE_ENV, and that guard works — production serves none of its content — but
+// it answers **200**, because a middleware response's status takes precedence
+// over a page's `notFound()`. A soft 404 is worse than a hard one: it is
+// indexable, and it tells a crawler the URL is real. Gated here for the same
+// reason the two above are, and by build rather than by flag, because there is
+// no version of production where this page should exist.
+const DEV_ONLY_ROUTE = /^\/kitchen-sink(\/.*)?$/;
+
 // Paths whose middleware behaviour actually depends on the Supabase session:
 //   - /dashboard/*       → redirect to signin when unauthenticated
 //   - /venue-designer/*  → redirect to signin when unauthenticated
@@ -131,6 +140,20 @@ export async function middleware(request: NextRequest) {
   if (
     !isFlagEnabled("publicBrowse") &&
     PUBLIC_BROWSE_ROUTE.test(request.nextUrl.pathname)
+  ) {
+    return new NextResponse(HIDDEN_ROUTE_404_BODY, {
+      status: 404,
+      headers: {
+        "content-type": "text/html; charset=utf-8",
+        "cache-control": "no-store",
+        "x-robots-tag": "noindex, nofollow",
+      },
+    });
+  }
+
+  if (
+    process.env.NODE_ENV === "production" &&
+    DEV_ONLY_ROUTE.test(request.nextUrl.pathname)
   ) {
     return new NextResponse(HIDDEN_ROUTE_404_BODY, {
       status: 404,
