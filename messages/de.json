@@ -2434,7 +2434,7 @@
     "replyPromise": "Ein Mensch antwortet, meist deutlich innerhalb von {hours} Stunden."
   },
   "lookbook": {
-    "title": "Hochzeits-Vision-Paket",
+    "title": "Hochzeits-Lookbook",
     "untitled": "Eine Hochzeit, sichtbar gemacht",
     "printed": "Gedruckt {date}",
     "moodboard": "Moodboard",
@@ -2469,6 +2469,22 @@
       "medium": "Mittel",
       "large": "Groß",
       "grand": "Grandios"
-    }
+    },
+    "guestCountLine": "{count} Gäste",
+    "detailsEyebrow": "Das Briefing",
+    "detailsTitle": "Euer Tag im Detail",
+    "labelEventType": "Anlass",
+    "labelSetting": "Rahmen",
+    "labelSize": "Größe",
+    "labelGuests": "Gäste",
+    "labelPalette": "Palette",
+    "notesEyebrow": "In euren Worten",
+    "notesTitle": "Stilnotizen",
+    "micrositeEyebrow": "Teilt es",
+    "micrositeTitle": "Eure Hochzeit, online",
+    "micrositeScan": "Scannt den Code, um eure private Microsite zu öffnen — gemacht, um sie Familie, Freunden und jedem Dienstleister zu schicken.",
+    "makeItRealEyebrow": "Macht es real",
+    "makeItRealTitle": "Das ist ein Plan, nicht nur ein Traum.",
+    "makeItRealBody": "Schickt uns dieses Lookbook per WhatsApp und unser Team sagt euch genau, was es braucht, um es zu bauen — die Location, die Dienstleister und einen klaren Preis. Wir antworten innerhalb von {hours} Stunden."
   }
 }

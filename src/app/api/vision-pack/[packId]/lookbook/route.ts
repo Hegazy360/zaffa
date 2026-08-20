@@ -8,11 +8,16 @@ import { reportError } from "@/lib/logger";
 import { trackServer } from "@/lib/posthog";
 import { ANALYTICS_EVENTS } from "@/lib/analytics-events";
 import { isFreePack } from "@/lib/vision-pack";
+import { printSizedUrl } from "@/lib/cloudinary";
+import { siteUrl } from "@/lib/structured-data";
+import QRCode from "qrcode";
 
 // Chromium has to start before it can print. A warm instance renders in a
 // second or two; a cold one takes longer, and timing out mid-download would
-// look to the customer like the artefact they paid for is broken.
-export const maxDuration = 60;
+// look to the customer like the artefact they paid for is broken. Raised to
+// 120 when the lookbook grew from ~15 to ~25 pages (ZAF-79) — the images are
+// also served print-sized now, which is the bigger lever.
+export const maxDuration = 120;
 
 interface RouteParams {
   params: Promise<{ packId: string }>;
@@ -39,6 +44,10 @@ function paletteOf(value: unknown): { name?: string; colors: string[] } {
 interface RefItem {
   id: string;
   url: string;
+  /** Pinterest credit / upload provenance, persisted by the designer.
+   *  Optional because older rows predate the fields. */
+  attribution?: string;
+  sourceUrl?: string;
 }
 
 interface RefBuckets {
@@ -62,13 +71,22 @@ function referencesOf(value: unknown): RefBuckets {
   for (const cat of Object.keys(empty) as (keyof RefBuckets)[]) {
     const arr = obj[cat];
     if (Array.isArray(arr)) {
-      empty[cat] = arr.filter(
-        (r): r is RefItem =>
-          !!r &&
-          typeof r === "object" &&
-          typeof (r as { url?: unknown }).url === "string" &&
-          typeof (r as { id?: unknown }).id === "string",
-      );
+      empty[cat] = arr
+        .filter(
+          (r): r is RefItem & Record<string, unknown> =>
+            !!r &&
+            typeof r === "object" &&
+            typeof (r as { url?: unknown }).url === "string" &&
+            typeof (r as { id?: unknown }).id === "string",
+        )
+        .map((r) => ({
+          id: r.id,
+          url: r.url,
+          attribution:
+            typeof r.attribution === "string" ? r.attribution : undefined,
+          sourceUrl:
+            typeof r.sourceUrl === "string" ? r.sourceUrl : undefined,
+        }));
     }
   }
   return empty;
@@ -103,6 +121,7 @@ export async function GET(_req: Request, { params }: RouteParams) {
       },
       lookbook_downloaded_at: true,
       microsite_published_at: true,
+      microsite_slug: true,
     },
   });
   if (!pack) {
@@ -127,13 +146,14 @@ export async function GET(_req: Request, { params }: RouteParams) {
       event_type: true,
       setting: true,
       size: true,
+      guest_count: true,
       palette: true,
       references: true,
       style_notes: true,
       thumbnail: true,
       media: {
         orderBy: { created_at: "desc" },
-        select: { id: true, type: true, url: true },
+        select: { id: true, type: true, url: true, cloudinary_public_id: true },
       },
     },
   });
@@ -148,21 +168,44 @@ export async function GET(_req: Request, { params }: RouteParams) {
   let buffer: Buffer;
   try {
     const locale = await getLocale();
+
+    // The microsite back page: URL + QR, generated as a data URL here so
+    // the print document makes no network request for it — this file's
+    // history is exactly what happens when a print-time fetch fails.
+    const micrositeUrl = pack.microsite_slug
+      ? `${siteUrl()}/v/${pack.microsite_slug}`
+      : null;
+    const micrositeQrDataUrl = micrositeUrl
+      ? await QRCode.toDataURL(micrositeUrl, { margin: 1, width: 480 })
+      : null;
+
     const html = await renderLookbookHtml(
       {
         recipientName: pack.recipient!.full_name ?? "",
         publishedAt: pack.microsite_published_at,
+        micrositeUrl,
+        micrositeQrDataUrl,
         design: {
           name: design.name,
           event_type: design.event_type,
           setting: design.setting,
           size: design.size,
+          guest_count: design.guest_count,
           palette: paletteOf(design.palette),
           // `RefBuckets` is a closed shape; the template takes an open one
           // so an unknown category reads as empty rather than crashing.
           references: { ...referencesOf(design.references) },
           style_notes: design.style_notes,
-          media: design.media,
+          // Print-sized where we own the asset: Chromium downloads every
+          // image before printing, and full-resolution originals are what
+          // push a cold render past the timeout.
+          media: design.media.map((m) => ({
+            id: m.id,
+            type: m.type,
+            url: m.cloudinary_public_id
+              ? printSizedUrl(m.cloudinary_public_id, 1600)
+              : m.url,
+          })),
         },
       },
       locale,

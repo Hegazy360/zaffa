@@ -38,21 +38,45 @@ beforeAll(async () => {
 });
 
 const IMG = "https://res.cloudinary.com/dz0tdjoqj/image/upload/v1778150961/zaffa-renders/juqkmgfqyz4obopj6ihk.jpg";
+
+// Worst-case shape on purpose: every category populated, near the reference
+// cap, the full 16-render cap, notes, QR page — the document whose cold
+// render time the route timeout has to survive.
+const refs = (n: number) =>
+  Array.from({ length: n }, (_, i) => ({
+    id: `r${i}`,
+    url: IMG,
+    attribution: i % 2 === 0 ? "Pin: @weddingdreams via Pinterest" : undefined,
+  }));
 const data = {
   recipientName: "محمد وليلى",
   publishedAt: new Date("2026-05-07T00:00:00Z"),
+  micrositeUrl: "https://www.zaffa.ai/v/pwvtun6cvc",
+  micrositeQrDataUrl:
+    "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7",
   design: {
     name: "حديقة عند الغروب",
     event_type: "wedding",
     setting: "garden",
     size: "medium",
-    palette: { colors: ["#e11d48", "#f59e0b", "#1c1917", "#fdf3f0"] },
+    guest_count: 175,
+    palette: {
+      name: "Blush & Gold",
+      colors: ["#e11d48", "#f59e0b", "#1c1917", "#fdf3f0"],
+    },
     references: {
-      overall_vibe: [{ id: "a", url: IMG }, { id: "a2", url: IMG }],
-      flowers: [{ id: "b", url: IMG }, { id: "c", url: IMG }, { id: "d", url: IMG }],
+      overall_vibe: refs(10),
+      venue_decor: refs(8),
+      tables: refs(10),
+      flowers: refs(9),
+      lighting: refs(7),
     },
     style_notes: "شموع، وطاولات طويلة، ولا شيء متماثل.",
-    media: [{ id: "r1", type: "render", url: IMG }],
+    media: Array.from({ length: 16 }, (_, i) => ({
+      id: `m${i}`,
+      type: "render",
+      url: IMG,
+    })),
   },
 };
 

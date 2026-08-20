@@ -1,0 +1,87 @@
+import { PALETTE_PRESETS, type PalettePreset } from "@/data/palettes";
+
+/**
+ * The homepage sample studio: a 3-vibe × 4-palette matrix of pre-generated
+ * renders the visitor restyles instantly — no session, no AI call, no wait.
+ *
+ * Two contracts hold everything together:
+ *
+ *  1. **Palette ids are `PALETTE_PRESETS` ids, verbatim.** The handoff into
+ *     the real designer passes the id through the URL, and the designer's
+ *     palette step highlights the matching preset. Forking the colors here
+ *     would make the sample lie about what the visitor's own render uses.
+ *  2. **`promptNotes` feeds both sides.** The offline generation script
+ *     composes each sample's prompt from the same descriptor that the
+ *     handoff writes into the design's style notes — so the sample the
+ *     visitor restyled and the render they then generate agree in style.
+ *     English on purpose: style notes feed the AI prompt, not the UI.
+ *
+ * The component depends only on the file convention (`studioAssetPath`);
+ * whether an AVIF was AI-generated or hand-curated is invisible to it.
+ */
+
+export interface StudioVibe {
+  id: string;
+  /** Designer setting this vibe hands off to (drives the prompt too). */
+  setting: "indoor" | "outdoor" | "tent";
+  /** English style descriptor — generation prompt AND handoff styleNotes. */
+  promptNotes: string;
+}
+
+export const STUDIO_VIBES: readonly StudioVibe[] = [
+  {
+    id: "ballroom_classic",
+    setting: "indoor",
+    promptNotes:
+      "Classic grand ballroom elegance: crystal chandeliers, tall floral centerpieces, floor-length linens, gilded chair details, a polished dance floor at the center.",
+  },
+  {
+    id: "garden_romance",
+    setting: "outdoor",
+    promptNotes:
+      "Romantic garden party: long banquet tables under mature trees, abundant loose garden florals, taper candles down the table runs, string lights overhead at dusk.",
+  },
+  {
+    id: "golden_hour_tent",
+    setting: "tent",
+    promptNotes:
+      "Warm tented celebration: draped canopy ceiling, woven pendant lamps, lush low centerpieces, layered rugs and lounge corners, golden candlelight everywhere.",
+  },
+] as const;
+
+const STUDIO_PALETTE_IDS = [
+  "blush_gold",
+  "ivory_sage",
+  "terracotta_dust",
+  "noir_emerald",
+] as const;
+
+/** The four studio palettes, resolved from the shared presets — never a
+ *  copy of the colors. Throws at module load if a preset id drifts, which
+ *  turns a silent broken chip into a build failure. */
+export const STUDIO_PALETTES: readonly PalettePreset[] = STUDIO_PALETTE_IDS.map(
+  (id) => {
+    const preset = PALETTE_PRESETS.find((p) => p.id === id);
+    if (!preset) throw new Error(`Sample studio references unknown palette: ${id}`);
+    return preset;
+  },
+);
+
+export const DEFAULT_VIBE = "ballroom_classic";
+export const DEFAULT_PALETTE = "blush_gold";
+
+/** Intrinsic size of every studio asset (16:9, matches the old hero). */
+export const STUDIO_IMAGE = { width: 1376, height: 774 } as const;
+
+/** File convention the generator writes and the hero reads. */
+export function studioAssetPath(vibeId: string, paletteId: string): string {
+  return `/home/studio/${vibeId}__${paletteId}.avif`;
+}
+
+export function isStudioVibe(id: string | null | undefined): boolean {
+  return !!id && STUDIO_VIBES.some((v) => v.id === id);
+}
+
+export function isStudioPalette(id: string | null | undefined): boolean {
+  return !!id && STUDIO_PALETTES.some((p) => p.id === id);
+}

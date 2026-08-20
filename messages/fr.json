@@ -2434,7 +2434,7 @@
     "replyPromise": "Une vraie personne répond, généralement bien avant {hours} heures."
   },
   "lookbook": {
-    "title": "Pack Vision Mariage",
+    "title": "Lookbook de mariage",
     "untitled": "Un mariage, en images",
     "printed": "Imprimé en {date}",
     "moodboard": "Planche d'ambiance",
@@ -2469,6 +2469,22 @@
       "medium": "Moyen",
       "large": "Grand",
       "grand": "Grandiose"
-    }
+    },
+    "guestCountLine": "{count} invités",
+    "detailsEyebrow": "Le brief",
+    "detailsTitle": "Votre journée, en détail",
+    "labelEventType": "Occasion",
+    "labelSetting": "Cadre",
+    "labelSize": "Échelle",
+    "labelGuests": "Invités",
+    "labelPalette": "Palette",
+    "notesEyebrow": "Vos mots",
+    "notesTitle": "Notes de style",
+    "micrositeEyebrow": "Partagez-le",
+    "micrositeTitle": "Votre mariage, en ligne",
+    "micrositeScan": "Scannez pour ouvrir votre microsite privé — fait pour être envoyé à la famille, aux amis et à chaque prestataire que vous rencontrez.",
+    "makeItRealEyebrow": "Rendez-le réel",
+    "makeItRealTitle": "C'est un plan, pas seulement un rêve.",
+    "makeItRealBody": "Envoyez-nous ce lookbook sur WhatsApp et notre équipe vous dira exactement ce qu'il faut pour le construire — le lieu, les prestataires et un prix unique et clair. Nous répondons sous {hours} heures."
   }
 }

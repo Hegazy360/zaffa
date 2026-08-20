@@ -55,3 +55,6 @@ next-env.d.ts
 
 # Sentry Config File
 .env.sentry-build-plugin
+
+# Sample-studio PNG sources — only the compressed AVIFs are committed
+public/home/studio/*.png

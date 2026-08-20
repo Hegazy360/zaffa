@@ -36,6 +36,9 @@ const CHECK = process.argv.includes("--check");
 const PROFILES = {
   "how-it-works": { maxWidth: 1400, avifQuality: 72, effort: 6 },
   examples: { maxWidth: 1600, avifQuality: 62, effort: 6 },
+  // Sample-studio matrix: photographs, displayed at hero size. Slightly
+  // tighter than `examples` because twelve of them ship.
+  studio: { maxWidth: 1600, avifQuality: 58, effort: 6 },
 };
 
 async function walk(dir) {

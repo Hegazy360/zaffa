@@ -2434,7 +2434,7 @@
     "replyPromise": "A person replies, usually well inside {hours} hours."
   },
   "lookbook": {
-    "title": "Wedding Vision Pack",
+    "title": "Wedding Lookbook",
     "untitled": "A wedding, visualised",
     "printed": "Printed {date}",
     "moodboard": "Mood board",
@@ -2469,6 +2469,22 @@
       "medium": "Medium",
       "large": "Large",
       "grand": "Grand"
-    }
+    },
+    "guestCountLine": "{count} guests",
+    "detailsEyebrow": "The brief",
+    "detailsTitle": "Your day, in detail",
+    "labelEventType": "Occasion",
+    "labelSetting": "Setting",
+    "labelSize": "Scale",
+    "labelGuests": "Guests",
+    "labelPalette": "Palette",
+    "notesEyebrow": "In your words",
+    "notesTitle": "Style notes",
+    "micrositeEyebrow": "Share it",
+    "micrositeTitle": "Your wedding, online",
+    "micrositeScan": "Scan to open your private microsite — made to be sent to family, friends, and every vendor you meet.",
+    "makeItRealEyebrow": "Make it real",
+    "makeItRealTitle": "This is a plan, not just a dream.",
+    "makeItRealBody": "Send this lookbook to us on WhatsApp and our team will tell you exactly what it takes to build it — the venue, the vendors, and one clear price. We reply within {hours} hours."
   }
 }

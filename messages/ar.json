@@ -2435,7 +2435,7 @@
     "replyPromise": "بيردّ عليكم شخص حقيقي، وغالبًا قبل {hours} ساعة بكتير."
   },
   "lookbook": {
-    "title": "باقة رؤية الزفاف",
+    "title": "كتيّب الزفاف",
     "untitled": "زفاف كما تخيّلتموه",
     "printed": "طُبعت في {date}",
     "moodboard": "لوحة الإلهام",
@@ -2470,6 +2470,22 @@
       "medium": "متوسط",
       "large": "كبير",
       "grand": "فخم"
-    }
+    },
+    "guestCountLine": "{count} ضيف",
+    "detailsEyebrow": "الملخّص",
+    "detailsTitle": "يومكم بالتفصيل",
+    "labelEventType": "المناسبة",
+    "labelSetting": "المكان",
+    "labelSize": "الحجم",
+    "labelGuests": "الضيوف",
+    "labelPalette": "الألوان",
+    "notesEyebrow": "بكلماتكم",
+    "notesTitle": "ملاحظات التصميم",
+    "micrositeEyebrow": "شاركوه",
+    "micrositeTitle": "زفافكم على الإنترنت",
+    "micrositeScan": "امسحوا الرمز لفتح موقعكم المصغّر الخاص — صُمّم ليُرسَل إلى العائلة والأصدقاء وكل مورّد تقابلونه.",
+    "makeItRealEyebrow": "حوّلوه إلى واقع",
+    "makeItRealTitle": "هذه خطة، لا مجرد حلم.",
+    "makeItRealBody": "أرسلوا هذا الكتيّب إلينا على واتساب وسيخبركم فريقنا بما يلزم لبنائه بالضبط — المكان، ومقدّمو الخدمات، وسعر واحد واضح. نردّ خلال {hours} ساعة."
   }
 }

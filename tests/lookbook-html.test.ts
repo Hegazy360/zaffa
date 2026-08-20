@@ -53,16 +53,23 @@ beforeAll(async () => {
 const data = {
   recipientName: "Mohamed & Layla",
   publishedAt: new Date("2026-05-07T00:00:00Z"),
+  micrositeUrl: "https://www.zaffa.ai/v/abc123",
+  micrositeQrDataUrl: "data:image/png;base64,QRDATA",
   design: {
     name: "Garden at dusk",
     event_type: "wedding",
     setting: "garden",
     size: "medium",
-    palette: { colors: ["#e11d48", "#f59e0b", "#1c1917"] },
+    guest_count: 150,
+    palette: { name: "Blush & Gold", colors: ["#e11d48", "#f59e0b", "#1c1917"] },
     references: {
       overall_vibe: [{ id: "a", url: "https://res.cloudinary.com/x/a.jpg" }],
       flowers: [
-        { id: "b", url: "https://res.cloudinary.com/x/b.jpg" },
+        {
+          id: "b",
+          url: "https://res.cloudinary.com/x/b.jpg",
+          attribution: "Photo: someone on Pinterest",
+        },
         { id: "c", url: "https://res.cloudinary.com/x/c.jpg" },
       ],
     },
@@ -149,5 +156,84 @@ describe("renderLookbookHtml", () => {
     const html = await renderLookbookHtml(data, "en");
     expect((html.match(/class="page render-page"/g) ?? []).length).toBe(1);
     expect(html).not.toContain("v1.mp4");
+  });
+
+  it("caps render pages at 16, newest first", async () => {
+    currentMessages = enMessages;
+    const media = Array.from({ length: 25 }, (_, i) => ({
+      id: `r${i}`,
+      type: "render",
+      url: `https://res.cloudinary.com/x/r${i}.jpg`,
+    }));
+    const html = await renderLookbookHtml(
+      { ...data, design: { ...data.design, media } },
+      "en",
+    );
+    expect((html.match(/class="page render-page"/g) ?? []).length).toBe(16);
+    // The route orders media newest-first; the cap must keep the head.
+    expect(html).toContain("r0.jpg");
+    expect(html).not.toContain("r20.jpg");
+  });
+
+  it("gives every reference category its own page, with attributions escaped", async () => {
+    currentMessages = enMessages;
+    const html = await renderLookbookHtml(
+      {
+        ...data,
+        design: {
+          ...data.design,
+          references: {
+            ...data.design.references,
+            flowers: [
+              {
+                id: "b",
+                url: "https://res.cloudinary.com/x/b.jpg",
+                attribution: 'Pin by <b>"someone"</b>',
+              },
+            ],
+          },
+        },
+      },
+      "en",
+    );
+    // Two categories in the fixture → two moodboard pages, each carrying
+    // the category as its section heading.
+    expect(html).toContain(enMessages.lookbook.category.overall_vibe);
+    expect(html).toContain(enMessages.lookbook.category.flowers);
+    // Attribution is customer/third-party text — must pass esc().
+    expect(html).not.toContain('<b>"someone"</b>');
+    expect(html).toContain("&lt;b&gt;");
+  });
+
+  it("renders the details page with guest count and palette hex captions", async () => {
+    currentMessages = enMessages;
+    const html = await renderLookbookHtml(data, "en");
+    expect(html).toContain(enMessages.lookbook.detailsTitle);
+    expect(html).toContain("150");
+    expect(html).toContain("#e11d48");
+    expect(html).toContain("Blush &amp; Gold");
+  });
+
+  it("renders the microsite QR page only when a slug exists", async () => {
+    currentMessages = enMessages;
+    const withSlug = await renderLookbookHtml(data, "en");
+    expect(withSlug).toContain("data:image/png;base64,QRDATA");
+    expect(withSlug).toContain("https://www.zaffa.ai/v/abc123");
+
+    const without = await renderLookbookHtml(
+      { ...data, micrositeUrl: null, micrositeQrDataUrl: null },
+      "en",
+    );
+    // The CSS block always names the selector; the markup must not.
+    expect(without).not.toContain('class="page microsite-page"');
+  });
+
+  it("closes with the concierge page carrying the reply promise", async () => {
+    currentMessages = enMessages;
+    const html = await renderLookbookHtml(data, "en");
+    expect(html).toContain(enMessages.lookbook.makeItRealTitle);
+    // REPLY_WITHIN_HOURS is interpolated — the number must appear.
+    expect(html).toMatch(/24\s*hours|within 24/i);
+    expect(html).toContain("wa.me");
   });
 });
