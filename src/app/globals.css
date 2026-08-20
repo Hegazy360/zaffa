@@ -356,6 +356,45 @@
   animation: heroRise 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
+/* Scroll reveal for everything below the fold — see components/motion/rise.tsx
+   for why this is CSS rather than an IntersectionObserver.
+
+   The animation is driven by the element's own position in the viewport, not
+   by a timer, so it is evaluated on the compositor: it cannot flash, and it
+   cannot jank the scroll. Both failure modes were real here.
+
+   The range ends early on purpose. By the time an element is a third of the
+   way into view it is fully settled, so the reveal reads as a soft edge
+   rather than a toggle the reader has to wait for. `--rise-step` walks the
+   start point forward for siblings, which is how a list staggers without any
+   per-item timing.
+
+   Guarded twice: browsers without scroll-driven animations, and readers who
+   asked for reduced motion, both get the content plainly visible. That is
+   the same promise the JS version made for no-JS visitors, and it is why
+   this is safe in a server component. */
+@media (prefers-reduced-motion: no-preference) {
+  @supports (animation-timeline: view()) {
+    .rise {
+      animation: riseIn linear both;
+      animation-timeline: view();
+      animation-range: entry calc(var(--rise-step, 0) * 4%) entry
+        calc(32% + var(--rise-step, 0) * 4%);
+    }
+  }
+}
+
+@keyframes riseIn {
+  from {
+    opacity: 0;
+    transform: translateY(1.25rem);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .hero-rise {
     animation-delay: 0s !important;

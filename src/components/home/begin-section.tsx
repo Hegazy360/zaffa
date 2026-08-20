@@ -47,7 +47,7 @@ export function BeginSection() {
   const t = useTranslations("marketing");
 
   return (
-    <section className="surface-dark relative isolate overflow-hidden">
+    <section className="surface-dark relative isolate overflow-clip">
       {/* Atmosphere */}
       <div
         aria-hidden

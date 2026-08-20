@@ -1,30 +1,40 @@
-"use client";
-
 import * as React from "react";
 import { cn } from "@/lib/utils";
 
 /**
- * Entrance motion that never hides content.
+ * Scroll reveal, driven entirely by CSS.
  *
- * The pattern this replaces is `motion.div initial={{ opacity: 0, y: 24 }}`
- * with a `whileInView`. framer-motion renders `initial` into the server HTML
- * as `style="opacity:0"`, so every one of those sections is **invisible in the
- * server response** and stays invisible until the JavaScript bundle loads,
- * hydrates, and an IntersectionObserver fires. On a slow connection — the
- * connection this product's market actually has — that is a blank page where
- * the pitch should be. If the bundle fails, it is a blank page permanently.
- * The hero already learned this and moved to CSS; this is the same fix for the
- * other eighteen.
+ * This has been through two wrong shapes, and the reasons are worth keeping:
  *
- * Here, the element is visible in the server HTML and stays visible. The
- * animation is added by an effect, which by definition only runs once JS is
- * live: the class sets `opacity: 0` and animates back, so the fade happens
- * only for people who were going to see it anyway. No JS, no bundle, an
- * ancient browser — the content is simply there.
+ *  1. `motion.div initial={{ opacity: 0 }}` — framer-motion renders that
+ *     `initial` into the server HTML as `style="opacity:0"`, so the section
+ *     was **invisible in the server response** until the bundle loaded and
+ *     hydrated. On this product's market — mobile, cellular — that is a blank
+ *     page where the pitch should be.
+ *  2. An IntersectionObserver that added the animation class on intersection.
+ *     The content shipped visible (good), but the class carries
+ *     `opacity: 0` as its start state, and the observer fires when the
+ *     element is already 10% inside the viewport — so a section the reader
+ *     could already see **blinked out and faded back in**. That is the
+ *     "glitchy scroll" the founder reported, and it was in every one of the
+ *     nineteen sections at once.
  *
- * Reduced motion needs no handling here. The global block in `globals.css`
- * collapses `animation-duration`, and `both` fill-mode settles the element at
- * its final state immediately.
+ * The fix removes JavaScript from the scroll path altogether. A scroll-driven
+ * animation (`animation-timeline: view()`) is evaluated by the compositor
+ * against scroll position, so it cannot flash — the element's opacity is a
+ * pure function of where it sits in the viewport — and it cannot jank the
+ * main thread, because the main thread is not involved.
+ *
+ * Progressive enhancement is the whole design:
+ *   - No support for scroll-driven animations (older Safari/Firefox)? The
+ *     `@supports` guard never applies and the content is simply *there* —
+ *     the same guarantee shape 2 made for no-JS visitors.
+ *   - `prefers-reduced-motion`? Same: no animation, content visible.
+ *   - No JavaScript at all? Still visible. This is now a **server
+ *     component**, so most sections that use it ship zero client JS.
+ *
+ * `delay` is a stagger *step*, not seconds: siblings offset where in the
+ * element's entry their reveal begins. See `.rise` in globals.css.
  */
 export function Rise({
   children,
@@ -34,45 +44,17 @@ export function Rise({
   ...rest
 }: {
   children: React.ReactNode;
-  /** Stagger, in seconds. */
+  /** Stagger step for siblings (0, 1, 2 …). Legacy callers pass seconds;
+   *  anything under 1 is scaled up so both spellings stagger sensibly. */
   delay?: number;
   className?: string;
   as?: "div" | "section" | "header" | "ul" | "li" | "article";
 } & React.HTMLAttributes<HTMLElement>) {
-  // `HTMLElement`, and the cast below, because `as` can be any of five tags
-  // and TypeScript will not unify their ref types on a polymorphic component
-  // without far more machinery than this earns.
-  const ref = React.useRef<HTMLElement>(null);
-  const [armed, setArmed] = React.useState(false);
-
-  React.useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-
-    // Already on screen at mount — above the fold. Animating it would mean
-    // fading in something the reader is already looking at, so it just stays.
-    const rect = el.getBoundingClientRect();
-    if (rect.top < window.innerHeight) return;
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        for (const entry of entries) {
-          if (!entry.isIntersecting) continue;
-          setArmed(true);
-          observer.disconnect();
-        }
-      },
-      { rootMargin: "-10% 0px" },
-    );
-    observer.observe(el);
-    return () => observer.disconnect();
-  }, []);
-
+  const step = delay > 0 && delay < 1 ? Math.round(delay * 20) : delay;
   return (
     <Tag
-      ref={ref as unknown as React.Ref<never>}
-      style={armed ? ({ animationDelay: `${delay}s` } as React.CSSProperties) : undefined}
-      className={cn(armed && "hero-rise", className)}
+      className={cn("rise", className)}
+      style={step ? ({ "--rise-step": step } as React.CSSProperties) : undefined}
       {...rest}
     >
       {children}

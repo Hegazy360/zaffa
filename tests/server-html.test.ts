@@ -52,15 +52,62 @@ describe("entrance animations never hide server-rendered copy", () => {
     ).toEqual([]);
   });
 
-  it("the Rise component itself renders visible by default", () => {
+  it("Rise ships no client JavaScript", () => {
     const src = readFileSync(
       join(process.cwd(), "src/components/motion/rise.tsx"),
       "utf8",
     );
-    // The animation class is applied from state set in an effect, so it cannot
-    // be present in the server render. If someone makes `armed` default to
-    // true, every section goes back to being invisible without JS.
-    expect(src).toContain("React.useState(false)");
-    expect(src).toMatch(/armed && "hero-rise"/);
+    // The reveal is pure CSS now. A "use client" or a hook here would drag
+    // every section that uses it back into the client bundle — the whole
+    // reason most of the homepage is server-rendered.
+    //
+    // Comments are stripped first: this file's header *describes* the
+    // IntersectionObserver it replaced, and matching prose would fail on the
+    // documentation rather than on the code.
+    const code = src
+      .replace(/\/\*[\s\S]*?\*\//g, "")
+      .replace(/^\s*\/\/.*$/gm, "");
+    expect(code).not.toMatch(/^"use client"/m);
+    expect(code).not.toMatch(/useState|useEffect|IntersectionObserver/);
+  });
+
+  it("the hidden start state is unreachable without scroll-driven animation", () => {
+    const css = readFileSync(
+      join(process.cwd(), "src/app/globals.css"),
+      "utf8",
+    );
+
+    // This is the guarantee, and it is entirely positional: `.rise` must get
+    // its animation ONLY inside `@supports (animation-timeline: view())`.
+    // `riseIn` starts at `opacity: 0`, so a `.rise` rule outside that block
+    // would hide real copy in every browser that cannot run the animation —
+    // which is the exact failure this whole file exists to prevent, just
+    // arriving via CSS instead of via framer-motion.
+    const guardStart = css.indexOf("@supports (animation-timeline: view())");
+    expect(guardStart, "the @supports guard must exist").toBeGreaterThan(-1);
+
+    // Walk braces from the guard to find where it closes.
+    let depth = 0;
+    let guardEnd = -1;
+    for (let i = css.indexOf("{", guardStart); i < css.length; i++) {
+      if (css[i] === "{") depth++;
+      else if (css[i] === "}") {
+        depth--;
+        if (depth === 0) {
+          guardEnd = i;
+          break;
+        }
+      }
+    }
+    expect(guardEnd, "the @supports guard must close").toBeGreaterThan(guardStart);
+
+    const inside = css.slice(guardStart, guardEnd);
+    const outside = css.slice(0, guardStart) + css.slice(guardEnd);
+
+    expect(inside).toMatch(/\.rise\s*\{/);
+    expect(
+      outside,
+      "`.rise` must not be styled outside the @supports guard — unsupported browsers would render the copy invisible",
+    ).not.toMatch(/\.rise\s*\{/);
   });
 });

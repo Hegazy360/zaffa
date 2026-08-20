@@ -42,7 +42,12 @@ export const STUDIO_VIBES: readonly StudioVibe[] = [
       "Classic grand ballroom elegance: crystal chandeliers, draped ceiling, tall floral centerpieces, floor-length linens, gilded chair details, a lit focal stage.",
   },
   {
-    id: "garden_romance",
+    // Named for what the three renders in this column actually show. It was
+    // "garden_romance" / "Garden at sunset", but only one of the three is a
+    // garden — the other two are a seaside terrace and a beach. The label has
+    // to be true of every cell it heads, or the control is lying about the
+    // picture it is showing.
+    id: "outdoor_sunset",
     setting: "outdoor",
     promptNotes:
       "Golden-hour outdoor celebration: a floral ceremony arch as the focal point, long styled tables, string lights and candlelight as the sun sets.",

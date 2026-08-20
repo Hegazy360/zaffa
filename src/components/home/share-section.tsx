@@ -1,7 +1,5 @@
-"use client";
-
 import Image from "next/image";
-import { useTranslations } from "next-intl";
+import { getTranslations } from "next-intl/server";
 import { FileDown, Globe, Heart, Sparkles, Users } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Rise } from "@/components/motion/rise";
@@ -20,13 +18,13 @@ const MICROSITE_THUMB_IMAGES = [
   "/home/examples/collage-4.avif",
 ] as const;
 
-export function ShareSection() {
-  const t = useTranslations("marketing");
+export async function ShareSection() {
+  const t = await getTranslations("marketing");
 
   return (
     <section
       aria-label={t("shareAria")}
-      className="relative isolate overflow-hidden border-y border-brand-line bg-gradient-to-b from-rose-50/40 via-background to-amber-50/30"
+      className="relative isolate overflow-clip border-y border-brand-line bg-gradient-to-b from-rose-50/40 via-background to-amber-50/30"
     >
       <div
         aria-hidden

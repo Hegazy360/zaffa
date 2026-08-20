@@ -41,7 +41,7 @@ export function TierComparisonSection() {
       // is non-deterministic in screenshots — masked in the visual net.
       data-visual-mask
       aria-labelledby="tier-comparison-title"
-      className="relative isolate overflow-hidden border-y border-brand-line bg-background"
+      className="relative isolate overflow-clip border-y border-brand-line bg-background"
     >
       <div
         aria-hidden

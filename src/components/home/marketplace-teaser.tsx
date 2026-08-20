@@ -64,7 +64,7 @@ export function MarketplaceTeaser({
       <section
       data-visual-mask
         className={cn(
-          "relative isolate overflow-hidden bg-gradient-to-b from-background via-amber-50/30 to-background",
+          "relative isolate overflow-clip bg-gradient-to-b from-background via-amber-50/30 to-background",
           className,
         )}
       >
@@ -89,7 +89,7 @@ export function MarketplaceTeaser({
   }
 
   const containerCls = isHome
-    ? "relative isolate overflow-hidden bg-gradient-to-b from-background via-rose-50/30 to-background"
+    ? "relative isolate overflow-clip bg-gradient-to-b from-background via-rose-50/30 to-background"
     : "rounded-3xl border border-rose-200/60 bg-gradient-to-br from-rose-50/80 via-white/70 to-amber-50/60 p-5 shadow-sm backdrop-blur-md sm:p-6";
 
   return (

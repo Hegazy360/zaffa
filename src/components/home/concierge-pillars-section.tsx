@@ -1,6 +1,4 @@
-"use client";
-
-import { useTranslations } from "next-intl";
+import { getTranslations } from "next-intl/server";
 import { Building2, ShieldCheck, Sparkles, Users, type LucideIcon } from "lucide-react";
 import { Rise } from "@/components/motion/rise";
 
@@ -45,13 +43,13 @@ const PILLARS: Pillar[] = [
   },
 ];
 
-export function ConciergePillarsSection() {
-  const t = useTranslations("marketing");
+export async function ConciergePillarsSection() {
+  const t = await getTranslations("marketing");
 
   return (
     <section
       aria-label={t("conciergeAria")}
-      className="surface-dark relative isolate overflow-hidden"
+      className="surface-dark relative isolate overflow-clip"
     >
       <div
         aria-hidden

@@ -33,7 +33,7 @@ export function AskZaffaSection() {
   return (
     <section
       aria-labelledby="ask-zaffa-title"
-      className="relative isolate overflow-hidden border-y border-brand-line bg-gradient-to-b from-rose-50/40 via-background to-background"
+      className="relative isolate overflow-clip border-y border-brand-line bg-gradient-to-b from-rose-50/40 via-background to-background"
     >
       <div
         aria-hidden

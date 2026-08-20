@@ -46,7 +46,7 @@ export function MarketplaceTeaserSkeleton({
       data-visual-mask
         aria-hidden
         className={cn(
-          "relative isolate overflow-hidden bg-gradient-to-b from-background via-rose-50/30 to-background",
+          "relative isolate overflow-clip bg-gradient-to-b from-background via-rose-50/30 to-background",
           className,
         )}
       >

@@ -1,7 +1,5 @@
-"use client";
-
 import Link from "next/link";
-import { useTranslations } from "next-intl";
+import { getTranslations } from "next-intl/server";
 import { ArrowRight, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { WhatsAppCta } from "@/components/marketing/whatsapp-cta";
@@ -53,15 +51,15 @@ const BULLETS = [
   "bullet5",
 ] as const;
 
-export function WholeWeddingSection() {
-  const t = useTranslations("marketing.wholeWedding");
-  const tp = useTranslations("marketing.pricing");
+export async function WholeWeddingSection() {
+  const t = await getTranslations("marketing.wholeWedding");
+  const tp = await getTranslations("marketing.pricing");
   const covers = parseCovers(t("covers"));
 
   return (
     <section
       aria-label={t("aria")}
-      className="surface-dark relative isolate overflow-hidden"
+      className="surface-dark relative isolate overflow-clip"
     >
       {/* Hairline + grain, matching the `contact.tsx` dark plate so the two
           dark surfaces on the site read as the same material. */}
@@ -170,19 +168,24 @@ export function WholeWeddingSection() {
               {/* Two ways in, side by side and equally weighted. The form is
                   not the "real" path with WhatsApp as a fallback: in the Gulf
                   the reverse is closer to true, so neither is demoted. */}
-              <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
+              {/* `flex-wrap` and shrinkable buttons, because the card clips
+                  (`overflow-hidden`) and these two sit in a half-width column:
+                  at the narrow end of `lg` the WhatsApp button was running past
+                  the card's edge and getting cut in half rather than wrapping
+                  under. Padding is a touch tighter for the same reason. */}
+              <div className="mt-8 flex flex-col flex-wrap gap-3 sm:flex-row sm:items-center">
                 <Button
                   size="lg"
                   render={<Link href="/enquire" />}
-                  className="group h-12 w-full gap-2 bg-white px-8 text-base text-stone-950 hover:bg-stone-100 sm:w-auto"
+                  className="group h-12 w-full min-w-0 shrink gap-2 bg-white px-6 text-base text-stone-950 hover:bg-stone-100 sm:w-auto"
                 >
                   {t("cta")}
-                  <ArrowRight className="h-4 w-4 transition-transform rtl:-scale-x-100 group-hover:translate-x-0.5 rtl:group-hover:-translate-x-0.5" />
+                  <ArrowRight className="h-4 w-4 shrink-0 transition-transform rtl:-scale-x-100 group-hover:translate-x-0.5 rtl:group-hover:-translate-x-0.5" />
                 </Button>
                 <WhatsAppCta
                   surface="home_whole_wedding"
                   variant="outline"
-                  className="w-full border-white/25 bg-transparent text-foreground hover:bg-white/10 hover:text-white sm:w-auto"
+                  className="w-full min-w-0 shrink border-white/25 bg-transparent px-6 text-foreground hover:bg-white/10 hover:text-white sm:w-auto"
                 />
               </div>
               <p className="mt-3 text-xs text-muted-foreground">{t("ctaHint")}</p>

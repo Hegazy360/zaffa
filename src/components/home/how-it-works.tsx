@@ -1,7 +1,5 @@
-"use client";
-
 import Image from "next/image";
-import { useTranslations } from "next-intl";
+import { getTranslations } from "next-intl/server";
 import {
   ImagePlus,
   Palette,
@@ -77,14 +75,14 @@ const STEPS: StepDef[] = [
 // internal repo path to visitors. This section now does one job: show the
 // free way in. What happens afterwards is the pillars section's job.
 
-export function HowItWorks() {
-  const t = useTranslations("marketing");
+export async function HowItWorks() {
+  const t = await getTranslations("marketing");
 
   return (
     <section
       id="how-it-works"
       aria-label={t("howAria")}
-      className="relative isolate scroll-mt-16 overflow-hidden bg-background"
+      className="relative isolate scroll-mt-16 overflow-clip bg-background"
     >
       <div
         aria-hidden
@@ -167,8 +165,8 @@ interface ScreenshotProps {
   altKey: StepDef["titleKey"];
 }
 
-function Screenshot({ screenshot, suggestedFilename, altKey }: ScreenshotProps) {
-  const t = useTranslations("marketing");
+async function Screenshot({ screenshot, suggestedFilename, altKey }: ScreenshotProps) {
+  const t = await getTranslations("marketing");
   if (screenshot) {
     // Intrinsic-sized image: Next.js infers the aspect from width/height and
     // CSS scales the image to the container's width while preserving that
