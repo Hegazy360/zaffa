@@ -30,7 +30,7 @@ import {
 } from "@/lib/vision-pack-pricing";
 import {
   PACK_SKUS,
-  PACK_SKU_ORDER,
+  PRICED_PACK_SKUS,
   type PackSkuId,
 } from "@/lib/vision-pack";
 import { useConfirm } from "@/components/ui/confirm";
@@ -87,7 +87,7 @@ export default function AdminVisionPackPricingPage() {
 
   const rowsBySku = useMemo(() => {
     const out = new Map<string, Row[]>();
-    for (const sku of PACK_SKU_ORDER) out.set(sku, []);
+    for (const sku of PRICED_PACK_SKUS) out.set(sku, []);
     for (const row of rows ?? []) {
       if (!out.has(row.sku)) out.set(row.sku, []);
       out.get(row.sku)!.push(row);
@@ -133,7 +133,7 @@ export default function AdminVisionPackPricingPage() {
           </div>
         ) : (
           <div className="space-y-8">
-            {PACK_SKU_ORDER.map((sku) => (
+            {PRICED_PACK_SKUS.map((sku) => (
               <TierSection
                 key={sku}
                 sku={sku}
@@ -333,7 +333,7 @@ const ZERO_DECIMAL_CURRENCIES = new Set([
 function PricingDialog({ editing, onClose, onSave, saving }: PricingDialogProps) {
   const isOpen = editing !== null;
   const isEdit = !!editing?.country_code && !!editing?.sku;
-  const [sku, setSku] = useState<PackSkuId>(PACK_SKU_ORDER[0]);
+  const [sku, setSku] = useState<PackSkuId>(PRICED_PACK_SKUS[0]);
   const [country, setCountry] = useState("");
   const [amount, setAmount] = useState("");
   const [currency, setCurrency] = useState("");
@@ -348,7 +348,7 @@ function PricingDialog({ editing, onClose, onSave, saving }: PricingDialogProps)
   const [seededFrom, setSeededFrom] = useState<string | null>(null);
   if (isOpen && seededFor !== seededFrom) {
     setSeededFrom(seededFor);
-    setSku((editing?.sku as PackSkuId) ?? PACK_SKU_ORDER[0]);
+    setSku((editing?.sku as PackSkuId) ?? PRICED_PACK_SKUS[0]);
     setCountry(editing?.country_code ?? "");
     // Convert stored minor units back to major units for display in the
     // input. Author-friendly: an admin sees "19.99" instead of 1999.
@@ -409,7 +409,7 @@ function PricingDialog({ editing, onClose, onSave, saving }: PricingDialogProps)
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                {PACK_SKU_ORDER.map((id) => (
+                {PRICED_PACK_SKUS.map((id) => (
                   <SelectItem key={id} value={id}>
                     {PACK_SKUS[id].name}
                   </SelectItem>

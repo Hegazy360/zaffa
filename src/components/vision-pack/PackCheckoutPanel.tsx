@@ -22,7 +22,6 @@ import {
   type PackSkuId,
 } from "@/lib/vision-pack";
 import { useTierPricing } from "./use-pricing";
-import { VisionPackUpgradeCta } from "./VisionPackUpgradeCta";
 import { usePackCheckoutAction } from "./use-pack-checkout-action";
 
 interface PackCheckoutPanelProps {
@@ -99,15 +98,6 @@ export function PackCheckoutPanel({
           </p>
         </div>
       ) : null}
-
-      {/* Upgrade CTA — only renders when the caller already owns the
-          lower paid tier and a higher tier is available. Surfaces
-          before the tier picker so the delta-priced path takes
-          precedence over a fresh purchase the server would reject
-          anyway. */}
-      <div className="px-6 pt-5 empty:hidden">
-        <VisionPackUpgradeCta returnPath={returnPath} />
-      </div>
 
       {/* Tier picker — two cards, click to select. Order matches
           `PACK_SKU_ORDER` so the lower tier reads first. */}

@@ -35,13 +35,10 @@ interface PageProps {
  * Two halves:
  *   - The render itself (watermarked for free-tier users, clean for
  *     paid).
- *   - An inline `PackCheckoutPanel` upsell — the same tier picker /
+ *   - An inline `PackCheckoutPanel` upsell — the same pack summary /
  *     includes list / Stripe CTA that powers the modal paywall, but
  *     rendered flush on the page so the visitor doesn't have to
- *     bounce through a second selector to commit. The
- *     `VisionPackPaywallProvider` is still mounted because
- *     `VisionPackUpgradeCta` (rendered inside the panel) reaches for
- *     paywall context; the modal itself just won't open in this flow.
+ *     bounce through a second selector to commit.
  */
 export function RenderRevealClient({ params }: PageProps) {
   const { renderId } = use(params);

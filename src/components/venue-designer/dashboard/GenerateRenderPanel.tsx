@@ -34,7 +34,6 @@ import { EmailGateOverlay } from "./EmailGateOverlay";
 import { Turnstile } from "@/components/security/Turnstile";
 import { useIsAnonymous } from "@/lib/use-is-anonymous";
 import { isFreePack, packAllowsVideo } from "@/lib/vision-pack";
-import { VisionPackUpgradeCta } from "@/components/vision-pack/VisionPackUpgradeCta";
 import { LockableAction } from "@/components/ui/lockable-action";
 import { useConfirm } from "@/components/ui/confirm";
 import { MediaImage } from "@/components/ui/media-image";
@@ -598,15 +597,6 @@ export function GenerateRenderPanel({ designId }: GenerateRenderPanelProps) {
               {videoError && (
                 <p className="text-xs text-destructive">{videoError}</p>
               )}
-
-              {/* Upgrade nudge — only renders for callers on the lower
-                  paid tier with a higher tier available. Hidden by the
-                  CTA component when not applicable. */}
-              <VisionPackUpgradeCta
-                returnPath={
-                  designId ? `/venue-designer/${designId}` : "/venue-designer"
-                }
-              />
 
               {/* Free-tier limits explainer. Sits above the action row so
                   the disabled "Generate again" / "Make it alive" buttons

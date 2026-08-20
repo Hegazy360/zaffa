@@ -69,11 +69,22 @@ export const PACK_SKUS = {
   wedding_design_pack_v1: {
     id: "wedding_design_pack_v1",
     name: "Design Pack",
-    quotas: { renders: 10, styles: 2, videos: 1 },
+    // The one pack sold today. When the Vision Pack retired from sale
+    // (2026-08-20 consolidation) its quotas folded down into this tier at
+    // the entry price — the pack is the customer-acquisition engine for
+    // the concierge, not the business, so the cheapest tier gets the full
+    // experience. Existing rows were backfilled to match (quotas are
+    // stamped per-row at checkout, not read live from this registry).
+    quotas: { renders: 20, styles: 3, videos: 2 },
     includesPlannerMatch: false,
     includesVenueRecs: false,
     durationDays: VISION_PACK_WINDOW_DAYS,
   },
+  // RETIRED FROM SALE (2026-08-20). The registry entry stays because
+  // historic rows stamp this SKU and must keep resolving — names on the
+  // welcome page, admin views, and the still-live upgrade webhook branch
+  // for any in-flight Stripe session. Do not delete; do not re-add to
+  // PURCHASABLE_PACK_SKUS.
   wedding_vision_pack_v1: {
     id: "wedding_vision_pack_v1",
     name: "Vision Pack",
@@ -95,14 +106,22 @@ export const DEFAULT_PACK_SKU: PackSkuId = "wedding_design_pack_v1";
 /** SKU id of the higher-tier pack (planner + venue matching). */
 export const VISION_PACK_SKU_ID: PackSkuId = "wedding_vision_pack_v1";
 
-/** Tiers that can be sold through Stripe checkout. Excludes the free SKU. */
+/** Tiers that can be sold through Stripe checkout. Excludes the free SKU
+ *  and the retired Vision Pack. One entry on purpose: the offer is one
+ *  self-serve pack beside the concierge, not a ladder. */
 export const PURCHASABLE_PACK_SKUS: readonly PackSkuId[] = [
   "wedding_design_pack_v1",
-  "wedding_vision_pack_v1",
 ];
 
 /** Order in which tiers should appear on marketing/comparison surfaces. */
 export const PACK_SKU_ORDER: readonly PackSkuId[] = [
+  "wedding_design_pack_v1",
+];
+
+/** SKUs with seed/DB pricing worth displaying — the purchasable pack plus
+ *  the retired Vision Pack, whose historic prices the admin editor must
+ *  keep showing (existing rows reference them). */
+export const PRICED_PACK_SKUS: readonly PackSkuId[] = [
   "wedding_design_pack_v1",
   "wedding_vision_pack_v1",
 ];

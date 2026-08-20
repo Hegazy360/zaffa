@@ -161,13 +161,7 @@ function TierCard({ tier, idx }: TierCardProps) {
           icon={<Sparkles className="h-3.5 w-3.5" />}
         />
         <IncludedRow
-          label={
-            meta.quotas.videos === 1
-              ? t("tierIncludedVideos", { count: meta.quotas.videos })
-              : t("tierIncludedVideosPlural", {
-                  count: meta.quotas.videos,
-                })
-          }
+          label={t("tierIncludedVideosPlural", { count: meta.quotas.videos })}
           icon={<Sparkles className="h-3.5 w-3.5" />}
         />
         <IncludedRow
