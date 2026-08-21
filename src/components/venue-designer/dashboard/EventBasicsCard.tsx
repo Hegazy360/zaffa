@@ -124,6 +124,10 @@ export function EventBasicsCard() {
                 type="button"
                 onClick={() => setSetting(opt.value)}
                 aria-pressed={setting === opt.value}
+                // A stable hook for the studio-handoff test. The guest-count
+                // presets on this same step are also `aria-pressed` buttons,
+                // so "the pressed button" is ambiguous without it.
+                data-setting={opt.value}
                 className={cn(
                   "rounded-lg border px-3 py-3 text-start text-sm transition-colors hover:bg-accent sm:py-2.5",
                   setting === opt.value

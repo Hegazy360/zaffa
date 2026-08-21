@@ -25,15 +25,34 @@ import {
  *
  * Applies the visitor's picks through the same store actions the wizard's
  * own cards use - `setPalette({ name: preset.id, colors })` is exactly the
- * shape `PaletteCard` writes, so the preset renders as selected - then
- * jumps to the vibe step with basics + palette already answered.
+ * shape `PaletteCard` writes, so the preset renders as selected - and then
+ * leaves them on the FIRST step.
  *
- * LOAD-BEARING ORDER: this component is a *child* of the page, rendered
- * as a sibling AFTER `<VenueDesigner/>`, and React runs effects in tree
- * order, so `VenueDesigner`'s reset-on-mount effect has already wiped
- * the store by the time this effect applies the prefill. Moving this
- * component above the designer, or the reset into a layout, silently
- * reorders that and the prefill gets wiped.
+ * That last part looks like a missed optimisation and is not. The first
+ * draft jumped to `vibe`, reasoning that the studio had already answered
+ * step 1 (setting) and step 2 (palette). But `basics` is three questions,
+ * not one: event type, setting, AND guest count. The studio only supplies
+ * the setting, so skipping the step skipped the headcount, and an unset
+ * `guestCount` makes the scene generator fall back to the coarse `size`
+ * bucket - "a medium layout (about 100 guests)". Every visitor arriving
+ * from the homepage silently got a room built for 100 people, on the one
+ * render meant to sell the product, in a market where 300+ is ordinary.
+ *
+ * Landing on `basics` still shows the carry-over (their setting is
+ * already selected, and the palette is on the next step), and it asks the
+ * one question the studio could not answer.
+ *
+ * ORDER: rendered as a sibling after `<VenueDesigner/>`, so the designer's
+ * reset-on-mount effect has run before this one applies the prefill.
+ *
+ * An earlier version of this comment claimed that ordering was the thing
+ * holding the whole prefill up. A mutation test disproved it: swapping the
+ * two still passes, most likely because `useSearchParams` puts this
+ * component behind a Suspense boundary and defers its mount past the
+ * designer's regardless. The order is kept because it is the one that is
+ * verified to work, not because the mechanism is understood, and
+ * `studio-handoff.spec.ts` asserts the end state rather than the ordering
+ * so it keeps holding if React's scheduling changes underneath it.
  *
  * Deliberately NO one-shot ref: dev StrictMode re-runs every mount
  * effect, and the designer's reset re-runs with it - a ref guard would
@@ -64,8 +83,8 @@ function StudioPrefill() {
     // Strip the params so refresh/back-nav can't re-apply over edits. The
     // designer's autosave replaceState keeps only pathname+hash anyway -
     // stripping deterministically beats losing them inconsistently.
-    window.history.replaceState(null, "", "/venue-designer/new#step=vibe");
-    goToStep("vibe");
+    window.history.replaceState(null, "", "/venue-designer/new#step=basics");
+    goToStep("basics");
     // eslint-disable-next-line react-hooks/exhaustive-deps -- one-shot on mount
   }, []);
 
