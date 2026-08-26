@@ -2108,6 +2108,8 @@
     "deleteRenderConfirm": "Delete this render? This cannot be undone.",
     "renderFailed": "Render failed. Please try again.",
     "videoFailed": "Video generation failed. Please try again.",
+    "renderRateLimited": "You have made a lot of render requests. Please try again a little later.",
+    "downloadFailed": "Could not download the image. Please try again.",
     "needRefBeforeRender": "Add at least one inspiration reference before rendering.",
     "metaTitle": "Design your day, Zaffa",
     "approveDesign": "This is the one, plan it for us",

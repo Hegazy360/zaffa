@@ -66,6 +66,15 @@ export const limiters = {
   discoveryRunDaily: makeLimiter("rl:discovery:run:d", 200, "1 d"),
   outreachDraft: makeLimiter("rl:outreach:draft", 60, "1 h"),
   outreachDraftDaily: makeLimiter("rl:outreach:draft:d", 200, "1 d"),
+  // Admin post generator. One `adminPosts.generate` fans out to up to 4
+  // renders (the `palette_test` format) at ~$0.14 each, so ~$0.56 a click -
+  // and it bills the same single OpenRouter balance the customer render
+  // funnel runs on. That balance hitting zero in August is what silently
+  // dropped two real prospects, so a stuck spinner and an impatient admin
+  // re-clicking is not a theoretical failure here. The hourly bucket stops
+  // the click-loop; the daily one is the ceiling.
+  postGenerate: makeLimiter("rl:posts:generate", 10, "1 h"),
+  postGenerateDaily: makeLimiter("rl:posts:generate:d", 40, "1 d"),
   // Generic per-user write fallback used by mutations that want a sane
   // default but don't justify their own bucket.
   mutationDefault: makeLimiter("rl:mut:default", 120, "1 m"),

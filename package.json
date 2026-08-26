@@ -28,7 +28,8 @@
     "test:e2e:local": "npx dotenvx run --env-file=.env.test -- playwright test",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "prepare": "husky",
-    "assets:compress": "node scripts/compress-home-assets.mjs"
+    "assets:compress": "node scripts/compress-home-assets.mjs",
+    "pulse": "npx dotenvx run --env-file=.env.local -- node scripts/pulse.mjs"
   },
   "prisma": {
     "seed": "npx tsx prisma/seed.ts"

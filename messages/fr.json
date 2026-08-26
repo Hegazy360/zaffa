@@ -2108,6 +2108,8 @@
     "deleteRenderConfirm": "Supprimer ce rendu ? Ceci ne peut pas être annulé.",
     "renderFailed": "Échec du rendu. Veuillez réessayer.",
     "videoFailed": "La génération de la vidéo a échoué. Veuillez réessayer.",
+    "renderRateLimited": "Vous avez demandé beaucoup de rendus. Veuillez réessayer un peu plus tard.",
+    "downloadFailed": "Le téléchargement de l'image a échoué. Veuillez réessayer.",
     "needRefBeforeRender": "Ajoutez au moins une référence d'inspiration avant le rendu.",
     "metaTitle": "Composez votre journée, Zaffa",
     "approveDesign": "C'est celui-là, organisez-le pour nous",

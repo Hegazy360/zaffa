@@ -177,7 +177,21 @@ export const aiRouter = router({
   startVideo: protectedProcedure
     .input(
       z.object({
-        imageBase64: z.string().min(100),
+        // Misnamed: the client only ever hands us the Cloudinary URL of
+        // the render it is currently looking at, never a base64 payload.
+        // The old `min(100)` was a leftover base64 length floor, and a
+        // real render URL cleared it by exactly one character
+        // (27 + cloud name + 14 + version + "zaffa-renders/" + public id
+        // + ".png" = 100). A shorter cloud name or folder, or the
+        // provider-passthrough branch in `mirrorToCloudinary`, would have
+        // tripped it and painted a raw Zod string into the video CTA.
+        // `.url()` is what the rest of src/server/routers uses for these
+        // same URLs (see `venueDesigns.saveMedia`); `.max(2000)` mirrors
+        // the `turnstileToken` bound above and leaves room for the long
+        // signed watermarked variant. The field itself still needs
+        // renaming to `imageUrl` - that spans video-generator.ts and
+        // GenerateRenderPanel.tsx, so it is a separate change.
+        imageBase64: z.string().url().max(2000),
         context: z
           .object({
             eventType: z.enum([

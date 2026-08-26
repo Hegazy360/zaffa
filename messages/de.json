@@ -2108,6 +2108,8 @@
     "deleteRenderConfirm": "Diesen Render löschen? Dies kann nicht rückgängig gemacht werden.",
     "renderFailed": "Rendering fehlgeschlagen. Bitte versuchen Sie es noch einmal.",
     "videoFailed": "Die Videoerstellung ist fehlgeschlagen. Bitte versuchen Sie es noch einmal.",
+    "renderRateLimited": "Sie haben sehr viele Renderings angefragt. Bitte versuchen Sie es etwas später noch einmal.",
+    "downloadFailed": "Das Bild konnte nicht heruntergeladen werden. Bitte versuchen Sie es noch einmal.",
     "needRefBeforeRender": "Fügen Sie vor dem Rendern mindestens eine Inspirationsquelle hinzu.",
     "metaTitle": "Gestalten Sie Ihren Tag, Zaffa",
     "approveDesign": "Das ist es, plant es für uns",

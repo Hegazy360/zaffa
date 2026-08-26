@@ -264,5 +264,19 @@ export async function middleware(request: NextRequest) {
 export const config = {
   // We need to seed the cookie on the marketing surface too, so the matcher
   // covers everything except Next internals and static assets.
-  matcher: ["/((?!_next/|api/|favicon.ico|.*\\..*).*)"],
+  //
+  // `monitoring` is Sentry's `tunnelRoute` (next.config.ts), the rewrite the
+  // browser POSTs errors through so ad-blockers don't eat them. It must not
+  // reach this middleware: `checkSitePassword` runs first and answers 401 to
+  // any request without Basic credentials, and a beacon never carries them -
+  // so with SITE_PASSWORD set, every client-side error on the gated preview
+  // domain would be swallowed at the edge with nothing in Sentry to show for
+  // it. The wizard comment above `tunnelRoute` warns about exactly this.
+  //
+  // Anchored as `monitoring(?:/|$)` rather than a bare `monitoring` so the
+  // exclusion covers the tunnel and nothing else. Unanchored, a future route
+  // named `/monitoring-status` would inherit the bypass by prefix alone and
+  // skip `checkSitePassword` with no one the wiser - the quiet kind of hole
+  // that only shows up once the page it exposes already exists.
+  matcher: ["/((?!_next/|api/|monitoring(?:/|$)|favicon.ico|.*\\..*).*)"],
 };

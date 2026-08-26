@@ -91,6 +91,7 @@ export function GenerateRenderPanel({ designId }: GenerateRenderPanelProps) {
   const [generationId, setGenerationId] = useState<string | null>(null);
   const [videoUrl, setVideoUrl] = useState<string | null>(null);
   const [videoError, setVideoError] = useState<string | null>(null);
+  const [renderError, setRenderError] = useState<string | null>(null);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const utils = trpc.useUtils();
@@ -203,6 +204,9 @@ export function GenerateRenderPanel({ designId }: GenerateRenderPanelProps) {
 
   const renderMutation = trpc.ai.renderScene.useMutation({
     onSuccess: (data) => {
+      // Clear any banner left over from a previous failed attempt, the
+      // form branch unmounts on success but the state outlives it.
+      setRenderError(null);
       // The displayed URL is tier-aware: free tier sees the signed
       // watermarked transformation; paid tiers see the clean asset.
       setResultImage(data.imageUrl);
@@ -248,7 +252,27 @@ export function GenerateRenderPanel({ designId }: GenerateRenderPanelProps) {
       // PACK_WINDOW_EXPIRED) pop the modal instead of toast-ing. Anything
       // else falls through to the existing render-failed toast.
       if (paywall.handleError(err)) return;
-      toast.error(err.message || t("renderFailed"));
+      // Never surface `err.message` here - it is a server-internal string.
+      // During the dead-funnel window on Aug 25-26 this line would have shown
+      // two real prospects `Image generation failed: 402 {"error":...}`, and
+      // the bot-check branch shows them the raw reason code TURNSTILE_FAILED.
+      // The rate limiter is the only failure with something worth telling the
+      // visitor (come back later, not right now), so it gets its own key.
+      //
+      // The banner is set alongside the toast because a render takes ~24
+      // seconds and sonner clears after four: on Aug 25 and 26 two real
+      // prospects came back to a panel that looked exactly as it did before
+      // they clicked, with no idea the attempt had died on an empty
+      // OpenRouter balance. The CTA above is already the retry, it re-enables
+      // the moment the mutation settles; what was missing was any sign that
+      // pressing it again means "try that again".
+      if (err.data?.code === "TOO_MANY_REQUESTS") {
+        setRenderError(t("renderRateLimited"));
+        toast.error(t("renderRateLimited"));
+        return;
+      }
+      setRenderError(t("renderFailed"));
+      toast.error(t("renderFailed"));
     },
   });
 
@@ -260,7 +284,10 @@ export function GenerateRenderPanel({ designId }: GenerateRenderPanelProps) {
     },
     onError: (err) => {
       if (paywall.handleError(err)) return;
-      setVideoError(err.message);
+      // Same reasoning as the render banner above: `err.message` comes off
+      // the wire in English and is written for us, not for the visitor.
+      // `videoFailed` is what the failed-poll branch below already shows.
+      setVideoError(t("videoFailed"));
     },
   });
 
@@ -302,6 +329,7 @@ export function GenerateRenderPanel({ designId }: GenerateRenderPanelProps) {
   }, [view, generationId]);
 
   const handleRender = useCallback(() => {
+    setRenderError(null);
     if (totalRefs === 0) {
       toast.error(t("needRefBeforeRender"));
       return;
@@ -361,17 +389,34 @@ export function GenerateRenderPanel({ designId }: GenerateRenderPanelProps) {
     setGenerationId(null);
     setVideoUrl(null);
     setVideoError(null);
+    setRenderError(null);
     renderMutation.reset();
     videoMutation.reset();
     if (pollRef.current) clearInterval(pollRef.current);
   };
 
-  const handleDownloadImage = () => {
+  // Cloudinary is a different origin, and the HTML `download` attribute is
+  // ignored on a cross-origin href - the click was just navigating the tab
+  // to res.cloudinary.com, so the visitor lost the designer they had open
+  // and the store state behind it. Fetch the bytes and hand the browser a
+  // same-origin blob instead, the same shape LookbookDownloadButton uses
+  // for the lookbook PDF.
+  const handleDownloadImage = async () => {
     if (!resultImage) return;
-    const a = document.createElement("a");
-    a.href = resultImage;
-    a.download = `venue-render-${Date.now()}.png`;
-    a.click();
+    try {
+      const res = await fetch(resultImage);
+      if (!res.ok) throw new Error(String(res.status));
+      const objectUrl = URL.createObjectURL(await res.blob());
+      const a = document.createElement("a");
+      a.href = objectUrl;
+      a.download = `venue-render-${Date.now()}.png`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(objectUrl);
+    } catch {
+      toast.error(t("downloadFailed"));
+    }
   };
 
   const handleDownloadVideo = () => {
@@ -514,6 +559,19 @@ export function GenerateRenderPanel({ designId }: GenerateRenderPanelProps) {
                 </>
               )}
             </Button>
+            {/*
+              Failure sits directly under the button that caused it, so it
+              reads as "that press died" rather than as a panel-level
+              notice. `role="alert"` is load-bearing rather than decorative:
+              the failure lands ~24 seconds after the click, long after
+              focus and attention have wandered off the panel, so it has to
+              be announced and not merely painted.
+            */}
+            {renderError && (
+              <p role="alert" className="-mt-2 text-center text-xs text-destructive">
+                {renderError}
+              </p>
+            )}
             {/*
               Timing hint sits beneath the CTA rather than inside the
               button label. Keeping it outside means the button stays

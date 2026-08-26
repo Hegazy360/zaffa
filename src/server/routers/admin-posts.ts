@@ -9,6 +9,7 @@ import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import { router, protectedProcedure } from "../trpc";
 import { prisma } from "@/lib/prisma";
+import { enforceTrpcMany } from "@/lib/rate-limit";
 import { generatePost, hydrate } from "@/server/posts/generator";
 import { renderPostImage } from "@/server/posts/render";
 import { composeSlides } from "@/server/posts/compose-slides";
@@ -79,6 +80,24 @@ export const adminPostsRouter = router({
     )
     .mutation(async ({ ctx, input }) => {
       await assertAdmin(ctx.user.id);
+      // Up to 4 full-price image calls per invocation, on the shared
+      // OpenRouter balance. Per-admin, not global, matching discovery.ts
+      // and outreach.ts.
+      await enforceTrpcMany(
+        [
+          {
+            key: "postGenerate",
+            message:
+              "Post generation limit reached. Try again in an hour.",
+          },
+          {
+            key: "postGenerateDaily",
+            message:
+              "Daily post generation limit reached. This cap protects the shared render balance the customer funnel runs on.",
+          },
+        ],
+        ctx.user.id,
+      );
       return generatePost({
         format: input?.format,
         vibe: input?.vibe,
@@ -218,6 +237,24 @@ export const adminPostsRouter = router({
     )
     .mutation(async ({ ctx, input }) => {
       await assertAdmin(ctx.user.id);
+      // One render per click here rather than four, but it is the same
+      // button on the same page and the same shared balance, so it shares
+      // the `generate` buckets. Slightly conservative on purpose.
+      await enforceTrpcMany(
+        [
+          {
+            key: "postGenerate",
+            message:
+              "Post generation limit reached. Try again in an hour.",
+          },
+          {
+            key: "postGenerateDaily",
+            message:
+              "Daily post generation limit reached. This cap protects the shared render balance the customer funnel runs on.",
+          },
+        ],
+        ctx.user.id,
+      );
       const existing = await prisma.post.findUnique({
         where: { id: input.post_id },
       });
