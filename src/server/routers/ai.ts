@@ -238,8 +238,11 @@ export const aiRouter = router({
         // The clean asset and its public id only go back when the server
         // did NOT write the row, for the old client flow that saves it
         // through `saveMedia`. Once the row exists the client has no use
-        // for them, and handing a free-tier visitor the unwatermarked URL
-        // (or the public id it is built from) made the watermark optional.
+        // for them, so they stay home. That is tidiness, not protection:
+        // the watermarked `imageUrl` carries the public id in its path, and
+        // renders are public `upload` assets, so anyone who strips the
+        // transformation out of it gets the clean original (see
+        // `watermarkedUrl` in src/lib/cloudinary.ts).
         ...(mediaId ? {} : { cleanImageUrl: cleanUrl, publicId }),
         // Id of the media row the server wrote, null when it did not.
         mediaId,

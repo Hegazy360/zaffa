@@ -42,10 +42,18 @@ export function printSizedUrl(publicId: string, width: number): string {
 /**
  * Watermarked variant URL for the free-tier render reveal. Bakes a
  * "Made with Zaffa" overlay into the image via a signed Cloudinary
- * transformation. The signature prevents URL tampering when the
- * Cloudinary account has Strict Transformations enabled (ops checklist
- * item - without it, anyone who knows Cloudinary can swap the
- * transformation off).
+ * transformation. The signature stops anyone minting a different
+ * derivative when the account has Strict Transformations enabled.
+ *
+ * It does NOT keep the clean render private, and nothing downstream
+ * should assume it does. The URL ends in `/v1/<public id>`, renders are
+ * uploaded as public `type: "upload"` assets (`mirrorToCloudinary` in
+ * src/server/ai/image-gen.ts), and Strict Transformations never guarded
+ * originals: delete the signature and transformation segments and the
+ * CDN serves the unwatermarked file. So this is a visible mark, a
+ * deterrent, not access control. Making it real means uploading renders
+ * as `type: "authenticated"` (and moving the existing ones), then
+ * signing both the clean URL paid tiers get and this one.
  *
  * Server stores the clean asset (no watermark) and derives this URL on
  * read. After a paid upgrade, the same row's media is returned as the

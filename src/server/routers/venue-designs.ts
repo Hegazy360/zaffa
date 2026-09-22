@@ -310,10 +310,10 @@ export const venueDesignsRouter = router({
         // JSON columns come back parsed and typed, never raw: a malformed
         // value reads as null rather than reaching the client half-shaped.
         venue_photo: parseVenuePhoto(design.venue_photo),
-        // `cloudinary_public_id` is used here and not sent: the clean
-        // asset's URL is built from it, so shipping it to a free-tier
-        // browser made the watermark optional, the same leak
-        // `ai.renderScene` stopped. No client reads it.
+        // `cloudinary_public_id` is used here and not sent, because no
+        // client reads it. Do not mistake that for protecting the clean
+        // render: the watermarked URL a free-tier couple gets carries the
+        // same public id in its path (see `watermarkedUrl`).
         media: design.media.map(({ cloudinary_public_id, meta, ...m }) => ({
           ...m,
           url: urlForTier({ ...m, cloudinary_public_id }, isFreeTier),
