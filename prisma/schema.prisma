@@ -590,31 +590,39 @@ model StyleQuizSession {
 }
 
 model VenueDesign {
-  id          String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  user_id     String    @db.Uuid
-  event_id    String?   @db.Uuid
-  name        String    @default("Untitled Design")
-  event_type  String    @default("wedding")
-  setting     String    @default("indoor")
+  id                String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id           String    @db.Uuid
+  event_id          String?   @db.Uuid
+  name              String    @default("Untitled Design")
+  event_type        String    @default("wedding")
+  setting           String    @default("indoor")
   // Coarse size bucket (intimate / medium / large) — kept for the AI scene
   // generator's layout descriptor. Derived on save from `guest_count` when
   // a precise count is provided; otherwise selected directly.
-  size        String    @default("medium")
+  size              String    @default("medium")
   // Exact expected guest count entered by the couple. Optional because
   // older designs were captured before this field existed.
-  guest_count Int?
-  palette     Json      @default("{}")
-  references  Json      @default("{}")
-  style_notes String?
-  thumbnail   String?
-  approved_at DateTime?
-  created_at  DateTime  @default(now())
-  updated_at  DateTime  @updatedAt
+  guest_count       Int?
+  palette           Json      @default("{}")
+  references        Json      @default("{}")
+  style_notes       String?
+  thumbnail         String?
+  approved_at       DateTime?
+  // The couple's own venue photo `{url, publicId, width, height}`. Kept out
+  // of `references` on purpose so it never leaks into moodboards,
+  // microsites or share pages (docs/plan-design-partner-2026-09.md, F1).
+  venue_photo       Json?
+  // The render version the couple chose/approved. Enquiry, lookbook and
+  // the admin brief pin to it instead of guessing "latest" (F5).
+  selected_media_id String?   @db.Uuid
+  created_at        DateTime  @default(now())
+  updated_at        DateTime  @updatedAt
 
   user      Profile            @relation(fields: [user_id], references: [id], onDelete: Cascade)
   event     Event?             @relation(fields: [event_id], references: [id], onDelete: SetNull)
   media     VenueDesignMedia[]
   enquiries Enquiry[]
+  shares    DesignShare[]
 
   // Marketplace teaser joins event → designs and filters approved_at IS
   // NOT NULL. Composite (event_id, approved_at) supersedes the bare
@@ -641,13 +649,22 @@ model VenueDesignMedia {
   // Nullable for legacy rows + provider URLs that bypass Cloudinary.
   // Required to derive the watermarked transformation URL on the fly.
   cloudinary_public_id String?
+  // Provenance: `{mode: "generate"|"dress_venue"|"refine", model, costUsd,
+  // instructionRaw?, instructionEn?, confirmation?, venuePublicId?,
+  // decor?}`. See `src/lib/design-media-meta.ts` for the typed shape. A
+  // refinement is a `type:"render"` row whose `parent_id` is the render it
+  // was edited from; videos stay `type:"video"` under their render.
+  meta                 Json?
   created_at           DateTime @default(now())
 
   design               VenueDesign         @relation(fields: [design_id], references: [id], onDelete: Cascade)
   parent               VenueDesignMedia?   @relation("MediaParent", fields: [parent_id], references: [id], onDelete: SetNull)
   children             VenueDesignMedia[]  @relation("MediaParent")
   email_capture_events EmailCaptureEvent[]
+  votes                DesignVote[]
 
+  @@index([design_id, created_at])
+  @@index([parent_id])
   @@map("venue_design_media")
 }
 
@@ -1103,6 +1120,10 @@ model VisionPack {
   renders_used  Int @default(0)
   videos_quota  Int @default(2)
   videos_used   Int @default(0)
+  // Talk-to-refine edits (F2). Reserved atomically before the model call,
+  // released on failure. CHECK 0 <= edits_used <= edits_quota in the DB.
+  edits_quota   Int @default(0)
+  edits_used    Int @default(0)
 
   // Optional link to the Event the recipient creates from this pack via
   // `visionPacks.findPlanner`. Set when they want to match with a planner;
@@ -1486,8 +1507,43 @@ model ChatMessage {
   conversation    ChatConversation @relation(fields: [conversation_id], references: [id], onDelete: Cascade)
   role            String
   content         String
-  created_at      DateTime @default(now()) @db.Timestamptz(6)
+  created_at      DateTime         @default(now()) @db.Timestamptz(6)
 
   @@index([conversation_id, created_at])
   @@map("chat_messages")
+}
+
+// Family votes on a design's versions, through an unguessable link
+// (docs/plan-design-partner-2026-09.md, F6). Viewers never need an account:
+// `voter_key` is a random id kept in their browser, one vote per share.
+model DesignShare {
+  id         String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  design_id  String    @db.Uuid
+  token      String    @unique
+  created_at DateTime  @default(now()) @db.Timestamptz(6)
+  revoked_at DateTime? @db.Timestamptz(6)
+
+  design VenueDesign  @relation(fields: [design_id], references: [id], onDelete: Cascade)
+  votes  DesignVote[]
+
+  @@index([design_id])
+  @@map("design_shares")
+}
+
+model DesignVote {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  share_id   String   @db.Uuid
+  media_id   String   @db.Uuid
+  voter_key  String
+  voter_name String
+  comment    String?
+  created_at DateTime @default(now()) @db.Timestamptz(6)
+  updated_at DateTime @default(now()) @updatedAt @db.Timestamptz(6)
+
+  share DesignShare      @relation(fields: [share_id], references: [id], onDelete: Cascade)
+  media VenueDesignMedia @relation(fields: [media_id], references: [id], onDelete: Cascade)
+
+  @@unique([share_id, voter_key], map: "design_votes_share_voter_key")
+  @@index([media_id])
+  @@map("design_votes")
 }
