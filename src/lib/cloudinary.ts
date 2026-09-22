@@ -40,6 +40,25 @@ export function printSizedUrl(publicId: string, width: number): string {
 }
 
 /**
+ * The couple's venue photo as the image model receives it (F1): about
+ * 1536px on the long edge, JPEG. The stored upload can be up to 2048px,
+ * and every input pixel is billed as tokens on the Images API. Built from
+ * the public id on the server, so a dress-venue render never fetches a URL
+ * the client chose, and signed so it resolves whether or not the account
+ * has Strict Transformations on.
+ */
+export function venueModelInputUrl(publicId: string): string {
+  return cloudinary.url(publicId, {
+    sign_url: true,
+    type: "upload",
+    secure: true,
+    format: "jpg",
+    quality: "auto:good",
+    transformation: [{ width: 1536, height: 1536, crop: "limit" }],
+  });
+}
+
+/**
  * Watermarked variant URL for the free-tier render reveal. Bakes a
  * "Made with Zaffa" overlay into the image via a signed Cloudinary
  * transformation. The signature stops anyone minting a different

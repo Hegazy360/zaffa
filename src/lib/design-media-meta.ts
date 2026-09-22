@@ -93,6 +93,12 @@ export interface ClientMediaMeta {
   mode: MediaMode;
   instructionRaw: string | null;
   confirmation: string | null;
+  /**
+   * The venue photo a dress-venue render dressed. The couple's own photo,
+   * so nothing to hide; the designer needs it to tell whether the photo on
+   * the design now is still this render's "before".
+   */
+  venuePublicId: string | null;
 }
 
 export function toClientMediaMeta(json: unknown): ClientMediaMeta | null {
@@ -102,5 +108,6 @@ export function toClientMediaMeta(json: unknown): ClientMediaMeta | null {
     mode: meta.mode,
     instructionRaw: meta.instructionRaw ?? null,
     confirmation: meta.confirmation ?? null,
+    venuePublicId: meta.venuePublicId ?? null,
   };
 }

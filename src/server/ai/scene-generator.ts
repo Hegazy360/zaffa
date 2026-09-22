@@ -1,4 +1,8 @@
-import { generateImage } from "./image-gen";
+import {
+  generateImage,
+  generateImageViaImagesApi,
+  venueImageModel,
+} from "./image-gen";
 
 export type ReferenceCategory =
   | "overall_vibe"
@@ -76,6 +80,9 @@ export interface RenderReference {
 
 export interface RenderSceneInput {
   eventType: string;
+  // Clean English brief from the intake check (F3), when there is one. The
+  // dress-venue prompt prefers it over the raw notes, which may be dialect.
+  briefEn?: string | null;
   setting: string;
   size: string;
   // Optional precise expected guest count. When provided, the layout
@@ -89,23 +96,55 @@ export interface RenderSceneInput {
 
 const MAX_REFERENCES = 10;
 
-function buildPrompt(
-  input: RenderSceneInput,
-  ordered: RenderReference[]
-): string {
-  const settingInfo =
-    SETTING_DESCRIPTOR[input.setting] ?? SETTING_DESCRIPTOR.indoor;
-  const layout =
-    typeof input.guestCount === "number" && input.guestCount > 0
-      ? describeLayoutForGuests(input.guestCount)
-      : SIZE_LAYOUT[input.size] ?? SIZE_LAYOUT.medium;
+/**
+ * Mood references a dress-venue render sends after the venue photo. The
+ * Images API bills every input image as tokens, and past four the extra
+ * references were adding cost, not direction (image-models research, 3B).
+ */
+export const MAX_DRESS_VENUE_MOOD_REFERENCES = 4;
 
-  const palettePart = input.palette.colors.length
+const REFERENCE_ORDER: ReferenceCategory[] = [
+  "overall_vibe",
+  "tables",
+  "flowers",
+  "lighting",
+  "venue_decor",
+];
+
+/** References in category order, capped at `max`. */
+function orderReferences(
+  references: RenderReference[],
+  max: number,
+): RenderReference[] {
+  const ordered: RenderReference[] = [];
+  for (const cat of REFERENCE_ORDER) {
+    for (const ref of references.filter((r) => r.category === cat)) {
+      if (ordered.length >= max) return ordered;
+      ordered.push(ref);
+    }
+  }
+  return ordered;
+}
+
+function layoutFor(input: RenderSceneInput): string {
+  return typeof input.guestCount === "number" && input.guestCount > 0
+    ? describeLayoutForGuests(input.guestCount)
+    : SIZE_LAYOUT[input.size] ?? SIZE_LAYOUT.medium;
+}
+
+function palettePartFor(input: RenderSceneInput): string {
+  return input.palette.colors.length
     ? `Color palette: ${input.palette.colors.join(", ")}${
         input.palette.name ? ` (${input.palette.name})` : ""
       }. Apply this palette across linens, florals, candles, lighting tone, and decor accents - every surface should feel coordinated, not arbitrary.`
     : "Choose a tasteful, coherent palette inspired by the references and apply it consistently across linens, florals, and decor.";
+}
 
+/** `Image 2`, `Images 3, 4`: one line per category that has references. */
+function referenceLines(
+  ordered: RenderReference[],
+  firstIndex: number,
+): string {
   const grouped: Record<ReferenceCategory, number[]> = {
     overall_vibe: [],
     tables: [],
@@ -114,17 +153,27 @@ function buildPrompt(
     venue_decor: [],
   };
   ordered.forEach((ref, i) => {
-    grouped[ref.category].push(i + 1);
+    grouped[ref.category].push(i + firstIndex);
   });
-
-  const refLines = (Object.keys(grouped) as ReferenceCategory[])
-    .filter((c) => grouped[c].length > 0)
+  return REFERENCE_ORDER.filter((c) => grouped[c].length > 0)
     .map((c) => {
       const idxs = grouped[c];
       const label = idxs.length > 1 ? `Images ${idxs.join(", ")}` : `Image ${idxs[0]}`;
       return `- ${label}: ${CATEGORY_LABEL[c]}.`;
     })
     .join("\n");
+}
+
+function buildPrompt(
+  input: RenderSceneInput,
+  ordered: RenderReference[]
+): string {
+  const settingInfo =
+    SETTING_DESCRIPTOR[input.setting] ?? SETTING_DESCRIPTOR.indoor;
+  const layout = layoutFor(input);
+  const palettePart = palettePartFor(input);
+
+  const refLines = referenceLines(ordered, 1);
 
   const notesPart = input.styleNotes?.trim()
     ? `Additional notes from the host (incorporate where they fit): ${input.styleNotes.trim()}`
@@ -152,20 +201,7 @@ function buildPrompt(
 }
 
 export async function renderScene(input: RenderSceneInput) {
-  const ordered: RenderReference[] = [];
-  const order: ReferenceCategory[] = [
-    "overall_vibe",
-    "tables",
-    "flowers",
-    "lighting",
-    "venue_decor",
-  ];
-  for (const cat of order) {
-    for (const ref of input.references.filter((r) => r.category === cat)) {
-      if (ordered.length >= MAX_REFERENCES) break;
-      ordered.push(ref);
-    }
-  }
+  const ordered = orderReferences(input.references, MAX_REFERENCES);
 
   const prompt = buildPrompt(input, ordered);
 
@@ -178,5 +214,85 @@ export async function renderScene(input: RenderSceneInput) {
     references: ordered.map((ref) => ({ url: ref.url })),
     cloudinaryFolder: "zaffa-renders",
     mode: "generate",
+  });
+}
+
+/**
+ * The prompt for dressing the couple's own venue photo (F1).
+ *
+ * Image 1 is the canvas, not a mood board. The prompt-only render above
+ * tells the model to treat every image "strictly as a stylistic mood
+ * reference", which is exactly how the first couple who uploaded their
+ * lawn got back a generic meadow. Here the photo is the scene: the model
+ * keeps everything permanent and the camera exactly, clears temporary
+ * clutter, and only adds decor. The substance of the wording is what held
+ * the palms, hedge, ceiling and columns in place in the bake-off
+ * (docs/plan-design-partner-2026-09.md, section 2).
+ *
+ * Deliberately absent from `buildPrompt`'s blocks: the setting descriptor
+ * (the photo already says hall or garden), the forced 16:9 frame and the
+ * forced camera (both would fight the couple's own framing).
+ */
+export function buildDressVenuePrompt(
+  input: RenderSceneInput,
+  moodRefs: RenderReference[],
+): string {
+  const layout = layoutFor(input);
+  const refLines = referenceLines(moodRefs, 2);
+  const brief = input.briefEn?.trim();
+  const notes = input.styleNotes?.trim();
+
+  return [
+    `Image 1 is a photograph of the couple's real venue, the exact place their ${input.eventType} will happen. Edit this photograph: dress this same space for the ${input.eventType}. The result must be the same place, photographed from the same spot.`,
+
+    `Keep every permanent element exactly as it is in Image 1: walls, ceiling, columns, arches, floor, stairs, doors, windows, trees, palms, lawn shape, hedges, flower beds, paths, the horizon and the skyline. Do not move, resize, remove, restyle or add any permanent structure or plant. Keep the camera position, height, lens, perspective and framing exactly the same, so the result lines up with Image 1 when laid over it.`,
+
+    `Remove only temporary clutter: boxes, plastic chairs, bags, cleaning tools, cables and any people.`,
+
+    `Add the decor, sized for the guest count. Layout: ${layout}. Place tables, chairs, linens, florals, lighting, draping and the focal piece (a stage for the couple, an arch or a sweetheart table) on the existing floor or lawn inside the visible area, at believable real-world scale for this space.`,
+
+    palettePartFor(input),
+
+    refLines
+      ? `The couple added mood references for the decor only. Take colors, materials, textures, density and mood from each one for its part of the decor, but never copy their rooms, architecture, backgrounds or layouts into the venue, and never paste them in as cutouts:\n${refLines}`
+      : "",
+
+    brief
+      ? `The couple's brief: ${brief}`
+      : notes
+        ? `The couple's notes (follow them for the decor; they may be written in any language): ${notes}`
+        : "",
+
+    `Lighting: keep the photo's own light, or make it a warm evening or golden-hour scene with the decor lighting glowing, whichever flatters the space. The permanent structures stay exactly as they are either way.`,
+
+    `Important constraints: NO people, guests or staff anywhere in the frame. No text, captions, signage lettering, watermarks or logos. No collage, multiple panels or side-by-side comparison. Output exactly one photograph.`,
+  ]
+    .filter(Boolean)
+    .join("\n\n");
+}
+
+/**
+ * Dress the couple's venue photo (F1). `venue.url` must be built on the
+ * server from the design's stored photo (see `ai.renderScene`), never
+ * taken from the client. The venue goes first so it is Image 1; up to
+ * `MAX_DRESS_VENUE_MOOD_REFERENCES` mood references follow in category
+ * order. `aspectRatio: "auto"` keeps the photo's own proportions, which is
+ * what lets the before/after slider line the two up.
+ */
+export async function dressVenueScene(
+  input: RenderSceneInput,
+  venue: { url: string },
+) {
+  const moods = orderReferences(input.references, MAX_DRESS_VENUE_MOOD_REFERENCES);
+  const prompt = buildDressVenuePrompt(input, moods);
+  const { model, quality } = venueImageModel();
+  return generateImageViaImagesApi({
+    model,
+    quality,
+    prompt,
+    references: [{ url: venue.url }, ...moods.map((ref) => ({ url: ref.url }))],
+    aspectRatio: "auto",
+    cloudinaryFolder: "zaffa-renders",
+    mode: "dress_venue",
   });
 }

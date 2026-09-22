@@ -38,11 +38,13 @@ vi.mock("@/lib/turnstile", () => ({
 
 vi.mock("@/lib/cloudinary", () => ({
   watermarkedUrl: vi.fn((id: string) => `https://wm.example/${id}`),
+  venueModelInputUrl: vi.fn((id: string) => `https://venue.example/${id}`),
 }));
 
 const renderScene = vi.fn();
 vi.mock("@/server/ai/scene-generator", () => ({
   renderScene: (...args: unknown[]) => renderScene(...args),
+  dressVenueScene: vi.fn(),
 }));
 vi.mock("@/server/ai/video-generator", () => ({
   startVideoGeneration: vi.fn(),
