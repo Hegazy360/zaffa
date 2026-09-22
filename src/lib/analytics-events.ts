@@ -35,9 +35,26 @@ export const ANALYTICS_EVENTS = {
   // WhatsApp" is useless next to "which page made them do it".
   WHATSAPP_CTA_CLICKED: "whatsapp.cta_clicked",
   DESIGN_CREATED: "design.created",
+  // Carries `mode` ("generate" | "dress_venue" | "refine") so the three
+  // ways a render is made can be compared on one funnel.
   DESIGN_RENDER_GENERATED: "design.render_generated",
   DESIGN_VIDEO_GENERATED: "design.video_generated",
   DESIGN_APPROVED: "design.approved",
+  // The design partner release (docs/plan-design-partner-2026-09.md).
+  // F1: a couple added a photo of their own venue.
+  DESIGN_VENUE_PHOTO_ADDED: "design.venue_photo_added",
+  // F2: a talked edit landed as a new version of a render.
+  DESIGN_REFINED: "design.refined",
+  // F3: the brief was read before the render, and a suggested fix was taken.
+  DESIGN_INTAKE_CHECKED: "design.intake_checked",
+  DESIGN_INTAKE_FIX_APPLIED: "design.intake_fix_applied",
+  // F4: the costed decor plan under a render was opened.
+  DESIGN_DECOR_PLAN_VIEWED: "design.decor_plan_viewed",
+  // F6: a family share link was created, and someone on it voted.
+  DESIGN_SHARED: "design.shared",
+  DESIGN_VOTE_CAST: "design.vote_cast",
+  // F5: the daily digest told admins about an enquiry still `new` after 12h.
+  ENQUIRY_STALE_NAGGED: "enquiry.stale_nagged",
   EVENT_CREATED: "event.created",
   PROPOSAL_RECEIVED: "proposal.received",
   PROPOSAL_ACCEPTED: "proposal.accepted",

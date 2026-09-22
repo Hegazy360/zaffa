@@ -39,8 +39,10 @@ export const limiters = {
   enquiryFormDaily: makeLimiter("rl:enquiry:d", 20, "1 d"),
   // Per-user AI surfaces. These are the most expensive operations.
   // Two layers: the per-hour limiter caps burst usage; the per-day
-  // limiter is the cost ceiling. Render image calls cost ~$0.04 each at
-  // current OpenAI pricing, so 60/day ≈ $2.50/user/day worst case.
+  // limiter is the cost ceiling. A prompt-only render was measured at
+  // $0.136 on google/gemini-3-pro-image-preview (see image-gen.ts), so
+  // 60/day is ~$8.16 per user per day worst case. Dressing a venue photo
+  // on the Images API is ~$0.057 and shares these buckets.
   aiRender: makeLimiter("rl:ai:render", 30, "1 h"),
   aiRenderDaily: makeLimiter("rl:ai:render:d", 60, "1 d"),
   aiVideo: makeLimiter("rl:ai:video", 5, "1 h"),
@@ -53,6 +55,30 @@ export const limiters = {
   // burning legitimate same-household visitors (parents + couple
   // sharing a router).
   aiRenderFreePerIp: makeLimiter("rl:ai:render:free:ip", 3, "1 d"),
+  // Talked edits of a render (F2), ~$0.022 each on the edit model. Their
+  // own buckets rather than the render ones: a couple refining one design
+  // makes many more calls than one rendering it, and must not lock
+  // themselves out of their next render by talking. The pack's edits quota
+  // (reserved atomically before the call) is the real bound; these cap a
+  // loop. 80/day is ~$1.76 per user per day worst case. The free per-IP
+  // bucket is the edit twin of `aiRenderFreePerIp`: 3 free edits per
+  // user, so 12 per IP per day leaves room for a household.
+  aiEdit: makeLimiter("rl:ai:edit", 30, "1 h"),
+  aiEditDaily: makeLimiter("rl:ai:edit:d", 80, "1 d"),
+  aiEditFreePerIp: makeLimiter("rl:ai:edit:free:ip", 12, "1 d"),
+  // Cheap text/vision LLM reads (~$0.001 each on DESIGN_LLM_MODEL): the
+  // intake check before a render (F3) and the decor analysis behind the
+  // costed plan (F4). Reachable by anonymous sessions, so still bounded.
+  aiIntake: makeLimiter("rl:ai:intake", 20, "1 h"),
+  aiDecorPlan: makeLimiter("rl:ai:decor", 20, "1 h"),
+  // Per-user image uploads to Cloudinary: reference photos, Pinterest
+  // re-hosts and venue photos. Nothing capped these before, and every one
+  // is a server-side upload of up to several MB on our Cloudinary quota.
+  imageUpload: makeLimiter("rl:upload:image", 40, "1 h"),
+  // Family share links (F6). Creating one is per couple; voting is per
+  // share-page visitor, who has no session.
+  shareCreate: makeLimiter("rl:share:create", 20, "1 h"),
+  shareVote: makeLimiter("rl:share:vote", 30, "10 m"),
   // Public homepage chat, keyed per IP. Cheap per message (~$0.001 at
   // gpt-4.1-mini with max_tokens 350) but reachable without any session,
   // so both a burst cap and a daily ceiling. NOTE: `consume` fails OPEN

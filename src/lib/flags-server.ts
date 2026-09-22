@@ -18,6 +18,11 @@ const DEFAULTS_FOR_FALLBACK: Record<FlagKey, boolean> = {
   testimonials: false,
   publishedPricing: true,
   aiChat: false,
+  venuePhoto: true,
+  refineRender: true,
+  intakeCheck: true,
+  decorPlan: true,
+  familyShare: true,
 };
 
 /**

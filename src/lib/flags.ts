@@ -56,6 +56,38 @@ export const KNOWN = {
   // procedure check cannot. OFF by default until the launch QA in en+ar
   // passes and the OpenRouter account has credits (ZAF-85).
   aiChat: "AI_CHAT",
+  // The design partner release (docs/plan-design-partner-2026-09.md). Five
+  // flags, one per feature, all ON by default: each is a kill switch, not a
+  // rollout. Every one is checked in its tRPC procedure as well as in the
+  // UI, because the procedure check is the instant one (an ISR'd page can
+  // lag a flip by up to 300s) and it is what actually stops the spend.
+  // `FLAG_<NAME>=0` in Vercel settings turns a feature off without a deploy.
+  //
+  // F1: the couple uploads a photo of their own venue and the render dresses
+  // that exact space. Off refuses `venueDesigns.uploadVenuePhoto`, and the
+  // dress-venue render mode reads the same flag.
+  // `FLAG_VENUE_PHOTO=0` is the kill switch.
+  venuePhoto: "VENUE_PHOTO",
+  // F2: "what would you change?" under a render, a talked edit on the edit
+  // image model, reserved against the pack's edits quota. Off stops
+  // `ai.refineRender` before any quota is reserved or model called.
+  // `FLAG_REFINE_RENDER=0` is the kill switch.
+  refineRender: "REFINE_RENDER",
+  // F3: a cheap LLM read of the brief before the one precious free render
+  // (notes say garden, setting says indoor). Off skips the check and the
+  // render goes ahead on the raw inputs, as it did before the release.
+  // `FLAG_INTAKE_CHECK=0` is the kill switch.
+  intakeCheck: "INTAKE_CHECK",
+  // F4: the itemised, costed decor plan under a render. It shows prices on
+  // a money surface, so if a pricing row turns out wrong this is how it
+  // comes down while the table is fixed. `FLAG_DECOR_PLAN=0` is the kill
+  // switch.
+  decorPlan: "DECOR_PLAN",
+  // F6: private share links where family vote on a design's versions. The
+  // only feature that serves design content to people with no session, so
+  // it gets its own switch in case a link leaks or votes get abused.
+  // `FLAG_FAMILY_SHARE=0` is the kill switch.
+  familyShare: "FAMILY_SHARE",
 } as const;
 
 export type FlagKey = keyof typeof KNOWN;
@@ -73,6 +105,12 @@ const DEFAULTS: Record<FlagKey, boolean> = {
   publishedPricing: true,
   // OFF, see comment on `aiChat` above.
   aiChat: false,
+  // ON, the design partner kill switches, see comments above.
+  venuePhoto: true,
+  refineRender: true,
+  intakeCheck: true,
+  decorPlan: true,
+  familyShare: true,
 };
 
 export function parseFlagValue(value: string | undefined): boolean | null {
