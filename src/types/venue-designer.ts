@@ -1,3 +1,7 @@
+import type { VenuePhoto } from "@/lib/design-media-meta";
+
+export type { VenuePhoto };
+
 export type ReferenceCategory =
   | "overall_vibe"
   | "tables"
@@ -95,6 +99,12 @@ export interface DesignDocument {
   palette: DesignPalette;
   references: DesignReferences;
   styleNotes?: string;
+  // The couple's own venue photo (F1), uploaded through
+  // `venueDesigns.uploadVenuePhoto`. Deliberately not a reference: it is
+  // the canvas the render dresses, and it must never leak into moodboards,
+  // microsites or share pages the way references do. Null when the couple
+  // has not added one.
+  venuePhoto: VenuePhoto | null;
 }
 
 export const EMPTY_REFERENCES: DesignReferences = {
@@ -114,6 +124,7 @@ export const DEFAULT_DESIGN: DesignDocument = {
   palette: { colors: [] },
   references: EMPTY_REFERENCES,
   styleNotes: "",
+  venuePhoto: null,
 };
 
 export const MAX_REFERENCES_PER_CATEGORY = 3;

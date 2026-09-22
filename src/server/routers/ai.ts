@@ -18,6 +18,9 @@ import {
 import { isFreePack, packAllowsVideo } from "@/lib/vision-pack";
 import { watermarkedUrl } from "@/lib/cloudinary";
 import { verifyTurnstile } from "@/lib/turnstile";
+import { prisma } from "@/lib/prisma";
+import { reportError } from "@/lib/logger";
+import type { MediaMeta } from "@/lib/design-media-meta";
 
 const referenceCategorySchema = z.enum([
   "overall_vibe",
@@ -58,6 +61,12 @@ export const aiRouter = router({
         // send one when `TURNSTILE_SECRET_KEY` is configured (prod);
         // paid users skip the bot check entirely (see below).
         turnstileToken: z.string().max(2048).nullish(),
+        // The design this render belongs to. When present the server
+        // writes the media row itself and returns its id. Optional so a
+        // client built before server-side persistence keeps working: it
+        // gets `cleanImageUrl` back and saves through `saveMedia` as
+        // before.
+        designId: z.string().uuid().nullish(),
       })
     )
     .mutation(async ({ ctx, input }) => {
@@ -74,6 +83,21 @@ export const aiRouter = router({
             code: "FORBIDDEN",
             message: "TURNSTILE_FAILED",
           });
+        }
+      }
+
+      // The render is written onto this design after it is paid for, so
+      // the design must be the caller's BEFORE anything is spent or a free
+      // pack is minted. A foreign or deleted id is a NOT_FOUND here, not a
+      // paid render whose row then fails to insert.
+      const designId = input.designId ?? null;
+      if (designId) {
+        const owned = await prisma.venueDesign.findFirst({
+          where: { id: designId, user_id: ctx.user.id },
+          select: { id: true },
+        });
+        if (!owned) {
+          throw new TRPCError({ code: "NOT_FOUND", message: "Design not found" });
         }
       }
 
@@ -142,10 +166,61 @@ export const aiRouter = router({
           ? watermarkedUrl(publicId)
           : cleanUrl;
 
+      // Server-side persistence. The client used to save the row itself
+      // through `saveMedia` once this call returned, which lost the paid
+      // render whenever the tab closed during the ~24s wait, the first
+      // design save had not resolved yet, or the follow-up call failed (6
+      // of the first 10 real designs have no image). The row is written
+      // here instead, with the clean URL (the tier watermark is derived on
+      // read) and the provenance the version strip and cost reports read.
+      //
+      // A failed insert must not fail the request. The couple has already
+      // been charged a render, so they get the image either way; the
+      // response then falls back to the old shape (below) so the client
+      // can still try `saveMedia`.
+      let mediaId: string | null = null;
+      if (designId) {
+        // `satisfies` rather than a `MediaMeta` annotation: the schema's
+        // loose index signature is not a Prisma JSON input, this literal is.
+        const meta = {
+          mode: "generate" as const,
+          model: result.model,
+          ...(result.costUsd != null ? { costUsd: result.costUsd } : {}),
+        } satisfies MediaMeta;
+        try {
+          const row = await prisma.venueDesignMedia.create({
+            data: {
+              design_id: designId,
+              type: "render",
+              url: cleanUrl,
+              cloudinary_public_id: publicId,
+              meta,
+            },
+            select: { id: true },
+          });
+          mediaId = row.id;
+          // Bump the design so "My designs" (ordered by updated_at) puts
+          // the design just rendered on top.
+          await prisma.venueDesign.update({
+            where: { id: designId },
+            data: { updated_at: new Date() },
+            select: { id: true },
+          });
+        } catch (err) {
+          reportError("ai.render_scene.persist_failed", err, {
+            userId: ctx.user.id,
+            designId,
+            mediaId,
+            publicId,
+          });
+        }
+      }
+
       // Couple-journey funnel, every successful AI render is a step
       // toward a finished design. Tracking the input shape (event type,
       // setting, palette size) lets us compare conversion across config.
       await trackServer(ctx.user.id, ANALYTICS_EVENTS.DESIGN_RENDER_GENERATED, {
+        mode: "generate",
         event_type: input.eventType,
         setting: input.setting,
         size: input.size,
@@ -153,14 +228,19 @@ export const aiRouter = router({
         reference_count: input.references.length,
         pack_id: pack.id,
         sku: pack.sku,
+        design_id: designId,
+        persisted: mediaId !== null,
       });
 
       return {
-        // Clean URL (server-side persistence), kept on the returned
-        // shape for the `venueDesigns.saveMedia` follow-up which stores
-        // it in the DB so future paid views resolve directly.
-        cleanImageUrl: cleanUrl,
-        publicId,
+        // The clean asset and its public id only go back when the server
+        // did NOT write the row, for the old client flow that saves it
+        // through `saveMedia`. Once the row exists the client has no use
+        // for them, and handing a free-tier visitor the unwatermarked URL
+        // (or the public id it is built from) made the watermark optional.
+        ...(mediaId ? {} : { cleanImageUrl: cleanUrl, publicId }),
+        // Id of the media row the server wrote, null when it did not.
+        mediaId,
         // What the client should render right now.
         imageUrl,
         text: result.text,

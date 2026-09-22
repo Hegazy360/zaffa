@@ -40,6 +40,13 @@ import { MediaImage } from "@/components/ui/media-image";
 
 interface GenerateRenderPanelProps {
   designId?: string;
+  /**
+   * Flush the design save and resolve with the design id (creating the
+   * design on its first save). Called before every render so the server
+   * can write the render row itself. Optional so the panel still renders
+   * standalone; without it the render falls back to `designId` as is.
+   */
+  saveNow?: () => Promise<string>;
 }
 
 type View = "form" | "image" | "video-pending" | "video";
@@ -72,7 +79,10 @@ const EVENT_TYPE_KEY: Record<string, string> = {
   other: "eventTypeOther",
 };
 
-export function GenerateRenderPanel({ designId }: GenerateRenderPanelProps) {
+export function GenerateRenderPanel({
+  designId,
+  saveNow,
+}: GenerateRenderPanelProps) {
   const t = useTranslations("designer");
   const tCommon = useTranslations("common");
   const confirm = useConfirm();
@@ -85,6 +95,9 @@ export function GenerateRenderPanel({ designId }: GenerateRenderPanelProps) {
   const palette = useVenueDesignerStore((s) => s.palette);
   const references = useVenueDesignerStore((s) => s.references);
   const styleNotes = useVenueDesignerStore((s) => s.styleNotes ?? "");
+  const setActiveRenderMediaId = useVenueDesignerStore(
+    (s) => s.setActiveRenderMediaId,
+  );
 
   const [resultImage, setResultImage] = useState<string | null>(null);
   const [view, setView] = useState<View>("form");
@@ -92,6 +105,12 @@ export function GenerateRenderPanel({ designId }: GenerateRenderPanelProps) {
   const [videoUrl, setVideoUrl] = useState<string | null>(null);
   const [videoError, setVideoError] = useState<string | null>(null);
   const [renderError, setRenderError] = useState<string | null>(null);
+  // True while the design save is flushed ahead of a render, the gap
+  // before the render mutation itself is pending. The ref is the guard (a
+  // double tap lands before the re-render that disables the button), the
+  // state drives the button.
+  const [flushingSave, setFlushingSave] = useState(false);
+  const renderStartingRef = useRef(false);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const utils = trpc.useUtils();
@@ -103,6 +122,7 @@ export function GenerateRenderPanel({ designId }: GenerateRenderPanelProps) {
     onSuccess: (created) => {
       if (created.type === "render") {
         lastRenderMediaIdRef.current = created.id;
+        setActiveRenderMediaId(created.id);
         // If the email gate is waiting on a renderId (free-tier first
         // render that hasn't been persisted yet when the gate opened),
         // patch it in now so the magic-link redirect lands on the
@@ -200,10 +220,11 @@ export function GenerateRenderPanel({ designId }: GenerateRenderPanelProps) {
     setResultImage(latestRender.url);
     setView("image");
     lastRenderMediaIdRef.current = latestRender.id;
-  }, [isAnon, latestRender, resultImage, view]);
+    setActiveRenderMediaId(latestRender.id);
+  }, [isAnon, latestRender, resultImage, view, setActiveRenderMediaId]);
 
   const renderMutation = trpc.ai.renderScene.useMutation({
-    onSuccess: (data) => {
+    onSuccess: (data, variables) => {
       // Clear any banner left over from a previous failed attempt, the
       // form branch unmounts on success but the state outlives it.
       setRenderError(null);
@@ -212,13 +233,26 @@ export function GenerateRenderPanel({ designId }: GenerateRenderPanelProps) {
       setResultImage(data.imageUrl);
       setView("image");
 
-      // Persist the **clean** URL (server-side source of truth) so
-      // future paid views render directly without the watermark
-      // transformation, and the public_id so the URL stays derivable
-      // after a tier change.
-      if (designId && data.cleanImageUrl) {
+      // The design the render was requested for. On a brand-new design
+      // the `designId` prop may still be catching up with the save that
+      // `handleRender` flushed, the request variables never are.
+      const renderDesignId = variables.designId ?? designId ?? null;
+
+      if (data.mediaId) {
+        // The server wrote the media row itself, nothing left to save.
+        lastRenderMediaIdRef.current = data.mediaId;
+        setActiveRenderMediaId(data.mediaId);
+        if (renderDesignId) {
+          utils.venueDesigns.getById.invalidate({ id: renderDesignId });
+        }
+      } else if (renderDesignId && data.cleanImageUrl) {
+        // Fallback for a render the server could not attach (no design
+        // id, or its insert failed): persist the **clean** URL so future
+        // paid views render directly without the watermark
+        // transformation, and the public_id so the URL stays derivable
+        // after a tier change.
         saveMediaMutation.mutate({
-          design_id: designId,
+          design_id: renderDesignId,
           type: "render",
           url: data.cleanImageUrl,
           cloudinary_public_id: data.publicId ?? null,
@@ -228,13 +262,12 @@ export function GenerateRenderPanel({ designId }: GenerateRenderPanelProps) {
       // When the render came back watermarked, the visitor is on the
       // free tier, pop the email gate. The gate component overlays the
       // blurred preview and stays until they enter an email (which
-      // sends the magic link + records the capture). When the
-      // saveMedia mutation resolves we patch in the renderId so the
-      // gate's submit can reference it.
+      // sends the magic link + records the capture). On the fallback
+      // path the renderId is patched in when saveMedia resolves.
       if (data.watermarked) {
         setPendingEmailGate({
-          renderId: null,
-          designId: designId ?? null,
+          renderId: data.mediaId ?? null,
+          designId: renderDesignId,
         });
       }
 
@@ -328,22 +361,45 @@ export function GenerateRenderPanel({ designId }: GenerateRenderPanelProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [view, generationId]);
 
-  const handleRender = useCallback(() => {
+  const handleRender = useCallback(async () => {
+    if (renderStartingRef.current || renderMutation.isPending) return;
     setRenderError(null);
     if (totalRefs === 0) {
       toast.error(t("needRefBeforeRender"));
       return;
     }
-    renderMutation.mutate({
-      eventType,
-      setting,
-      size,
-      guestCount: guestCount ?? null,
-      palette,
-      references: flatRefs,
-      styleNotes: styleNotes.trim() || undefined,
-      turnstileToken: turnstileToken ?? undefined,
-    });
+    renderStartingRef.current = true;
+    try {
+      // Flush the design first so the server can attach the render to it
+      // (a new design gets its id from this very save). If the save fails
+      // the render still goes ahead: refusing a couple their render over
+      // an autosave hiccup is worse than the old client-side save path,
+      // which the server falls back to when it has no design to write to.
+      let renderDesignId = designId ?? null;
+      if (saveNow) {
+        setFlushingSave(true);
+        try {
+          renderDesignId = await saveNow();
+        } catch {
+          // Keep the id we already had, if any.
+        } finally {
+          setFlushingSave(false);
+        }
+      }
+      renderMutation.mutate({
+        eventType,
+        setting,
+        size,
+        guestCount: guestCount ?? null,
+        palette,
+        references: flatRefs,
+        styleNotes: styleNotes.trim() || undefined,
+        turnstileToken: turnstileToken ?? undefined,
+        designId: renderDesignId,
+      });
+    } finally {
+      renderStartingRef.current = false;
+    }
   }, [
     renderMutation,
     eventType,
@@ -356,6 +412,8 @@ export function GenerateRenderPanel({ designId }: GenerateRenderPanelProps) {
     totalRefs,
     t,
     turnstileToken,
+    designId,
+    saveNow,
   ]);
 
   const handleMakeVideo = useCallback(() => {
@@ -440,9 +498,10 @@ export function GenerateRenderPanel({ designId }: GenerateRenderPanelProps) {
         setVideoUrl(null);
         setView("image");
         lastRenderMediaIdRef.current = item.id;
+        setActiveRenderMediaId(item.id);
       }
     },
-    []
+    [setActiveRenderMediaId]
   );
 
   const handleDeletePast = useCallback(
@@ -544,10 +603,12 @@ export function GenerateRenderPanel({ designId }: GenerateRenderPanelProps) {
             <Button
               size="lg"
               onClick={handleRender}
-              disabled={renderMutation.isPending || totalRefs === 0}
+              disabled={
+                renderMutation.isPending || flushingSave || totalRefs === 0
+              }
               className="h-12 w-full gap-2 bg-rose-500 text-base text-white hover:bg-rose-600 sm:h-11 sm:text-sm"
             >
-              {renderMutation.isPending ? (
+              {renderMutation.isPending || flushingSave ? (
                 <>
                   <Loader2 className="size-4 animate-spin" />
                   {t("rendering")}

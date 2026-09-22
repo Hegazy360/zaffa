@@ -47,6 +47,7 @@ function snapshotKey(doc: DesignDocument): string {
     palette: doc.palette,
     references: doc.references,
     styleNotes: doc.styleNotes ?? "",
+    venuePhoto: doc.venuePhoto ?? null,
   });
 }
 
@@ -98,13 +99,19 @@ export function VenueDesigner({ designId }: VenueDesignerProps) {
   const palette = useVenueDesignerStore((s) => s.palette);
   const references = useVenueDesignerStore((s) => s.references);
   const styleNotes = useVenueDesignerStore((s) => s.styleNotes);
+  const venuePhoto = useVenueDesignerStore((s) => s.venuePhoto);
 
   const [currentId, setCurrentId] = useState<string | undefined>(designId);
+  // Mirrors `currentId` for code that runs outside a render (a queued save
+  // reads it when its turn comes, not when it was queued).
+  const currentIdRef = useRef<string | undefined>(designId);
   const [loaded, setLoaded] = useState<boolean>(!designId);
   const [lastSavedKey, setLastSavedKey] = useState<string>(() =>
     snapshotKey(DEFAULT_DESIGN)
   );
   const autoSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Tail of the save queue, see `runSave`.
+  const saveQueue = useRef<Promise<string> | null>(null);
 
   useEffect(() => {
     if (!designId) {
@@ -122,7 +129,8 @@ export function VenueDesigner({ designId }: VenueDesignerProps) {
 
   const saveMutation = trpc.venueDesigns.save.useMutation({
     onSuccess: (result) => {
-      if (!currentId) {
+      if (!currentIdRef.current) {
+        currentIdRef.current = result.id;
         setCurrentId(result.id);
         // Update the URL to the new design's permalink in place. We use
         // `history.replaceState` rather than `router.replace` for two
@@ -159,6 +167,8 @@ export function VenueDesigner({ designId }: VenueDesignerProps) {
       palette: normalizePalette(existingDesign.palette),
       references: normalizeReferences(existingDesign.references),
       styleNotes: existingDesign.style_notes ?? "",
+      // Already parsed by `getById`; null when absent or unreadable.
+      venuePhoto: existingDesign.venue_photo,
     };
     deserialize(doc);
     setLastSavedKey(snapshotKey(doc));
@@ -166,21 +176,57 @@ export function VenueDesigner({ designId }: VenueDesignerProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [existingDesign, loaded]);
 
+  // Every save goes through here: the 8s autosave, the header's Save, and
+  // the flush before a render (`saveNow`). Saves run one at a time, each
+  // queued behind the one in flight, because the first save of a new
+  // design is a create: two creates racing (an autosave and a render
+  // flush, say) would leave a duplicate design with the render attached
+  // to the wrong one. The queued save reads the document and the id when
+  // its turn comes, so it sends the latest edits as an update.
+  // `mutateAsync` and `serialize` are stable, so an old closure is safe.
+  const runSave = useCallback((): Promise<string> => {
+    const send = async (): Promise<string> => {
+      const doc = serialize();
+      const saved = await saveMutation.mutateAsync({
+        id: currentIdRef.current,
+        name: doc.name,
+        event_type: doc.eventType,
+        setting: doc.setting,
+        size: doc.size,
+        guest_count: doc.guestCount ?? null,
+        palette: doc.palette,
+        references: doc.references,
+        style_notes: doc.styleNotes ?? null,
+        thumbnail: null,
+        venue_photo: doc.venuePhoto,
+      });
+      return saved.id;
+    };
+    const queued = (saveQueue.current ?? Promise.resolve(""))
+      .catch(() => "")
+      .then(send);
+    saveQueue.current = queued;
+    return queued;
+  }, [serialize, saveMutation]);
+
   const doSave = useCallback(() => {
-    const doc = serialize();
-    saveMutation.mutate({
-      id: currentId,
-      name: doc.name,
-      event_type: doc.eventType,
-      setting: doc.setting,
-      size: doc.size,
-      guest_count: doc.guestCount ?? null,
-      palette: doc.palette,
-      references: doc.references,
-      style_notes: doc.styleNotes ?? null,
-      thumbnail: null,
-    });
-  }, [currentId, serialize, saveMutation]);
+    // The mutation's own state drives the header's save status, so a
+    // failed autosave is visible there; nothing else to do with it here.
+    runSave().catch(() => undefined);
+  }, [runSave]);
+
+  // Flush the design and resolve with its id, creating it on the first
+  // save. The render panel calls this before `ai.renderScene` so the
+  // server can write the render row onto the design itself: a render
+  // requested before the first autosave landed used to come back with no
+  // design to attach to, and was lost.
+  const saveNow = useCallback((): Promise<string> => {
+    if (autoSaveTimer.current) {
+      clearTimeout(autoSaveTimer.current);
+      autoSaveTimer.current = null;
+    }
+    return runSave();
+  }, [runSave]);
 
   const currentKey = useMemo(
     () =>
@@ -193,8 +239,19 @@ export function VenueDesigner({ designId }: VenueDesignerProps) {
         palette,
         references,
         styleNotes,
+        venuePhoto,
       }),
-    [name, eventType, setting, size, guestCount, palette, references, styleNotes]
+    [
+      name,
+      eventType,
+      setting,
+      size,
+      guestCount,
+      palette,
+      references,
+      styleNotes,
+      venuePhoto,
+    ]
   );
 
   const dirty = loaded && currentKey !== lastSavedKey;
@@ -231,6 +288,7 @@ export function VenueDesigner({ designId }: VenueDesignerProps) {
       name={name}
       onNameChange={setName}
       onSave={doSave}
+      saveNow={saveNow}
       saving={saveMutation.isPending}
       saveStatus={saveStatus}
       designId={currentId}
@@ -242,6 +300,8 @@ interface DesignerLayoutProps {
   name: string;
   onNameChange: (name: string) => void;
   onSave: () => void;
+  /** Flush the design save and resolve with its id (see `saveNow`). */
+  saveNow: () => Promise<string>;
   saving: boolean;
   saveStatus: "saved" | "saving" | "unsaved";
   designId?: string;
@@ -251,6 +311,7 @@ function DesignerLayout({
   name,
   onNameChange,
   onSave,
+  saveNow,
   saving,
   saveStatus,
   designId,
@@ -320,7 +381,7 @@ function DesignerLayout({
         />
 
         <div className="mt-2">
-          <StepBody step={activeStep} designId={designId} />
+          <StepBody step={activeStep} designId={designId} saveNow={saveNow} />
         </div>
 
         <StepNavFooter step={activeStep} onStepChange={goToStep} />
@@ -350,9 +411,10 @@ const cnStepBody = [
 interface StepBodyProps {
   step: StepId;
   designId?: string;
+  saveNow: () => Promise<string>;
 }
 
-function StepBody({ step, designId }: StepBodyProps) {
+function StepBody({ step, designId, saveNow }: StepBodyProps) {
   switch (step) {
     case "basics":
       return <EventBasicsCard />;
@@ -371,7 +433,7 @@ function StepBody({ step, designId }: StepBodyProps) {
     case "notes":
       return <StyleNotesCard />;
     case "generate":
-      return <GenerateStep designId={designId} />;
+      return <GenerateStep designId={designId} saveNow={saveNow} />;
   }
 }
 
@@ -386,7 +448,13 @@ function StepBody({ step, designId }: StepBodyProps) {
  * successful render, so the share panel slides in the moment the first
  * render lands.
  */
-function GenerateStep({ designId }: { designId?: string }) {
+function GenerateStep({
+  designId,
+  saveNow,
+}: {
+  designId?: string;
+  saveNow: () => Promise<string>;
+}) {
   const { data: design } = trpc.venueDesigns.getById.useQuery(
     { id: designId! },
     { enabled: !!designId },
@@ -394,7 +462,7 @@ function GenerateStep({ designId }: { designId?: string }) {
   const hasRender = (design?.media ?? []).some((m) => m.type === "render");
   return (
     <div className="space-y-8">
-      <GenerateRenderPanel designId={designId} />
+      <GenerateRenderPanel designId={designId} saveNow={saveNow} />
       {hasRender ? <ShareAndFinishPanel designId={designId} /> : null}
     </div>
   );

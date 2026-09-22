@@ -13,6 +13,7 @@ import {
   type ReferenceCategory,
   type Setting,
   type Size,
+  type VenuePhoto,
 } from "@/types/venue-designer";
 
 export type AddReferenceResult =
@@ -27,6 +28,17 @@ interface VenueDesignerState extends DesignDocument {
   setGuestCount: (guestCount: number | null) => void;
   setPalette: (palette: DesignPalette) => void;
   setStyleNotes: (notes: string) => void;
+  setVenuePhoto: (photo: VenuePhoto | null) => void;
+
+  /**
+   * The render version on screen, shared between the render panel and the
+   * panels that act on "this version" (refine, decor plan, family vote).
+   * Session state, never saved with the design: it is not part of
+   * `serialize()`, and `reset()` / `deserialize()` clear it so a version
+   * of one design can never be acted on from another.
+   */
+  activeRenderMediaId: string | null;
+  setActiveRenderMediaId: (id: string | null) => void;
 
   addReference: (
     category: ReferenceCategory,
@@ -55,6 +67,7 @@ function normalizeReferences(
 
 export const useVenueDesignerStore = create<VenueDesignerState>((set, get) => ({
   ...DEFAULT_DESIGN,
+  activeRenderMediaId: null,
 
   setName: (name) => set({ name }),
   setEventType: (eventType) => set({ eventType }),
@@ -70,6 +83,8 @@ export const useVenueDesignerStore = create<VenueDesignerState>((set, get) => ({
     }),
   setPalette: (palette) => set({ palette }),
   setStyleNotes: (styleNotes) => set({ styleNotes }),
+  setVenuePhoto: (venuePhoto) => set({ venuePhoto }),
+  setActiveRenderMediaId: (activeRenderMediaId) => set({ activeRenderMediaId }),
 
   addReference: (category, ref) => {
     const refs = get().references;
@@ -120,7 +135,12 @@ export const useVenueDesignerStore = create<VenueDesignerState>((set, get) => ({
     return REFERENCE_CATEGORIES.reduce((n, c) => n + refs[c].length, 0);
   },
 
-  reset: () => set({ ...DEFAULT_DESIGN, references: { ...EMPTY_REFERENCES } }),
+  reset: () =>
+    set({
+      ...DEFAULT_DESIGN,
+      references: { ...EMPTY_REFERENCES },
+      activeRenderMediaId: null,
+    }),
 
   serialize: () => {
     const s = get();
@@ -133,6 +153,7 @@ export const useVenueDesignerStore = create<VenueDesignerState>((set, get) => ({
       palette: s.palette,
       references: s.references,
       styleNotes: s.styleNotes ?? "",
+      venuePhoto: s.venuePhoto,
     };
   },
 
@@ -152,6 +173,8 @@ export const useVenueDesignerStore = create<VenueDesignerState>((set, get) => ({
       palette: doc.palette ?? { colors: [] },
       references: normalizeReferences(doc.references),
       styleNotes: doc.styleNotes ?? "",
+      venuePhoto: doc.venuePhoto ?? null,
+      activeRenderMediaId: null,
     });
   },
 }));

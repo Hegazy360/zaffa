@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
+import { Prisma } from "@/generated/prisma/client";
 import { router, protectedProcedure, nonAnonymousProcedure } from "../trpc";
 import { prisma } from "@/lib/prisma";
 import { cloudinary, watermarkedUrl } from "@/lib/cloudinary";
@@ -8,6 +9,13 @@ import { trackServer } from "@/lib/posthog";
 import { ANALYTICS_EVENTS } from "@/lib/analytics-events";
 import { reportError } from "@/lib/logger";
 import { isFlagEnabled } from "@/lib/flags";
+import { enforceTrpc } from "@/lib/rate-limit";
+import {
+  parseVenuePhoto,
+  toClientMediaMeta,
+  venuePhotoSchema,
+  type VenuePhoto,
+} from "@/lib/design-media-meta";
 import { notifyDesignApproved } from "@/server/services/notifications/dispatchers";
 
 const refSchema = z.object({
@@ -55,6 +63,53 @@ function deriveSize(count: number | null | undefined): "intimate" | "medium" | "
   if (count <= 150) return "medium";
   return "large";
 }
+
+/**
+ * Cloudinary folder for a user's venue photos (F1). One folder per user so
+ * ownership can be proven from the public id alone: the render path loads
+ * the photo from `venue_designs.venue_photo` and must never be steered at
+ * someone else's image by a client-supplied value.
+ */
+function venuePhotoFolder(userId: string): string {
+  return `zaffa-venues/${userId}`;
+}
+
+/**
+ * Accept a venue photo only if it is one `uploadVenuePhoto` could have
+ * handed THIS user: served from our own Cloudinary account, with a public
+ * id inside their venue folder, and a URL that actually points at that
+ * public id. Anything else is a client trying to attach an arbitrary or
+ * foreign image, answered with a stable BAD_REQUEST code.
+ */
+function assertOwnVenuePhoto(photo: VenuePhoto, userId: string): void {
+  const cloudName = process.env.CLOUDINARY_CLOUD_NAME;
+  const invalid = () =>
+    new TRPCError({ code: "BAD_REQUEST", message: "VENUE_PHOTO_INVALID" });
+  if (!cloudName) throw invalid();
+  if (!photo.url.startsWith(`https://res.cloudinary.com/${cloudName}/`)) {
+    throw invalid();
+  }
+  if (!photo.publicId.startsWith(`${venuePhotoFolder(userId)}/`)) {
+    throw invalid();
+  }
+  // `.../image/upload/v123/<publicId>.jpg`: the URL must be the asset the
+  // public id names, not some other file in our account.
+  const path = new URL(photo.url).pathname.replace(/\.[a-z0-9]+$/i, "");
+  if (!path.endsWith(`/${photo.publicId}`)) throw invalid();
+}
+
+/**
+ * Upper bound on an uploaded venue photo's data URL. The client downscales
+ * to at most 2048px JPEG (a few hundred KB), and Vercel refuses request
+ * bodies over 4.5MB anyway, so this only ever stops a hand-built request
+ * from making us buffer and forward something huge to Cloudinary.
+ */
+const VENUE_PHOTO_MAX_DATA_URL_CHARS = 7_000_000;
+
+// Shown by the reference picker as is (it toasts `err.message`), so it is
+// written for the couple rather than as a reason code.
+const UPLOAD_RATE_LIMITED =
+  "Too many uploads for now. Please try again in an hour.";
 
 /**
  * Resolve the user's most recent active/fulfilled pack so we know
@@ -252,9 +307,15 @@ export const venueDesignsRouter = router({
       const isFreeTier = isFreePack(pack?.sku);
       return {
         ...design,
+        // JSON columns come back parsed and typed, never raw: a malformed
+        // value reads as null rather than reaching the client half-shaped.
+        venue_photo: parseVenuePhoto(design.venue_photo),
         media: design.media.map((m) => ({
           ...m,
           url: urlForTier(m, isFreeTier),
+          // Only the couple-facing slice (mode, their instruction, our
+          // confirmation). The model id and what we paid stay server-side.
+          meta: toClientMediaMeta(m.meta),
         })),
       };
     }),
@@ -331,9 +392,14 @@ export const venueDesignsRouter = router({
         }),
         style_notes: z.string().max(2000).nullish(),
         thumbnail: z.string().nullish(),
+        // The couple's venue photo (F1), as returned by `uploadVenuePhoto`.
+        // Omitted leaves the stored photo alone (older clients never send
+        // it), null removes it.
+        venue_photo: venuePhotoSchema.nullish(),
       })
     )
     .mutation(async ({ ctx, input }) => {
+      if (input.venue_photo) assertOwnVenuePhoto(input.venue_photo, ctx.user.id);
       const guestCount = input.guest_count ?? null;
       const derivedSize = guestCount != null ? deriveSize(guestCount) : input.size;
       const data = {
@@ -346,6 +412,13 @@ export const venueDesignsRouter = router({
         references: input.references,
         style_notes: input.style_notes ?? null,
         thumbnail: input.thumbnail,
+        ...(input.venue_photo === undefined
+          ? {}
+          : {
+              // A nullable Json column is cleared with DbNull; a bare null
+              // is not a valid Prisma JSON input.
+              venue_photo: input.venue_photo ?? Prisma.DbNull,
+            }),
       };
 
       if (input.id) {
@@ -446,6 +519,7 @@ export const venueDesignsRouter = router({
       })
     )
     .mutation(async ({ ctx, input }) => {
+      await enforceTrpc("imageUpload", ctx.user.id, UPLOAD_RATE_LIMITED);
       const result = await cloudinary.uploader.upload(input.dataUrl, {
         folder: `zaffa-references/${ctx.user.id}`,
         resource_type: "image",
@@ -464,6 +538,9 @@ export const venueDesignsRouter = router({
       })
     )
     .mutation(async ({ ctx, input }) => {
+      // Same bucket as the other uploads: this one makes Cloudinary fetch
+      // an arbitrary URL on our account, so it is the likeliest to loop.
+      await enforceTrpc("imageUpload", ctx.user.id, UPLOAD_RATE_LIMITED);
       const result = await cloudinary.uploader.upload(input.url, {
         folder: `zaffa-references/${ctx.user.id}`,
         resource_type: "image",
@@ -473,5 +550,75 @@ export const venueDesignsRouter = router({
         url: result.secure_url,
         publicId: result.public_id,
       };
+    }),
+
+  /**
+   * F1: upload a photo of the couple's own venue, the canvas a dress-venue
+   * render decorates. Returns the shape `save` accepts as `venue_photo`;
+   * the photo is attached to a design only when the design is saved with
+   * it, so an abandoned upload never changes a design.
+   *
+   * Separate from `uploadReference` on purpose: a different folder per
+   * user (`zaffa-venues/<uid>/`, which is what `save` and the render path
+   * check ownership against), JPEG/PNG/WebP only, a size cap, and the
+   * dimensions back so the client can lay out a before/after compare
+   * without loading the image first. Anonymous sessions may upload: the
+   * venue step comes before the email gate.
+   */
+  uploadVenuePhoto: protectedProcedure
+    .input(
+      z.object({
+        dataUrl: z
+          .string()
+          .max(VENUE_PHOTO_MAX_DATA_URL_CHARS)
+          .regex(/^data:image\/(jpeg|png|webp);base64,/),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      // Kill switch, checked here as well as in the UI because this is
+      // the check that cannot lag a flag flip.
+      if (!isFlagEnabled("venuePhoto")) {
+        throw new TRPCError({
+          code: "PRECONDITION_FAILED",
+          message: "VENUE_PHOTO_DISABLED",
+        });
+      }
+      await enforceTrpc("imageUpload", ctx.user.id, UPLOAD_RATE_LIMITED);
+
+      const result = await cloudinary.uploader.upload(input.dataUrl, {
+        folder: venuePhotoFolder(ctx.user.id),
+        resource_type: "image",
+        type: "upload",
+      });
+      const photo: VenuePhoto = {
+        url: result.secure_url,
+        publicId: result.public_id,
+        width: result.width,
+        height: result.height,
+      };
+      // What we hand back must be something `save` will accept. If the
+      // Cloudinary account's folder mode ever stops prefixing public ids
+      // with the folder, every save would start failing with
+      // VENUE_PHOTO_INVALID; this makes that loud at the upload instead.
+      try {
+        assertOwnVenuePhoto(venuePhotoSchema.parse(photo), ctx.user.id);
+      } catch (err) {
+        reportError("venue_designs.venue_photo_shape_unexpected", err, {
+          userId: ctx.user.id,
+          publicId: result.public_id,
+        });
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "VENUE_PHOTO_UPLOAD_FAILED",
+        });
+      }
+
+      // Fired here, server-side, once per successful upload. The client
+      // should not fire it again when it attaches the photo.
+      await trackServer(ctx.user.id, ANALYTICS_EVENTS.DESIGN_VENUE_PHOTO_ADDED, {
+        width: photo.width,
+        height: photo.height,
+      });
+      return photo;
     }),
 });
