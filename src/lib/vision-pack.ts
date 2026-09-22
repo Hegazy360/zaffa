@@ -23,6 +23,15 @@ export interface PackQuotas {
   styles: number;
   /** Number of short videos included. */
   videos: number;
+  /**
+   * Number of talked refinements ("make the stage bigger") included. Its
+   * own counter, not a slice of `renders`, because an edit costs about a
+   * sixth of a fresh render (~$0.022 against ~$0.136) and the whole point
+   * of F2 is that talking to your design is generous where rendering from
+   * scratch is precious. Reserved atomically before the model call (see
+   * `reserveEdit` in src/server/routers/vision-packs.ts).
+   */
+  edits: number;
 }
 
 export interface PackSku {
@@ -41,7 +50,8 @@ export interface PackSku {
 /**
  * Three SKUs ship today:
  *   - **Free Taste** (`wedding_free_taste_v1`): the email-gated free
- *     render. 1 render, watermarked, no videos / planner / venue. Granted
+ *     render. 1 render plus 3 talked edits, watermarked, no videos /
+ *     planner / venue. Granted
  *     server-side on first `ai.renderScene` call by anonymous (or
  *     not-yet-paid) users via `ensureFreePack`. Never sold through
  *     Stripe; `amount=0`.
@@ -58,7 +68,11 @@ export const PACK_SKUS = {
   wedding_free_taste_v1: {
     id: "wedding_free_taste_v1",
     name: "Free Taste",
-    quotas: { renders: 1, styles: 1, videos: 0 },
+    // Three edits on top of the one render: the first real couples spent
+    // their only free render and hit the paywall before they could say
+    // "close, but warmer". A refinement costs ~$0.022, so three of them
+    // add ~$0.07 to the worst case of an activated free visitor.
+    quotas: { renders: 1, styles: 1, videos: 0, edits: 3 },
     includesPlannerMatch: false,
     includesVenueRecs: false,
     // Free taste has a tight window: 7 days. Long enough for the magic-link
@@ -75,7 +89,10 @@ export const PACK_SKUS = {
     // the concierge, not the business, so the cheapest tier gets the full
     // experience. Existing rows were backfilled to match (quotas are
     // stamped per-row at checkout, not read live from this registry).
-    quotas: { renders: 20, styles: 3, videos: 2 },
+    // Edits (F2) were added 2026-09-22 and paid rows were backfilled to 60
+    // by prisma/migrations/20260922_design_partner. Worst case 60 x $0.022
+    // is ~$1.32 on top of the renders, against a $19 pack.
+    quotas: { renders: 20, styles: 3, videos: 2, edits: 60 },
     includesPlannerMatch: false,
     includesVenueRecs: false,
     durationDays: VISION_PACK_WINDOW_DAYS,
@@ -88,7 +105,7 @@ export const PACK_SKUS = {
   wedding_vision_pack_v1: {
     id: "wedding_vision_pack_v1",
     name: "Vision Pack",
-    quotas: { renders: 20, styles: 3, videos: 2 },
+    quotas: { renders: 20, styles: 3, videos: 2, edits: 60 },
     includesPlannerMatch: true,
     includesVenueRecs: true,
     durationDays: VISION_PACK_WINDOW_DAYS,
@@ -262,6 +279,32 @@ export function isPackRefundable(p: RefundEligibilityInputs): boolean {
   const elapsedMs = Date.now() - effectivePaidAt.getTime();
   const cutoffMs = VISION_PACK_REFUND_HOURS * 60 * 60 * 1000;
   return elapsedMs < cutoffMs;
+}
+
+/** The per-row counters `isPackExhausted` reads. */
+export interface PackUsage {
+  renders_used: number;
+  renders_quota: number;
+  videos_used: number;
+  videos_quota: number;
+  edits_used: number;
+  edits_quota: number;
+}
+
+/**
+ * True when every counter on the pack is spent, which is when it flips
+ * from `active` to `fulfilled`. Edits count: a free pack whose one render
+ * is used but whose three edits are not must stay `active`, or
+ * `requireActivePack` would refuse the couple the very refinements the
+ * tier promises. The SQL in `reserveEdit` mirrors this rule; keep them in
+ * step.
+ */
+export function isPackExhausted(p: PackUsage): boolean {
+  return (
+    p.renders_used >= p.renders_quota &&
+    p.videos_used >= p.videos_quota &&
+    p.edits_used >= p.edits_quota
+  );
 }
 
 /** Helper: window-elapsed flag for displaying the "expired" UI state. */

@@ -23,6 +23,7 @@ import {
   generateMicrositeSlug,
   getPackSku,
   isFreePack,
+  isPackExhausted,
   isPackWindowExpired,
   requirePackSku,
 } from "@/lib/vision-pack";
@@ -78,6 +79,7 @@ export const visionPacksRouter = router({
     const expired = isPackWindowExpired(pack.expires_at);
     const rendersLeft = Math.max(0, pack.renders_quota - pack.renders_used);
     const videosLeft = Math.max(0, pack.videos_quota - pack.videos_used);
+    const editsLeft = Math.max(0, pack.edits_quota - pack.edits_used);
     const msPerDay = 1000 * 60 * 60 * 24;
     const daysLeft = pack.expires_at
       ? Math.max(
@@ -102,6 +104,9 @@ export const visionPacksRouter = router({
       videos_quota: pack.videos_quota,
       videos_used: pack.videos_used,
       videos_left: videosLeft,
+      edits_quota: pack.edits_quota,
+      edits_used: pack.edits_used,
+      edits_left: editsLeft,
       days_left: daysLeft,
       microsite_slug: pack.microsite_slug,
       microsite_published_at: pack.microsite_published_at,
@@ -286,6 +291,7 @@ export const visionPacksRouter = router({
           purchase_country: pricing.country ?? null,
           renders_quota: skuMeta.quotas.renders,
           videos_quota: skuMeta.quotas.videos,
+          edits_quota: skuMeta.quotas.edits,
         },
       });
 
@@ -512,7 +518,7 @@ export const visionPacksRouter = router({
  */
 export async function requireActivePack(
   userId: string,
-  kind: "render" | "video",
+  kind: "render" | "video" | "edit",
 ) {
   const pack = await prisma.visionPack.findFirst({
     where: {
@@ -539,15 +545,29 @@ export async function requireActivePack(
     });
   }
   if (kind === "render" && pack.renders_used >= pack.renders_quota) {
+    // A free taste whose one render is spent now stays `active` while its
+    // edits last (see `isPackExhausted`). Before edits existed it flipped to
+    // `fulfilled` and this path threw PACK_REQUIRED, which opens the
+    // "Unlock generation" paywall. Keep that: "you've used everything in
+    // your pack" is the wrong thing to tell someone who never bought one.
     throw new TRPCError({
       code: "FORBIDDEN",
-      message: "PACK_QUOTA_RENDERS",
+      message: isFreePack(pack.sku) ? "PACK_REQUIRED" : "PACK_QUOTA_RENDERS",
     });
   }
   if (kind === "video" && pack.videos_used >= pack.videos_quota) {
     throw new TRPCError({
       code: "FORBIDDEN",
       message: "PACK_QUOTA_VIDEOS",
+    });
+  }
+  // A read-only pre-check so the paywall opens before any LLM or image
+  // work starts. It is not the guarantee: two concurrent refinements can
+  // both pass it. `reserveEdit` is the atomic gate that actually holds.
+  if (kind === "edit" && pack.edits_used >= pack.edits_quota) {
+    throw new TRPCError({
+      code: "FORBIDDEN",
+      message: "PACK_QUOTA_EDITS",
     });
   }
   return pack;
@@ -557,8 +577,8 @@ export async function requireActivePack(
  * Grant the free `wedding_free_taste_v1` pack to a user who doesn't
  * have any active pack yet. Idempotent: if the user already has any
  * active pack (free or paid), this is a no-op and returns the existing
- * row. Otherwise creates a new free pack with renders_quota=1 and a
- * 7-day window.
+ * row. Otherwise creates a new free pack with renders_quota=1,
+ * edits_quota=3 and a 7-day window.
  *
  * Called at the top of `ai.renderScene` so anonymous + not-yet-paid
  * users can run exactly one render. The email-uniqueness check in
@@ -595,6 +615,7 @@ export async function ensureFreePack(userId: string) {
       expires_at: expiresAt,
       renders_quota: skuMeta.quotas.renders,
       videos_quota: skuMeta.quotas.videos,
+      edits_quota: skuMeta.quotas.edits,
       // Self-purchase shape so the microsite paths behave
       // even though those features are blocked at the SKU layer.
       redeemed_at: now,
@@ -604,8 +625,10 @@ export async function ensureFreePack(userId: string) {
 
 /**
  * Atomically increment the relevant `*_used` counter and flip the pack
- * to `fulfilled` when both counters are exhausted. Called from
- * `ai.renderScene` and `ai.startVideo` after the OpenAI call succeeds.
+ * to `fulfilled` when every counter (renders, videos AND edits) is
+ * exhausted. Called from `ai.renderScene` and `ai.startVideo` after the
+ * model call succeeds. Edits do not come through here, they are reserved
+ * up front by `reserveEdit`.
  *
  * Wrapped in a transaction so the increment is consistent even under
  * concurrent renders (the `*_used <= *_quota` CHECK constraint catches
@@ -627,18 +650,85 @@ export async function consumeQuota(
         renders_quota: true,
         videos_used: true,
         videos_quota: true,
+        edits_used: true,
+        edits_quota: true,
         status: true,
       },
     });
-    const rendersDone = updated.renders_used >= updated.renders_quota;
-    const videosDone = updated.videos_used >= updated.videos_quota;
-    if (rendersDone && videosDone && updated.status === "active") {
+    if (isPackExhausted(updated) && updated.status === "active") {
       await tx.visionPack.update({
         where: { id: packId },
         data: { status: "fulfilled" },
       });
     }
   });
+}
+
+/**
+ * Reserve one edit on the pack BEFORE the edit model is called. Returns
+ * false when nothing was reserved (pack not active, or no edits left), in
+ * which case the caller must not spend anything.
+ *
+ * Why reserve-first rather than bill-after like renders: refining invites
+ * double-taps, and a read-then-bill gate lets N parallel requests all pass
+ * the read, all pay the provider, and then all but one die on the
+ * `edits_used <= edits_quota` CHECK with the image already paid for and
+ * orphaned. The conditional UPDATE is the gate: Postgres row-locks the
+ * pack, so exactly `edits_quota - edits_used` concurrent callers get a row
+ * back and everyone else gets none.
+ *
+ * The comparison is column-to-column (`edits_used < edits_quota`), which
+ * Prisma's `updateMany` cannot express, hence raw SQL. The same statement
+ * flips the pack to `fulfilled` when this edit was the last thing left
+ * anywhere on it. SET expressions all read the pre-update row, so
+ * `edits_used + 1` is the new value; the rule mirrors `isPackExhausted`.
+ * `updated_at` is set by hand because `@updatedAt` is a Prisma-client
+ * feature raw SQL bypasses, and scripts/pulse.mjs reads it.
+ *
+ * Callers pair every successful reserve with `releaseEdit` on failure.
+ */
+export async function reserveEdit(packId: string): Promise<boolean> {
+  const rows = await prisma.$queryRaw<Array<{ id: string }>>(Prisma.sql`
+    UPDATE vision_packs
+       SET edits_used = edits_used + 1,
+           status = CASE
+             WHEN renders_used >= renders_quota
+              AND videos_used >= videos_quota
+              AND edits_used + 1 >= edits_quota
+             THEN 'fulfilled'::"VisionPackStatus"
+             ELSE status
+           END,
+           updated_at = now()
+     WHERE id = ${packId}::uuid
+       AND status = 'active'::"VisionPackStatus"
+       AND edits_used < edits_quota
+    RETURNING id
+  `);
+  return rows.length > 0;
+}
+
+/**
+ * Give back an edit reserved by `reserveEdit` when the edit then failed
+ * (model error, safety block, upload failure). `GREATEST` keeps a double
+ * release from ever driving the counter negative into the CHECK.
+ *
+ * If the reservation was the pack's last unit it flipped the pack to
+ * `fulfilled`; handing the unit back reopens it, otherwise the couple
+ * would lose the edit they never received. Only `fulfilled` is reopened,
+ * an `expired` or `refunded` pack stays where it is.
+ */
+export async function releaseEdit(packId: string): Promise<void> {
+  await prisma.$executeRaw(Prisma.sql`
+    UPDATE vision_packs
+       SET edits_used = GREATEST(edits_used - 1, 0),
+           status = CASE
+             WHEN status = 'fulfilled'::"VisionPackStatus" AND edits_used > 0
+             THEN 'active'::"VisionPackStatus"
+             ELSE status
+           END,
+           updated_at = now()
+     WHERE id = ${packId}::uuid
+  `);
 }
 
 /**
@@ -660,10 +750,21 @@ export async function activatePackFromCheckout(args: {
       recipient_user_id: true,
       is_gift: true,
       microsite_slug: true,
+      sku: true,
+      edits_quota: true,
     },
   });
   if (!pack) return;
   if (pack.status !== "pending_payment") return;
+
+  // Quotas are stamped at checkout, not here. But a checkout opened by the
+  // build that predates edits (F2) wrote the column default, 0, and the
+  // migration's backfill only saw the rows that existed when it ran. Top
+  // such a row up to the registry's allowance on activation, so a couple
+  // whose payment straddled the deploy is not sold a pack with no changes.
+  const skuEdits = getPackSku(pack.sku)?.quotas.edits ?? 0;
+  const editsBackfill =
+    pack.edits_quota === 0 && skuEdits > 0 ? { edits_quota: skuEdits } : {};
 
   const now = new Date();
   const expiresAt = new Date(
@@ -694,6 +795,7 @@ export async function activatePackFromCheckout(args: {
       expires_at: expiresAt,
       microsite_slug: slug,
       stripe_payment_intent_id: args.paymentIntentId,
+      ...editsBackfill,
       ...(isSelfPurchase
         ? {
             recipient_user_id: pack.recipient_user_id ?? pack.buyer_user_id,
@@ -721,7 +823,7 @@ export async function expirePendingCheckout(packId: string): Promise<void> {
  *   - flips the `VisionPackUpgrade` row to `active` with a `paid_at`
  *   - bumps the pack's `sku` to the destination tier
  *   - **adds** (not replaces) the destination tier's quota delta to
- *     the pack's `renders_quota` / `videos_quota` so already-used
+ *     the pack's `renders_quota` / `videos_quota` / `edits_quota` so already-used
  *     renders aren't double-counted
  *   - resets `paid_at` + `expires_at` so the refund window and
  *     generation window both start from the most recent payment
@@ -764,6 +866,10 @@ export async function activateUpgradeFromCheckout(args: {
     0,
     toMeta.quotas.videos - fromMeta.quotas.videos,
   );
+  const editsDelta = Math.max(
+    0,
+    toMeta.quotas.edits - fromMeta.quotas.edits,
+  );
 
   const now = new Date();
   const expiresAt = new Date(
@@ -785,6 +891,7 @@ export async function activateUpgradeFromCheckout(args: {
         sku: upgrade.to_sku,
         renders_quota: { increment: rendersDelta },
         videos_quota: { increment: videosDelta },
+        edits_quota: { increment: editsDelta },
         // Refund window + generation window now start from the latest
         // payment. The original `paid_at` is preserved on the upgrade
         // row for audit.

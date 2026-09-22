@@ -8,11 +8,50 @@ import {
   DialogDescription,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { type PackSkuId } from "@/lib/vision-pack";
+import {
+  DEFAULT_PACK_SKU,
+  FREE_PACK_SKU_ID,
+  PACK_SKUS,
+  isFreePack,
+  type PackSkuId,
+} from "@/lib/vision-pack";
+import { trpc } from "@/lib/trpc";
 import { useTierPricing } from "./use-pricing";
 import { formatPriceLabel } from "@/lib/vision-pack-pricing";
 import { PackCheckoutPanel } from "./PackCheckoutPanel";
 import type { PackErrorReason } from "./pack-error";
+
+/**
+ * Headline and body per paywall reason. A total Record so adding a reason
+ * to `PACK_ERROR_REASONS` is a compile error here until it has copy.
+ */
+const REASON_COPY: Record<
+  PackErrorReason,
+  {
+    title:
+      | "paywallTitle"
+      | "quotaExhaustedTitle"
+      | "quotaEditsTitle"
+      | "windowExpiredTitle"
+      | "rateLimitedFreeTitle";
+    body:
+      | "paywallBody"
+      | "quotaExhaustedBody"
+      | "quotaEditsBody"
+      | "windowExpiredBody"
+      | "rateLimitedFreeBody";
+  }
+> = {
+  PACK_REQUIRED: { title: "paywallTitle", body: "paywallBody" },
+  PACK_QUOTA_RENDERS: { title: "quotaExhaustedTitle", body: "quotaExhaustedBody" },
+  PACK_QUOTA_VIDEOS: { title: "quotaExhaustedTitle", body: "quotaExhaustedBody" },
+  PACK_QUOTA_EDITS: { title: "quotaEditsTitle", body: "quotaEditsBody" },
+  PACK_WINDOW_EXPIRED: { title: "windowExpiredTitle", body: "windowExpiredBody" },
+  FREE_RENDER_RATE_LIMITED: {
+    title: "rateLimitedFreeTitle",
+    body: "rateLimitedFreeBody",
+  },
+};
 
 interface VisionPackPaywallProps {
   open: boolean;
@@ -22,6 +61,7 @@ interface VisionPackPaywallProps {
    *  - REQUIRED          -> "Unlock generation" (default, never bought)
    *  - QUOTA_RENDERS     -> "You've used all your renders"
    *  - QUOTA_VIDEOS      -> "You've used all your videos"
+   *  - QUOTA_EDITS       -> "You've used all your design changes"
    *  - WINDOW_EXPIRED    -> "Your generation window has closed"
    * `null` is treated as REQUIRED.
    */
@@ -57,23 +97,29 @@ export function VisionPackPaywall({
   // mentions a concrete amount). The picker inside the panel can still
   // flip selection, this is just the lead-in.
   const previewPrice = tierPricing.bySku[defaultSku ?? "wedding_design_pack_v1"];
+  // Edit allowances come from the registry so the copy can never promise a
+  // number the pack does not stamp. Passed as strings so the digits stay
+  // Latin whatever the ICU layer does with numbers: this is a money
+  // surface, and Arabic money surfaces keep Latin digits.
+  const freeEdits = String(PACK_SKUS[FREE_PACK_SKU_ID].quotas.edits);
+  const packEdits = String(PACK_SKUS[defaultSku ?? DEFAULT_PACK_SKU].quotas.edits);
 
-  const titleKey =
-    reason === "PACK_QUOTA_RENDERS" || reason === "PACK_QUOTA_VIDEOS"
-      ? "quotaExhaustedTitle"
-      : reason === "PACK_WINDOW_EXPIRED"
-        ? "windowExpiredTitle"
-        : reason === "FREE_RENDER_RATE_LIMITED"
-          ? "rateLimitedFreeTitle"
-          : "paywallTitle";
-  const bodyKey =
-    reason === "PACK_QUOTA_RENDERS" || reason === "PACK_QUOTA_VIDEOS"
-      ? "quotaExhaustedBody"
-      : reason === "PACK_WINDOW_EXPIRED"
-        ? "windowExpiredBody"
-        : reason === "FREE_RENDER_RATE_LIMITED"
-          ? "rateLimitedFreeBody"
-          : "paywallBody";
+  // Running out of edits reads differently on a paid pack: "the Design Pack
+  // gives you 60 more" is false to someone who already bought it and spent
+  // them. Only this reason needs to know the tier, so the pack is fetched
+  // only while it is showing (the designer has it cached already, and an
+  // edit is always made by a signed-in session, anonymous or not).
+  const editsReason = open && reason === "PACK_QUOTA_EDITS";
+  const { data: currentPack } = trpc.visionPacks.current.useQuery(undefined, {
+    enabled: editsReason,
+  });
+  const paidPackOutOfEdits =
+    editsReason && !!currentPack && !isFreePack(currentPack.sku);
+
+  const { title: titleKey, body: reasonBodyKey } =
+    REASON_COPY[reason ?? "PACK_REQUIRED"];
+  const bodyKey = paidPackOutOfEdits ? "quotaEditsPaidBody" : reasonBodyKey;
+  const packEditsUsed = String(currentPack?.edits_quota ?? packEdits);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -99,7 +145,12 @@ export function VisionPackPaywall({
             {t(titleKey)}
           </DialogTitle>
           <DialogDescription className="mt-2 text-sm text-muted-foreground leading-relaxed">
-            {t(bodyKey, { price: previewPrice.label })}
+            {t(bodyKey, {
+              price: previewPrice.label,
+              freeEdits,
+              packEdits,
+              editsQuota: packEditsUsed,
+            })}
           </DialogDescription>
         </div>
 

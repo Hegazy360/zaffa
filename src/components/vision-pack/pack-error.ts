@@ -11,6 +11,13 @@ export const PACK_ERROR_REASONS = {
   REQUIRED: "PACK_REQUIRED",
   QUOTA_RENDERS: "PACK_QUOTA_RENDERS",
   QUOTA_VIDEOS: "PACK_QUOTA_VIDEOS",
+  /**
+   * Talked refinements (F2) ran out. Separate from QUOTA_RENDERS because
+   * the free tier includes edits the couple has actually used, so the
+   * honest headline is "you've used your changes", not "you've used
+   * everything in your pack".
+   */
+  QUOTA_EDITS: "PACK_QUOTA_EDITS",
   WINDOW_EXPIRED: "PACK_WINDOW_EXPIRED",
   /**
    * Anonymous-only: the per-IP free-render limiter rejected. Pops the

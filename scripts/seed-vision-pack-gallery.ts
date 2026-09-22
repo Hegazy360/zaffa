@@ -196,6 +196,7 @@ async function main() {
           currency: egPricing.currency,
           renders_quota: sku.quotas.renders,
           videos_quota: sku.quotas.videos,
+          edits_quota: sku.quotas.edits,
           renders_used: seed.design.renders.length,
           videos_used: seed.design.video ? 1 : 0,
           microsite_slug: seed.micrositeSlug,
