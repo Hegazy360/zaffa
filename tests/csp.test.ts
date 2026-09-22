@@ -38,3 +38,16 @@ describe("CSP img-src", () => {
     expect(imgSrc).not.toContain("https://*'");
   });
 });
+
+const scriptSrc = /"script-src ([^"]+)"/.exec(config)?.[1] ?? "";
+const frameSrc = /"frame-src ([^"]+)"/.exec(config)?.[1] ?? "";
+
+describe("CSP for the Turnstile widget", () => {
+  // Turnstile is off in production today. The day its keys are added, a
+  // blocked widget script means no token, and the server then rejects every
+  // anonymous render as TURNSTILE_FAILED with nothing in the UI to say why.
+  it("allows the widget script and its iframe", () => {
+    expect(scriptSrc).toContain("https://challenges.cloudflare.com");
+    expect(frameSrc).toContain("https://challenges.cloudflare.com");
+  });
+});

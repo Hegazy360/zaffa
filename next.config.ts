@@ -29,7 +29,12 @@ const securityHeaders = [
     value: [
       "default-src 'self'",
       // Next.js + analytics need inline + eval; tighten with nonce later.
-      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.stripe.com https://va.vercel-scripts.com https://vercel.live https://*.i.posthog.com https://analytics.tiktok.com",
+      // challenges.cloudflare.com is the Turnstile widget. It is not switched
+      // on in production today (no TURNSTILE_* keys), and without this host the
+      // day someone adds the keys every anonymous render would quietly fail:
+      // the widget script is blocked, no token is sent, and the server rejects
+      // the render as TURNSTILE_FAILED.
+      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.stripe.com https://va.vercel-scripts.com https://vercel.live https://*.i.posthog.com https://analytics.tiktok.com https://challenges.cloudflare.com",
       // Libraries (PostHog, Sentry replay, etc.) spin up Web Workers from
       // Blob URLs to keep heavy work off the main thread. Without an
       // explicit worker-src, browsers fall back to script-src, which
@@ -51,8 +56,8 @@ const securityHeaders = [
       // rasterizer): it walks the DOM and re-fetches embedded images,
       // some of which we pre-inline as data URLs. `data:` is an inline
       // scheme — no remote endpoint, no exfiltration risk.
-      "connect-src 'self' data: https://*.supabase.co wss://*.supabase.co https://api.stripe.com https://*.cloudinary.com https://api.openai.com https://openrouter.ai https://api.resend.com https://*.upstash.io https://va.vercel-scripts.com https://vitals.vercel-insights.com https://*.i.posthog.com https://analytics.tiktok.com",
-      "frame-src 'self' https://js.stripe.com https://hooks.stripe.com https://checkout.stripe.com",
+      "connect-src 'self' data: https://*.supabase.co wss://*.supabase.co https://api.stripe.com https://*.cloudinary.com https://api.openai.com https://openrouter.ai https://api.resend.com https://*.upstash.io https://va.vercel-scripts.com https://vitals.vercel-insights.com https://*.i.posthog.com https://analytics.tiktok.com https://analytics-ipv6.tiktokw.us",
+      "frame-src 'self' https://js.stripe.com https://hooks.stripe.com https://checkout.stripe.com https://challenges.cloudflare.com",
       "frame-ancestors 'self'",
       "base-uri 'self'",
       "form-action 'self' https://checkout.stripe.com",
