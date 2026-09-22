@@ -310,12 +310,16 @@ export const venueDesignsRouter = router({
         // JSON columns come back parsed and typed, never raw: a malformed
         // value reads as null rather than reaching the client half-shaped.
         venue_photo: parseVenuePhoto(design.venue_photo),
-        media: design.media.map((m) => ({
+        // `cloudinary_public_id` is used here and not sent: the clean
+        // asset's URL is built from it, so shipping it to a free-tier
+        // browser made the watermark optional, the same leak
+        // `ai.renderScene` stopped. No client reads it.
+        media: design.media.map(({ cloudinary_public_id, meta, ...m }) => ({
           ...m,
-          url: urlForTier(m, isFreeTier),
+          url: urlForTier({ ...m, cloudinary_public_id }, isFreeTier),
           // Only the couple-facing slice (mode, their instruction, our
           // confirmation). The model id and what we paid stay server-side.
-          meta: toClientMediaMeta(m.meta),
+          meta: toClientMediaMeta(meta),
         })),
       };
     }),

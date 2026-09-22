@@ -231,6 +231,18 @@ describe("venueDesigns.getById (new JSON columns)", () => {
     expect(wire).not.toContain("instructionEn");
   });
 
+  it("serves a free-tier render watermarked, without the public id of its clean asset", async () => {
+    prismaMock.visionPack.findFirst.mockResolvedValue({
+      id: randomUUID(),
+      sku: "wedding_free_taste_v1",
+    } as never);
+    prismaMock.venueDesign.findFirst.mockResolvedValue(designRow() as never);
+    const res = await caller().getById({ id: DESIGN_ID });
+    expect(res?.media[0].url).toBe("https://wm.example/zaffa-renders/r1");
+    expect(res?.media[0]).not.toHaveProperty("cloudinary_public_id");
+    expect(JSON.stringify(res)).not.toContain("/upload/v1/zaffa-renders/r1");
+  });
+
   it("reads a malformed photo or meta as null instead of passing it through", async () => {
     prismaMock.venueDesign.findFirst.mockResolvedValue(
       designRow({
