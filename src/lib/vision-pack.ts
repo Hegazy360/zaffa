@@ -298,6 +298,11 @@ export interface PackUsage {
  * `requireActivePack` would refuse the couple the very refinements the
  * tier promises. The SQL in `reserveEdit` mirrors this rule; keep them in
  * step.
+ *
+ * The other way out of `active` is the window closing, and because unused
+ * edits keep so many packs `active` to the end, that path matters:
+ * `requireActivePack` closes a pack that produced anything as `fulfilled`
+ * (assets kept) and only an untouched one as `expired`.
  */
 export function isPackExhausted(p: PackUsage): boolean {
   return (

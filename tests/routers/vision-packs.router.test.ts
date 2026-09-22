@@ -27,6 +27,7 @@ vi.mock("@/server/services/notifications/dispatchers", () => ({
 
 const {
   requireActivePack,
+  ensureFreePack,
   consumeQuota,
   reserveEdit,
   releaseEdit,
@@ -72,7 +73,27 @@ describe("requireActivePack (paywall guard)", () => {
     });
   });
 
-  it("throws PACK_WINDOW_EXPIRED and flips status when expires_at is past", async () => {
+  it("throws PACK_WINDOW_EXPIRED and closes an untouched pack as expired", async () => {
+    prismaMock.visionPack.findFirst.mockResolvedValue(
+      buildPack({
+        renders_used: 0,
+        expires_at: new Date("2026-04-01T00:00:00.000Z"),
+      }) as never,
+    );
+    prismaMock.visionPack.update.mockResolvedValue({} as never);
+
+    await expect(requireActivePack(USER_ID, "render")).rejects.toMatchObject({
+      code: "FORBIDDEN",
+      message: "PACK_WINDOW_EXPIRED",
+    });
+    expect(prismaMock.visionPack.update).toHaveBeenCalledWith({
+      where: { id: PACK_ID },
+      data: { status: "expired" },
+    });
+  });
+
+  it("closes a used pack as fulfilled when its window passes, so it keeps its microsite", async () => {
+    // Partly used paid pack: 5 of 20 renders.
     prismaMock.visionPack.findFirst.mockResolvedValue(
       buildPack({ expires_at: new Date("2026-04-01T00:00:00.000Z") }) as never,
     );
@@ -84,7 +105,55 @@ describe("requireActivePack (paywall guard)", () => {
     });
     expect(prismaMock.visionPack.update).toHaveBeenCalledWith({
       where: { id: PACK_ID },
-      data: { status: "expired" },
+      data: { status: "fulfilled" },
+    });
+  });
+
+  it("closes a spent paid pack held open by unused edits as fulfilled, not expired", async () => {
+    // 20/20 renders and 2/2 videos used to be `fulfilled` on the spot.
+    // With 0/60 edits it stays active to the end of its window, and the
+    // window closing must not take its microsite and lookbook away.
+    prismaMock.visionPack.findFirst.mockResolvedValue(
+      buildPack({
+        renders_used: 20,
+        videos_used: 2,
+        edits_used: 0,
+        expires_at: new Date("2026-04-01T00:00:00.000Z"),
+      }) as never,
+    );
+    prismaMock.visionPack.update.mockResolvedValue({} as never);
+
+    await expect(requireActivePack(USER_ID, "video")).rejects.toMatchObject({
+      message: "PACK_WINDOW_EXPIRED",
+    });
+    expect(prismaMock.visionPack.update).toHaveBeenCalledWith({
+      where: { id: PACK_ID },
+      data: { status: "fulfilled" },
+    });
+  });
+
+  it("answers a used free taste past its window with PACK_REQUIRED and closes it as fulfilled", async () => {
+    // Not "your generation window has closed, your renders are on your
+    // microsite": the couple never bought anything.
+    prismaMock.visionPack.findFirst.mockResolvedValue(
+      buildPack({
+        sku: "wedding_free_taste_v1",
+        renders_used: 1,
+        renders_quota: 1,
+        videos_quota: 0,
+        edits_quota: 3,
+        expires_at: new Date("2026-04-01T00:00:00.000Z"),
+      }) as never,
+    );
+    prismaMock.visionPack.update.mockResolvedValue({} as never);
+
+    await expect(requireActivePack(USER_ID, "render")).rejects.toMatchObject({
+      code: "FORBIDDEN",
+      message: "PACK_REQUIRED",
+    });
+    expect(prismaMock.visionPack.update).toHaveBeenCalledWith({
+      where: { id: PACK_ID },
+      data: { status: "fulfilled" },
     });
   });
 
@@ -362,10 +431,71 @@ describe("releaseEdit (give a reserved edit back)", () => {
     const { text, values } = sqlOf(prismaMock.$executeRaw.mock.calls[0][0]);
     expect(text).toContain("SET edits_used = GREATEST(edits_used - 1, 0)");
     expect(text).toContain(
-      `WHEN status = 'fulfilled'::"VisionPackStatus" AND edits_used > 0 THEN 'active'::"VisionPackStatus"`,
+      `WHEN status = 'fulfilled'::"VisionPackStatus" AND edits_used > 0 AND (expires_at IS NULL OR expires_at > now()) THEN 'active'::"VisionPackStatus"`,
     );
     expect(text).toMatch(/WHERE id = \$1::uuid$/);
     expect(values).toEqual([PACK_ID]);
+  });
+});
+
+describe("ensureFreePack (one taste per person)", () => {
+  function pack(overrides: Record<string, unknown> = {}) {
+    return {
+      id: PACK_ID,
+      recipient_user_id: USER_ID,
+      sku: "wedding_free_taste_v1",
+      status: "active",
+      renders_used: 0,
+      renders_quota: 1,
+      videos_used: 0,
+      videos_quota: 0,
+      edits_used: 0,
+      edits_quota: 3,
+      ...overrides,
+    };
+  }
+
+  it("returns the pack the user already holds without creating one", async () => {
+    prismaMock.visionPack.findFirst.mockResolvedValueOnce(pack() as never);
+    await expect(ensureFreePack(USER_ID)).resolves.toMatchObject({ id: PACK_ID });
+    expect(prismaMock.visionPack.create).not.toHaveBeenCalled();
+  });
+
+  it("grants a first-time visitor a free taste with its three edits", async () => {
+    prismaMock.visionPack.findFirst.mockResolvedValue(null);
+    prismaMock.visionPack.create.mockResolvedValue(pack() as never);
+    await ensureFreePack(USER_ID);
+    expect(prismaMock.visionPack.create).toHaveBeenCalledWith({
+      data: expect.objectContaining({
+        sku: "wedding_free_taste_v1",
+        status: "active",
+        renders_quota: 1,
+        videos_quota: 0,
+        edits_quota: 3,
+      }),
+    });
+  });
+
+  it("grants nothing to someone whose earlier pack produced a render, whatever its status", async () => {
+    // No active or fulfilled pack (an older build expired it), but it made
+    // something. Minting another would be a free render on us, and a
+    // watermark on anything a paid pack of theirs produced.
+    prismaMock.visionPack.findFirst
+      .mockResolvedValueOnce(null)
+      .mockResolvedValueOnce({ id: PACK_ID } as never);
+    await expect(ensureFreePack(USER_ID)).resolves.toBeNull();
+    expect(prismaMock.visionPack.create).not.toHaveBeenCalled();
+    expect(prismaMock.visionPack.findFirst).toHaveBeenNthCalledWith(2, {
+      where: {
+        recipient_user_id: USER_ID,
+        OR: [
+          { renders_used: { gt: 0 } },
+          { videos_used: { gt: 0 } },
+          { edits_used: { gt: 0 } },
+        ],
+      },
+      select: { id: true },
+    });
   });
 });
 

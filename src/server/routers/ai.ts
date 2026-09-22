@@ -102,7 +102,9 @@ export const aiRouter = router({
       }
 
       // Free-tier auto-grant: anonymous (or not-yet-paid) users hitting
-      // generate get an `active` free pack created on the fly. Idempotent.
+      // generate get an `active` free pack created on the fly. Idempotent,
+      // and once per person: someone whose packs already produced anything
+      // gets nothing new, and the gate below answers PACK_REQUIRED.
       await ensureFreePack(ctx.user.id);
 
       // Paywall gate: require an active Vision Pack with renders quota

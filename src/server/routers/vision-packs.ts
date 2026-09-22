@@ -534,14 +534,38 @@ export async function requireActivePack(
     });
   }
   if (isPackWindowExpired(pack.expires_at)) {
-    // Flip to expired so the UI stops nagging about a paywall the user
-    // can't actually buy out of (they'd need to start a new pack).
+    // The window closing ends generation, not ownership. A pack that
+    // produced anything goes to `fulfilled`, the state the microsite, the
+    // lookbook, the tier watermark and `ensureFreePack` all read as "this
+    // couple has a pack". Only a pack that never produced anything is
+    // `expired`.
+    //
+    // This used to flip every pack to `expired`, which was mostly harmless
+    // while a pack whose renders and videos were spent had already become
+    // `fulfilled`. Edits changed that: they count towards exhaustion (see
+    // `isPackExhausted`), so a free taste with its render used, or a paid
+    // pack at 20/20 and 2/2, stays `active` with changes left and reaches
+    // this branch. As `expired` the free pack dropped out of
+    // `ensureFreePack`, which then minted a new one (a render on us every
+    // seven days) and served the old render unwatermarked in between, and
+    // the paid pack lost its microsite and lookbook. The paywall's own
+    // window-closed copy promises the opposite.
+    const used =
+      pack.renders_used > 0 || pack.videos_used > 0 || pack.edits_used > 0;
     await prisma.visionPack
-      .update({ where: { id: pack.id }, data: { status: "expired" } })
+      .update({
+        where: { id: pack.id },
+        data: { status: used ? "fulfilled" : "expired" },
+      })
       .catch(() => undefined);
+    // "Your generation window has closed, your renders are on your
+    // microsite" is written for a buyer. A free taste that was used gets
+    // the same "Unlock generation" paywall its spent render gets inside
+    // the window (below).
     throw new TRPCError({
       code: "FORBIDDEN",
-      message: "PACK_WINDOW_EXPIRED",
+      message:
+        used && isFreePack(pack.sku) ? "PACK_REQUIRED" : "PACK_WINDOW_EXPIRED",
     });
   }
   if (kind === "render" && pack.renders_used >= pack.renders_quota) {
@@ -578,7 +602,9 @@ export async function requireActivePack(
  * have any active pack yet. Idempotent: if the user already has any
  * active pack (free or paid), this is a no-op and returns the existing
  * row. Otherwise creates a new free pack with renders_quota=1,
- * edits_quota=3 and a 7-day window.
+ * edits_quota=3 and a 7-day window. Returns null, and creates nothing,
+ * when the user already had their taste (see below); `requireActivePack`
+ * then answers PACK_REQUIRED.
  *
  * Called at the top of `ai.renderScene` so anonymous + not-yet-paid
  * users can run exactly one render. The email-uniqueness check in
@@ -594,6 +620,28 @@ export async function ensureFreePack(userId: string) {
     orderBy: { paid_at: "desc" },
   });
   if (existing) return existing;
+
+  // One taste per person, whatever became of the pack it came in. The
+  // lookup above no longer sees every pack that produced something: rows
+  // an older build moved to `expired` when their window closed (paid
+  // packs partly used) and refunded packs fall through it. Minting a free
+  // pack for those would buy them a render on us, and because
+  // `loadActivePackForUser` in venue-designs picks the newest pack, it
+  // would also watermark renders a couple paid for. A pack that produced
+  // nothing (its only render failed, a pack bought and never used) is not
+  // counted: nothing was given, so the taste is still owed.
+  const hadATaste = await prisma.visionPack.findFirst({
+    where: {
+      recipient_user_id: userId,
+      OR: [
+        { renders_used: { gt: 0 } },
+        { videos_used: { gt: 0 } },
+        { edits_used: { gt: 0 } },
+      ],
+    },
+    select: { id: true },
+  });
+  if (hadATaste) return null;
 
   const skuMeta = requirePackSku(FREE_PACK_SKU_ID);
   const now = new Date();
@@ -715,7 +763,9 @@ export async function reserveEdit(packId: string): Promise<boolean> {
  * If the reservation was the pack's last unit it flipped the pack to
  * `fulfilled`; handing the unit back reopens it, otherwise the couple
  * would lose the edit they never received. Only `fulfilled` is reopened,
- * an `expired` or `refunded` pack stays where it is.
+ * an `expired` or `refunded` pack stays where it is, and only inside the
+ * window: `requireActivePack` also closes a used pack as `fulfilled` when
+ * its window ends, and that one must stay closed.
  */
 export async function releaseEdit(packId: string): Promise<void> {
   await prisma.$executeRaw(Prisma.sql`
@@ -723,6 +773,7 @@ export async function releaseEdit(packId: string): Promise<void> {
        SET edits_used = GREATEST(edits_used - 1, 0),
            status = CASE
              WHEN status = 'fulfilled'::"VisionPackStatus" AND edits_used > 0
+              AND (expires_at IS NULL OR expires_at > now())
              THEN 'active'::"VisionPackStatus"
              ELSE status
            END,
