@@ -31,6 +31,7 @@ import {
 } from "@/types/venue-designer";
 import { usePackPaywall } from "@/components/vision-pack/VisionPackPaywallProvider";
 import { EmailGateOverlay } from "./EmailGateOverlay";
+import { designIdForRender } from "./render-design-id";
 import { Turnstile } from "@/components/security/Turnstile";
 import { useIsAnonymous } from "@/lib/use-is-anonymous";
 import { isFreePack, packAllowsVideo } from "@/lib/vision-pack";
@@ -372,16 +373,16 @@ export function GenerateRenderPanel({
     try {
       // Flush the design first so the server can attach the render to it
       // (a new design gets its id from this very save). If the save fails
-      // the render still goes ahead: refusing a couple their render over
-      // an autosave hiccup is worse than the old client-side save path,
-      // which the server falls back to when it has no design to write to.
+      // the render still goes ahead, with no design id: refusing a couple
+      // their render over an autosave hiccup is worse than the old
+      // client-side save path, which the server falls back to when it has
+      // no design to write to. See `designIdForRender` for why the id we
+      // already had is not sent instead.
       let renderDesignId = designId ?? null;
       if (saveNow) {
         setFlushingSave(true);
         try {
-          renderDesignId = await saveNow();
-        } catch {
-          // Keep the id we already had, if any.
+          renderDesignId = await designIdForRender(saveNow);
         } finally {
           setFlushingSave(false);
         }
