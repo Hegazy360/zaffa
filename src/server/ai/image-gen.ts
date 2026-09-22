@@ -1,10 +1,22 @@
-// Low-level image-gen wrapper used by both:
+// Low-level image-gen wrapper used by:
 //
 //  - The user-facing venue-designer flow via `renderScene`
 //    (src/server/ai/scene-generator.ts) which builds a 16:9 wedding-
 //    venue prompt and forwards here.
 //  - The admin post-generator pipeline (src/server/posts/) which builds
 //    a 4:5 editorial portrait prompt and forwards here.
+//  - The design partner modes (docs/plan-design-partner-2026-09.md):
+//    dressing the couple's own venue photo and talked edits of a render.
+//    Those go through `generateImageViaImagesApi`, see below.
+//
+// Two transports, because the models that won the bake-off live behind
+// different OpenRouter endpoints:
+//   * `generateImage`: chat/completions with `modalities`, the Gemini
+//     path every prompt-only render has used since launch.
+//   * `generateImageViaImagesApi`: the Images API (`POST /images` with
+//     `input_references`). The OpenAI image models are served there, and
+//     on the same lawn photo they kept the camera, palms and hedge where
+//     Gemini moved the camera, at well under half the price.
 //
 // Centralizes:
 //   * OpenRouter request shape (model + auth + attribution + modalities)
@@ -31,19 +43,15 @@
 //    path emptied a $50 balance without leaving a trace anywhere we were
 //    looking, and cost-per-render was not recoverable from the app at all.
 //
-// One thing that was investigated and deliberately NOT changed: this model
-// returns TWO entries in `message.images` per call, and we read `[0]` and
-// ignore the second. That looks like waste and is not. A live call was
-// decoded and measured: `usage` was 16 prompt + 1120 image + 150 reasoning
-// tokens, which prices out at exactly the $0.136232 charged, i.e. ONE image
-// billed. The two entries were also pixel-equivalent (max channel delta
-// 4/255, mean 0.59, no pixel differing by more than 32) - JPEG re-encode
-// noise, differing only in their APP11/C2PA metadata segment. So the second
-// entry is a duplicate the charge did not pay for, and mirroring it to
-// Cloudinary would buy a second upload, a second round of latency, and an
-// orphaned asset nothing references. `imagesReturned` is logged below so
-// that if this model ever starts returning genuine variants, we find out
-// from the logs rather than from a guess.
+// On `message.images`: the Gemini image models return TWO entries per call
+// and we mirror only the LAST one. A live call was decoded and measured:
+// one image billed ($0.136232 for 16 prompt + 1120 image + 150 reasoning
+// tokens), and the two entries pixel-equivalent apart from their C2PA
+// metadata. Google documents that a thinking image model may emit interim
+// images and that the last one is the final render, so the last entry is
+// the one that is right by contract, not just by today's measurement.
+// Mirroring the others would buy extra uploads and orphaned assets.
+// `imagesReturned` is logged so a change in that count shows up in logs.
 //
 // Note on timeouts: none is set here on purpose. A render legitimately
 // takes tens of seconds, no safe ceiling was measured, and the platform
@@ -55,6 +63,42 @@ import { logger } from "@/lib/logger";
 
 const IMAGE_MODEL =
   process.env.AI_IMAGE_MODEL ?? "google/gemini-3-pro-image-preview";
+
+const OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1";
+
+/** A model id plus the `quality` the Images API should run it at. */
+export interface ImageModelChoice {
+  model: string;
+  quality: string;
+}
+
+/**
+ * Model for dressing the couple's own venue photo (F1). The bake-off on a
+ * real lawn and a floor-level historic hall: `gpt-image-2.5-sunburst` at
+ * `high` (~$0.057) kept the camera, palm layout, hedge, ceiling and
+ * columns; `gemini-3-pro-image-preview` (~$0.138) moved the camera and
+ * rearranged the palms. Env-overridable so a regression can be rolled
+ * back from Vercel settings without a deploy.
+ */
+export function venueImageModel(): ImageModelChoice {
+  return {
+    model: process.env.AI_VENUE_IMAGE_MODEL ?? "openai/gpt-image-2.5-sunburst",
+    quality: process.env.AI_VENUE_IMAGE_QUALITY ?? "high",
+  };
+}
+
+/**
+ * Model for talked edits of an existing render (F2). `gpt-image-2.5-flare`
+ * at `medium` (~$0.022) changed only what was asked in the bake-off
+ * ("bigger floral stage and a dance floor, keep everything else"), which
+ * is the whole job of an edit. Env-overridable like the venue model.
+ */
+export function editImageModel(): ImageModelChoice {
+  return {
+    model: process.env.AI_EDIT_IMAGE_MODEL ?? "openai/gpt-image-2.5-flare",
+    quality: process.env.AI_EDIT_IMAGE_QUALITY ?? "medium",
+  };
+}
 
 /**
  * The `X-Title` that shows up in OpenRouter's per-app usage breakdown.
@@ -107,6 +151,12 @@ export interface GenerateImageInput {
    * Defaults to a title derived from `cloudinaryFolder`.
    */
   appTitle?: string;
+  /**
+   * Which product mode asked for the image (`generate`, `dress_venue`,
+   * `refine`). Only logged, so the cost of each mode can be told apart in
+   * the `image.generated` lines without guessing from the model id.
+   */
+  mode?: string;
 }
 
 export interface GenerateImageResult {
@@ -118,6 +168,10 @@ export interface GenerateImageResult {
    */
   publicId: string | null;
   text: string | null;
+  /** The model id the request was sent to. Stored in media-row provenance. */
+  model: string;
+  /** What OpenRouter charged (`usage.cost`), null when it did not say. */
+  costUsd: number | null;
 }
 
 interface MirrorResult {
@@ -133,6 +187,12 @@ interface OpenRouterImageResponse {
       images?: Array<{ image_url?: { url?: string } }>;
     };
   }>;
+  usage?: { cost?: number };
+}
+
+/** Only the fields we actually read from `POST /images`. */
+interface OpenRouterImagesApiResponse {
+  data?: Array<{ b64_json?: string; media_type?: string }>;
   usage?: { cost?: number };
 }
 
@@ -163,6 +223,7 @@ export async function generateImage({
   references = [],
   cloudinaryFolder = "zaffa-renders",
   appTitle,
+  mode,
 }: GenerateImageInput): Promise<GenerateImageResult> {
   if (!process.env.OPENAI_API_KEY) {
     throw new Error("OPENAI_API_KEY is required for image generation");
@@ -180,7 +241,7 @@ export async function generateImage({
   content.push({ type: "text", text: prompt });
 
   const response = await fetch(
-    "https://openrouter.ai/api/v1/chat/completions",
+    `${OPENROUTER_BASE_URL}/chat/completions`,
     {
       method: "POST",
       headers: openRouterHeaders(title),
@@ -210,9 +271,13 @@ export async function generateImage({
     throw new Error("No image was generated");
   }
 
-  // Only the first entry is mirrored. See the header note: the others are
-  // metadata-only duplicates of it that the charge did not pay for.
-  const primary = await mirrorToCloudinary(rawUrls[0], cloudinaryFolder);
+  // Only the last entry is mirrored: it is the final render (see the
+  // header note), the earlier ones are interim or duplicate frames.
+  const primary = await mirrorToCloudinary(
+    rawUrls[rawUrls.length - 1],
+    cloudinaryFolder,
+  );
+  const costUsd = data.usage?.cost ?? null;
 
   // One structured line per billed call. `usage.cost` is what OpenRouter
   // actually charged; this path is the one that emptied a $50 balance
@@ -220,9 +285,10 @@ export async function generateImage({
   // here as a tripwire: it has been 2 on every call measured, and a change
   // in it means the duplicate assumption above needs re-testing.
   logger.info("image.generated", {
+    mode: mode ?? null,
     model: IMAGE_MODEL,
     appTitle: title,
-    costUsd: data.usage?.cost ?? null,
+    costUsd,
     imagesReturned: rawUrls.length,
   });
 
@@ -230,5 +296,126 @@ export async function generateImage({
     imageUrl: primary.secureUrl,
     publicId: primary.publicId,
     text: message?.content ?? null,
+    model: IMAGE_MODEL,
+    costUsd,
+  };
+}
+
+export interface GenerateImageViaImagesApiInput {
+  /** OpenRouter model id, usually from `venueImageModel()` / `editImageModel()`. */
+  model: string;
+  /** The text prompt, fully composed by the caller. */
+  prompt: string;
+  /**
+   * Input images. Order matters: the FIRST is the base canvas the model
+   * edits (the venue photo, or the render being refined); any after it
+   * are style references. Must be URLs the provider can fetch.
+   */
+  references?: Array<{ url: string }>;
+  /**
+   * `"auto"` (the default) keeps the base image's own proportions, which
+   * is what a before/after comparison of the couple's photo needs.
+   */
+  aspectRatio?: string;
+  /** Provider quality tier (`low` / `medium` / `high`). Omitted when unset. */
+  quality?: string;
+  /** Cloudinary folder for the mirrored result. Defaults to `zaffa-renders`. */
+  cloudinaryFolder?: string;
+  /** `X-Title` for OpenRouter's per-app spend breakdown. */
+  appTitle?: string;
+  /** Product mode, logged on the `image.generated` line. */
+  mode?: string;
+}
+
+/**
+ * Generate (or edit) an image through OpenRouter's Images API and mirror
+ * the result to Cloudinary. Same result shape as `generateImage`, so a
+ * caller can switch transports without touching persistence: the media
+ * row stores the clean Cloudinary URL and public id, and the free-tier
+ * watermark is derived on read as before.
+ *
+ * No timeout, for the reason given in the header note on `generateImage`.
+ */
+export async function generateImageViaImagesApi({
+  model,
+  prompt,
+  references = [],
+  aspectRatio = "auto",
+  quality,
+  cloudinaryFolder = "zaffa-renders",
+  appTitle,
+  mode,
+}: GenerateImageViaImagesApiInput): Promise<GenerateImageResult> {
+  if (!process.env.OPENAI_API_KEY) {
+    throw new Error("OPENAI_API_KEY is required for image generation");
+  }
+
+  const title = appTitle ?? appTitleForFolder(cloudinaryFolder);
+
+  const response = await fetch(`${OPENROUTER_BASE_URL}/images`, {
+    method: "POST",
+    headers: openRouterHeaders(title),
+    body: JSON.stringify({
+      model,
+      prompt,
+      ...(references.length > 0
+        ? {
+            input_references: references.map((r) => ({
+              type: "image_url" as const,
+              image_url: { url: r.url },
+            })),
+          }
+        : {}),
+      n: 1,
+      aspect_ratio: aspectRatio,
+      ...(quality ? { quality } : {}),
+    }),
+  });
+
+  if (!response.ok) {
+    const err = await response.text();
+    throw new Error(
+      `Image generation failed: ${response.status} ${err.slice(0, 400)}`,
+    );
+  }
+
+  const raw = await response.text();
+  let data: OpenRouterImagesApiResponse;
+  try {
+    data = JSON.parse(raw) as OpenRouterImagesApiResponse;
+  } catch {
+    throw new Error(
+      `Image generation returned a non-JSON body: ${raw.slice(0, 200)}`,
+    );
+  }
+
+  const first = data.data?.[0];
+  if (!first?.b64_json) {
+    // A safety refusal or an empty result. Nothing to mirror, and the
+    // caller must treat it as a failure (release any reserved quota).
+    throw new Error("No image was generated");
+  }
+
+  const mediaType = first.media_type ?? "image/png";
+  const primary = await mirrorToCloudinary(
+    `data:${mediaType};base64,${first.b64_json}`,
+    cloudinaryFolder,
+  );
+  const costUsd = data.usage?.cost ?? null;
+
+  logger.info("image.generated", {
+    mode: mode ?? null,
+    model,
+    appTitle: title,
+    costUsd,
+    imagesReturned: data.data?.length ?? 0,
+  });
+
+  return {
+    imageUrl: primary.secureUrl,
+    publicId: primary.publicId,
+    text: null,
+    model,
+    costUsd,
   };
 }

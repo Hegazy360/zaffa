@@ -169,12 +169,14 @@ export async function renderScene(input: RenderSceneInput) {
 
   const prompt = buildPrompt(input, ordered);
 
-  // Returns `{ imageUrl, publicId, text }` - the caller (`ai.renderScene`
-  // procedure) uses `publicId` to derive the tier-aware response URL
-  // (watermarked for free tier, clean for paid tiers).
+  // Returns `{ imageUrl, publicId, text, model, costUsd }` - the caller
+  // (`ai.renderScene` procedure) uses `publicId` to derive the tier-aware
+  // response URL (watermarked for free tier, clean for paid tiers) and
+  // stamps `model` / `costUsd` into the media row's provenance.
   return generateImage({
     prompt,
     references: ordered.map((ref) => ({ url: ref.url })),
     cloudinaryFolder: "zaffa-renders",
+    mode: "generate",
   });
 }
