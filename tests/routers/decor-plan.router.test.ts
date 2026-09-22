@@ -286,8 +286,8 @@ describe("decorPlan.forMedia: the first read", () => {
     chatCompletionJson.mockResolvedValueOnce({
       ...ANALYSIS,
       questions: [
-        "Real roses — or silk?",
-        "Setup time–teardown time?",
+        "Real roses \u2014 or silk?",
+        "Setup time\u2013teardown time?",
         "Q3?",
         "Q3?",
         "Q4?",

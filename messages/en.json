@@ -2515,7 +2515,13 @@
     "micrositeScan": "Scan to open your private microsite - made to be sent to family, friends, and every vendor you meet.",
     "makeItRealEyebrow": "Make it real",
     "makeItRealTitle": "This is a plan, not just a dream.",
-    "makeItRealBody": "Send this lookbook to us on WhatsApp and our team will tell you exactly what it takes to build it - the venue, the vendors, and one clear price. We reply within {hours} hours."
+    "makeItRealBody": "Send this lookbook to us on WhatsApp and our team will tell you exactly what it takes to build it - the venue, the vendors, and one clear price. We reply within {hours} hours.",
+    "chosenLabel": "The version you chose",
+    "venueEyebrow": "Your venue",
+    "venueTitle": "Your venue, before and after",
+    "venueBefore": "Before",
+    "venueAfter": "After",
+    "planEyebrow": "The plan"
   },
   "chat": {
     "launcherLabel": "Ask Zaffa anything",
@@ -2538,5 +2544,101 @@
     "whatsappPrefill": "Hi Zaffa! I have a question about my wedding.",
     "close": "Close chat",
     "disclaimer": "AI assistant. Prices are confirmed at checkout and quotes by our team."
+  },
+  "decorPlan": {
+    "title": "What it takes to build this",
+    "totalLabel": "Estimated decor total",
+    "range": "{lo} to {hi}",
+    "forGuests": "{count, plural, one {For 1 guest} other {For {guests} guests}}",
+    "showPlan": "See the full plan",
+    "hidePlan": "Hide the plan",
+    "loading": "Pricing this design",
+    "currencyLabel": "Currency",
+    "marketButtonLabel": "Prices for {market}",
+    "columnItem": "Item",
+    "columnQty": "Quantity",
+    "columnRange": "Typical range",
+    "total": "Total",
+    "items": {
+      "kosha_stage": "Kosha or stage backdrop",
+      "ceremony_arch": "Ceremony arch",
+      "entrance": "Entrance and walkway",
+      "centerpiece_low": "Low centrepieces",
+      "centerpiece_tall": "Tall centrepieces",
+      "tablecloth": "Floor-length tablecloths",
+      "table_runner": "Table runners",
+      "chair_rental": "Chairs",
+      "table_rental": "Tables",
+      "candles": "Candles and candelabra",
+      "chandelier": "Chandeliers",
+      "lighting_rig": "Lighting design",
+      "string_lights": "Fairy lights",
+      "ceiling_draping": "Ceiling draping",
+      "dance_floor": "Dance floor",
+      "signage": "Signs",
+      "tent": "Tent"
+    },
+    "units": {
+      "setup": "{count, plural, one {1 setup} other {{qty} setups}}",
+      "piece": "{count, plural, one {1 piece} other {{qty} pieces}}",
+      "table": "{count, plural, one {1 table} other {{qty} tables}}",
+      "chair": "{count, plural, one {1 chair} other {{qty} chairs}}",
+      "event": "For the whole event",
+      "m": "{qty} m",
+      "m2": "{qty} m²"
+    },
+    "details": {
+      "chair": {
+        "chiavari": "Chiavari",
+        "cross_back": "Cross-back",
+        "ghost": "Clear acrylic"
+      },
+      "table": {
+        "long": "Long tables",
+        "round": "Round tables",
+        "mixed": "Long and round tables"
+      },
+      "flower": {
+        "rose": "Roses",
+        "hydrangea": "Hydrangeas",
+        "baby_breath": "Baby's breath",
+        "peony": "Peonies",
+        "orchid": "Orchids",
+        "greenery": "Greenery"
+      }
+    },
+    "assumptionsTitle": "How we counted",
+    "assumptions": {
+      "guests_from_size": "You have not set a guest count yet, so we assumed about {guests} guests from the size you chose.",
+      "tables": "{guests} guests at tables of {perTable}, plus a head table: {tables} tables to dress.",
+      "area": "Floor area estimated at {perGuest} m² per guest, about {area} m².",
+      "floral_light": "The flowers in this design are light, so floral lines use the lower half of their range.",
+      "floral_lush": "The flowers in this design are lush, so floral lines use the upper half of their range.",
+      "venue_package": "Many halls include a basic kosha, chairs and tables in their package. If yours does, those lines cost less or nothing.",
+      "eg_estimates": "Egyptian decorators rarely publish prices, so most Egypt figures are estimates until our team gets real quotes.",
+      "us_estimate": "Prices in USD are estimated from Western European prices.",
+      "season_eg": "Weddings from April to October often cost 15 to 25% more.",
+      "season_eu": "Flowers often cost 30 to 50% more from June to September.",
+      "not_included": "Catering, venue hire, photography and planning fees are not included."
+    },
+    "questionsTitle": "Questions to ask your decorator",
+    "fallbackQuestions": {
+      "q1": "Which of these pieces does the venue already provide?",
+      "q2": "Are the flowers fresh or artificial, and which are in season on our date?",
+      "q3": "What do setup, teardown and delivery cost, and are they included?"
+    },
+    "disclaimer": "Typical 2025-2026 prices for {market}. Your decorator will quote exact figures.",
+    "marketNames": {
+      "EG": "Egypt",
+      "AE": "the UAE and the Gulf",
+      "SA": "Saudi Arabia",
+      "EU": "Western Europe",
+      "US": "the US and elsewhere"
+    },
+    "ctaQuote": "Get exact quotes from our team",
+    "ctaHint": "Free. A person replies within {hours} hours.",
+    "quoteRequested": "Sent. Our team will be in touch within {hours} hours.",
+    "quoteAlready": "Our team already has this design and will be in touch.",
+    "quoteFailed": "That did not go through. Please try again."
   }
 }
