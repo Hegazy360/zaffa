@@ -5,8 +5,9 @@ import { randomUUID } from "node:crypto";
 // photo, owned by the caller and in their folder, is dressed on the venue
 // model with the photo built on the server from its public id. Anything
 // else (flag off, no photo, a photo outside their folder, no design id)
-// renders the old way. The scene functions, quota helpers and Cloudinary
-// are mocked; no model is ever called.
+// renders the old way, as long as there is a mood reference to render
+// from. The scene functions, quota helpers and Cloudinary are mocked; no
+// model is ever called.
 
 const { prismaMock } = await vi.hoisted(async () => {
   const { mockDeep } = await import("vitest-mock-extended");
@@ -104,6 +105,13 @@ const INPUT = {
   // The venue alone is enough: no mood references at all.
   references: [],
   designId: DESIGN_ID,
+};
+
+// A mood reference, for the prompt-only cases: without the venue photo a
+// render needs something to go on.
+const MOOD_REF = {
+  url: "https://res.cloudinary.com/zaffa/ref.jpg",
+  category: "flowers" as const,
 };
 
 const RESULT = {
@@ -213,10 +221,7 @@ describe("ai.renderScene dresses the couple's venue photo", () => {
 describe("ai.renderScene keeps the prompt-only path", () => {
   it("when the venuePhoto kill switch is off", async () => {
     process.env.FLAG_VENUE_PHOTO = "0";
-    const res = await caller().renderScene({
-      ...INPUT,
-      references: [{ url: "https://res.cloudinary.com/zaffa/ref.jpg", category: "flowers" }],
-    });
+    const res = await caller().renderScene({ ...INPUT, references: [MOOD_REF] });
     expect(dressVenueScene).not.toHaveBeenCalled();
     expect(renderScene).toHaveBeenCalledTimes(1);
     expect(res.mode).toBe("generate");
@@ -233,7 +238,7 @@ describe("ai.renderScene keeps the prompt-only path", () => {
         venue_photo,
       } as never);
       prismaMock.venueDesignMedia.create.mockResolvedValue({ id: MEDIA_ID } as never);
-      await caller().renderScene(INPUT);
+      await caller().renderScene({ ...INPUT, references: [MOOD_REF] });
       expect(dressVenueScene).not.toHaveBeenCalled();
       expect(renderScene).toHaveBeenCalledTimes(1);
     }
@@ -244,7 +249,7 @@ describe("ai.renderScene keeps the prompt-only path", () => {
       id: DESIGN_ID,
       venue_photo: venuePhoto(`zaffa-venues/${OTHER_USER_ID}/their-hall`),
     } as never);
-    const res = await caller().renderScene(INPUT);
+    const res = await caller().renderScene({ ...INPUT, references: [MOOD_REF] });
     expect(dressVenueScene).not.toHaveBeenCalled();
     expect(renderScene).toHaveBeenCalledTimes(1);
     expect(res.mode).toBe("generate");
@@ -258,7 +263,7 @@ describe("ai.renderScene keeps the prompt-only path", () => {
   it("when no design id is sent: there is no stored photo to trust", async () => {
     const { designId: _omit, ...withoutDesign } = INPUT;
     void _omit;
-    await caller().renderScene(withoutDesign);
+    await caller().renderScene({ ...withoutDesign, references: [MOOD_REF] });
     expect(prismaMock.venueDesign.findFirst).not.toHaveBeenCalled();
     expect(dressVenueScene).not.toHaveBeenCalled();
     expect(renderScene).toHaveBeenCalledTimes(1);
@@ -272,5 +277,46 @@ describe("ai.renderScene keeps the prompt-only path", () => {
     expect(dressVenueScene).not.toHaveBeenCalled();
     expect(renderScene).not.toHaveBeenCalled();
     expect(ensureFreePack).not.toHaveBeenCalled();
+  });
+});
+
+describe("ai.renderScene refuses a render with nothing to go on", () => {
+  // The panel lets a couple render on their venue photo alone. When that
+  // photo cannot reach the server, a prompt-only render would hand them an
+  // imagined hall and count it (on the free tier, their only render).
+  async function expectRefusedForFree(run: () => Promise<unknown>) {
+    await expect(run()).rejects.toMatchObject({
+      code: "BAD_REQUEST",
+      message: "REFERENCES_REQUIRED",
+    });
+    expect(ensureFreePack).not.toHaveBeenCalled();
+    expect(requireActivePack).not.toHaveBeenCalled();
+    expect(renderScene).not.toHaveBeenCalled();
+    expect(dressVenueScene).not.toHaveBeenCalled();
+    expect(consumeQuota).not.toHaveBeenCalled();
+  }
+
+  it("when no design id is sent and there are no mood references", async () => {
+    const { designId: _omit, ...withoutDesign } = INPUT;
+    void _omit;
+    await expectRefusedForFree(() => caller().renderScene(withoutDesign));
+  });
+
+  it("when the kill switch is off and the venue photo was all there was", async () => {
+    process.env.FLAG_VENUE_PHOTO = "0";
+    await expectRefusedForFree(() => caller().renderScene(INPUT));
+  });
+
+  it("when the stored photo is outside the caller's folder and there are no mood references", async () => {
+    prismaMock.venueDesign.findFirst.mockResolvedValue({
+      id: DESIGN_ID,
+      venue_photo: venuePhoto(`zaffa-venues/${OTHER_USER_ID}/their-hall`),
+    } as never);
+    await expectRefusedForFree(() => caller().renderScene(INPUT));
+  });
+
+  it("but not a venue render: the photo alone is enough", async () => {
+    await caller().renderScene(INPUT);
+    expect(dressVenueScene).toHaveBeenCalledTimes(1);
   });
 });

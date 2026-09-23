@@ -134,6 +134,19 @@ export const aiRouter = router({
       }
       const mode: MediaMode = venue ? "dress_venue" : "generate";
 
+      // Nothing to render from: no mood reference and no venue photo we
+      // can use. The panel lets a couple render on their venue photo alone,
+      // so this is a venue render that lost its photo on the way (no design
+      // id, the kill switch flipped mid-session, a photo outside their
+      // folder). They asked for their venue, not an imagined hall, so it is
+      // refused before a free pack is minted or a render is counted.
+      if (!venue && input.references.length === 0) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "REFERENCES_REQUIRED",
+        });
+      }
+
       // Free-tier auto-grant: anonymous (or not-yet-paid) users hitting
       // generate get an `active` free pack created on the fly. Idempotent,
       // and once per person: someone whose packs already produced anything
