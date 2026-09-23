@@ -2515,7 +2515,13 @@
     "micrositeScan": "Scannt den Code, um eure private Microsite zu öffnen - gemacht, um sie Familie, Freunden und jedem Dienstleister zu schicken.",
     "makeItRealEyebrow": "Macht es real",
     "makeItRealTitle": "Das ist ein Plan, nicht nur ein Traum.",
-    "makeItRealBody": "Schickt uns dieses Lookbook per WhatsApp und unser Team sagt euch genau, was es braucht, um es zu bauen - die Location, die Dienstleister und einen klaren Preis. Wir antworten innerhalb von {hours} Stunden."
+    "makeItRealBody": "Schickt uns dieses Lookbook per WhatsApp und unser Team sagt euch genau, was es braucht, um es zu bauen - die Location, die Dienstleister und einen klaren Preis. Wir antworten innerhalb von {hours} Stunden.",
+    "chosenLabel": "Die Version, die Sie gewählt haben",
+    "venueEyebrow": "Ihre Location",
+    "venueTitle": "Ihre Location, vorher und nachher",
+    "venueBefore": "Vorher",
+    "venueAfter": "Nachher",
+    "planEyebrow": "Der Plan"
   },
   "chat": {
     "launcherLabel": "Frag Zaffa alles",
@@ -2538,5 +2544,101 @@
     "whatsappPrefill": "Hallo Zaffa! Ich habe eine Frage zu meiner Hochzeit.",
     "close": "Chat schließen",
     "disclaimer": "KI-Assistent. Preise werden beim Bezahlen bestätigt, Angebote kommen von unserem Team."
+  },
+  "decorPlan": {
+    "title": "Was es braucht, um das umzusetzen",
+    "totalLabel": "Geschätzte Dekorationskosten",
+    "range": "{lo} bis {hi}",
+    "forGuests": "{count, plural, one {Für 1 Gast} other {Für {guests} Gäste}}",
+    "showPlan": "Ganzen Plan anzeigen",
+    "hidePlan": "Plan ausblenden",
+    "loading": "Dieses Design wird kalkuliert",
+    "currencyLabel": "Währung",
+    "marketButtonLabel": "Preise für {market}",
+    "columnItem": "Posten",
+    "columnQty": "Menge",
+    "columnRange": "Übliche Spanne",
+    "total": "Gesamt",
+    "items": {
+      "kosha_stage": "Kosha oder Bühnenkulisse",
+      "ceremony_arch": "Traubogen",
+      "entrance": "Eingang und Gang",
+      "centerpiece_low": "Niedrige Tischgestecke",
+      "centerpiece_tall": "Hohe Tischgestecke",
+      "tablecloth": "Bodenlange Tischdecken",
+      "table_runner": "Tischläufer",
+      "chair_rental": "Stühle",
+      "table_rental": "Tische",
+      "candles": "Kerzen und Kandelaber",
+      "chandelier": "Kronleuchter",
+      "lighting_rig": "Lichtdesign",
+      "string_lights": "Lichterketten",
+      "ceiling_draping": "Deckenabhängung aus Stoff",
+      "dance_floor": "Tanzfläche",
+      "signage": "Schilder",
+      "tent": "Zelt"
+    },
+    "units": {
+      "setup": "{count, plural, one {1 Aufbau} other {{qty} Aufbauten}}",
+      "piece": "{count, plural, one {1 Stück} other {{qty} Stück}}",
+      "table": "{count, plural, one {1 Tisch} other {{qty} Tische}}",
+      "chair": "{count, plural, one {1 Stuhl} other {{qty} Stühle}}",
+      "event": "Für die ganze Feier",
+      "m": "{qty} m",
+      "m2": "{qty} m²"
+    },
+    "details": {
+      "chair": {
+        "chiavari": "Chiavari",
+        "cross_back": "Kreuzlehne",
+        "ghost": "Transparentes Acryl"
+      },
+      "table": {
+        "long": "Lange Tafeln",
+        "round": "Runde Tische",
+        "mixed": "Lange und runde Tische"
+      },
+      "flower": {
+        "rose": "Rosen",
+        "hydrangea": "Hortensien",
+        "baby_breath": "Schleierkraut",
+        "peony": "Pfingstrosen",
+        "orchid": "Orchideen",
+        "greenery": "Grün"
+      }
+    },
+    "assumptionsTitle": "So haben wir gerechnet",
+    "assumptions": {
+      "guests_from_size": "Sie haben noch keine Gästezahl angegeben, daher rechnen wir anhand der gewählten Größe mit etwa {guests} Gästen.",
+      "tables": "{guests} Gäste an Tischen für je {perTable}, dazu ein Brauttisch: {tables} Tische zum Eindecken.",
+      "area": "Fläche geschätzt mit {perGuest} m² pro Gast, etwa {area} m².",
+      "floral_light": "Die Blumen in diesem Design sind zurückhaltend, daher rechnen wir Blumenposten in der unteren Hälfte ihrer Spanne.",
+      "floral_lush": "Die Blumen in diesem Design sind üppig, daher rechnen wir Blumenposten in der oberen Hälfte ihrer Spanne.",
+      "venue_package": "Viele Säle haben eine einfache Kosha, Stühle und Tische bereits im Paket. Wenn das bei Ihnen so ist, kosten diese Posten weniger oder nichts.",
+      "eg_estimates": "Dekorateure in Ägypten veröffentlichen selten Preise, daher sind die meisten Zahlen für Ägypten Schätzungen, bis unser Team echte Angebote einholt.",
+      "us_estimate": "USD-Preise sind aus westeuropäischen Preisen geschätzt.",
+      "season_eg": "Hochzeiten von April bis Oktober kosten oft 15 bis 25 % mehr.",
+      "season_eu": "Von Juni bis September kosten Blumen oft 30 bis 50 % mehr.",
+      "not_included": "Catering, Saalmiete, Fotografie und Planungshonorare sind nicht enthalten."
+    },
+    "questionsTitle": "Fragen an Ihren Dekorateur",
+    "fallbackQuestions": {
+      "q1": "Welche dieser Teile stellt die Location bereits?",
+      "q2": "Sind die Blumen echt oder künstlich, und welche haben an unserem Datum Saison?",
+      "q3": "Was kosten Aufbau, Abbau und Lieferung, und sind sie inbegriffen?"
+    },
+    "disclaimer": "Übliche Preise 2025-2026 für {market}. Ihr Dekorateur nennt Ihnen die genauen Beträge.",
+    "marketNames": {
+      "EG": "Ägypten",
+      "AE": "die Emirate und den Golf",
+      "SA": "Saudi-Arabien",
+      "EU": "Westeuropa",
+      "US": "die USA und andere Länder"
+    },
+    "ctaQuote": "Genaue Angebote von unserem Team",
+    "ctaHint": "Kostenlos. Ein Mensch antwortet innerhalb von {hours} Stunden.",
+    "quoteRequested": "Gesendet. Unser Team meldet sich innerhalb von {hours} Stunden.",
+    "quoteAlready": "Unser Team hat dieses Design bereits und meldet sich bei Ihnen.",
+    "quoteFailed": "Das hat nicht geklappt. Bitte versuchen Sie es erneut."
   }
 }

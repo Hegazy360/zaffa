@@ -23,6 +23,7 @@ import { PaletteCard } from "./dashboard/PaletteCard";
 import { ReferenceCategoryCard } from "./dashboard/ReferenceCategoryCard";
 import { StyleNotesCard } from "./dashboard/StyleNotesCard";
 import { GenerateRenderPanel } from "./dashboard/GenerateRenderPanel";
+import { DecorPlanPanel } from "./dashboard/DecorPlanPanel";
 import { ShareAndFinishPanel } from "@/components/vision-pack/share-and-finish-panel";
 import {
   DesignerStepper,
@@ -459,10 +460,24 @@ function GenerateStep({
     { id: designId! },
     { enabled: !!designId },
   );
-  const hasRender = (design?.media ?? []).some((m) => m.type === "render");
+  // Newest first, as `getById` orders media.
+  const renderIds = useMemo(
+    () => (design?.media ?? []).filter((m) => m.type === "render").map((m) => m.id),
+    [design?.media],
+  );
+  const hasRender = renderIds.length > 0;
   return (
     <div className="space-y-8">
       <GenerateRenderPanel designId={designId} saveNow={saveNow} />
+      {/* F4: what it takes to build the version on screen. Flag-checked
+          inside, and it hides itself on any error. */}
+      {hasRender && designId ? (
+        <DecorPlanPanel
+          designId={designId}
+          renderIds={renderIds}
+          approved={Boolean(design?.approved_at)}
+        />
+      ) : null}
       {hasRender ? <ShareAndFinishPanel designId={designId} /> : null}
     </div>
   );

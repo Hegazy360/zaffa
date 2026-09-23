@@ -8,6 +8,7 @@ import { authRouter } from "./auth";
 import { availabilityRouter } from "./availability";
 import { chatRouter } from "./chat";
 import { contactRouter } from "./contact";
+import { decorPlanRouter } from "./decor-plan";
 import { enquiriesRouter } from "./enquiries";
 import { discoveryRouter } from "./discovery";
 import { eventsRouter } from "./events";
@@ -42,6 +43,7 @@ export const appRouter = router({
   availability: availabilityRouter,
   chat: chatRouter,
   contact: contactRouter,
+  decorPlan: decorPlanRouter,
   enquiries: enquiriesRouter,
   discovery: discoveryRouter,
   events: eventsRouter,

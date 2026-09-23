@@ -1,6 +1,8 @@
 import { describe, expect, it, vi, beforeAll } from "vitest";
 import enMessages from "../messages/en.json";
 import arMessages from "../messages/ar.json";
+import { computeDecorPlan } from "@/lib/decor-pricing";
+import type { DecorAnalysis } from "@/lib/decor-analysis";
 
 /**
  * The lookbook template, which is a *paid* artefact.
@@ -16,31 +18,19 @@ type Messages = typeof enMessages;
 
 let currentMessages: Messages = enMessages;
 
-vi.mock("next-intl/server", () => ({
-  getTranslations: async (ns: string) => {
-    const dict = (currentMessages as unknown as Record<string, unknown>)[ns] as Record<
-      string,
-      unknown
-    >;
-    const read = (key: string) =>
-      key.split(".").reduce<unknown>((acc, part) => {
-        if (acc && typeof acc === "object") {
-          return (acc as Record<string, unknown>)[part];
-        }
-        return undefined;
-      }, dict);
-    const t = (key: string, values?: Record<string, unknown>) => {
-      const raw = read(key);
-      if (typeof raw !== "string") return key;
-      // Enough ICU for the assertions here: simple args and one plural.
-      return raw
-        .replace(/\{(\w+), plural,[^}]*\}/g, String(values?.count ?? ""))
-        .replace(/\{(\w+)\}/g, (_, k) => String(values?.[k] ?? ""));
-    };
-    t.has = (key: string) => typeof read(key) === "string";
-    return t;
-  },
-}));
+// The real ICU formatter (plurals included), so the plan pages' Arabic
+// plural forms are checked as a reader would see them.
+vi.mock("next-intl/server", async () => {
+  const { createTranslator } = await import("use-intl/core");
+  return {
+    getTranslations: async (namespace: string) =>
+      createTranslator({
+        locale: currentMessages === (arMessages as unknown) ? "ar" : "en",
+        messages: currentMessages as unknown as Record<string, never>,
+        namespace: namespace as never,
+      }),
+  };
+});
 
 vi.mock("server-only", () => ({}));
 
@@ -237,3 +227,198 @@ describe("renderLookbookHtml", () => {
     expect(html).toContain("wa.me");
   });
 });
+
+// ---- F4: the design partner pages -----------------------------------------
+
+const ANALYSIS: DecorAnalysis = {
+  table_shape: "round",
+  centerpiece: "mixed",
+  has_stage: true,
+  has_arch: false,
+  has_entrance_decor: true,
+  has_dance_floor: true,
+  has_draping: true,
+  has_chandeliers: true,
+  has_string_lights: false,
+  candle_density: "some",
+  floral_density: "lush",
+  flowers: ["rose", "baby_breath"],
+  linens: "floor_length",
+  chair_style: "chiavari",
+  questions: [],
+};
+
+const EG_PLAN = computeDecorPlan(ANALYSIS, {
+  guestCount: 180,
+  setting: "indoor",
+  market: "EG",
+});
+
+const EASTERN_ARABIC_DIGITS = /[\u0660-\u0669\u06F0-\u06F9]/;
+
+/** The markup of every page with this class, joined. */
+function pages(html: string, cls: string): string {
+  const re = new RegExp(`<article class="page ${cls}">[\\s\\S]*?</article>`, "g");
+  return (html.match(re) ?? []).join("\n");
+}
+
+describe("renderLookbookHtml: the chosen version", () => {
+  const media = Array.from({ length: 20 }, (_, i) => ({
+    id: `r${i}`,
+    type: "render",
+    url: `https://res.cloudinary.com/x/r${i}.jpg`,
+  }));
+
+  it("leads with the render the couple chose, labelled as theirs, even past the cap", async () => {
+    currentMessages = enMessages;
+    const html = await renderLookbookHtml(
+      { ...data, design: { ...data.design, media, selected_media_id: "r19" } },
+      "en",
+    );
+    const renderPages = html.match(/<article class="page render-page">[\s\S]*?<\/article>/g) ?? [];
+    expect(renderPages).toHaveLength(16);
+    expect(renderPages[0]).toContain("r19.jpg");
+    expect(renderPages[0]).toContain(enMessages.lookbook.chosenLabel);
+    // Then the newest, in order, one fewer of them to make room.
+    expect(renderPages[1]).toContain("r0.jpg");
+    expect(html).not.toContain("r15.jpg");
+    expect((html.match(/r19\.jpg/g) ?? []).length).toBe(1);
+  });
+
+  it("keeps newest-first when the chosen id is not one of the renders", async () => {
+    currentMessages = enMessages;
+    const html = await renderLookbookHtml(
+      { ...data, design: { ...data.design, media, selected_media_id: "gone" } },
+      "en",
+    );
+    const first = html.match(/<article class="page render-page">[\s\S]*?<\/article>/)?.[0];
+    expect(first).toContain("r0.jpg");
+    expect(html).not.toContain(enMessages.lookbook.chosenLabel);
+  });
+});
+
+describe("renderLookbookHtml: your venue, before and after", () => {
+  const beforeAfter = {
+    beforeUrl: "https://res.cloudinary.com/x/venue.jpg",
+    afterUrl: "https://res.cloudinary.com/x/dressed.jpg",
+  };
+
+  it("sets the venue photo beside the render that dressed it", async () => {
+    currentMessages = enMessages;
+    const html = await renderLookbookHtml({ ...data, beforeAfter }, "en");
+    const page = pages(html, "venue-page");
+    expect(page).toContain(enMessages.lookbook.venueTitle);
+    expect(page).toContain("venue.jpg");
+    expect(page).toContain("dressed.jpg");
+    // Before comes first in reading order, in both directions.
+    expect(page.indexOf("venue.jpg")).toBeLessThan(page.indexOf("dressed.jpg"));
+    expect(page).toContain(enMessages.lookbook.venueBefore);
+    expect(page).toContain(enMessages.lookbook.venueAfter);
+  });
+
+  it("has no venue page without a pair", async () => {
+    currentMessages = enMessages;
+    const html = await renderLookbookHtml({ ...data, beforeAfter: null }, "en");
+    expect(pages(html, "venue-page")).toBe("");
+    expect(html).not.toContain(enMessages.lookbook.venueTitle);
+  });
+
+  it("escapes the image URLs", async () => {
+    currentMessages = enMessages;
+    const html = await renderLookbookHtml(
+      { ...data, beforeAfter: { ...beforeAfter, beforeUrl: 'https://x/"><script>' } },
+      "en",
+    );
+    expect(html).not.toContain('"><script>');
+  });
+
+  it("is translated in Arabic", async () => {
+    currentMessages = arMessages as unknown as Messages;
+    const html = await renderLookbookHtml({ ...data, beforeAfter }, "ar");
+    expect(pages(html, "venue-page")).toContain(arMessages.lookbook.venueTitle);
+  });
+});
+
+describe("renderLookbookHtml: what it takes to build this", () => {
+  it("prints the plan table, total, disclaimer, assumptions and questions", async () => {
+    currentMessages = enMessages;
+    const html = await renderLookbookHtml(
+      { ...data, decorPlan: { plan: EG_PLAN, questions: ["Real or silk roses?"] } },
+      "en",
+    );
+    const plan = pages(html, "plan-page");
+    expect((plan.match(/<article class="page plan-page">/g) ?? []).length).toBe(2);
+    expect(plan).toContain(enMessages.decorPlan.title);
+    // Every line the plan has, by its translated name, and nothing else.
+    for (const item of EG_PLAN.items) {
+      expect(plan).toContain(enMessages.decorPlan.items[item.key]);
+    }
+    expect(plan).not.toContain(enMessages.decorPlan.items.tent);
+    // Quantities through the real plural rules.
+    expect(plan).toContain("180 chairs");
+    expect(plan).toContain("For 180 guests");
+    // Amounts are isolated for bidi, in the plan's currency.
+    expect(plan).toMatch(/<bdi>EGP[\s\u00a0][\d,]+<\/bdi> to <bdi>EGP/);
+    expect(plan).toContain("Egypt");
+    expect(plan).toContain(enMessages.decorPlan.assumptions.eg_estimates);
+    expect(plan).toContain("Real or silk roses?");
+    expect(plan).not.toContain(enMessages.decorPlan.fallbackQuestions.q1);
+  });
+
+  it("sits after the renders and before the closing page", async () => {
+    currentMessages = enMessages;
+    const html = await renderLookbookHtml(
+      { ...data, decorPlan: { plan: EG_PLAN, questions: [] } },
+      "en",
+    );
+    const at = (needle: string) => html.indexOf(needle);
+    expect(at('class="page render-page"')).toBeLessThan(at('class="page plan-page"'));
+    expect(at('class="page plan-page"')).toBeLessThan(
+      at(enMessages.lookbook.makeItRealTitle),
+    );
+  });
+
+  it("falls back to the standard questions when the model's are in another language", async () => {
+    currentMessages = enMessages;
+    const html = await renderLookbookHtml(
+      { ...data, decorPlan: { plan: EG_PLAN, questions: [] } },
+      "en",
+    );
+    expect(html).toContain(enMessages.decorPlan.fallbackQuestions.q1);
+    expect(html).toContain(enMessages.decorPlan.fallbackQuestions.q3);
+  });
+
+  it("uses Latin digits for every amount and count in Arabic", async () => {
+    currentMessages = arMessages as unknown as Messages;
+    const html = await renderLookbookHtml(
+      { ...data, decorPlan: { plan: EG_PLAN, questions: [] } },
+      "ar",
+    );
+    const plan = pages(html, "plan-page");
+    expect(plan).toContain(arMessages.decorPlan.title);
+    expect(plan).toContain(arMessages.decorPlan.items.chair_rental);
+    expect(plan).toContain("ج.م");
+    expect(plan).toMatch(/[0-9]/);
+    expect(plan).not.toMatch(EASTERN_ARABIC_DIGITS);
+    // Arabic plural forms with the Latin count: 180 is "many" in Arabic.
+    expect(plan).toContain("180 كرسيًا");
+    expect(plan).toContain(arMessages.decorPlan.fallbackQuestions.q1);
+  });
+
+  it("escapes the model's questions", async () => {
+    currentMessages = enMessages;
+    const html = await renderLookbookHtml(
+      { ...data, decorPlan: { plan: EG_PLAN, questions: ["<img src=x onerror=alert(1)>"] } },
+      "en",
+    );
+    expect(html).not.toContain("<img src=x onerror");
+    expect(html).toContain("&lt;img src=x");
+  });
+
+  it("has no plan pages without a plan", async () => {
+    currentMessages = enMessages;
+    const html = await renderLookbookHtml({ ...data, decorPlan: null }, "en");
+    expect(pages(html, "plan-page")).toBe("");
+  });
+});
+

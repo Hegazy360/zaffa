@@ -2,7 +2,15 @@ import "server-only";
 import { getTranslations } from "next-intl/server";
 import { fontFaceCss } from "@/lib/pdf";
 import { isRtlLocale } from "@/i18n/config";
-import { uiLocaleTag } from "@/lib/money-format";
+import { formatMoney, moneyLocaleTag, uiLocaleTag } from "@/lib/money-format";
+import type { DecorPlan } from "@/lib/decor-pricing";
+import {
+  FALLBACK_QUESTION_KEYS,
+  assumptionMessage,
+  detailMessage,
+  quantityMessage,
+  type DecorMessage,
+} from "@/lib/decor-plan-copy";
 import {
   REPLY_WITHIN_HOURS,
   WHATSAPP_LINK,
@@ -26,11 +34,17 @@ import {
  *      the Pinterest credit is part of what makes the board usable with a
  *      real vendor.
  *   4. Style notes, when the couple wrote any.
- *   5. Up to 16 render pages, newest first.
- *   6. Microsite page - URL + QR handed in by the route as a data URL, so
+ *   5. Up to 16 render pages, newest first, except that the version the
+ *      couple chose (`selected_media_id`) leads, labelled as theirs.
+ *   6. "Your venue, before and after" (F1/F4), when the design has a venue
+ *      photo and a render that dressed it.
+ *   7. Microsite page - URL + QR handed in by the route as a data URL, so
  *      the print document makes no network request for it.
- *   7. "Make it real", the concierge closing page. فصحى: this page is a
- *      commitment surface.
+ *   8. "What it takes to build this" (F4): the costed decor plan for the
+ *      chosen (else latest) render, over two pages, the table then how it
+ *      was counted and what to ask. Computed by the route, never here.
+ *   9. "Make it real", the concierge closing page. فصحى: this page and the
+ *      plan are commitment and money surfaces, Latin digits on the plan.
  *
  * Everything that made the old react-pdf version unable to serve the primary
  * market stays fixed structurally: `dir`/`lang` on the root so Chromium does
@@ -61,7 +75,14 @@ export interface LookbookData {
     >;
     style_notes: string | null;
     media: { id: string; type: string; url: string }[];
+    /** The render the couple chose; it leads the render pages. */
+    selected_media_id?: string | null;
   };
+  /** The couple's venue photo and a render that dressed that photo. */
+  beforeAfter?: { beforeUrl: string; afterUrl: string } | null;
+  /** The costed decor plan, with the decorator questions in this locale
+   *  (empty when the model's were written in another language). */
+  decorPlan?: { plan: DecorPlan; questions: string[] } | null;
 }
 
 const CATEGORY_ORDER = [
@@ -94,8 +115,9 @@ export async function renderLookbookHtml(
   data: LookbookData,
   locale: string,
 ): Promise<string> {
-  const [t, fonts] = await Promise.all([
+  const [t, tPlan, fonts] = await Promise.all([
     getTranslations("lookbook"),
+    getTranslations("decorPlan"),
     fontFaceCss(),
   ]);
 
@@ -112,9 +134,15 @@ export async function renderLookbookHtml(
   const categories = CATEGORY_ORDER.filter(
     (c) => (design.references[c]?.length ?? 0) > 0,
   );
-  const renders = design.media
-    .filter((m) => m.type === "render")
-    .slice(0, MAX_RENDER_PAGES);
+  // The chosen version leads, so the cap can never drop it however many
+  // later versions the couple made.
+  const allRenders = design.media.filter((m) => m.type === "render");
+  const chosen = design.selected_media_id
+    ? allRenders.find((m) => m.id === design.selected_media_id)
+    : undefined;
+  const renders = (
+    chosen ? [chosen, ...allRenders.filter((m) => m !== chosen)] : allRenders
+  ).slice(0, MAX_RENDER_PAGES);
 
   // `event_type`, `setting` and `size` are enum-ish strings from the designer.
   // They resolve to translated labels, falling back to the raw value if a new
@@ -243,7 +271,11 @@ export async function renderLookbookHtml(
     .map(
       (r, i) => `
 <article class="page render-page">
-  ${pageHead(t("renderCounter", { index: i + 1, total: renders.length }))}
+  ${pageHead(
+    r === chosen
+      ? t("chosenLabel")
+      : t("renderCounter", { index: i + 1, total: renders.length }),
+  )}
   <div class="render-frame"><img src="${esc(r.url)}" alt="" /></div>
   <p class="caption">${esc(meta)}</p>
   ${footer}
@@ -251,7 +283,27 @@ export async function renderLookbookHtml(
     )
     .join("");
 
-  // ---- 6. Microsite page --------------------------------------------------
+  // ---- 6. Your venue, before and after ------------------------------------
+  const beforeAfterPage = data.beforeAfter
+    ? `
+<article class="page venue-page">
+  ${pageHead(t("venueEyebrow"))}
+  <h2 class="section">${esc(t("venueTitle"))}</h2>
+  <div class="venue-pair">
+    <figure class="venue-shot">
+      <img src="${esc(data.beforeAfter.beforeUrl)}" alt="" />
+      <figcaption>${esc(t("venueBefore"))}</figcaption>
+    </figure>
+    <figure class="venue-shot">
+      <img src="${esc(data.beforeAfter.afterUrl)}" alt="" />
+      <figcaption>${esc(t("venueAfter"))}</figcaption>
+    </figure>
+  </div>
+  ${footer}
+</article>`
+    : "";
+
+  // ---- 7. Microsite page --------------------------------------------------
   const micrositePage =
     data.micrositeUrl && data.micrositeQrDataUrl
       ? `
@@ -267,7 +319,92 @@ export async function renderLookbookHtml(
 </article>`
       : "";
 
-  // ---- 7. Make it real, the concierge close ------------------------------
+  // ---- 8. What it takes to build this -------------------------------------
+  const decorPlanPages = ({ plan, questions }: { plan: DecorPlan; questions: string[] }) => {
+    // Money surface: Latin digits in Arabic for amounts AND the quantities
+    // and counts beside them, each amount isolated so RTL keeps its order.
+    const num = new Intl.NumberFormat(moneyLocaleTag(locale), {
+      maximumFractionDigits: 1,
+    });
+    const say = ({ key, values }: DecorMessage) => tPlan(key, values);
+    const money = (amount: number) =>
+      `<bdi>${esc(formatMoney(amount, plan.currency, locale))}</bdi>`;
+    // The range sentence is translated with placeholders, escaped, then the
+    // isolated amounts are dropped in, so the markup never passes esc().
+    const range = (lo: number, hi: number) =>
+      esc(tPlan("range", { lo: "%%LO%%", hi: "%%HI%%" }))
+        .replace("%%LO%%", money(lo))
+        .replace("%%HI%%", money(hi));
+    const list = new Intl.ListFormat(locale, { style: "short", type: "unit" });
+
+    const rows = plan.items
+      .map((item) => {
+        const details = item.details.length
+          ? `<span class="plan-detail">${esc(
+              list.format(item.details.map((d) => say(detailMessage(d)))),
+            )}</span>`
+          : "";
+        return `
+      <tr>
+        <th scope="row">${esc(tPlan(`items.${item.key}`))}${details}</th>
+        <td class="plan-qty">${esc(say(quantityMessage(item, num.format)))}</td>
+        <td class="plan-range">${range(item.lo, item.hi)}</td>
+      </tr>`;
+      })
+      .join("");
+
+    const questionList = (
+      questions.length > 0 ? questions : FALLBACK_QUESTION_KEYS.map((k) => tPlan(k))
+    )
+      .map((q) => `<li>${esc(q)}</li>`)
+      .join("");
+    const assumptionList = plan.assumptions
+      .map((key) => `<li>${esc(say(assumptionMessage(key, plan, num.format)))}</li>`)
+      .join("");
+
+    return `
+<article class="page plan-page">
+  ${pageHead(t("planEyebrow"))}
+  <h2 class="section">${esc(tPlan("title"))}</h2>
+  <p class="plan-total-label">${esc(tPlan("totalLabel"))}</p>
+  <p class="plan-total">${range(plan.totals.lo, plan.totals.hi)}</p>
+  <p class="plan-guests">${esc(
+    tPlan("forGuests", { count: plan.guestCount, guests: num.format(plan.guestCount) }),
+  )}</p>
+  <table class="plan-table">
+    <thead>
+      <tr>
+        <th scope="col">${esc(tPlan("columnItem"))}</th>
+        <th scope="col" class="plan-qty">${esc(tPlan("columnQty"))}</th>
+        <th scope="col" class="plan-range">${esc(tPlan("columnRange"))}</th>
+      </tr>
+    </thead>
+    <tbody>${rows}
+    </tbody>
+    <tfoot>
+      <tr>
+        <th scope="row" colspan="2">${esc(tPlan("total"))}</th>
+        <td class="plan-range">${range(plan.totals.lo, plan.totals.hi)}</td>
+      </tr>
+    </tfoot>
+  </table>
+  <p class="plan-note">${esc(
+    tPlan("disclaimer", { market: tPlan(`marketNames.${plan.market}`) }),
+  )}</p>
+  ${footer}
+</article>
+<article class="page plan-page">
+  ${pageHead(t("planEyebrow"))}
+  <h3 class="subhead">${esc(tPlan("assumptionsTitle"))}</h3>
+  <ul class="plan-list">${assumptionList}</ul>
+  <h3 class="subhead plan-questions-head">${esc(tPlan("questionsTitle"))}</h3>
+  <ol class="plan-list">${questionList}</ol>
+  ${footer}
+</article>`;
+  };
+  const planPages = data.decorPlan ? decorPlanPages(data.decorPlan) : "";
+
+  // ---- 9. Make it real, the concierge close ------------------------------
   const makeItRealPage = `
 <article class="page cover">
   <div>
@@ -359,6 +496,33 @@ h2.section { font-family: ${rtl ? '"Cairo"' : '"Fraunces"'}, serif; font-weight:
 .qr { width: 52mm; height: 52mm; border-radius: 3mm; border: 1px solid #e7e5e4; padding: 2mm; }
 .microsite-url { margin-top: 6mm; font-size: 10pt; color: #44403c; direction: ltr; }
 
+.venue-page { justify-content: flex-start; }
+.venue-pair { flex: 1; display: flex; flex-direction: column; gap: 5mm; min-height: 0; margin-bottom: 6mm; }
+.venue-shot { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+/* Both frames crop alike, so the room lines up from before to after. */
+.venue-shot img { flex: 1; min-height: 0; width: 100%; object-fit: cover; object-position: center; display: block; border-radius: 3mm; background: #f5f5f4; }
+.venue-shot figcaption { margin-top: 2mm; font-size: 9pt; color: #78716c; letter-spacing: ${rtl ? "0" : ".18em"}; text-transform: uppercase; }
+
+.plan-page { justify-content: flex-start; }
+.plan-page h2.section { margin-bottom: 4mm; }
+.plan-total-label { font-size: 9pt; color: #78716c; }
+.plan-total { font-family: ${rtl ? '"Cairo"' : '"Fraunces"'}, serif; font-size: 18pt; margin-top: 1mm; }
+.plan-guests { font-size: 9pt; color: #78716c; margin: 1mm 0 6mm; }
+/* Sized for the longest plan the rules make (16 lines) in Cairo, whose
+   line box is taller than Inter's: it must fit one A4 page. */
+.plan-table { width: 100%; border-collapse: collapse; font-size: 9pt; line-height: 1.35; }
+.plan-table th, .plan-table td { padding: 1.6mm 0; border-bottom: 1px solid #e7e5e4; vertical-align: top; text-align: start; font-weight: 400; }
+.plan-table thead th { font-size: 8pt; color: #78716c; border-bottom: 1px solid #d6d3d1; }
+.plan-table tbody th { font-weight: 600; padding-inline-end: 4mm; }
+.plan-table .plan-qty { color: #57534e; white-space: nowrap; padding-inline-end: 4mm; }
+.plan-table .plan-range { text-align: end; white-space: nowrap; }
+.plan-table tfoot th, .plan-table tfoot td { font-weight: 600; border-top: 2px solid #1c1917; border-bottom: 0; padding-top: 3mm; }
+.plan-detail { display: block; font-weight: 400; font-size: 8pt; line-height: 1.3; color: #78716c; margin-top: 0.3mm; }
+.plan-note { margin-top: 5mm; font-size: 8.5pt; color: #57534e; line-height: 1.6; }
+.plan-list { padding-inline-start: 5mm; font-size: 10pt; line-height: 1.7; color: #44403c; }
+.plan-list li { margin-bottom: 2mm; }
+.plan-questions-head { margin-top: 8mm; }
+
 .page-foot {
   position: absolute; inset-inline: 16mm; bottom: 12mm;
   display: flex; justify-content: space-between;
@@ -389,7 +553,11 @@ ${notesPage}
 
 ${renderPages}
 
+${beforeAfterPage}
+
 ${micrositePage}
+
+${planPages}
 
 ${makeItRealPage}
 

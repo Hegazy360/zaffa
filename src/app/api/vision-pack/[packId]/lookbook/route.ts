@@ -10,6 +10,10 @@ import { ANALYTICS_EVENTS } from "@/lib/analytics-events";
 import { isFreePack } from "@/lib/vision-pack";
 import { printSizedUrl } from "@/lib/cloudinary";
 import { siteUrl } from "@/lib/structured-data";
+import { marketForCountry } from "@/lib/decor-pricing";
+import { pickBeforeAfter, pickPlanRender } from "@/lib/lookbook-picks";
+import { lookbookDecorPlan } from "@/server/services/lookbook-decor-plan";
+import { resolveCountryFromRequest } from "@/server/services/vision-pack-pricing";
 import QRCode from "qrcode";
 
 // Chromium has to start before it can print. A warm instance renders in a
@@ -101,7 +105,7 @@ function referencesOf(value: unknown): RefBuckets {
  * Returns 404 for non-recipients (intentionally, we don't leak the
  * existence of the pack to other authenticated users).
  */
-export async function GET(_req: Request, { params }: RouteParams) {
+export async function GET(req: Request, { params }: RouteParams) {
   const { packId } = await params;
   const supabase = await createClient();
   const { data: claims } = await supabase.auth.getClaims();
@@ -142,6 +146,7 @@ export async function GET(_req: Request, { params }: RouteParams) {
     where: { user_id: pack.recipient!.id },
     orderBy: { updated_at: "desc" },
     select: {
+      id: true,
       name: true,
       event_type: true,
       setting: true,
@@ -151,9 +156,17 @@ export async function GET(_req: Request, { params }: RouteParams) {
       references: true,
       style_notes: true,
       thumbnail: true,
+      selected_media_id: true,
+      venue_photo: true,
       media: {
         orderBy: { created_at: "desc" },
-        select: { id: true, type: true, url: true, cloudinary_public_id: true },
+        select: {
+          id: true,
+          type: true,
+          url: true,
+          cloudinary_public_id: true,
+          meta: true,
+        },
       },
     },
   });
@@ -179,6 +192,28 @@ export async function GET(_req: Request, { params }: RouteParams) {
       ? await QRCode.toDataURL(micrositeUrl, { margin: 1, width: 480 })
       : null;
 
+    // Print-sized where we own the asset: Chromium downloads every image
+    // before printing, and full-resolution originals are what push a cold
+    // render past the timeout.
+    const printUrl = (m: { url: string; cloudinary_public_id: string | null }) =>
+      m.cloudinary_public_id ? printSizedUrl(m.cloudinary_public_id, 1600) : m.url;
+
+    // F4: the version the couple chose leads the renders and is the one the
+    // plan prices. The venue photo appears only here, in the couple's own
+    // PDF, next to the render that dressed it.
+    const pair = pickBeforeAfter(design.venue_photo, design.media, design.selected_media_id);
+    const planRender = pickPlanRender(design.media, design.selected_media_id);
+    const decorPlan = planRender
+      ? await lookbookDecorPlan({
+          userId,
+          designId: design.id,
+          render: planRender,
+          design,
+          locale,
+          market: marketForCountry(resolveCountryFromRequest(req)),
+        })
+      : null;
+
     const html = await renderLookbookHtml(
       {
         recipientName: pack.recipient!.full_name ?? "",
@@ -196,17 +231,16 @@ export async function GET(_req: Request, { params }: RouteParams) {
           // so an unknown category reads as empty rather than crashing.
           references: { ...referencesOf(design.references) },
           style_notes: design.style_notes,
-          // Print-sized where we own the asset: Chromium downloads every
-          // image before printing, and full-resolution originals are what
-          // push a cold render past the timeout.
-          media: design.media.map((m) => ({
-            id: m.id,
-            type: m.type,
-            url: m.cloudinary_public_id
-              ? printSizedUrl(m.cloudinary_public_id, 1600)
-              : m.url,
-          })),
+          media: design.media.map((m) => ({ id: m.id, type: m.type, url: printUrl(m) })),
+          selected_media_id: design.selected_media_id,
         },
+        beforeAfter: pair
+          ? {
+              beforeUrl: printSizedUrl(pair.venuePhoto.publicId, 1600),
+              afterUrl: printUrl(pair.render),
+            }
+          : null,
+        decorPlan,
       },
       locale,
     );
