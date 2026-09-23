@@ -676,7 +676,25 @@
     "homeMetaDescription": "Restylez un mariage exemple en un geste, puis créez le vôtre avec un rendu IA gratuit. Quand il vous plaît, nous pouvons construire toute la journée - lieu, prestataires, tout.",
     "homeMetaOgDescription": "Un vrai rendu IA de votre mariage, gratuit, en trente secondes environ - et une équipe qui peut construire toute la journée quand vous êtes prêts.",
     "studioRestyleHint": "Touchez pour restyler cet exemple",
-    "studioVibe_outdoor_sunset": "Dehors au coucher du soleil"
+    "studioVibe_outdoor_sunset": "Dehors au coucher du soleil",
+    "venueDressed": {
+      "aria": "Votre lieu, habillé",
+      "eyebrow": "Habillez votre propre lieu",
+      "title": "Votre lieu, habillé.",
+      "subtitle": "Envoyez une photo de la salle ou du jardin que vous avez réservé. Nous gardons chaque mur, chaque colonne et chaque palmier à sa place, et nous l'habillons pour votre soirée.",
+      "tabsLabel": "Choisir un exemple",
+      "tabHall": "Salle de réception",
+      "tabGarden": "Jardin",
+      "before": "Avant",
+      "after": "Après",
+      "compareLabel": "Faites glisser pour comparer le lieu avant et après",
+      "hallBeforeAlt": "Une salle de réception vide avec des cartons et des chaises en plastique",
+      "hallAfterAlt": "La même salle habillée pour un mariage, avec des tables rondes, des fleurs blanches et un plafond drapé",
+      "gardenBeforeAlt": "Une pelouse vide bordée de palmiers",
+      "gardenAfterAlt": "La même pelouse à l'heure dorée, avec de longues tables, des bougies et des guirlandes lumineuses entre les palmiers",
+      "cta": "Habiller mon lieu",
+      "note": "Les deux exemples partent de vraies photos."
+    }
   },
   "dashboard": {
     "vendorWelcome": "Bon retour,{name}",
@@ -2114,7 +2132,26 @@
     "metaTitle": "Composez votre journée, Zaffa",
     "approveDesign": "C'est celui-là, organisez-le pour nous",
     "approvedToast": "Très beau choix. Nous vous contactons très vite.",
-    "approvedCta": "Approuvé, on s'en occupe"
+    "approvedCta": "Approuvé, on s'en occupe",
+    "venuePhoto": {
+      "title": "Votre lieu",
+      "hint": "Vous avez déjà réservé votre lieu ? Ajoutez une photo et nous habillerons exactement cet espace.",
+      "add": "Ajouter une photo de votre lieu",
+      "uploading": "Envoi de votre photo…",
+      "replace": "Remplacer",
+      "remove": "Retirer",
+      "tip": "Astuce : placez-vous à l'entrée des invités et cadrez large. Un lieu vide, c'est parfait.",
+      "thumbAlt": "La photo de votre lieu",
+      "errorDecode": "Impossible d'ouvrir cette photo. Essayez un JPEG ou un PNG, ou faites-en une capture d'écran et envoyez-la.",
+      "errorNotImage": "Ce fichier n'est pas une photo. Choisissez une image de votre lieu.",
+      "errorUpload": "L'envoi n'a pas abouti. Vérifiez votre connexion et réessayez.",
+      "errorRateLimited": "Trop d'envois pour le moment. Réessayez dans une heure.",
+      "summaryDressing": "Nous habillerons la photo de votre lieu",
+      "summaryNoRefs": "pas besoin de références d'ambiance, la photo de votre lieu suffit.",
+      "compareBefore": "Avant",
+      "compareAfter": "Après",
+      "compareLabel": "Faites glisser pour comparer votre lieu avant et après"
+    }
   },
   "plannerInspiration": {
     "sectionAria": "Tableau d'inspiration de couple",

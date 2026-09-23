@@ -20,6 +20,7 @@ import { DEFAULT_PACK_SKU, PURCHASABLE_PACK_SKUS } from "@/lib/vision-pack";
 import { minorToMajor } from "@/lib/vision-pack-pricing";
 import { ttTrack, TIKTOK_EVENTS } from "@/lib/tiktok";
 import { MediaImage } from "@/components/ui/media-image";
+import { CompareSlider } from "@/components/ui/compare-slider";
 
 interface PageProps {
   params: Promise<{ renderId: string }>;
@@ -52,6 +53,7 @@ export function RenderRevealClient({ params }: PageProps) {
 function RevealInner({ renderId }: { renderId: string }) {
   const t = useTranslations("renderReveal");
   const tEmail = useTranslations("emailGate");
+  const tDesigner = useTranslations("designer");
   const router = useRouter();
 
   const { data: render, isLoading } =
@@ -157,25 +159,53 @@ function RevealInner({ renderId }: { renderId: string }) {
           </div>
 
           <div className="mt-10 overflow-hidden rounded-2xl border border-rose-200/70 bg-card shadow-xl">
-            <div className="relative">
-              {/* Natural aspect: this is the reveal, and cropping the thing
-                  the visitor came to see would be absurd. Explicit dimensions
-                  keep the reserved box right so the page does not jump. */}
-              <MediaImage
-                src={render.url}
-                alt={render.design.name}
-                width={1600}
-                height={900}
+            {render.venuePhotoUrl &&
+            render.venuePhotoWidth &&
+            render.venuePhotoHeight ? (
+              // Their own venue, dressed: the photo they gave us and the
+              // render side by side in one frame (the server only sends the
+              // photo when this render descends from dressing it).
+              <CompareSlider
+                before={{
+                  src: render.venuePhotoUrl,
+                  alt: tDesigner("venuePhoto.thumbAlt"),
+                }}
+                after={{ src: render.url, alt: render.design.name }}
+                width={render.venuePhotoWidth}
+                height={render.venuePhotoHeight}
                 sizes="half"
                 priority
-                className="block h-auto w-full object-contain"
-              />
-              {render.watermarked ? (
-                <div className="pointer-events-none absolute bottom-3 end-3 inline-flex items-center gap-1.5 rounded-full bg-black/65 px-3 py-1 text-xs font-medium tracking-wide text-white backdrop-blur">
-                  {tEmail("watermarkBadge")}
-                </div>
-              ) : null}
-            </div>
+                beforeLabel={tDesigner("venuePhoto.compareBefore")}
+                afterLabel={tDesigner("venuePhoto.compareAfter")}
+                label={tDesigner("venuePhoto.compareLabel")}
+              >
+                {render.watermarked ? (
+                  <div className="pointer-events-none absolute bottom-3 end-3 inline-flex items-center gap-1.5 rounded-full bg-black/65 px-3 py-1 text-xs font-medium tracking-wide text-white backdrop-blur">
+                    {tEmail("watermarkBadge")}
+                  </div>
+                ) : null}
+              </CompareSlider>
+            ) : (
+              <div className="relative">
+                {/* Natural aspect: this is the reveal, and cropping the thing
+                    the visitor came to see would be absurd. Explicit dimensions
+                    keep the reserved box right so the page does not jump. */}
+                <MediaImage
+                  src={render.url}
+                  alt={render.design.name}
+                  width={1600}
+                  height={900}
+                  sizes="half"
+                  priority
+                  className="block h-auto w-full object-contain"
+                />
+                {render.watermarked ? (
+                  <div className="pointer-events-none absolute bottom-3 end-3 inline-flex items-center gap-1.5 rounded-full bg-black/65 px-3 py-1 text-xs font-medium tracking-wide text-white backdrop-blur">
+                    {tEmail("watermarkBadge")}
+                  </div>
+                ) : null}
+              </div>
+            )}
 
             <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border/60 px-5 py-4">
               <div className="min-w-0">

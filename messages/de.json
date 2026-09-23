@@ -676,7 +676,25 @@
     "homeMetaDescription": "Gestaltet eine Beispielhochzeit mit einem Tipp um, dann entwerft eure mit einem kostenlosen KI-Rendering. Wenn es euch gefällt, bauen wir den ganzen Tag - Location, Dienstleister, alles.",
     "homeMetaOgDescription": "Ein echtes KI-Rendering eurer Hochzeit, kostenlos, in etwa dreißig Sekunden - und ein Team, das den ganzen Tag bauen kann, wenn ihr bereit seid.",
     "studioRestyleHint": "Tippt, um dieses Beispiel umzugestalten",
-    "studioVibe_outdoor_sunset": "Draußen bei Sonnenuntergang"
+    "studioVibe_outdoor_sunset": "Draußen bei Sonnenuntergang",
+    "venueDressed": {
+      "aria": "Ihr Ort, dekoriert",
+      "eyebrow": "Ihren eigenen Ort dekorieren",
+      "title": "Ihr Ort, dekoriert.",
+      "subtitle": "Laden Sie ein Foto des Saals oder Gartens hoch, den Sie gebucht haben. Jede Wand, jede Säule und jede Palme bleibt, wo sie ist, und wir dekorieren alles für Ihren Abend.",
+      "tabsLabel": "Beispiel wählen",
+      "tabHall": "Hochzeitssaal",
+      "tabGarden": "Garten",
+      "before": "Vorher",
+      "after": "Nachher",
+      "compareLabel": "Ziehen, um den Ort vorher und nachher zu vergleichen",
+      "hallBeforeAlt": "Ein leerer Festsaal mit Kartons und Plastikstühlen",
+      "hallAfterAlt": "Derselbe Saal, für eine Hochzeit dekoriert, mit runden Tischen, weißen Blumen und drapierter Decke",
+      "gardenBeforeAlt": "Ein leerer Rasen, gesäumt von Palmen",
+      "gardenAfterAlt": "Derselbe Rasen zur goldenen Stunde, mit langen Tischen, Kerzen und Lichterketten zwischen den Palmen",
+      "cta": "Meinen Ort dekorieren",
+      "note": "Beide Beispiele beginnen mit echten Fotos."
+    }
   },
   "dashboard": {
     "vendorWelcome": "Willkommen zurück,{name}",
@@ -2114,7 +2132,26 @@
     "metaTitle": "Gestalten Sie Ihren Tag, Zaffa",
     "approveDesign": "Das ist es, plant es für uns",
     "approvedToast": "Wunderbare Wahl. Wir melden uns bald.",
-    "approvedCta": "Freigegeben, wir kümmern uns"
+    "approvedCta": "Freigegeben, wir kümmern uns",
+    "venuePhoto": {
+      "title": "Ihr Veranstaltungsort",
+      "hint": "Sie haben Ihren Ort schon gebucht? Laden Sie ein Foto hoch, und wir dekorieren genau diesen Raum.",
+      "add": "Foto Ihres Veranstaltungsorts hinzufügen",
+      "uploading": "Foto wird hochgeladen…",
+      "replace": "Ersetzen",
+      "remove": "Entfernen",
+      "tip": "Tipp: Stellen Sie sich dorthin, wo Ihre Gäste hereinkommen, und fotografieren Sie weitwinklig. Ein leerer Raum ist völlig in Ordnung.",
+      "thumbAlt": "Das Foto Ihres Veranstaltungsorts",
+      "errorDecode": "Dieses Foto konnten wir nicht öffnen. Versuchen Sie ein JPEG oder PNG, oder laden Sie einen Screenshot davon hoch.",
+      "errorNotImage": "Diese Datei ist kein Foto. Wählen Sie ein Bild Ihres Veranstaltungsorts.",
+      "errorUpload": "Der Upload hat nicht geklappt. Prüfen Sie Ihre Verbindung und versuchen Sie es erneut.",
+      "errorRateLimited": "Gerade zu viele Uploads. Bitte versuchen Sie es in einer Stunde erneut.",
+      "summaryDressing": "Wir dekorieren das Foto Ihres Veranstaltungsorts",
+      "summaryNoRefs": "keine Stimmungsbilder nötig, Ihr Foto vom Ort reicht.",
+      "compareBefore": "Vorher",
+      "compareAfter": "Nachher",
+      "compareLabel": "Ziehen, um Ihren Ort vorher und nachher zu vergleichen"
+    }
   },
   "plannerInspiration": {
     "sectionAria": "Inspirationsboard für Paare",

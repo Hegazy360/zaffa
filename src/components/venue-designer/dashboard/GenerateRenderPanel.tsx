@@ -38,6 +38,9 @@ import { isFreePack, packAllowsVideo } from "@/lib/vision-pack";
 import { LockableAction } from "@/components/ui/lockable-action";
 import { useConfirm } from "@/components/ui/confirm";
 import { MediaImage } from "@/components/ui/media-image";
+import { CompareSlider } from "@/components/ui/compare-slider";
+import { useDesignerFlag } from "@/components/venue-designer/designer-flags-provider";
+import { compareBeforePhoto, type LineageRow } from "@/lib/venue-photo";
 
 interface GenerateRenderPanelProps {
   designId?: string;
@@ -99,6 +102,14 @@ export function GenerateRenderPanel({
   const setActiveRenderMediaId = useVenueDesignerStore(
     (s) => s.setActiveRenderMediaId,
   );
+  const activeRenderMediaId = useVenueDesignerStore(
+    (s) => s.activeRenderMediaId,
+  );
+  // F1: with a venue photo the server dresses that photo, and the photo
+  // alone is enough to render (no mood references needed).
+  const venuePhotoEnabled = useDesignerFlag("venuePhoto");
+  const storedVenuePhoto = useVenueDesignerStore((s) => s.venuePhoto);
+  const venuePhoto = venuePhotoEnabled ? storedVenuePhoto : null;
 
   const [resultImage, setResultImage] = useState<string | null>(null);
   const [view, setView] = useState<View>("form");
@@ -168,6 +179,7 @@ export function GenerateRenderPanel({
   }, [references]);
 
   const totalRefs = flatRefs.length;
+  const canRender = totalRefs > 0 || venuePhoto !== null;
 
   const [pendingEmailGate, setPendingEmailGate] = useState<{
     renderId: string | null;
@@ -224,6 +236,31 @@ export function GenerateRenderPanel({
     setActiveRenderMediaId(latestRender.id);
   }, [isAnon, latestRender, resultImage, view, setActiveRenderMediaId]);
 
+  // The render the server just dressed, known from the response before the
+  // design refetch brings its row (and meta) back. Only used to decide the
+  // compare slider, so the slider is there the moment the render lands.
+  const [justDressed, setJustDressed] = useState<LineageRow | null>(null);
+  const lineageRows = useMemo<LineageRow[]>(() => {
+    const rows: LineageRow[] = allMedia
+      .filter((m) => m.type === "render")
+      .map((m) => ({
+        id: m.id,
+        parent_id: m.parent_id,
+        mode: m.meta?.mode ?? null,
+        venuePublicId: m.meta?.venuePublicId ?? null,
+      }));
+    if (justDressed && !rows.some((r) => r.id === justDressed.id)) {
+      rows.push(justDressed);
+    }
+    return rows;
+  }, [allMedia, justDressed]);
+  // The "before" for the render on screen, or null for the plain image.
+  const beforePhoto = compareBeforePhoto(
+    activeRenderMediaId,
+    lineageRows,
+    venuePhoto,
+  );
+
   const renderMutation = trpc.ai.renderScene.useMutation({
     onSuccess: (data, variables) => {
       // Clear any banner left over from a previous failed attempt, the
@@ -243,6 +280,17 @@ export function GenerateRenderPanel({
         // The server wrote the media row itself, nothing left to save.
         lastRenderMediaIdRef.current = data.mediaId;
         setActiveRenderMediaId(data.mediaId);
+        setJustDressed(
+          data.mode === "dress_venue"
+            ? {
+                id: data.mediaId,
+                parent_id: null,
+                mode: "dress_venue",
+                // The save flushed before the render carried this photo.
+                venuePublicId: venuePhoto?.publicId ?? null,
+              }
+            : null,
+        );
         if (renderDesignId) {
           utils.venueDesigns.getById.invalidate({ id: renderDesignId });
         }
@@ -365,7 +413,7 @@ export function GenerateRenderPanel({
   const handleRender = useCallback(async () => {
     if (renderStartingRef.current || renderMutation.isPending) return;
     setRenderError(null);
-    if (totalRefs === 0) {
+    if (!canRender) {
       toast.error(t("needRefBeforeRender"));
       return;
     }
@@ -410,7 +458,7 @@ export function GenerateRenderPanel({
     palette,
     flatRefs,
     styleNotes,
-    totalRefs,
+    canRender,
     t,
     turnstileToken,
     designId,
@@ -586,10 +634,30 @@ export function GenerateRenderPanel({
                 ) : (
                   <span className="text-muted-foreground">
                     {", "}
-                    {t("summaryNoRefs")}
+                    {venuePhoto
+                      ? t("venuePhoto.summaryNoRefs")
+                      : t("summaryNoRefs")}
                   </span>
                 )}
               </p>
+              {venuePhoto ? (
+                <div
+                  data-venue-photo-summary=""
+                  className="mt-3 flex items-center gap-3 border-t border-border/60 pt-3"
+                >
+                  <div className="relative h-12 w-16 shrink-0 overflow-hidden rounded-md border bg-muted">
+                    <MediaImage
+                      src={venuePhoto.url}
+                      alt={t("venuePhoto.thumbAlt")}
+                      fill
+                      sizes="thumb"
+                    />
+                  </div>
+                  <p className="text-sm font-medium">
+                    {t("venuePhoto.summaryDressing")}
+                  </p>
+                </div>
+              ) : null}
             </div>
 
             {isAnon ? (
@@ -604,9 +672,8 @@ export function GenerateRenderPanel({
             <Button
               size="lg"
               onClick={handleRender}
-              disabled={
-                renderMutation.isPending || flushingSave || totalRefs === 0
-              }
+              disabled={renderMutation.isPending || flushingSave || !canRender}
+              data-generate-render=""
               className="h-12 w-full gap-2 bg-rose-500 text-base text-white hover:bg-rose-600 sm:h-11 sm:text-sm"
             >
               {renderMutation.isPending || flushingSave ? (
@@ -680,6 +747,20 @@ export function GenerateRenderPanel({
                     loop
                     playsInline
                     className="h-auto w-full animate-in fade-in duration-500"
+                  />
+                ) : resultImage && view === "image" && beforePhoto ? (
+                  // A dressed venue: their own photo and the render in one
+                  // frame, the photo's proportions (the model kept them).
+                  <CompareSlider
+                    before={{ src: beforePhoto.url, alt: t("venuePhoto.thumbAlt") }}
+                    after={{ src: resultImage, alt: t("renderedAlt") }}
+                    width={beforePhoto.width}
+                    height={beforePhoto.height}
+                    sizes="half"
+                    priority
+                    beforeLabel={t("venuePhoto.compareBefore")}
+                    afterLabel={t("venuePhoto.compareAfter")}
+                    label={t("venuePhoto.compareLabel")}
                   />
                 ) : resultImage ? (
                   <>
