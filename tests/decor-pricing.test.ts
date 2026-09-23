@@ -424,8 +424,12 @@ describe("computeDecorPlan: money", () => {
           lo += i.lo;
           hi += i.hi;
         }
-        expect(p.totals.lo).toBeLessThanOrEqual(lo);
-        expect(p.totals.hi).toBeGreaterThanOrEqual(hi);
+        // Exactly the column sum: the Total row is checked against the lines
+        // above it by anyone reading the panel or the lookbook PDF.
+        expect(p.totals.lo).toBe(lo);
+        expect(p.totals.hi).toBe(hi);
+        expect(Number.isInteger(p.totals.lo)).toBe(true);
+        expect(Number.isInteger(p.totals.hi)).toBe(true);
         expect(p.totals.lo).toBeGreaterThan(0);
       }
     }
@@ -437,8 +441,27 @@ describe("computeDecorPlan: money", () => {
     // as per event, say) shows up as a failing number, not a quiet lie.
     // The research put total decor for an Egyptian wedding at 30k to 500k.
     const p = plan();
-    expect(p.totals.lo).toBe(43000);
-    expect(p.totals.hi).toBe(290000);
+    expect(p.totals.lo).toBe(43500);
+    expect(p.totals.hi).toBe(283000);
+  });
+
+  it("prints a Total the column adds up to, not a re-rounded one", () => {
+    // Review case: 180 guests outdoors. Re-rounding the summed lines to two
+    // significant figures showed 83,000 to 450,000 under lines that add up
+    // to 83,150 to 446,200, so the PDF's own arithmetic disagreed with it.
+    const p = plan(
+      {
+        centerpiece: "mixed",
+        has_arch: true,
+        has_dance_floor: true,
+        has_string_lights: true,
+        candle_density: "some",
+      },
+      { guestCount: 180, setting: "outdoor" },
+    );
+    expect(p.totals).toEqual({ lo: 83150, hi: 446200 });
+    expect(p.totals.lo).toBe(p.items.reduce((s, i) => s + i.lo, 0));
+    expect(p.totals.hi).toBe(p.items.reduce((s, i) => s + i.hi, 0));
   });
 
   it("states the market's own caveats", () => {

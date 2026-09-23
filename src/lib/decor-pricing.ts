@@ -267,6 +267,7 @@ export interface DecorPlan {
   market: DecorMarket;
   currency: string;
   items: DecorPlanItem[];
+  /** Exactly the sum of the items' `lo` and `hi`, so the column adds up. */
   totals: { lo: number; hi: number };
   guestCount: number;
   /** True when `guestCount` came from the size bucket, not the couple. */
@@ -459,15 +460,12 @@ export function computeDecorPlan(
     });
   }
 
+  // The plain sum of the printed lines, never re-rounded: the lines already
+  // contain their exact products, and a couple or decorator who adds up the
+  // column must land on the Total row (rounding again moved it by up to ~10%).
   const totals = {
-    lo: roundMoney(
-      items.reduce((sum, i) => sum + i.lo, 0),
-      "down",
-    ),
-    hi: roundMoney(
-      items.reduce((sum, i) => sum + i.hi, 0),
-      "up",
-    ),
+    lo: items.reduce((sum, i) => sum + i.lo, 0),
+    hi: items.reduce((sum, i) => sum + i.hi, 0),
   };
 
   const has = (key: DecorItemKey) => items.some((i) => i.key === key);
