@@ -111,7 +111,11 @@ export function renderEmail(args: RenderEmailArgs): RenderedEmail {
               ${esc(f.label)}
             </td>
             <td align="${valueAlign}" style="padding:14px 4px 14px 4px;vertical-align:top;font-family:${monoStack};font-size:13.5px;font-weight:500;color:#1f1a17;letter-spacing:-0.005em;">
-              ${esc(f.value)}
+              ${
+                f.href
+                  ? `<a href="${esc(absoluteUrl(f.href))}" style="color:#9f1239;text-decoration:underline;">${esc(f.value)}</a>`
+                  : esc(f.value)
+              }
             </td>
           </tr>
           ${
@@ -331,7 +335,8 @@ export function renderEmail(args: RenderEmailArgs): RenderedEmail {
         isArabic ? "─── التفاصيل ───" : "─── Details ───",
         ...copy.facts.map((f) => {
           const pad = Math.max(1, 12 - f.label.length);
-          return `${f.label}:${" ".repeat(pad)}${f.value}`;
+          const link = f.href ? ` ${absoluteUrl(f.href)}` : "";
+          return `${f.label}:${" ".repeat(pad)}${f.value}${link}`;
         }),
       ].join("\n")
     : "";

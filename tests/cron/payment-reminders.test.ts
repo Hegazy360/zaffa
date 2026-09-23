@@ -6,12 +6,14 @@ const {
   prismaMock,
   notifyPaymentDueMock,
   notifyPaymentOverdueMock,
+  staleDigestMock,
 } = await vi.hoisted(async () => {
   const { mockDeep } = await import("vitest-mock-extended");
   return {
     prismaMock: mockDeep<typeof import("@/lib/prisma").prisma>(),
     notifyPaymentDueMock: vi.fn(),
     notifyPaymentOverdueMock: vi.fn(),
+    staleDigestMock: vi.fn(),
   };
 });
 
@@ -19,6 +21,9 @@ vi.mock("@/lib/prisma", () => ({ prisma: prismaMock }));
 vi.mock("@/server/services/notifications/dispatchers", () => ({
   notifyPaymentDue: notifyPaymentDueMock,
   notifyPaymentOverdue: notifyPaymentOverdueMock,
+}));
+vi.mock("@/server/services/stale-leads", () => ({
+  sendStaleLeadDigest: staleDigestMock,
 }));
 vi.mock("@/lib/logger", () => ({
   reportError: vi.fn(),
@@ -35,6 +40,8 @@ beforeEach(() => {
   notifyPaymentOverdueMock.mockReset();
   notifyPaymentDueMock.mockResolvedValue(undefined);
   notifyPaymentOverdueMock.mockResolvedValue(undefined);
+  staleDigestMock.mockReset();
+  staleDigestMock.mockResolvedValue({ stale: 0, emailed: 0 });
 });
 
 afterEach(() => {
@@ -98,7 +105,12 @@ describe("GET /api/cron/payment-reminders", () => {
       remindersSent: number;
       overdueSent: number;
     };
-    expect(body).toEqual({ ok: true, remindersSent: 1, overdueSent: 1 });
+    expect(body).toEqual({
+      ok: true,
+      remindersSent: 1,
+      overdueSent: 1,
+      staleLeads: { stale: 0, emailed: 0 },
+    });
     expect(notifyPaymentDueMock).toHaveBeenCalledOnce();
     expect(notifyPaymentOverdueMock).toHaveBeenCalledOnce();
   });
@@ -140,5 +152,40 @@ describe("GET /api/cron/payment-reminders", () => {
       })
     );
     expect(res.status).toBe(500);
+  });
+
+  it("nags about stale leads even when the payment queries fail", async () => {
+    process.env.CRON_SECRET = "shh";
+    prismaMock.payment.findMany.mockRejectedValue(new Error("DB exploded"));
+    staleDigestMock.mockResolvedValue({ stale: 2, emailed: 1 });
+
+    const res = await GET(
+      new Request("http://localhost/api/cron/payment-reminders", {
+        headers: { authorization: "Bearer shh" },
+      })
+    );
+    expect(res.status).toBe(500);
+    expect(staleDigestMock).toHaveBeenCalledOnce();
+    expect(await res.json()).toMatchObject({ staleLeads: { stale: 2, emailed: 1 } });
+  });
+
+  it("still sends the payment reminders when the stale-lead sweep throws", async () => {
+    process.env.CRON_SECRET = "shh";
+    staleDigestMock.mockRejectedValue(new Error("enquiries table locked"));
+    prismaMock.payment.findMany.mockResolvedValue([] as never);
+
+    const res = await GET(
+      new Request("http://localhost/api/cron/payment-reminders", {
+        headers: { authorization: "Bearer shh" },
+      })
+    );
+    expect(res.status).toBe(200);
+    expect(await res.json()).toMatchObject({ ok: true, staleLeads: null });
+  });
+
+  it("does not sweep for an unauthenticated caller", async () => {
+    process.env.CRON_SECRET = "shh";
+    await GET(new Request("http://localhost/api/cron/payment-reminders"));
+    expect(staleDigestMock).not.toHaveBeenCalled();
   });
 });

@@ -7,12 +7,16 @@ import {
   notifyPaymentDue,
   notifyPaymentOverdue,
 } from "@/server/services/notifications/dispatchers";
+import { sendStaleLeadDigest } from "@/server/services/stale-leads";
 
 /**
- * Once-a-day cron that emits two families of time-based notifications:
+ * Once-a-day cron that emits the time-based nudges:
  *
  *   1. `payment_due_reminder`, for installments becoming due in 3 days.
  *   2. `payment_overdue`, for installments past due and still open.
+ *   3. The stale-lead digest: one email to each admin listing enquiries
+ *      still `new` after 12 hours (F5, see `stale-leads.ts`). Its own
+ *      try/catch, so a failure on either side never costs the other.
  *
  * Condensed into a single endpoint because the Vercel Hobby plan caps us
  * to one cron run per day. Dedupe is per-installment: we skip any row
@@ -37,6 +41,16 @@ export async function GET(req: Request) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
 
+  // Independent of the payments below: a broken reminder query must not
+  // silence the one alarm about leads going cold, nor the other way round.
+  let staleLeads: { stale: number; emailed: number } | null = null;
+  try {
+    staleLeads = await sendStaleLeadDigest();
+    logger.info("cron.stale_leads.success", staleLeads);
+  } catch (err) {
+    reportError("cron.stale_leads.failed", err);
+  }
+
   try {
     const remindersSent = await sendDueReminders();
     const overdueSent = await sendOverdueNotices();
@@ -44,10 +58,10 @@ export async function GET(req: Request) {
       remindersSent,
       overdueSent,
     });
-    return NextResponse.json({ ok: true, remindersSent, overdueSent });
+    return NextResponse.json({ ok: true, remindersSent, overdueSent, staleLeads });
   } catch (err) {
     reportError("cron.payment_reminders.failed", err);
-    return NextResponse.json({ error: "failed" }, { status: 500 });
+    return NextResponse.json({ error: "failed", staleLeads }, { status: 500 });
   }
 }
 

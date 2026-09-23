@@ -12,8 +12,8 @@
 
 import { z } from "zod";
 
-/** Separators people type inside a phone number, dropped before storing. */
-const PHONE_SEPARATORS = /[\s().\- ]/g;
+/** Separators people type inside a phone number (\s covers the no-break space). */
+const PHONE_SEPARATORS = /[\s().-]/g;
 
 /**
  * A phone number as we store it: digits with an optional leading `+`,
