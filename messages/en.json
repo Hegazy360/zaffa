@@ -2637,9 +2637,7 @@
     },
     "ctaQuote": "Get exact quotes from our team",
     "ctaHint": "Free. A person replies within {hours} hours.",
-    "quoteRequested": "Sent. Our team will be in touch within {hours} hours.",
-    "quoteAlready": "Our team already has this design and will be in touch.",
-    "quoteFailed": "That did not go through. Please try again."
+    "quoteAlready": "Our team already has this design and will be in touch."
   },
   "approveFlow": {
     "title": "Get a real quote for this design",

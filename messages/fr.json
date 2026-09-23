@@ -2637,9 +2637,7 @@
     },
     "ctaQuote": "Obtenir des devis exacts de notre équipe",
     "ctaHint": "Gratuit. Une personne vous répond sous {hours} heures.",
-    "quoteRequested": "C'est envoyé. Notre équipe vous contacte sous {hours} heures.",
-    "quoteAlready": "Notre équipe a déjà ce design et vous contactera.",
-    "quoteFailed": "L'envoi n'a pas abouti. Veuillez réessayer."
+    "quoteAlready": "Notre équipe a déjà ce design et vous contactera."
   },
   "approveFlow": {
     "title": "Obtenez un vrai devis pour ce design",

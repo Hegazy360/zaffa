@@ -156,7 +156,7 @@ describe("staleLeadDigestCopy", () => {
     const copy = staleLeadDigestCopy([COUPLE_A], 1, NOW, "ar");
     expect(copy.title).toBe("طلب واحد ما زال بانتظار الرد");
     expect(copy.facts?.[0]?.value).toContain("16");
-    expect(copy.facts?.[0]?.value).not.toMatch(/[٠-٩]/);
+    expect(copy.facts?.[0]?.value).not.toMatch(/[\u0660-\u0669]/);
     const all = [copy.title, copy.body, copy.eyebrow, copy.ctaLabel].join(" ");
     expect(all).not.toMatch(/[\u2013\u2014]/);
   });

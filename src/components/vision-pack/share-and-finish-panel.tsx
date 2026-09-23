@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
@@ -30,6 +30,12 @@ import {
 import { isFreePack } from "@/lib/vision-pack";
 import { LockableAction } from "@/components/ui/lockable-action";
 import { LookbookDownloadButton } from "./lookbook-download-button";
+import { useVenueDesignerStore } from "@/stores/venue-designer-store";
+import { useIsAnonymous } from "@/lib/use-is-anonymous";
+import {
+  ApproveDesignDialog,
+  pickApproveMediaId,
+} from "@/components/venue-designer/ApproveDesignDialog";
 
 interface Props {
   /** Owner of this design, used to wire the find-planner CTA to a saved design. */
@@ -77,20 +83,23 @@ export function ShareAndFinishPanel({ designId }: Props) {
 
   // "This is the one", approval files the lead the concierge follows up
   // on. Replaces the old findPlanner marketplace handoff, which was gated
-  // by SKU and pointed at surfaces that now 404.
+  // by SKU and pointed at surfaces that now 404. It opens the approval
+  // dialog (F5), which asks how to reach the couple and pins the version
+  // on screen.
   const { data: design } = trpc.venueDesigns.getById.useQuery(
     { id: designId ?? "" },
     { enabled: Boolean(designId) },
   );
-  const approve = trpc.venueDesigns.approve.useMutation({
-    onSuccess: () => {
-      toast.success(t("approvedToast"));
-      utils.venueDesigns.list.invalidate();
-      if (designId) utils.venueDesigns.getById.invalidate({ id: designId });
-      utils.enquiries.mine.invalidate();
-    },
-    onError: (err) => toast.error(err.message),
-  });
+  const [approveOpen, setApproveOpen] = useState(false);
+  // Approval needs a permanent account (the server refuses anonymous ones),
+  // so an anonymous couple is sent to the enquiry form with the design
+  // attached instead, as the decor plan's quote button does.
+  const isAnon = useIsAnonymous();
+  const activeRenderId = useVenueDesignerStore((s) => s.activeRenderMediaId);
+  const renderIds = useMemo(
+    () => (design?.media ?? []).filter((m) => m.type === "render").map((m) => m.id),
+    [design?.media],
+  );
 
   if (isLoading || !pack) return null;
 
@@ -291,23 +300,41 @@ export function ShareAndFinishPanel({ designId }: Props) {
               <CheckCircle2 className="size-3.5" />
               {t("approvedState")}
             </div>
+          ) : isAnon !== false && designId ? (
+            <Button
+              variant="cta"
+              className="h-11 gap-1.5 px-4"
+              render={<Link href={`/enquire?designId=${designId}`} />}
+            >
+              <CheckCircle2 className="size-4" />
+              {t("approveCta")}
+              <ArrowRight className="size-4 rtl:-scale-x-100" />
+            </Button>
           ) : (
             <Button
               type="button"
-              size="sm"
-              disabled={approve.isPending || !designId}
-              onClick={() => designId && approve.mutate({ designId })}
-              className="h-8 gap-1.5 bg-brand-gradient text-xs text-white hover:opacity-90"
+              variant="cta"
+              disabled={!designId}
+              onClick={() => setApproveOpen(true)}
+              className="h-11 gap-1.5 px-4"
             >
-              {approve.isPending ? (
-                <Loader2 className="size-3 animate-spin" />
-              ) : (
-                <CheckCircle2 className="size-3" />
-              )}
+              <CheckCircle2 className="size-4" />
               {t("approveCta")}
-              <ArrowRight className="size-3 rtl:-scale-x-100" />
+              <ArrowRight className="size-4 rtl:-scale-x-100" />
             </Button>
           )}
+          {/* Outside the branches above: approving flips this section to
+              its approved state, and the dialog must stay up to show what
+              happens next. */}
+          {designId && isAnon === false ? (
+            <ApproveDesignDialog
+              open={approveOpen}
+              onOpenChange={setApproveOpen}
+              designId={designId}
+              designName={design?.name ?? ""}
+              mediaId={pickApproveMediaId(activeRenderId, renderIds)}
+            />
+          ) : null}
         </Section>
       </CardContent>
     </Card>

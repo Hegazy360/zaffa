@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -7,13 +8,11 @@ import {
   CalendarDays,
   CheckCircle2,
   ImageIcon,
-  Loader2,
   MapPin,
   Plus,
   Sparkles,
   Wand2,
 } from "lucide-react";
-import { toast } from "sonner";
 import { useTranslations } from "next-intl";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
@@ -24,6 +23,7 @@ import { useFormatters } from "@/lib/use-formatters";
 import type { EventStatus, EventType } from "@/types";
 import { EmptyState } from "@/components/ui/empty-state";
 import { MediaImage } from "@/components/ui/media-image";
+import { ApproveDesignDialog } from "@/components/venue-designer/ApproveDesignDialog";
 
 interface NormalizedPalette {
   colors: string[];
@@ -55,7 +55,6 @@ const statusStyles: Record<EventStatus | string, string> = {
 
 export default function ClientDashboardPage() {
   const router = useRouter();
-  const utils = trpc.useUtils();
   const t = useTranslations("dashboard");
   const tc = useTranslations("client");
   const tCommon = useTranslations("common");
@@ -68,16 +67,14 @@ export default function ClientDashboardPage() {
 
   // Approval is a lead ("I want this wedding - contact me"), not an event
   // factory: it creates a design_approved enquiry the concierge follows up
-  // on. The EnquiryStatusCard above reads enquiries.mine, so invalidating it
-  // makes the "we're on it" state appear without a navigation.
-  const approve = trpc.venueDesigns.approve.useMutation({
-    onSuccess: () => {
-      utils.venueDesigns.list.invalidate();
-      utils.enquiries.mine.invalidate();
-      toast.success(tc("approvedToast"));
-    },
-    onError: (err) => toast.error(err.message),
-  });
+  // on. The approval dialog (F5) asks how to reach the couple and pins the
+  // render on the card; it invalidates enquiries.mine, which the
+  // EnquiryStatusCard above reads, so "we're on it" appears in place.
+  const [approving, setApproving] = useState<{
+    id: string;
+    name: string;
+    mediaId?: string;
+  } | null>(null);
 
   const firstName = profile?.full_name?.split(" ")[0] ?? "there";
 
@@ -245,18 +242,16 @@ export default function ClientDashboardPage() {
                         ) : (
                           <Button
                             size="sm"
-                            disabled={approve.isPending}
                             onClick={() =>
-                              approve.mutate({ designId: design.id })
+                              setApproving({
+                                id: design.id,
+                                name: design.name,
+                                mediaId: design.media[0]?.id,
+                              })
                             }
-                            className="h-8 flex-1 gap-1 bg-brand-gradient text-xs text-white hover:opacity-90"
+                            className="h-11 flex-1 gap-1 bg-brand-gradient text-xs text-white hover:opacity-90"
                           >
-                            {approve.isPending &&
-                            approve.variables?.designId === design.id ? (
-                              <Loader2 className="size-3 animate-spin" />
-                            ) : (
-                              <CheckCircle2 className="size-3" />
-                            )}
+                            <CheckCircle2 className="size-3" />
                             {tc("approveDesign")}
                           </Button>
                         )}
@@ -304,6 +299,17 @@ export default function ClientDashboardPage() {
           )}
         </section>
       </div>
+      {approving ? (
+        <ApproveDesignDialog
+          open
+          onOpenChange={(open) => {
+            if (!open) setApproving(null);
+          }}
+          designId={approving.id}
+          designName={approving.name}
+          mediaId={approving.mediaId}
+        />
+      ) : null}
     </div>
   );
 }

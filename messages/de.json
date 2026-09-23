@@ -2637,9 +2637,7 @@
     },
     "ctaQuote": "Genaue Angebote von unserem Team",
     "ctaHint": "Kostenlos. Ein Mensch antwortet innerhalb von {hours} Stunden.",
-    "quoteRequested": "Gesendet. Unser Team meldet sich innerhalb von {hours} Stunden.",
-    "quoteAlready": "Unser Team hat dieses Design bereits und meldet sich bei Ihnen.",
-    "quoteFailed": "Das hat nicht geklappt. Bitte versuchen Sie es erneut."
+    "quoteAlready": "Unser Team hat dieses Design bereits und meldet sich bei Ihnen."
   },
   "approveFlow": {
     "title": "Ein echtes Angebot für dieses Design",
