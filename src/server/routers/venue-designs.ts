@@ -17,6 +17,12 @@ import {
   type VenuePhoto,
 } from "@/lib/design-media-meta";
 import { notifyDesignApproved } from "@/server/services/notifications/dispatchers";
+import {
+  leadDetailsSchema,
+  normalizePhone,
+  parseWeddingDate,
+  type LeadDetails,
+} from "@/lib/lead-details";
 
 const refSchema = z.object({
   id: z.string().min(1),
@@ -144,6 +150,92 @@ function urlForTier(
   return watermarkedUrl(row.cloudinary_public_id);
 }
 
+/** Approval details, validated by the schema and put in the shape we store. */
+interface ResolvedLeadDetails {
+  phone?: string;
+  eventDate?: { date: Date; monthOnly: boolean };
+  city?: string;
+  country?: string;
+}
+
+function resolveLeadDetails(input: LeadDetails): ResolvedLeadDetails {
+  return {
+    phone: (input.phone && normalizePhone(input.phone)) || undefined,
+    eventDate: (input.eventDate && parseWeddingDate(input.eventDate)) || undefined,
+    city: input.city || undefined,
+    country: input.country || undefined,
+  };
+}
+
+/**
+ * Complete an existing approval lead with details the couple gave later,
+ * never overwriting one: each field is its own conditional write, matched
+ * only while that field is still empty, so the answer is decided by the row
+ * at write time rather than by a read that might be stale. Returns whether
+ * anything was filled.
+ */
+async function fillEmptyEnquiryFields(
+  enquiryId: string,
+  details: ResolvedLeadDetails,
+): Promise<boolean> {
+  const writes: Array<Promise<{ count: number }>> = [];
+  if (details.phone) {
+    writes.push(
+      prisma.enquiry.updateMany({
+        where: { id: enquiryId, OR: [{ phone: null }, { phone: "" }] },
+        // The number is a WhatsApp number (that is what the dialog asks for).
+        data: { phone: details.phone, preferred_channel: "whatsapp" },
+      }),
+    );
+  }
+  if (details.eventDate) {
+    writes.push(
+      prisma.enquiry.updateMany({
+        where: { id: enquiryId, event_date: null },
+        data: {
+          event_date: details.eventDate.date,
+          date_flexible: details.eventDate.monthOnly,
+        },
+      }),
+    );
+  }
+  if (details.city) {
+    writes.push(
+      prisma.enquiry.updateMany({
+        where: { id: enquiryId, OR: [{ city: null }, { city: "" }] },
+        data: { city: details.city },
+      }),
+    );
+  }
+  if (details.country) {
+    writes.push(
+      prisma.enquiry.updateMany({
+        where: { id: enquiryId, country: null },
+        data: { country: details.country },
+      }),
+    );
+  }
+  if (writes.length === 0) return false;
+  const results = await Promise.all(writes);
+  return results.some((r) => r.count > 0);
+}
+
+/**
+ * Keep the number on the profile too, when the profile has none, so the
+ * next lead from this couple starts with it. Best-effort: the lead already
+ * carries the number, and a profile write must not fail the approval.
+ */
+async function fillProfilePhone(userId: string, phone: string): Promise<void> {
+  try {
+    await prisma.profile.updateMany({
+      where: { id: userId, OR: [{ phone: null }, { phone: "" }] },
+      data: { phone },
+    });
+  } catch (err) {
+    reportError("design_approve.profile_phone_failed", err, { userId });
+  }
+}
+
 export const venueDesignsRouter = router({
   /**
    * "I want this wedding, contact me."
@@ -163,27 +255,43 @@ export const venueDesignsRouter = router({
    * Shape mirrors `enquiries.submit`: the Enquiry row is written FIRST and
    * every side effect after it (admin fan-out, analytics) is best-effort -
    * an email outage must never lose the warmest lead the funnel produces.
+   *
+   * F5: the couple may leave a WhatsApp number, the wedding month (or day)
+   * and where it is, all optional, and the version on screen is pinned as
+   * `selected_media_id`. A second approve (another tab, a stale page, the
+   * details added after the fact) never files a second lead: it fills the
+   * existing enquiry's EMPTY fields, one conditional write per field, so
+   * nothing already on the lead is overwritten.
    */
   approve: nonAnonymousProcedure
     .input(
-      z.object({
+      leadDetailsSchema.extend({
         designId: z.string().uuid(),
-        // The version the couple is looking at when they ask for a quote
-        // (the decor plan prices one render). Pinned as `selected_media_id`
-        // so the team, the lookbook and the brief quote that one.
+        // The version the couple is looking at when they approve (the decor
+        // plan prices one render). Pinned as `selected_media_id` so the
+        // team, the lookbook and the brief quote that one.
         mediaId: z.string().uuid().optional(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
       if (input.mediaId) {
+        // Scoped to the caller's own design as well: a probe with someone
+        // else's ids gets the same answer as an id that does not exist.
         const media = await prisma.venueDesignMedia.findFirst({
-          where: { id: input.mediaId, design_id: input.designId, type: "render" },
+          where: {
+            id: input.mediaId,
+            design_id: input.designId,
+            type: "render",
+            design: { user_id: ctx.user.id },
+          },
           select: { id: true },
         });
         if (!media) {
           throw new TRPCError({ code: "BAD_REQUEST", message: "MEDIA_NOT_IN_DESIGN" });
         }
       }
+
+      const details = resolveLeadDetails(input);
 
       // Conditional write doubles as the idempotency guard: only the call
       // that flips `approved_at` from null proceeds to create the lead, so a
@@ -204,17 +312,31 @@ export const venueDesignsRouter = router({
         if (!design) {
           throw new TRPCError({ code: "NOT_FOUND", message: "Design not found" });
         }
+        // The latest word on which version wins: a couple approving from a
+        // page showing another version means that one now.
+        if (input.mediaId) {
+          await prisma.venueDesign.updateMany({
+            where: { id: input.designId, user_id: ctx.user.id },
+            data: { selected_media_id: input.mediaId },
+          });
+        }
         // Already approved, hand back the existing lead so the UI can show
-        // the same "we're on it" state without creating a duplicate.
+        // the same "we're on it" state without creating a duplicate, and
+        // complete it with whatever the couple has now told us.
         const existing = await prisma.enquiry.findFirst({
           where: { design_id: input.designId, source: "design_approved" },
           orderBy: { created_at: "desc" },
           select: { id: true },
         });
+        const detailsAdded = existing
+          ? await fillEmptyEnquiryFields(existing.id, details)
+          : false;
+        if (details.phone) await fillProfilePhone(ctx.user.id, details.phone);
         return {
           ok: true as const,
           alreadyApproved: true as const,
           enquiryId: existing?.id ?? null,
+          detailsAdded,
         };
       }
 
@@ -230,6 +352,7 @@ export const venueDesignsRouter = router({
       ]);
       const fullName =
         profile?.full_name || ctx.user.email?.split("@")[0] || "A couple";
+      const phone = details.phone ?? (profile?.phone || null);
 
       // ---- The row. Everything after this point is best-effort. ----
       const enquiry = await prisma.enquiry.create({
@@ -237,8 +360,14 @@ export const venueDesignsRouter = router({
           user_id: ctx.user.id,
           full_name: fullName,
           email: ctx.user.email ?? null,
-          phone: profile?.phone ?? null,
-          preferred_channel: "whatsapp",
+          phone,
+          // WhatsApp when there is a number to reach, else the email we
+          // always have: a channel we cannot use is not a preference.
+          preferred_channel: phone ? "whatsapp" : "email",
+          country: details.country ?? null,
+          city: details.city ?? null,
+          event_date: details.eventDate?.date ?? null,
+          date_flexible: details.eventDate?.monthOnly ?? false,
           guest_band: design.guest_count ? String(design.guest_count) : null,
           design_id: input.designId,
           source: "design_approved",
@@ -247,6 +376,8 @@ export const venueDesignsRouter = router({
         },
         select: { id: true },
       });
+
+      if (details.phone) await fillProfilePhone(ctx.user.id, details.phone);
 
       try {
         await notifyDesignApproved({
@@ -264,12 +395,17 @@ export const venueDesignsRouter = router({
         design_id: input.designId,
         enquiry_id: enquiry.id,
         from: "free_approve",
+        pinned_version: Boolean(input.mediaId),
+        has_phone: Boolean(phone),
+        has_date: Boolean(details.eventDate),
+        has_place: Boolean(details.city || details.country),
       });
 
       return {
         ok: true as const,
         alreadyApproved: false as const,
         enquiryId: enquiry.id,
+        detailsAdded: false,
       };
     }),
 
@@ -298,7 +434,7 @@ export const venueDesignsRouter = router({
             where: { type: "render" },
             orderBy: { created_at: "desc" },
             take: 1,
-            select: { url: true, cloudinary_public_id: true, type: true },
+            select: { id: true, url: true, cloudinary_public_id: true, type: true },
           },
         },
       }),
@@ -309,6 +445,8 @@ export const venueDesignsRouter = router({
     return designs.map((d) => ({
       ...d,
       media: d.media.map((m) => ({
+        // The card's approve pins the version its thumbnail shows (F5).
+        id: m.id,
         url: urlForTier(m, isFreeTier),
       })),
     }));

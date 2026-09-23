@@ -54,7 +54,12 @@ describe("venueDesigns.approve", () => {
     // The account that surfaced PACK_TIER_NO_PLANNER_MATCH had only an
     // expired free-taste pack. No visionPack query may run in this path.
     const res = await caller(COUPLE).approve({ designId: DESIGN_ID });
-    expect(res).toEqual({ ok: true, alreadyApproved: false, enquiryId: ENQUIRY_ID });
+    expect(res).toEqual({
+      ok: true,
+      alreadyApproved: false,
+      enquiryId: ENQUIRY_ID,
+      detailsAdded: false,
+    });
     expect(prismaMock.visionPack.findFirst).not.toHaveBeenCalled();
     expect(prismaMock.event.create).not.toHaveBeenCalled();
   });
@@ -101,7 +106,12 @@ describe("venueDesigns.approve", () => {
     prismaMock.enquiry.findFirst.mockResolvedValue({ id: ENQUIRY_ID } as never);
 
     const res = await caller(COUPLE).approve({ designId: DESIGN_ID });
-    expect(res).toEqual({ ok: true, alreadyApproved: true, enquiryId: ENQUIRY_ID });
+    expect(res).toEqual({
+      ok: true,
+      alreadyApproved: true,
+      enquiryId: ENQUIRY_ID,
+      detailsAdded: false,
+    });
     expect(prismaMock.enquiry.create).not.toHaveBeenCalled();
     expect(notifyDesignApproved).not.toHaveBeenCalled();
   });
@@ -130,7 +140,13 @@ describe("venueDesigns.approve", () => {
     await caller(COUPLE).approve({ designId: DESIGN_ID, mediaId: MEDIA_ID });
     expect(prismaMock.venueDesignMedia.findFirst).toHaveBeenCalledWith(
       expect.objectContaining({
-        where: { id: MEDIA_ID, design_id: DESIGN_ID, type: "render" },
+        where: {
+          id: MEDIA_ID,
+          design_id: DESIGN_ID,
+          type: "render",
+          // Only a render of the caller's own design can be pinned.
+          design: { user_id: USER_ID },
+        },
       }),
     );
     expect(prismaMock.venueDesign.updateMany).toHaveBeenCalledWith(
@@ -171,5 +187,171 @@ describe("venueDesigns.approve", () => {
         data: expect.objectContaining({ full_name: "noor" }),
       }),
     );
+  });
+});
+
+describe("venueDesigns.approve with the couple's details (F5)", () => {
+  const DETAILS = {
+    phone: "+20 101 234 5678",
+    eventDate: "2026-10",
+    city: "Cairo",
+    country: "eg",
+  };
+
+  function createdData() {
+    const call = prismaMock.enquiry.create.mock.calls[0]?.[0] as {
+      data: Record<string, unknown>;
+    };
+    return call.data;
+  }
+
+  it("files the lead with the number, the month and the place", async () => {
+    await caller(COUPLE).approve({ designId: DESIGN_ID, ...DETAILS });
+    const data = createdData();
+    expect(data).toMatchObject({
+      phone: "+201012345678",
+      preferred_channel: "whatsapp",
+      city: "Cairo",
+      country: "EG",
+      // A month is stored as its first day and marked flexible, not as a
+      // wedding on the 1st.
+      date_flexible: true,
+    });
+    expect((data.event_date as Date).toISOString()).toBe("2026-10-01T00:00:00.000Z");
+  });
+
+  it("stores an exact day as a fixed date", async () => {
+    await caller(COUPLE).approve({ designId: DESIGN_ID, eventDate: "2027-04-17" });
+    const data = createdData();
+    expect(data.date_flexible).toBe(false);
+    expect((data.event_date as Date).toISOString()).toBe("2027-04-17T00:00:00.000Z");
+  });
+
+  it("prefers the number typed in the dialog over the profile's", async () => {
+    await caller(COUPLE).approve({ designId: DESIGN_ID, phone: "00971 50 111 2222" });
+    expect(createdData().phone).toBe("+971501112222");
+  });
+
+  it("reaches for email when there is no number anywhere", async () => {
+    // A Google sign-in: no phone on the profile, none typed.
+    prismaMock.profile.findUnique.mockResolvedValue({
+      full_name: "Couple A",
+      phone: null,
+      locale: "ar",
+    } as never);
+    await caller(COUPLE).approve({ designId: DESIGN_ID, phone: "", city: "" });
+    const data = createdData();
+    expect(data.phone).toBeNull();
+    expect(data.preferred_channel).toBe("email");
+    expect(data.city).toBeNull();
+  });
+
+  it("keeps the number on the profile only when the profile has none", async () => {
+    await caller(COUPLE).approve({ designId: DESIGN_ID, phone: "+201012345678" });
+    expect(prismaMock.profile.updateMany).toHaveBeenCalledWith({
+      where: { id: USER_ID, OR: [{ phone: null }, { phone: "" }] },
+      data: { phone: "+201012345678" },
+    });
+  });
+
+  it("still files the lead when saving the number on the profile fails", async () => {
+    prismaMock.profile.updateMany.mockRejectedValueOnce(new Error("db blip"));
+    const res = await caller(COUPLE).approve({ designId: DESIGN_ID, phone: "+201012345678" });
+    expect(res.enquiryId).toBe(ENQUIRY_ID);
+    expect(notifyDesignApproved).toHaveBeenCalledOnce();
+  });
+
+  it("rejects a phone that is not a number before writing anything", async () => {
+    await expect(
+      caller(COUPLE).approve({ designId: DESIGN_ID, phone: "call my mum" }),
+    ).rejects.toMatchObject({ code: "BAD_REQUEST" });
+    expect(prismaMock.venueDesign.updateMany).not.toHaveBeenCalled();
+    expect(prismaMock.enquiry.create).not.toHaveBeenCalled();
+  });
+
+  it("rejects an impossible date before writing anything", async () => {
+    await expect(
+      caller(COUPLE).approve({ designId: DESIGN_ID, eventDate: "2026-02-30" }),
+    ).rejects.toMatchObject({ code: "BAD_REQUEST" });
+    expect(prismaMock.venueDesign.updateMany).not.toHaveBeenCalled();
+  });
+
+  describe("when the design is already approved", () => {
+    beforeEach(() => {
+      prismaMock.venueDesign.updateMany.mockResolvedValue({ count: 0 } as never);
+      prismaMock.venueDesign.findFirst.mockResolvedValue({ id: DESIGN_ID } as never);
+      prismaMock.enquiry.findFirst.mockResolvedValue({ id: ENQUIRY_ID } as never);
+      prismaMock.enquiry.updateMany.mockResolvedValue({ count: 1 } as never);
+    });
+
+    it("fills the existing lead's empty fields instead of ignoring them", async () => {
+      const res = await caller(COUPLE).approve({ designId: DESIGN_ID, ...DETAILS });
+      expect(res).toEqual({
+        ok: true,
+        alreadyApproved: true,
+        enquiryId: ENQUIRY_ID,
+        detailsAdded: true,
+      });
+      // Still one lead and one notification, ever.
+      expect(prismaMock.enquiry.create).not.toHaveBeenCalled();
+      expect(notifyDesignApproved).not.toHaveBeenCalled();
+
+      const writes = prismaMock.enquiry.updateMany.mock.calls.map((c) => c[0]);
+      expect(writes).toEqual(
+        expect.arrayContaining([
+          {
+            where: { id: ENQUIRY_ID, OR: [{ phone: null }, { phone: "" }] },
+            data: { phone: "+201012345678", preferred_channel: "whatsapp" },
+          },
+          {
+            where: { id: ENQUIRY_ID, event_date: null },
+            data: { event_date: new Date("2026-10-01T00:00:00.000Z"), date_flexible: true },
+          },
+          {
+            where: { id: ENQUIRY_ID, OR: [{ city: null }, { city: "" }] },
+            data: { city: "Cairo" },
+          },
+          { where: { id: ENQUIRY_ID, country: null }, data: { country: "EG" } },
+        ]),
+      );
+    });
+
+    it("never overwrites: every write is matched only while the field is empty", async () => {
+      // The lead already has all four; the conditional writes match nothing.
+      prismaMock.enquiry.updateMany.mockResolvedValue({ count: 0 } as never);
+      const res = await caller(COUPLE).approve({ designId: DESIGN_ID, ...DETAILS });
+      expect(res.detailsAdded).toBe(false);
+      for (const [args] of prismaMock.enquiry.updateMany.mock.calls) {
+        const where = (args as { where: Record<string, unknown> }).where;
+        const guarded =
+          "OR" in where || where.event_date === null || where.country === null;
+        expect(guarded).toBe(true);
+      }
+      expect(prismaMock.enquiry.update).not.toHaveBeenCalled();
+    });
+
+    it("writes nothing to the lead when no details came with the re-click", async () => {
+      const res = await caller(COUPLE).approve({ designId: DESIGN_ID });
+      expect(res.detailsAdded).toBe(false);
+      expect(prismaMock.enquiry.updateMany).not.toHaveBeenCalled();
+    });
+
+    it("re-pins the version on screen", async () => {
+      const MEDIA_ID = randomUUID();
+      prismaMock.venueDesignMedia.findFirst.mockResolvedValue({ id: MEDIA_ID } as never);
+      await caller(COUPLE).approve({ designId: DESIGN_ID, mediaId: MEDIA_ID });
+      expect(prismaMock.venueDesign.updateMany).toHaveBeenLastCalledWith({
+        where: { id: DESIGN_ID, user_id: USER_ID },
+        data: { selected_media_id: MEDIA_ID },
+      });
+    });
+
+    it("tells a design the caller does not own from an approved one", async () => {
+      prismaMock.venueDesign.findFirst.mockResolvedValue(null as never);
+      await expect(
+        caller(COUPLE).approve({ designId: DESIGN_ID, ...DETAILS }),
+      ).rejects.toMatchObject({ code: "NOT_FOUND" });
+      expect(prismaMock.enquiry.updateMany).not.toHaveBeenCalled();
+    });
   });
 });
