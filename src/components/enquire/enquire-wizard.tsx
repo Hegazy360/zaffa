@@ -15,6 +15,7 @@ import { REPLY_WITHIN_HOURS } from "@/lib/contact-channels";
 import { WhatsAppCta } from "@/components/marketing/whatsapp-cta";
 import { formatMoney } from "@/lib/money-format";
 import { CountryCombobox } from "@/components/ui/country-combobox";
+import { EmailSuggestion } from "@/components/ui/email-suggestion";
 
 /**
  * Intake for "The Whole Wedding".
@@ -356,6 +357,7 @@ export function EnquireWizard({
                 onChange={(e) => setEmail(e.target.value)}
                 className="mt-1.5"
               />
+              <EmailSuggestion email={email} onApply={setEmail} className="mt-1" />
               <p className="mt-1 text-xs text-muted-foreground">{t("emailHint")}</p>
             </div>
             <div>

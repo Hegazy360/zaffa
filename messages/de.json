@@ -2640,5 +2640,40 @@
     "quoteRequested": "Gesendet. Unser Team meldet sich innerhalb von {hours} Stunden.",
     "quoteAlready": "Unser Team hat dieses Design bereits und meldet sich bei Ihnen.",
     "quoteFailed": "Das hat nicht geklappt. Bitte versuchen Sie es erneut."
+  },
+  "approveFlow": {
+    "title": "Ein echtes Angebot für dieses Design",
+    "intro": "Unser Team macht aus diesem Design ein echtes Angebot. Wie können wir Sie erreichen?",
+    "optionalNote": "Alle Angaben sind freiwillig.",
+    "phoneLabel": "WhatsApp-Nummer",
+    "phonePlaceholder": "+49 151 23456789",
+    "phoneHint": "Mit Ländervorwahl. Wir nutzen sie nur, um über Ihre Hochzeit zu sprechen.",
+    "phoneInvalid": "Das sieht nicht nach einer Telefonnummer aus. Fügen Sie die Ländervorwahl hinzu, zum Beispiel +49.",
+    "dateLabel": "Hochzeitsmonat",
+    "dateHint": "Eine ungefähre Angabe genügt, so können wir die Verfügbarkeit prüfen.",
+    "dateInvalid": "Wählen Sie einen Monat, zum Beispiel 2026-10.",
+    "cityLabel": "Stadt",
+    "cityPlaceholder": "Zum Beispiel Berlin",
+    "countryLabel": "Land",
+    "countryPlaceholder": "Land auswählen",
+    "submit": "An unser Team senden",
+    "submitting": "Wird gesendet",
+    "cancel": "Nicht jetzt",
+    "close": "Schließen",
+    "error": "Das hat nicht geklappt. Bitte versuchen Sie es erneut.",
+    "successTitle": "Ihr Design liegt jetzt bei unserem Team",
+    "alreadyWithTeam": "Unser Team hat dieses Design bereits.",
+    "detailsAdded": "Wir haben Ihre Angaben zu Ihrer Anfrage hinzugefügt.",
+    "nextTitle": "So geht es weiter",
+    "nextStep1": "Jemand aus unserem Team sieht sich Ihr Design an und kalkuliert, was die Umsetzung kostet.",
+    "nextStep2": "Wir antworten innerhalb von {hours} Stunden, per WhatsApp, wenn Sie eine Nummer hinterlassen haben, sonst per E-Mail.",
+    "nextStep3": "Nichts wird gebucht und nichts berechnet, bevor Sie ein Angebot gesehen und zugestimmt haben.",
+    "whatsappCta": "Jetzt auf WhatsApp schreiben",
+    "whatsappMessage": "Hallo Zaffa, wir haben Ihnen gerade unser Design „{design}“ geschickt und hätten gern ein Angebot. Referenz: {ref}",
+    "done": "Fertig"
+  },
+  "emailTypo": {
+    "didYouMean": "Meinten Sie <fix>{email}</fix>?",
+    "apply": "{email} verwenden"
   }
 }
