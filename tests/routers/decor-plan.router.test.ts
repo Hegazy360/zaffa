@@ -22,7 +22,7 @@ vi.mock("@/lib/posthog", () => ({
   trackServer: (...args: unknown[]) => trackServer(...args),
 }));
 
-const enforceTrpc = vi.fn(async (..._args: unknown[]) => undefined);
+const enforceTrpc = vi.fn<(...args: unknown[]) => Promise<void>>();
 vi.mock("@/lib/rate-limit", () => ({
   enforceTrpc: (...args: unknown[]) => enforceTrpc(...args),
 }));
@@ -40,7 +40,7 @@ vi.mock("@/lib/cloudinary", () => ({
   printSizedUrl: (id: string, width: number) => printSizedUrl(id, width),
 }));
 
-const resolveCountryFromRequest = vi.fn((..._args: unknown[]): string | null => "EG");
+const resolveCountryFromRequest = vi.fn<(...args: unknown[]) => string | null>();
 vi.mock("@/server/services/vision-pack-pricing", () => ({
   resolveCountryFromRequest: (...args: unknown[]) => resolveCountryFromRequest(...args),
 }));

@@ -21,6 +21,13 @@ import { REPLY_WITHIN_HOURS } from "@/lib/contact-channels";
 import { Button } from "@/components/ui/button";
 import { Skeleton, SkeletonRegion } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
+import {
+  FALLBACK_QUESTION_KEYS,
+  assumptionMessage,
+  detailMessage,
+  quantityMessage,
+  type DecorMessage,
+} from "@/lib/decor-plan-copy";
 import type {
   DecorAssumption,
   DecorItemDetail,
@@ -225,7 +232,7 @@ export function DecorPlanPanel({ designId, renderIds, approved }: DecorPlanPanel
             <ol className="mt-2 list-decimal space-y-1.5 ps-5 text-sm text-foreground/90 marker:text-rose-500">
               {(questions.length > 0
                 ? questions
-                : [t("fallbackQuestions.q1"), t("fallbackQuestions.q2"), t("fallbackQuestions.q3")]
+                : FALLBACK_QUESTION_KEYS.map((key) => t(key))
               ).map((q) => (
                 <li key={q}>{q}</li>
               ))}
@@ -341,11 +348,9 @@ function PlanTable({
     [locale],
   );
 
-  const qtyLabel = (item: DecorPlanItem) =>
-    item.unit === "event"
-      ? t("units.event")
-      : t(`units.${item.unit}`, { count: item.qty, qty: num.format(item.qty) });
-  const detailLabel = (d: DecorItemDetail) => t(`details.${d.kind}.${d.value}`);
+  const say = ({ key, values }: DecorMessage) => t(key, values);
+  const qtyLabel = (item: DecorPlanItem) => say(quantityMessage(item, num.format));
+  const detailLabel = (d: DecorItemDetail) => say(detailMessage(d));
 
   // A real table from `sm` up. On a phone each row stacks (name on top,
   // quantity and range below): explicit roles keep the table semantics
@@ -428,30 +433,9 @@ function PlanTable({
 
 function Assumptions({ plan, num }: { plan: DecorPlan; num: Intl.NumberFormat }) {
   const t = useTranslations("decorPlan");
-  // Every assumption gets the same values; each message uses the ones it
-  // needs. Pre-formatted so the digits follow the money-surface rule.
-  const values = {
-    guests: num.format(plan.guestCount),
-    perTable: num.format(plan.guestsPerTable),
-    tables: num.format(plan.tables + 1),
-    perGuest: num.format(plan.areaPerGuest),
-    area: num.format(plan.areaM2),
-  };
   const text = (key: DecorAssumption) => {
-    switch (key) {
-      case "guests_from_size":
-        return t("assumptions.guests_from_size", { guests: values.guests });
-      case "tables":
-        return t("assumptions.tables", {
-          guests: values.guests,
-          perTable: values.perTable,
-          tables: values.tables,
-        });
-      case "area":
-        return t("assumptions.area", { perGuest: values.perGuest, area: values.area });
-      default:
-        return t(`assumptions.${key}`);
-    }
+    const message = assumptionMessage(key, plan, num.format);
+    return t(message.key, message.values);
   };
   return (
     <div>
