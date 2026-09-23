@@ -157,3 +157,161 @@ describe("enquiries admin guard", () => {
     );
   });
 });
+
+describe("enquiries.byId: the design brief (F5)", () => {
+  const RENDER_OLD = randomUUID();
+  const RENDER_NEW = randomUUID();
+
+  function enquiryWithDesign(selected: string | null) {
+    return {
+      id: ENQUIRY_ID,
+      status: "new",
+      user_id: USER_ID,
+      design_id: DESIGN_ID,
+      country: "EG",
+      notes: [],
+      user: null,
+      event: null,
+      design: {
+        id: DESIGN_ID,
+        name: "Garden nikah",
+        event_type: "wedding",
+        created_at: new Date("2026-09-06T10:00:00Z"),
+        thumbnail: null,
+        setting: "outdoor",
+        size: "large",
+        guest_count: 180,
+        palette: { colors: ["#ffffff"] },
+        style_notes: "lots of white flowers",
+        venue_photo: null,
+        selected_media_id: selected,
+        media: [
+          {
+            id: RENDER_OLD,
+            url: "https://res.cloudinary.com/zaffa/old.jpg",
+            parent_id: null,
+            created_at: new Date("2026-09-06T10:00:00Z"),
+            meta: { mode: "generate", model: "google/gemini", costUsd: 0.138 },
+          },
+          {
+            id: RENDER_NEW,
+            url: "https://res.cloudinary.com/zaffa/new.jpg",
+            parent_id: RENDER_OLD,
+            created_at: new Date("2026-09-06T11:00:00Z"),
+            meta: { mode: "refine", instructionRaw: "more candles", costUsd: 0.022 },
+          },
+        ],
+      },
+    };
+  }
+
+  beforeEach(() => {
+    prismaMock.venueDesign.findMany.mockResolvedValue([] as never);
+  });
+
+  it("returns the chosen render, clean, and every version", async () => {
+    prismaMock.enquiry.findUnique.mockResolvedValue(enquiryWithDesign(RENDER_OLD) as never);
+    const res = await caller({ id: USER_ID }).byId({ id: ENQUIRY_ID });
+    expect(res.brief?.selected).toMatchObject({
+      id: RENDER_OLD,
+      url: "https://res.cloudinary.com/zaffa/old.jpg",
+      pinned: true,
+    });
+    expect(res.brief?.versions.map((v) => v.number)).toEqual([1, 2]);
+    expect(res.brief?.versions[1]).toMatchObject({ instruction: "more candles", parentNumber: 1 });
+    // The list chip and the old sidebar read `thumbnail`: now the render.
+    expect(res.design?.thumbnail).toBe("https://res.cloudinary.com/zaffa/old.jpg");
+  });
+
+  it("keeps model names and per-image costs on the server", async () => {
+    prismaMock.enquiry.findUnique.mockResolvedValue(enquiryWithDesign(null) as never);
+    const res = await caller({ id: USER_ID }).byId({ id: ENQUIRY_ID });
+    const body = JSON.stringify(res);
+    expect(body).not.toContain("costUsd");
+    expect(body).not.toContain("google/gemini");
+    expect(res.design).not.toHaveProperty("media");
+  });
+
+  it("never reads a render with a model just because the page was opened", async () => {
+    prismaMock.enquiry.findUnique.mockResolvedValue(enquiryWithDesign(null) as never);
+    const res = await caller({ id: USER_ID }).byId({ id: ENQUIRY_ID });
+    expect(res.brief?.plan).toBeNull();
+    expect(res.brief?.planNeedsAnalysis).toBe(true);
+    // Nothing was written back either: a view is a read.
+    expect(prismaMock.venueDesignMedia.update).not.toHaveBeenCalled();
+    expect(prismaMock.venueDesignMedia.updateMany).not.toHaveBeenCalled();
+  });
+
+  it("has no brief for an enquiry without a design", async () => {
+    prismaMock.enquiry.findUnique.mockResolvedValue({
+      ...enquiryWithDesign(null),
+      design: null,
+      design_id: null,
+    } as never);
+    const res = await caller({ id: USER_ID }).byId({ id: ENQUIRY_ID });
+    expect(res.brief).toBeNull();
+    expect(res.design).toBeNull();
+  });
+});
+
+describe("enquiries.list: the render on each row (F5)", () => {
+  const PINNED = randomUUID();
+
+  it("shows the chosen render, else the newest, never the null thumbnail", async () => {
+    prismaMock.enquiry.findMany.mockResolvedValue([
+      {
+        id: randomUUID(),
+        design: {
+          id: DESIGN_ID,
+          thumbnail: null,
+          selected_media_id: PINNED,
+          media: [{ url: "https://res.cloudinary.com/zaffa/newest.jpg" }],
+        },
+      },
+      {
+        id: randomUUID(),
+        design: {
+          id: randomUUID(),
+          thumbnail: null,
+          selected_media_id: null,
+          media: [{ url: "https://res.cloudinary.com/zaffa/only.jpg" }],
+        },
+      },
+      { id: randomUUID(), design: null },
+    ] as never);
+    prismaMock.venueDesignMedia.findMany.mockResolvedValue([
+      { id: PINNED, url: "https://res.cloudinary.com/zaffa/chosen.jpg", design_id: DESIGN_ID },
+    ] as never);
+
+    const res = await caller({ id: USER_ID }).list({ limit: 10 });
+    expect(res.items.map((e) => e.design?.thumbnail ?? null)).toEqual([
+      "https://res.cloudinary.com/zaffa/chosen.jpg",
+      "https://res.cloudinary.com/zaffa/only.jpg",
+      null,
+    ]);
+    // One read for the pinned renders of the whole page.
+    expect(prismaMock.venueDesignMedia.findMany).toHaveBeenCalledOnce();
+    expect(prismaMock.venueDesignMedia.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({ where: { id: { in: [PINNED] }, type: "render" } }),
+    );
+  });
+
+  it("does not trust a pin that points into another design", async () => {
+    prismaMock.enquiry.findMany.mockResolvedValue([
+      {
+        id: randomUUID(),
+        design: {
+          id: DESIGN_ID,
+          thumbnail: null,
+          selected_media_id: PINNED,
+          media: [{ url: "https://res.cloudinary.com/zaffa/newest.jpg" }],
+        },
+      },
+    ] as never);
+    prismaMock.venueDesignMedia.findMany.mockResolvedValue([
+      { id: PINNED, url: "https://res.cloudinary.com/zaffa/elsewhere.jpg", design_id: randomUUID() },
+    ] as never);
+    const res = await caller({ id: USER_ID }).list({ limit: 10 });
+    expect(res.items[0]?.design?.thumbnail).toBe("https://res.cloudinary.com/zaffa/newest.jpg");
+  });
+});

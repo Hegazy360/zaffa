@@ -14,6 +14,7 @@ import { getStripe } from "@/lib/stripe";
 import { toStripeAmount, CONCIERGE_INSTALLMENT_KIND } from "@/lib/payments";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { isFlagEnabled } from "@/lib/flags";
+import { buildDesignBrief } from "@/lib/design-brief";
 
 
 /**
@@ -266,11 +267,56 @@ export const enquiriesRouter = router({
           created_at: true,
           // The render chip that marks a design_approved lead in the inbox -
           // this lead type IS the render, so the row should show it.
-          design: { select: { id: true, thumbnail: true } },
+          // `thumbnail` is never written (every save sends null), so the
+          // chip is the chosen render, else the newest one.
+          design: {
+            select: {
+              id: true,
+              thumbnail: true,
+              selected_media_id: true,
+              media: {
+                where: { type: "render" },
+                orderBy: { created_at: "desc" },
+                take: 1,
+                select: { url: true },
+              },
+            },
+          },
         },
       });
       const nextCursor = items.length > input.limit ? items.pop()!.id : null;
-      return { items, nextCursor };
+
+      // One extra read for the chosen renders on this page, not one per row.
+      const pinnedIds = [
+        ...new Set(items.flatMap((e) => (e.design?.selected_media_id ? [e.design.selected_media_id] : []))),
+      ];
+      const pinned = pinnedIds.length
+        ? await prisma.venueDesignMedia.findMany({
+            where: { id: { in: pinnedIds }, type: "render" },
+            select: { id: true, url: true, design_id: true },
+          })
+        : [];
+      const pinnedUrl = new Map(pinned.map((m) => [m.id, m]));
+
+      return {
+        items: items.map(({ design, ...e }) => {
+          if (!design) return { ...e, design: null };
+          const chosen = design.selected_media_id
+            ? pinnedUrl.get(design.selected_media_id)
+            : undefined;
+          return {
+            ...e,
+            design: {
+              id: design.id,
+              thumbnail:
+                (chosen && chosen.design_id === design.id ? chosen.url : null) ??
+                design.media[0]?.url ??
+                design.thumbnail,
+            },
+          };
+        }),
+        nextCursor,
+      };
     }),
 
   /** Counts per status, drives the pipeline tabs without a second round-trip. */
@@ -404,11 +450,29 @@ export const enquiriesRouter = router({
               name: true,
               event_type: true,
               created_at: true,
-              // For design_approved leads the render is the brief, show it.
               thumbnail: true,
               setting: true,
               size: true,
               guest_count: true,
+              // For design_approved leads the design IS the brief (F5): what
+              // the team needs to quote without opening the designer, which
+              // an admin cannot load anyway (it is owner-scoped).
+              palette: true,
+              style_notes: true,
+              venue_photo: true,
+              selected_media_id: true,
+              media: {
+                where: { type: "render" },
+                orderBy: { created_at: "asc" },
+                take: 60,
+                select: {
+                  id: true,
+                  url: true,
+                  parent_id: true,
+                  meta: true,
+                  created_at: true,
+                },
+              },
             },
           },
           user: { select: { id: true, full_name: true, avatar_url: true } },
@@ -432,8 +496,25 @@ export const enquiriesRouter = router({
           })
         : [];
 
+      // The brief is built here and the raw rows stay on the server: the
+      // meta carries model names and per-image costs the page has no use for.
+      const { design, ...rest } = enquiry;
+      const brief = design ? buildDesignBrief(design, { country: enquiry.country }) : null;
       return {
-        ...enquiry,
+        ...rest,
+        design: design
+          ? {
+              id: design.id,
+              name: design.name,
+              event_type: design.event_type,
+              created_at: design.created_at,
+              setting: design.setting,
+              size: design.size,
+              guest_count: design.guest_count,
+              thumbnail: brief?.selected?.url ?? design.thumbnail,
+            }
+          : null,
+        brief,
         otherDesigns,
         allowedNext: allowedNextStatuses(enquiry.status),
       };
