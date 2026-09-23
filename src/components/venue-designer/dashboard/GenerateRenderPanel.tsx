@@ -18,7 +18,6 @@ import {
   RotateCcw,
   Video,
   Camera,
-  Image as ImageIcon,
   X,
 } from "lucide-react";
 import { trpc } from "@/lib/trpc";
@@ -48,6 +47,14 @@ import { MediaImage } from "@/components/ui/media-image";
 import { CompareSlider } from "@/components/ui/compare-slider";
 import { useDesignerFlag } from "@/components/venue-designer/designer-flags-provider";
 import { compareBeforePhoto, type LineageRow } from "@/lib/venue-photo";
+import { RefineBox, type RefineResult } from "./RefineBox";
+import { VersionStrip } from "./VersionStrip";
+import {
+  buildRenderVersions,
+  withPendingVersions,
+  type RenderVersion,
+  type VersionMedia,
+} from "./render-versions";
 
 interface GenerateRenderPanelProps {
   designId?: string;
@@ -117,6 +124,8 @@ export function GenerateRenderPanel({
   const venuePhotoEnabled = useDesignerFlag("venuePhoto");
   const storedVenuePhoto = useVenueDesignerStore((s) => s.venuePhoto);
   const venuePhoto = venuePhotoEnabled ? storedVenuePhoto : null;
+  // F2: "what would you change?" under the render, and the version strip.
+  const refineEnabled = useDesignerFlag("refineRender");
 
   const [resultImage, setResultImage] = useState<string | null>(null);
   const [view, setView] = useState<View>("form");
@@ -262,8 +271,20 @@ export function GenerateRenderPanel({
   // design refetch brings its row (and meta) back. Only used to decide the
   // compare slider, so the slider is there the moment the render lands.
   const [justDressed, setJustDressed] = useState<LineageRow | null>(null);
+  // Changes that landed (F2) before the design refetch brings their rows
+  // back, so the new version is in the strip, and keeps its before/after
+  // slider, the moment it arrives.
+  const [pendingVersions, setPendingVersions] = useState<VersionMedia[]>([]);
+  const versionMedia = useMemo(
+    () => withPendingVersions<VersionMedia>(allMedia, pendingVersions),
+    [allMedia, pendingVersions],
+  );
+  const versions = useMemo(
+    () => buildRenderVersions(versionMedia),
+    [versionMedia],
+  );
   const lineageRows = useMemo<LineageRow[]>(() => {
-    const rows: LineageRow[] = allMedia
+    const rows: LineageRow[] = versionMedia
       .filter((m) => m.type === "render")
       .map((m) => ({
         id: m.id,
@@ -275,7 +296,7 @@ export function GenerateRenderPanel({
       rows.push(justDressed);
     }
     return rows;
-  }, [allMedia, justDressed]);
+  }, [versionMedia, justDressed]);
   // The "before" for the render on screen, or null for the plain image.
   const beforePhoto = compareBeforePhoto(
     activeRenderMediaId,
@@ -686,17 +707,121 @@ export function GenerateRenderPanel({
       if (item.url === resultImage) setResultImage(null);
       if (item.url === videoUrl) setVideoUrl(null);
       if (item.url === resultImage || item.url === videoUrl) setView("form");
+      if (item.id === activeRenderMediaId) setActiveRenderMediaId(null);
+      setPendingVersions((prev) => prev.filter((m) => m.id !== item.id));
       deleteMediaMutation.mutate({ id: item.id });
     },
-    [deleteMediaMutation, resultImage, videoUrl, t, tCommon, confirm]
+    [
+      deleteMediaMutation,
+      resultImage,
+      videoUrl,
+      t,
+      tCommon,
+      confirm,
+      activeRenderMediaId,
+      setActiveRenderMediaId,
+    ]
   );
 
-  const previousMedia = useMemo(() => {
-    const excluded = new Set<string>(
-      [resultImage, videoUrl].filter((u): u is string => !!u)
-    );
-    return allMedia.filter((m) => !excluded.has(m.url));
-  }, [allMedia, resultImage, videoUrl]);
+  // Videos keep the old grid below the panel. Renders, including every
+  // talked change, are versions in the strip.
+  const previousVideos = useMemo(
+    () => allMedia.filter((m) => m.type === "video" && m.url !== videoUrl),
+    [allMedia, videoUrl],
+  );
+
+  // --- F2: talking to the render ------------------------------------------
+
+  // The change that just landed, so its confirmation shows before the
+  // design refetch brings the row (and its stored confirmation) back, and
+  // "Done" shows for a change whose confirmation the text model missed.
+  const [lastRefine, setLastRefine] = useState<{
+    mediaId: string;
+    confirmation: string | null;
+  } | null>(null);
+  // Edits left as the last change reported them, until the pack refetch
+  // says otherwise.
+  const [editsLeftOverride, setEditsLeftOverride] = useState<number | null>(null);
+  const packEditsLeft = currentPack?.edits_left;
+  useEffect(() => {
+    setEditsLeftOverride(null);
+  }, [packEditsLeft]);
+  const [refining, setRefining] = useState(false);
+
+  const activeVersion = useMemo(
+    () => versions.find((v) => v.id === activeRenderMediaId) ?? null,
+    [versions, activeRenderMediaId],
+  );
+  const refineConfirmation =
+    activeVersion?.confirmation ??
+    (lastRefine && lastRefine.mediaId === activeRenderMediaId
+      ? (lastRefine.confirmation ?? t("refine.done"))
+      : null);
+  // Counted out loud only on the free tier, where there are three.
+  const editsLeft = onFreeTier
+    ? (editsLeftOverride ?? packEditsLeft ?? null)
+    : null;
+
+  const handleRefined = useCallback(
+    (result: RefineResult, instruction: string) => {
+      setPendingVersions((prev) => [
+        ...prev,
+        {
+          id: result.mediaId,
+          type: "render",
+          url: result.imageUrl,
+          parent_id: result.parentId,
+          created_at: new Date(),
+          meta: {
+            mode: "refine",
+            instructionRaw: instruction,
+            confirmation: result.confirmation,
+            venuePublicId: null,
+          },
+        },
+      ]);
+      setLastRefine({ mediaId: result.mediaId, confirmation: result.confirmation });
+      setEditsLeftOverride(result.editsLeft);
+      setVideoError(null);
+      setVideoUrl(null);
+      setResultImage(result.imageUrl);
+      setView("image");
+      lastRenderMediaIdRef.current = result.mediaId;
+      setActiveRenderMediaId(result.mediaId);
+      if (designId) utils.venueDesigns.getById.invalidate({ id: designId });
+      utils.visionPacks.current.invalidate();
+    },
+    [designId, setActiveRenderMediaId, utils],
+  );
+
+  // An anonymous couple who has not given their email yet: the server said
+  // so, and the gate is where that happens.
+  const handleRefineEmailRequired = useCallback(() => {
+    setPendingEmailGate({
+      renderId: activeRenderMediaId ?? lastRenderMediaIdRef.current,
+      designId: designId ?? null,
+    });
+  }, [activeRenderMediaId, designId]);
+
+  // The answer was lost, not the change: look for it on the design, and
+  // recount the pack, so a change that landed turns up in the strip.
+  const handleRefineOutcomeUnknown = useCallback(() => {
+    if (designId) utils.venueDesigns.getById.invalidate({ id: designId });
+    utils.visionPacks.current.invalidate();
+  }, [designId, utils]);
+
+  const handleSelectVersion = useCallback(
+    (version: RenderVersion) =>
+      handleSelectPast({ id: version.id, type: "render", url: version.url }),
+    [handleSelectPast],
+  );
+  const handleDeleteVersion = useCallback(
+    (version: RenderVersion) => handleDeletePast({ id: version.id, url: version.url }),
+    [handleDeletePast],
+  );
+  // Deleting a version is a paid-pack affordance; the free taste keeps
+  // everything it made.
+  const canDeleteVersions = !onFreeTier;
 
   const summaryParts = REFERENCE_CATEGORIES.filter(
     (c) => references[c].length > 0
@@ -920,7 +1045,54 @@ export function GenerateRenderPanel({
                     )}
                   </>
                 ) : null}
+                {/* A change on its way: the version on screen stays put
+                    under a quiet veil until the new one replaces it. The
+                    words are for sighted couples; the box below announces
+                    the same thing to screen readers. */}
+                {refining && view === "image" ? (
+                  <>
+                    <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/45 via-black/10 to-transparent" />
+                    <div
+                      aria-hidden
+                      data-refine-veil=""
+                      className="pointer-events-none absolute bottom-3 start-3 end-3 flex items-center gap-2.5 rounded-lg bg-black/65 px-3 py-2 text-white shadow-lg backdrop-blur"
+                    >
+                      <Loader2 className="size-4 shrink-0 animate-spin motion-reduce:animate-none" />
+                      <p className="min-w-0 flex-1 text-xs font-medium">
+                        {t("refine.pending")}
+                      </p>
+                    </div>
+                  </>
+                ) : null}
               </div>
+
+              {/* F2. The versions under the image they switch, then the box
+                  that changes the one on screen. Only here, where the render
+                  is visible: never behind the email gate. */}
+              {view === "image" && versions.length > 1 ? (
+                <VersionStrip
+                  versions={versions}
+                  activeId={activeRenderMediaId}
+                  onSelect={handleSelectVersion}
+                  onDelete={canDeleteVersions ? handleDeleteVersion : undefined}
+                  deleting={deleteMediaMutation.isPending}
+                />
+              ) : null}
+              {refineEnabled &&
+              view === "image" &&
+              resultImage &&
+              activeRenderMediaId ? (
+                <RefineBox
+                  mediaId={activeRenderMediaId}
+                  onRefined={handleRefined}
+                  onEmailRequired={handleRefineEmailRequired}
+                  onOutcomeUnknown={handleRefineOutcomeUnknown}
+                  onPendingChange={setRefining}
+                  confirmation={refineConfirmation}
+                  editsLeft={editsLeft}
+                  showAppliesTo={versions.length > 1}
+                />
+              ) : null}
 
               {videoError && (
                 <p className="text-xs text-destructive">{videoError}</p>
@@ -1025,23 +1197,39 @@ export function GenerateRenderPanel({
             </div>
           )}
 
-        {/* Past-renders gallery is permanent-account chrome. Anonymous
+        {/* Past renders and videos are permanent-account chrome. Anonymous
             (email-gated) visitors don't get to browse, exposing
             thumbnails here would let them skip the gate by clicking
             an old render after a refresh. The auto-hydration effect
-            above re-establishes the gate for them instead. */}
-        {!isAnon && designId && previousMedia.length > 0 && (
+            above re-establishes the gate for them instead.
+
+            Renders are versions (F2): outside the image view, where the
+            strip sits under the image, they are here, so a couple coming
+            back to the generate step can open any of them and keep
+            changing it. */}
+        {!isAnon && designId && view !== "image" && versions.length > 0 ? (
+          <div className="border-t border-border/60 pt-5">
+            <VersionStrip
+              versions={versions}
+              activeId={view === "form" ? null : activeRenderMediaId}
+              onSelect={handleSelectVersion}
+              onDelete={canDeleteVersions ? handleDeleteVersion : undefined}
+              deleting={deleteMediaMutation.isPending}
+            />
+          </div>
+        ) : null}
+        {!isAnon && designId && previousVideos.length > 0 && (
           <section className="space-y-3 border-t border-border/60 pt-5">
             <div className="flex items-center justify-between">
               <h3 className="text-eyebrow font-medium text-muted-foreground">
-                {t("previousRenders", { count: previousMedia.length })}
+                {t("versions.videosTitle", { count: previousVideos.length })}
               </h3>
               <p className="text-xs text-muted-foreground">
                 {t("clickToViewHover")}
               </p>
             </div>
             <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-              {previousMedia.map((item) => (
+              {previousVideos.map((item) => (
                 <div
                   key={item.id}
                   className="group relative aspect-video overflow-hidden rounded-xl bg-muted/40 ring-1 ring-foreground/[0.06] transition-all hover:ring-2 hover:ring-rose-300"
@@ -1055,40 +1243,27 @@ export function GenerateRenderPanel({
                       when: f.relativeTime(new Date(item.created_at)),
                     })}
                   >
-                    {item.type === "video" ? (
-                      <video
-                        src={item.url}
-                        muted
-                        preload="metadata"
-                        playsInline
-                        className="h-full w-full object-cover"
-                        onMouseEnter={(e) => {
-                          e.currentTarget.play().catch(() => {});
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.pause();
-                          e.currentTarget.currentTime = 0;
-                        }}
-                      />
-                    ) : (
-                      <MediaImage
-                        src={item.url}
-                        alt={t("pastRenderAlt")}
-                        fill
-                        sizes="thumb"
-                      />
-                    )}
+                    <video
+                      src={item.url}
+                      muted
+                      preload="metadata"
+                      playsInline
+                      className="h-full w-full object-cover"
+                      onMouseEnter={(e) => {
+                        e.currentTarget.play().catch(() => {});
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.pause();
+                        e.currentTarget.currentTime = 0;
+                      }}
+                    />
                     <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/55 via-black/0 to-transparent opacity-0 transition-opacity group-hover:opacity-100" />
                     <span className="absolute bottom-1.5 start-1.5 rounded-md bg-black/0 px-1.5 py-0.5 text-xs font-medium text-white opacity-0 transition-all group-hover:bg-black/65 group-hover:opacity-100">
                       {f.relativeTime(new Date(item.created_at))}
                     </span>
                     <span className="absolute top-1.5 start-1.5 inline-flex items-center gap-1 rounded-md bg-black/60 px-1.5 py-0.5 text-xs font-medium text-white">
-                      {item.type === "video" ? (
-                        <Video className="size-2.5" />
-                      ) : (
-                        <ImageIcon className="size-2.5" />
-                      )}
-                      {item.type === "video" ? t("badgeVideo") : t("badgeImage")}
+                      <Video className="size-2.5" />
+                      {t("badgeVideo")}
                     </span>
                   </button>
                   <button

@@ -2155,6 +2155,37 @@
       "compareBefore": "Before",
       "compareAfter": "After",
       "compareLabel": "Drag to compare your venue before and after"
+    },
+    "refine": {
+      "title": "What would you change?",
+      "hint": "Say it in your own words, in any language. We change only that and keep the rest.",
+      "placeholder": "For example: more white roses on the tables",
+      "send": "Change it",
+      "sending": "Changing…",
+      "pending": "Changing only what you asked, about 40 seconds",
+      "ideas": "Ideas",
+      "chipMoreFlowers": "More flowers",
+      "chipWarmerLight": "Warmer, candlelit lighting",
+      "chipDanceFloor": "Add a dance floor",
+      "chipGrandStage": "Make the stage grander",
+      "editsLeft": "{count, plural, =0 {No changes left} one {# change left} other {# changes left}}",
+      "done": "Done. Here is your change.",
+      "rejected": "We can only change the decor, lighting and layout. Try something like more flowers or warmer light.",
+      "failed": "That change didn't go through. Please try again.",
+      "interrupted": "The connection dropped. If your change finished, it will appear in your versions in a moment.",
+      "appliesTo": "Your change applies to the version on screen."
+    },
+    "versions": {
+      "title": "Your versions",
+      "hint": "Tap one to see it and keep changing it.",
+      "original": "Original",
+      "originalN": "Original {n}",
+      "venue": "Your venue",
+      "venueN": "Your venue {n}",
+      "change": "Change {n}",
+      "selectAria": "Show {label}",
+      "deleteAria": "Delete {label}",
+      "videosTitle": "Your videos ({count})"
     }
   },
   "plannerInspiration": {

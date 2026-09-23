@@ -2155,6 +2155,37 @@
       "compareBefore": "Vorher",
       "compareAfter": "Nachher",
       "compareLabel": "Ziehen, um Ihren Ort vorher und nachher zu vergleichen"
+    },
+    "refine": {
+      "title": "Was würden Sie ändern?",
+      "hint": "Sagen Sie es mit Ihren eigenen Worten, in jeder Sprache. Wir ändern nur das und lassen den Rest, wie er ist.",
+      "placeholder": "Zum Beispiel: mehr weiße Rosen auf den Tischen",
+      "send": "Ändern",
+      "sending": "Wird geändert…",
+      "pending": "Wir ändern nur, was Sie sich wünschen, etwa 40 Sekunden",
+      "ideas": "Ideen",
+      "chipMoreFlowers": "Mehr Blumen",
+      "chipWarmerLight": "Wärmeres Licht mit Kerzen",
+      "chipDanceFloor": "Eine Tanzfläche hinzufügen",
+      "chipGrandStage": "Die Bühne prachtvoller gestalten",
+      "editsLeft": "{count, plural, =0 {Keine Änderungen mehr übrig} one {Noch # Änderung übrig} other {Noch # Änderungen übrig}}",
+      "done": "Erledigt. Hier ist Ihre Änderung.",
+      "rejected": "Wir können nur Dekoration, Licht und Anordnung ändern. Versuchen Sie zum Beispiel mehr Blumen oder wärmeres Licht.",
+      "failed": "Diese Änderung hat nicht geklappt. Bitte versuchen Sie es erneut.",
+      "interrupted": "Die Verbindung ist abgebrochen. Falls Ihre Änderung fertig wurde, erscheint sie gleich bei Ihren Versionen.",
+      "appliesTo": "Die Änderung gilt für die angezeigte Version."
+    },
+    "versions": {
+      "title": "Ihre Versionen",
+      "hint": "Tippen Sie auf eine Version, um sie anzusehen und weiter zu ändern.",
+      "original": "Original",
+      "originalN": "Original {n}",
+      "venue": "Ihr Ort",
+      "venueN": "Ihr Ort {n}",
+      "change": "Änderung {n}",
+      "selectAria": "{label} anzeigen",
+      "deleteAria": "{label} löschen",
+      "videosTitle": "Ihre Videos ({count})"
     }
   },
   "plannerInspiration": {
