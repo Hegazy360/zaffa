@@ -2127,6 +2127,7 @@
     "renderFailed": "Rendering fehlgeschlagen. Bitte versuchen Sie es noch einmal.",
     "videoFailed": "Die Videoerstellung ist fehlgeschlagen. Bitte versuchen Sie es noch einmal.",
     "renderRateLimited": "Sie haben sehr viele Renderings angefragt. Bitte versuchen Sie es etwas später noch einmal.",
+    "renderInterrupted": "Die Verbindung ist abgebrochen, während wir Ihr Design erstellt haben. Falls es fertig geworden ist, erscheint es gleich hier.",
     "downloadFailed": "Das Bild konnte nicht heruntergeladen werden. Bitte versuchen Sie es noch einmal.",
     "needRefBeforeRender": "Fügen Sie vor dem Rendern mindestens eine Inspirationsquelle hinzu.",
     "metaTitle": "Gestalten Sie Ihren Tag, Zaffa",
@@ -2148,6 +2149,9 @@
       "errorRateLimited": "Gerade zu viele Uploads. Bitte versuchen Sie es in einer Stunde erneut.",
       "summaryDressing": "Wir dekorieren das Foto Ihres Veranstaltungsorts",
       "summaryNoRefs": "keine Stimmungsbilder nötig, Ihr Foto vom Ort reicht.",
+      "renderTimeHint": "Das Dekorieren Ihres eigenen Ortes dauert etwa eine Minute. Lassen Sie diesen Tab geöffnet.",
+      "rendering": "Ihr Ort wird dekoriert…",
+      "saveFailed": "Wir konnten Ihr Design nicht speichern. Mit Ihrem Ortsfoto haben wir deshalb noch nicht begonnen, und nichts wurde verbraucht. Bitte versuchen Sie es erneut.",
       "compareBefore": "Vorher",
       "compareAfter": "Nachher",
       "compareLabel": "Ziehen, um Ihren Ort vorher und nachher zu vergleichen"

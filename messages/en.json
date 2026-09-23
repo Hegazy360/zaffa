@@ -2127,6 +2127,7 @@
     "renderFailed": "Render failed. Please try again.",
     "videoFailed": "Video generation failed. Please try again.",
     "renderRateLimited": "You have made a lot of render requests. Please try again a little later.",
+    "renderInterrupted": "The connection dropped while we were making your design. If it finished, it will show up here in a moment.",
     "downloadFailed": "Could not download the image. Please try again.",
     "needRefBeforeRender": "Add at least one inspiration reference before rendering.",
     "metaTitle": "Design your day, Zaffa",
@@ -2148,6 +2149,9 @@
       "errorRateLimited": "Too many uploads for now. Please try again in an hour.",
       "summaryDressing": "We'll dress your venue photo",
       "summaryNoRefs": "no mood references needed, your venue photo is enough.",
+      "renderTimeHint": "Dressing your own venue takes about a minute. Keep this tab open.",
+      "rendering": "Dressing your venue…",
+      "saveFailed": "We couldn't save your design, so we haven't started on your venue photo and nothing was used up. Please try again.",
       "compareBefore": "Before",
       "compareAfter": "After",
       "compareLabel": "Drag to compare your venue before and after"

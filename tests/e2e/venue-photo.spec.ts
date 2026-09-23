@@ -10,7 +10,11 @@ import { test, expect, type Page } from "@playwright/test";
  *     the screen, which is the whole RTL contract of the component.
  *  2. The basics step offers "Your venue", and a photo picked there comes
  *     back as a thumbnail and turns the generate step into "we'll dress
- *     your venue photo", with Generate available without any references.
+ *     your venue photo", with Generate available without any references
+ *     and a timing hint that says a minute, not 30 seconds.
+ *  3. When the design cannot be saved, Generate does not send a venue
+ *     render at all: without the saved design the server cannot see the
+ *     photo and would spend the couple's render on an imagined hall.
  *
  * The upload itself is answered by a route mock: CI runs against stub
  * Cloudinary credentials, and what is under test here is the card, the
@@ -51,6 +55,17 @@ async function mockVenueUpload(page: Page) {
     },
   );
   return () => uploads;
+}
+
+async function goToStep(page: Page, step: "basics" | "generate") {
+  await page.evaluate((s) => {
+    window.location.hash = `#step=${s}`;
+    window.dispatchEvent(new Event("hashchange"));
+  }, step);
+}
+
+async function isRtl(page: Page): Promise<boolean> {
+  return (await page.locator("html").getAttribute("dir")) === "rtl";
 }
 
 test.describe("your venue, dressed", () => {
@@ -102,22 +117,76 @@ test.describe("your venue, dressed", () => {
     expect(uploads()).toBe(1);
 
     // No references at all: the venue photo alone is enough to render.
-    await page.evaluate(() => {
-      window.location.hash = "#step=generate";
-      window.dispatchEvent(new Event("hashchange"));
-    });
+    await goToStep(page, "generate");
     const summary = page.locator("[data-venue-photo-summary]");
     await expect(summary).toBeVisible({ timeout: 15_000 });
     await expect(summary.locator("img")).toBeVisible();
     await expect(page.locator("[data-generate-render]")).toBeEnabled();
+    // Dressing a photo takes about a minute; the hint says so.
+    await expect(page.locator("[data-render-time-hint]")).toContainText(
+      (await isRtl(page)) ? "دقيقة" : "minute",
+    );
 
     // Back on basics, Remove takes it off the design again.
-    await page.evaluate(() => {
-      window.location.hash = "#step=basics";
-      window.dispatchEvent(new Event("hashchange"));
-    });
+    await goToStep(page, "basics");
     await expect(card.locator("img")).toBeVisible();
     await card.locator("[data-venue-photo-remove]").click();
     await expect(card.locator("img")).toHaveCount(0);
+  });
+
+  test("a venue render is not sent when the design cannot be saved", async ({
+    page,
+  }) => {
+    await mockVenueUpload(page);
+    // Every design save fails (not saveMedia).
+    await page.route(
+      (url) => /\/api\/trpc\/.*venueDesigns\.save(?!Media)/.test(url.pathname),
+      (route) =>
+        route.fulfill({
+          status: 500,
+          contentType: "application/json",
+          body: JSON.stringify([
+            {
+              error: {
+                json: {
+                  message: "timeout",
+                  code: -32603,
+                  data: { code: "INTERNAL_SERVER_ERROR", httpStatus: 500 },
+                },
+              },
+            },
+          ]),
+        }),
+    );
+    // A safety net as much as an assertion: a render that got through
+    // would otherwise reach the real model.
+    let renders = 0;
+    await page.route(
+      (url) => url.pathname.includes("ai.renderScene"),
+      (route) => {
+        renders++;
+        return route.abort();
+      },
+    );
+
+    await page.goto("/venue-designer/new#step=basics");
+    const card = page.locator("[data-venue-photo-card]");
+    await expect(card).toBeVisible({ timeout: 20_000 });
+    await card.locator("[data-venue-photo-input]").setInputFiles(FIXTURE);
+    await expect(card.locator("img")).toBeVisible({ timeout: 15_000 });
+
+    await goToStep(page, "generate");
+    const generate = page.locator("[data-generate-render]");
+    await expect(generate).toBeEnabled({ timeout: 15_000 });
+    await generate.click();
+
+    const saveFailed = (await isRtl(page))
+      ? "نحفظ التصميم"
+      : "couldn't save your design";
+    await expect(
+      page.getByRole("alert").filter({ hasText: saveFailed }),
+    ).toBeVisible();
+    expect(renders).toBe(0);
+    await expect(generate).toBeEnabled();
   });
 });
