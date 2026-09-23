@@ -48,6 +48,21 @@ export function printSizedUrl(publicId: string, width: number): string {
  * has Strict Transformations on.
  */
 export function venueModelInputUrl(publicId: string): string {
+  return modelInputUrl(publicId);
+}
+
+/**
+ * A render as the edit model receives it when the couple asks for a change
+ * (F2): the clean asset, never the watermarked one (the model would keep
+ * the mark and bake it into the next version), at the same ~1536px JPEG
+ * as the venue photo, because every input pixel is billed. Built from the
+ * public id on the server, like the venue photo.
+ */
+export function renderModelInputUrl(publicId: string): string {
+  return modelInputUrl(publicId);
+}
+
+function modelInputUrl(publicId: string): string {
   return cloudinary.url(publicId, {
     sign_url: true,
     type: "upload",
