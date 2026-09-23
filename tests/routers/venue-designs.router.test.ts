@@ -124,6 +124,41 @@ describe("venueDesigns.approve", () => {
     expect(prismaMock.venueDesign.updateMany).not.toHaveBeenCalled();
   });
 
+  it("pins the version the couple asked about as the selected render", async () => {
+    const MEDIA_ID = randomUUID();
+    prismaMock.venueDesignMedia.findFirst.mockResolvedValue({ id: MEDIA_ID } as never);
+    await caller(COUPLE).approve({ designId: DESIGN_ID, mediaId: MEDIA_ID });
+    expect(prismaMock.venueDesignMedia.findFirst).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { id: MEDIA_ID, design_id: DESIGN_ID, type: "render" },
+      }),
+    );
+    expect(prismaMock.venueDesign.updateMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: expect.objectContaining({ id: DESIGN_ID, user_id: USER_ID }),
+        data: expect.objectContaining({ selected_media_id: MEDIA_ID }),
+      }),
+    );
+  });
+
+  it("refuses to pin a render from another design, before approving anything", async () => {
+    prismaMock.venueDesignMedia.findFirst.mockResolvedValue(null as never);
+    await expect(
+      caller(COUPLE).approve({ designId: DESIGN_ID, mediaId: randomUUID() }),
+    ).rejects.toMatchObject({ code: "BAD_REQUEST", message: "MEDIA_NOT_IN_DESIGN" });
+    expect(prismaMock.venueDesign.updateMany).not.toHaveBeenCalled();
+    expect(prismaMock.enquiry.create).not.toHaveBeenCalled();
+  });
+
+  it("leaves the selected render alone when no version is named", async () => {
+    await caller(COUPLE).approve({ designId: DESIGN_ID });
+    expect(prismaMock.venueDesignMedia.findFirst).not.toHaveBeenCalled();
+    const call = prismaMock.venueDesign.updateMany.mock.calls[0]?.[0] as {
+      data: Record<string, unknown>;
+    };
+    expect(call.data).not.toHaveProperty("selected_media_id");
+  });
+
   it("falls back to the email local part when the profile has no name", async () => {
     prismaMock.profile.findUnique.mockResolvedValue({
       full_name: null,

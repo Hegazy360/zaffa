@@ -165,14 +165,35 @@ export const venueDesignsRouter = router({
    * an email outage must never lose the warmest lead the funnel produces.
    */
   approve: nonAnonymousProcedure
-    .input(z.object({ designId: z.string().uuid() }))
+    .input(
+      z.object({
+        designId: z.string().uuid(),
+        // The version the couple is looking at when they ask for a quote
+        // (the decor plan prices one render). Pinned as `selected_media_id`
+        // so the team, the lookbook and the brief quote that one.
+        mediaId: z.string().uuid().optional(),
+      }),
+    )
     .mutation(async ({ ctx, input }) => {
+      if (input.mediaId) {
+        const media = await prisma.venueDesignMedia.findFirst({
+          where: { id: input.mediaId, design_id: input.designId, type: "render" },
+          select: { id: true },
+        });
+        if (!media) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "MEDIA_NOT_IN_DESIGN" });
+        }
+      }
+
       // Conditional write doubles as the idempotency guard: only the call
       // that flips `approved_at` from null proceeds to create the lead, so a
       // re-click (or a replayed request) can never spam every admin twice.
       const flipped = await prisma.venueDesign.updateMany({
         where: { id: input.designId, user_id: ctx.user.id, approved_at: null },
-        data: { approved_at: new Date() },
+        data: {
+          approved_at: new Date(),
+          ...(input.mediaId ? { selected_media_id: input.mediaId } : {}),
+        },
       });
 
       if (flipped.count === 0) {

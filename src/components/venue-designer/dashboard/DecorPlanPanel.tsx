@@ -263,7 +263,11 @@ export function DecorPlanPanel({ designId, renderIds, approved }: DecorPlanPanel
                 size="xl"
                 className="w-full sm:w-auto"
                 disabled={approve.isPending}
-                onClick={() => approve.mutate({ designId })}
+                // Pins the version this plan priced, so the quote the team
+                // builds is for the render the couple is looking at.
+                onClick={() =>
+                  approve.mutate(mediaId ? { designId, mediaId } : { designId })
+                }
               >
                 {approve.isPending ? (
                   <Loader2 aria-hidden className="size-4 animate-spin" />
