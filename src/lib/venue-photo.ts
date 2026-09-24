@@ -37,9 +37,19 @@ const MAX_LINEAGE_DEPTH = 100;
 
 /**
  * Walk from a render up through the renders it was refined from, and
- * return the dress-venue render at the root of that chain, or null when
- * the chain never dressed a venue photo (a prompt-only render, or an edit
- * of one). A missing parent ends the walk.
+ * return the render that ties it to the couple's venue photo, or null
+ * when the chain never dressed one (a prompt-only render, or an edit of
+ * one).
+ *
+ * That is the dress-venue render at the root when the chain reaches it.
+ * A chain can also be cut short: `parent_id` is ON DELETE SET NULL, so
+ * deleting a version (the root included) leaves its changes with no
+ * parent. A change only records `venuePublicId` when it was made from a
+ * dressed venue (see `ai.refineRender`), so the oldest surviving change
+ * that recorded one stands in for the lost root, and its recorded photo
+ * is checked like the root's would be. Without it, one delete took the
+ * venue photo, the "structure is off limits" rule and the slider away
+ * from every later change.
  */
 export function findDressVenueAncestor(
   mediaId: string,
@@ -48,11 +58,20 @@ export function findDressVenueAncestor(
   const byId = new Map(rows.map((r) => [r.id, r]));
   const seen = new Set<string>();
   let current = byId.get(mediaId);
+  let standIn: LineageRow | null = null;
   for (let depth = 0; current && depth < MAX_LINEAGE_DEPTH; depth++) {
     if (seen.has(current.id)) return null;
     seen.add(current.id);
     if (current.mode === "dress_venue") return current;
-    current = current.parent_id ? byId.get(current.parent_id) : undefined;
+    if (current.mode === "refine" && current.venuePublicId) standIn = current;
+    const parent = current.parent_id ? byId.get(current.parent_id) : undefined;
+    if (!parent) {
+      // A real root that is not a dress anchors nothing. A change with no
+      // parent, or one whose parent is gone, is a cut chain.
+      const cut = current.mode === "refine" || current.parent_id !== null;
+      return cut ? standIn : null;
+    }
+    current = parent;
   }
   return null;
 }

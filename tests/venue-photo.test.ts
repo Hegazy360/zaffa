@@ -53,6 +53,43 @@ describe("findDressVenueAncestor", () => {
     expect(findDressVenueAncestor("missing", rows)).toBeNull();
   });
 
+  // parent_id is ON DELETE SET NULL: deleting a version cuts the chain.
+  it("keeps a change tied to the venue after the dressed root is deleted", () => {
+    // "Your venue" deleted: Change 1 lost its parent, Change 2 still has one.
+    const rows = [
+      row("c1", null, "refine", PHOTO.publicId),
+      row("c2", "c1", "refine", PHOTO.publicId),
+    ];
+    expect(findDressVenueAncestor("c2", rows)?.id).toBe("c1");
+    expect(findDressVenueAncestor("c1", rows)?.id).toBe("c1");
+  });
+
+  it("keeps it when a change in the middle is deleted, or its parent is missing", () => {
+    // Change 1 deleted: Change 2 lost its parent, Change 3 hangs off it.
+    const rows = [
+      row("v", null, "dress_venue", PHOTO.publicId),
+      row("c2", null, "refine", PHOTO.publicId),
+      row("c3", "c2", "refine", PHOTO.publicId),
+      row("c4", "gone", "refine", PHOTO.publicId),
+    ];
+    expect(findDressVenueAncestor("c3", rows)?.id).toBe("c2");
+    expect(findDressVenueAncestor("c4", rows)?.id).toBe("c4");
+  });
+
+  it("stands in with the oldest surviving change that recorded the venue", () => {
+    const rows = [
+      row("c1", null, "refine", PHOTO.publicId),
+      row("c2", "c1", "refine", null),
+      row("c3", "c2", "refine", "zaffa-venues/u1/garden"),
+    ];
+    expect(findDressVenueAncestor("c3", rows)?.id).toBe("c1");
+  });
+
+  it("does not invent a venue for a cut chain that never recorded one", () => {
+    const rows = [row("c1", null, "refine"), row("c2", "c1", "refine")];
+    expect(findDressVenueAncestor("c2", rows)).toBeNull();
+  });
+
   it("stops on a parent loop instead of spinning", () => {
     const rows = [row("a", "b", "refine"), row("b", "a", "refine")];
     expect(findDressVenueAncestor("a", rows)).toBeNull();
@@ -75,6 +112,14 @@ describe("compareBeforePhoto", () => {
     expect(compareBeforePhoto("b", rows, null)).toBeNull();
     expect(compareBeforePhoto(null, rows, PHOTO)).toBeNull();
     expect(compareBeforePhoto("g", [row("g", null, "generate")], PHOTO)).toBeNull();
+  });
+
+  it("still shows the slider for a change whose dressed root was deleted", () => {
+    const orphaned = [row("c1", null, "refine", PHOTO.publicId), row("c2", "c1", "refine")];
+    expect(compareBeforePhoto("c2", orphaned, PHOTO)).toBe(PHOTO);
+    // ...and still checks it against the photo the design holds now.
+    const replaced = { ...PHOTO, publicId: "zaffa-venues/u1/garden" };
+    expect(compareBeforePhoto("c2", orphaned, replaced)).toBeNull();
   });
 
   it("trusts a dress-venue row that predates the recorded public id", () => {

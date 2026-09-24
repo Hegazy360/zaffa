@@ -631,6 +631,28 @@ describe("ai.refineRender: the couple's venue photo", () => {
     expect(data.meta.venuePublicId).toBe(VENUE_PUBLIC_ID);
   });
 
+  it("still rides along after the dressed root was deleted", async () => {
+    // "Your venue" deleted: the change being refined lost its parent
+    // (ON DELETE SET NULL) but recorded the venue it was made against.
+    prismaMock.venueDesignMedia.findMany.mockResolvedValue([
+      {
+        id: BASE_ID,
+        parent_id: null,
+        meta: { mode: "refine", venuePublicId: VENUE_PUBLIC_ID },
+      },
+    ] as never);
+    prismaMock.venueDesignMedia.findFirst.mockResolvedValue(
+      baseRow({ venue_photo: venuePhoto() }) as never,
+    );
+    await caller().refineRender(INPUT);
+    expect(refineScene).toHaveBeenCalledWith(
+      expect.objectContaining({
+        venueUrl: `https://model.example/venue/${VENUE_PUBLIC_ID}.jpg`,
+      }),
+    );
+    expect(normaliseRefineInstruction.mock.calls[0][0].context.hasVenue).toBe(true);
+  });
+
   it("stays home for a prompt-only render, even when the design now has a photo", async () => {
     lineage("generate");
     await caller().refineRender(INPUT);

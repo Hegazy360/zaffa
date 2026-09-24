@@ -556,7 +556,28 @@ export const venueDesignsRouter = router({
       if (!media || media.design.user_id !== ctx.user.id) {
         throw new Error("Media not found");
       }
-      return prisma.venueDesignMedia.delete({ where: { id: input.id } });
+      if (media.type !== "render") {
+        return prisma.venueDesignMedia.delete({ where: { id: input.id } });
+      }
+      // A render's changes (F2) hang off it by `parent_id`, which the
+      // schema sets to NULL on delete. Hand them to the deleted version's
+      // own parent instead, so deleting a change in the middle keeps the
+      // ones made from it in their lineage (the venue photo, its rules and
+      // the before/after slider follow it, see `findDressVenueAncestor`).
+      // Renders only: a video belongs to the render it was made from and
+      // is not moved onto another one.
+      const [, deleted] = await prisma.$transaction([
+        prisma.venueDesignMedia.updateMany({
+          where: {
+            parent_id: media.id,
+            design_id: media.design_id,
+            type: "render",
+          },
+          data: { parent_id: media.parent_id },
+        }),
+        prisma.venueDesignMedia.delete({ where: { id: input.id } }),
+      ]);
+      return deleted;
     }),
 
   uploadReference: protectedProcedure
