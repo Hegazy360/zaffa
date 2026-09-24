@@ -605,10 +605,44 @@ describe("talking to the render (F2)", () => {
     expect(screen.getByRole("button", { name: deleteLabel })).toBeInTheDocument();
   });
 
-  it("hides the box while the kill switch is off", () => {
+  it("keeps the before/after slider on a change of a dressed venue, from the moment it lands", () => {
+    withVenuePhoto();
+    h.design.current = {
+      media: [
+        {
+          ...media(OLD_RENDER_ID, OLD_URL),
+          meta: { mode: "dress_venue", venuePublicId: "zaffa-venues/u1/hall" },
+        },
+      ],
+    };
+    render(<GenerateRenderPanel designId={DESIGN_ID} saveNow={async () => DESIGN_ID} />);
+    fireEvent.click(screen.getByRole("button", { name: selectLabel("versions.venue") }));
+    expect(screen.getByTestId("compare")).toHaveAttribute("data-after", OLD_URL);
+
+    fireEvent.change(input(), { target: { value: "a dance floor" } });
+    fireEvent.click(sendButton());
+    // The refetch has not brought the new row back yet: the slider walks
+    // the change up to the dress it came from all the same.
+    act(() => {
+      h.refineOpts.current!.onSuccess(
+        { mediaId: NEW_ID, parentId: OLD_RENDER_ID, imageUrl: NEW_URL, confirmation: null, editsLeft: 2 },
+        h.refineCalls[0],
+      );
+    });
+    expect(screen.getByTestId("compare")).toHaveAttribute("data-after", NEW_URL);
+  });
+
+  it("hides the box while the kill switch is off, and keeps the versions to look at", () => {
     h.flags.current = { refineRender: false };
-    openOriginal();
-    expect(screen.getByAltText("renderedAlt")).toBeInTheDocument();
+    h.design.current = {
+      media: [change(CHANGE_ID, CHANGE_URL, OLD_RENDER_ID, "a dance floor"), media(OLD_RENDER_ID, OLD_URL)],
+    };
+    render(<GenerateRenderPanel designId={DESIGN_ID} saveNow={async () => DESIGN_ID} />);
+    // The strip replaced the old grid of past renders, so switching the AI
+    // off must not take away the renders a couple already has.
+    fireEvent.click(screen.getByRole("button", { name: selectLabel('versions.change {"n":1}') }));
+    expect(screen.getByAltText("renderedAlt")).toHaveAttribute("src", CHANGE_URL);
+    expect(stripItems()).toHaveLength(2);
     expect(document.querySelector("[data-refine-box]")).toBeNull();
   });
 
