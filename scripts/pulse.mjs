@@ -135,9 +135,16 @@ function connect() {
 // stage carries its own last-success timestamp, which is exactly what was
 // missing: an aggregate "renders this month" number reads as a quiet month, a
 // per-stage age reads as a broken stage.
+// A render here is one made from a design, not a talked change of one (F2):
+// changes are saved as `type = 'render'` rows too, but they come from the
+// edit model and the edit quota, so counting them would let a working
+// "change it" button hide a dead Generate button. They are marked by
+// `meta.mode = 'refine'`, which survives their parent being deleted.
+const NOT_A_CHANGE = `coalesce(meta->>'mode', '') <> 'refine'`;
+
 const HEARTBEAT_SQL = `
 SELECT
-  (SELECT max(created_at) FROM venue_design_media WHERE type = 'render') AS last_render_at,
+  (SELECT max(created_at) FROM venue_design_media WHERE type = 'render' AND ${NOT_A_CHANGE}) AS last_render_at,
   (SELECT max(created_at) FROM venue_designs)                            AS last_design_at,
   (SELECT max(created_at) FROM profiles WHERE is_anonymous)              AS last_anon_at,
   (SELECT max(created_at) FROM email_capture_events)                     AS last_email_at,
@@ -167,7 +174,7 @@ SELECT
   (SELECT count(*) FROM profiles p, w WHERE p.is_anonymous AND p.created_at >= w.since)::int AS anon_sessions,
   (SELECT count(DISTINCT v.user_id) FROM venue_designs v, w WHERE v.created_at >= w.since)::int AS designers,
   (SELECT count(*) FROM venue_designs v, w WHERE v.created_at >= w.since)::int AS designs,
-  (SELECT count(*) FROM venue_design_media m, w WHERE m.type = 'render' AND m.created_at >= w.since)::int AS renders,
+  (SELECT count(*) FROM venue_design_media m, w WHERE m.type = 'render' AND ${NOT_A_CHANGE} AND m.created_at >= w.since)::int AS renders,
   (SELECT coalesce(sum(vp.renders_used), 0) FROM vision_packs vp, w WHERE vp.updated_at >= w.since)::int AS quota_consumed,
   (SELECT count(DISTINCT e.email) FROM email_capture_events e, w WHERE e.created_at >= w.since)::int AS emails,
   (SELECT count(*) FROM venue_designs v, w WHERE v.approved_at >= w.since)::int AS approvals,
@@ -198,7 +205,7 @@ LIMIT 1`;
 
 const QUOTA_TOTAL_SQL = `
 SELECT coalesce(sum(renders_used), 0)::int AS quota_consumed_all_time,
-       (SELECT count(*) FROM venue_design_media WHERE type = 'render')::int AS renders_all_time
+       (SELECT count(*) FROM venue_design_media WHERE type = 'render' AND ${NOT_A_CHANGE})::int AS renders_all_time
 FROM vision_packs`;
 
 // The units differ per stream and mixing them is the easy mistake here:
