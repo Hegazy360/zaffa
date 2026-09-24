@@ -2647,6 +2647,7 @@
     "phonePlaceholder": "+33 6 12 34 56 78",
     "phoneHint": "Avec l'indicatif du pays. Nous ne l'utilisons que pour parler de votre mariage.",
     "phoneInvalid": "Ce numéro ne semble pas valide. Ajoutez l'indicatif du pays, par exemple +33.",
+    "phoneWillUse": "Nous vous écrirons sur WhatsApp au <num>{phone}</num>.",
     "dateLabel": "Mois du mariage",
     "dateHint": "Une idée approximative suffit, elle nous aide à vérifier les disponibilités.",
     "dateInvalid": "Choisissez un mois, par exemple 2026-10.",

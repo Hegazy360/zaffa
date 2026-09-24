@@ -2647,6 +2647,7 @@
     "phonePlaceholder": "+20 10 1234 5678",
     "phoneHint": "With your country code. We only use it to talk about your wedding.",
     "phoneInvalid": "That does not look like a phone number. Add your country code, for example +20.",
+    "phoneWillUse": "We will message <num>{phone}</num> on WhatsApp.",
     "dateLabel": "Wedding month",
     "dateHint": "A rough idea is enough, it helps us check availability.",
     "dateInvalid": "Pick a month, for example 2026-10.",

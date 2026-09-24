@@ -339,6 +339,19 @@ describe("venueDesigns.approve with the couple's details (F5)", () => {
     expect(createdData().phone).toBe("+971501112222");
   });
 
+  it("stores a number typed in Arabic digits in Latin ones", async () => {
+    await caller(COUPLE).approve({ designId: DESIGN_ID, phone: "+٢٠ ١٠١ ٢٣٤ ٥٦٧٨" });
+    expect(createdData().phone).toBe("+201012345678");
+  });
+
+  it("refuses a number without its country code rather than file one WhatsApp cannot open", async () => {
+    await expect(
+      caller(COUPLE).approve({ designId: DESIGN_ID, phone: "0100 123 4567", country: "EG" }),
+    ).rejects.toMatchObject({ code: "BAD_REQUEST" });
+    expect(prismaMock.venueDesign.updateMany).not.toHaveBeenCalled();
+    expect(prismaMock.profile.updateMany).not.toHaveBeenCalled();
+  });
+
   it("reaches for email when there is no number anywhere", async () => {
     // A Google sign-in: no phone on the profile, none typed.
     prismaMock.profile.findUnique.mockResolvedValue({

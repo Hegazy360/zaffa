@@ -171,12 +171,16 @@ test.describe("approving a design", () => {
     const phone = dialog.getByLabel(m.approveFlow.phoneLabel);
     // Numbers read left to right even on the Arabic page.
     await expect(phone).toHaveAttribute("dir", "ltr");
-    await phone.fill("+20 101 234 5678");
+    // Typed the local way, in Arabic digits on the Arabic page, as a couple
+    // in Egypt types it: read against the country and said back before
+    // sending, in the international form a WhatsApp chat opens from.
+    await phone.fill(isArabic ? "٠١٠١ ٢٣٤ ٥٦٧٨" : "0101 234 5678");
     await dialog.getByLabel(m.approveFlow.dateLabel).fill("2026-10");
     await dialog.getByLabel(m.approveFlow.cityLabel).fill(isArabic ? "القاهرة" : "Cairo");
     const country = dialog.getByLabel(m.approveFlow.countryLabel);
     await country.fill(isArabic ? "مصر" : "Egypt");
     await page.getByRole("option", { name: isArabic ? /مصر/ : /Egypt/ }).first().click();
+    await expect(dialog.getByText("+201012345678", { exact: true })).toBeVisible();
 
     if (shots) {
       await page.screenshot({ path: `${shots}/approve-form-${testInfo.project.name}.png` });
@@ -191,7 +195,7 @@ test.describe("approving a design", () => {
       designId,
       // The newest render: the version on screen when nothing else is active.
       mediaId: newerId,
-      phone: "+20 101 234 5678",
+      phone: "+201012345678",
       eventDate: "2026-10",
       city: isArabic ? "القاهرة" : "Cairo",
       country: "EG",

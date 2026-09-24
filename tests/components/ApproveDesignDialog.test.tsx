@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { act, fireEvent, render, screen } from "@testing-library/react";
 import { NextIntlClientProvider } from "next-intl";
 import en from "../../messages/en.json";
@@ -91,7 +91,8 @@ describe("ApproveDesignDialog", () => {
       {
         designId: DESIGN_ID,
         mediaId: MEDIA_ID,
-        phone: "+20 101 234 5678",
+        // Sent the way it is stored, the form a wa.me link opens.
+        phone: "+201012345678",
         eventDate: "2026-10",
         city: "Cairo",
         // No cookie in the test, so no country guessed.
@@ -122,6 +123,49 @@ describe("ApproveDesignDialog", () => {
     open();
     const phone = screen.getByLabelText("WhatsApp number");
     fireEvent.change(phone, { target: { value: "call my mum" } });
+    fireEvent.click(screen.getByRole("button", { name: "Send to our team" }));
+    expect(state.calls).toHaveLength(0);
+    expect(phone).toHaveAttribute("aria-invalid", "true");
+    expect(screen.getByText(/Add your country code/)).toBeInTheDocument();
+  });
+
+  describe("a number typed the local way", () => {
+    // The pricing cookie is the visitor's country, the dialog's first guess
+    // at where the wedding is.
+    beforeEach(() => {
+      document.cookie = "zaffa_country=EG; path=/";
+    });
+    afterEach(() => {
+      document.cookie = "zaffa_country=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
+    });
+
+    it("is sent with the country code, and said back before sending", () => {
+      open();
+      fireEvent.change(screen.getByLabelText("WhatsApp number"), {
+        target: { value: "0100 123 4567" },
+      });
+      // The country field is the wedding's, so the couple sees the number
+      // we will actually use and can correct it.
+      expect(screen.getByText("+201001234567")).toBeInTheDocument();
+      expect(screen.getByText(/on WhatsApp\./)).toBeInTheDocument();
+      fireEvent.click(screen.getByRole("button", { name: "Send to our team" }));
+      expect(state.calls[0]).toMatchObject({ phone: "+201001234567", country: "EG" });
+    });
+
+    it("takes it in Arabic digits too", () => {
+      open("ar");
+      fireEvent.change(screen.getByLabelText("رقم واتساب"), {
+        target: { value: "٠١٠٠ ١٢٣ ٤٥٦٧" },
+      });
+      fireEvent.click(screen.getByRole("button", { name: "أرسلوه إلى فريقنا" }));
+      expect(state.calls[0]).toMatchObject({ phone: "+201001234567" });
+    });
+  });
+
+  it("asks for the country code when a local number has no country to read it by", () => {
+    open();
+    const phone = screen.getByLabelText("WhatsApp number");
+    fireEvent.change(phone, { target: { value: "0100 123 4567" } });
     fireEvent.click(screen.getByRole("button", { name: "Send to our team" }));
     expect(state.calls).toHaveLength(0);
     expect(phone).toHaveAttribute("aria-invalid", "true");

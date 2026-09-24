@@ -6,7 +6,7 @@ import { CheckCircle2, Loader2, Send, XIcon } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { REPLY_WITHIN_HOURS } from "@/lib/contact-channels";
 import { COUNTRY_CODES } from "@/lib/countries";
-import { normalizePhone, parseWeddingDate } from "@/lib/lead-details";
+import { latinDigits, parseWeddingDate, phoneForCountry } from "@/lib/lead-details";
 import { VISION_PACK_COUNTRY_COOKIE } from "@/lib/vision-pack-pricing";
 import { Button } from "@/components/ui/button";
 import {
@@ -130,13 +130,21 @@ export function ApproveDesignDialog({
     }
   };
 
+  // A local number (`0100 123 4567`) is read against the country field and
+  // sent in international form, the only form a WhatsApp chat opens from.
+  const phoneValue = phone.trim();
+  const phoneResolved = phoneValue ? phoneForCountry(phoneValue, country) : null;
+  // Said back under the field whenever it is not what was typed (a code
+  // added, a 0 dropped), since the country is the wedding's, not always
+  // the phone's.
+  const phoneRewritten =
+    phoneResolved !== null &&
+    phoneResolved.slice(1) !== latinDigits(phoneValue).replace(/\D/g, "");
+
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
     setFailed(false);
-    const phoneValue = phone.trim();
-    const badPhone =
-      phoneValue !== "" &&
-      (phoneValue.length < 6 || phoneValue.length > 20 || normalizePhone(phoneValue) === null);
+    const badPhone = phoneValue !== "" && phoneResolved === null;
     const badMonth = month !== "" && parseWeddingDate(month) === null;
     setPhoneInvalid(badPhone);
     setMonthInvalid(badMonth);
@@ -145,7 +153,7 @@ export function ApproveDesignDialog({
     approve.mutate({
       designId,
       ...(mediaId ? { mediaId } : {}),
-      phone: phoneValue || undefined,
+      phone: phoneResolved ?? undefined,
       eventDate: month || undefined,
       city: city.trim() || undefined,
       country: country || undefined,
@@ -256,7 +264,18 @@ export function ApproveDesignDialog({
                 id={ids.phoneHint}
                 className={phoneInvalid ? "text-xs text-destructive" : "text-xs text-muted-foreground"}
               >
-                {phoneInvalid ? t("phoneInvalid") : t("phoneHint")}
+                {phoneInvalid
+                  ? t("phoneInvalid")
+                  : phoneRewritten
+                    ? t.rich("phoneWillUse", {
+                        phone: phoneResolved,
+                        num: (chunks) => (
+                          <bdi dir="ltr" className="font-medium text-foreground">
+                            {chunks}
+                          </bdi>
+                        ),
+                      })
+                    : t("phoneHint")}
               </p>
             </div>
 

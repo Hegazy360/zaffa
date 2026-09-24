@@ -2647,6 +2647,7 @@
     "phonePlaceholder": "+49 151 23456789",
     "phoneHint": "Mit Ländervorwahl. Wir nutzen sie nur, um über Ihre Hochzeit zu sprechen.",
     "phoneInvalid": "Das sieht nicht nach einer Telefonnummer aus. Fügen Sie die Ländervorwahl hinzu, zum Beispiel +49.",
+    "phoneWillUse": "Wir melden uns per WhatsApp unter <num>{phone}</num>.",
     "dateLabel": "Hochzeitsmonat",
     "dateHint": "Eine ungefähre Angabe genügt, so können wir die Verfügbarkeit prüfen.",
     "dateInvalid": "Wählen Sie einen Monat, zum Beispiel 2026-10.",
