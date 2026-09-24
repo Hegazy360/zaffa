@@ -15,7 +15,7 @@
 
 import "server-only";
 import { z } from "zod";
-import { chatCompletionJson } from "@/server/llm/openrouter";
+import { LlmError, chatCompletionJson } from "@/server/llm/openrouter";
 import type { Locale } from "@/i18n/config";
 import { editImageModel, generateImageViaImagesApi } from "./image-gen";
 
@@ -135,7 +135,51 @@ export interface RefineDesignContext {
 
 export type RefineNormalisation =
   | { allowed: true; instructionEn: string; confirmation: string | null }
-  | { allowed: false; reason: string };
+  | {
+      allowed: false;
+      /** For our logs, never for the couple. */
+      reason: string;
+      /**
+       * The model answered, but not in a shape we accept (unreadable,
+       * cut off, empty, or an instruction that breaks our own limits),
+       * rather than refusing. Refused all the same: see
+       * `normaliseRefineInstruction`.
+       */
+      malformed: boolean;
+    };
+
+/**
+ * The text model could not be asked at all: the network, the timeout, or
+ * OpenRouter answering with an error status. The only failure the caller
+ * may fall back to the couple's raw words on, and only past
+ * `refineRequestLooksUnsafe`.
+ */
+export class RefineNormaliserUnavailable extends Error {
+  constructor(cause: unknown) {
+    super(
+      `Refine normaliser unavailable: ${cause instanceof Error ? cause.message : String(cause)}`,
+      { cause },
+    );
+    this.name = "RefineNormaliserUnavailable";
+  }
+}
+
+// An outage, as opposed to an answer. 403 is OpenRouter's moderation
+// refusing the request itself: the couple's words caused it, so it is not
+// an outage and must not unlock the raw-words fallback. An empty answer
+// is how a provider's safety block can come back, so it is not one either.
+function isTextModelOutage(err: unknown): boolean {
+  if (err instanceof LlmError) {
+    if (err.kind === "http") return err.status !== 403;
+    return err.kind === "envelope";
+  }
+  // `fetch` itself failed: undici's TypeError, or our AbortSignal timeout.
+  if (err instanceof TypeError) return true;
+  return (
+    err instanceof Error &&
+    (err.name === "TimeoutError" || err.name === "AbortError")
+  );
+}
 
 const REFINE_JSON_SCHEMA = {
   name: "refine_instruction",
@@ -172,6 +216,10 @@ function tidy(text: string): string {
 const INSTRUCTION_EN_MAX = 600;
 const CONFIRMATION_MAX = 200;
 
+function malformed(reason: string): RefineNormalisation {
+  return { allowed: false, reason: reason.slice(0, 300), malformed: true };
+}
+
 function systemPrompt(locale: Locale, hasVenue: boolean): string {
   return [
     `You turn a couple's request to change the render of their event decor into one instruction for an image editing model.`,
@@ -197,9 +245,19 @@ function systemPrompt(locale: Locale, hasVenue: boolean): string {
 }
 
 /**
- * Read the couple's request. Throws when the model call fails or answers
- * nonsense; the caller then falls back to the raw request with no
- * confirmation, so a flaky text model never costs the couple their change.
+ * Read the couple's request.
+ *
+ * Fails closed on anything the model said: an answer we cannot use
+ * (unreadable or cut-off JSON, an empty reply, the wrong shape, an empty
+ * or overlong instruction) comes back as a refusal with `malformed` set.
+ * The couple writes the input, so they can steer the model into any of
+ * these on purpose, and treating one as "use the raw words instead" would
+ * hand the image model exactly the request the rules exist to stop.
+ *
+ * Throws `RefineNormaliserUnavailable` only when the model could not be
+ * asked (see `isTextModelOutage`). A flaky provider then does not cost the
+ * couple their change: the caller may send the raw words, once they pass
+ * `refineRequestLooksUnsafe`.
  */
 export async function normaliseRefineInstruction({
   instruction,
@@ -217,33 +275,47 @@ export async function normaliseRefineInstruction({
     .filter(Boolean)
     .join(" ");
 
-  const raw = await chatCompletionJson<unknown>({
-    messages: [
-      { role: "system", content: systemPrompt(locale, context.hasVenue) },
-      {
-        role: "user",
-        content: `${design}\n\nThe couple's request: «${quoteSafe(instruction)}»`,
-      },
-    ],
-    jsonSchema: REFINE_JSON_SCHEMA,
-    temperature: 0.2,
-    maxTokens: 400,
-    appTitle: "Zaffa Refine",
-    // The image call behind it takes ~40s; a hung text model should fall
-    // back to the raw request quickly rather than add to that.
-    timeoutMs: 20_000,
-  });
+  let raw: unknown;
+  try {
+    raw = await chatCompletionJson<unknown>({
+      messages: [
+        { role: "system", content: systemPrompt(locale, context.hasVenue) },
+        {
+          role: "user",
+          content: `${design}\n\nThe couple's request: «${quoteSafe(instruction)}»`,
+        },
+      ],
+      jsonSchema: REFINE_JSON_SCHEMA,
+      temperature: 0.2,
+      maxTokens: 400,
+      appTitle: "Zaffa Refine",
+      // The image call behind it takes ~40s; a hung text model should fall
+      // back to the raw request quickly rather than add to that.
+      timeoutMs: 20_000,
+    });
+  } catch (err) {
+    if (isTextModelOutage(err)) throw new RefineNormaliserUnavailable(err);
+    // JSON cut off at maxTokens, prose instead of JSON, or nothing at all.
+    return malformed(
+      `unreadable answer: ${err instanceof Error ? err.message : String(err)}`,
+    );
+  }
 
   const parsed = normalisedSchema.safeParse(raw);
-  if (!parsed.success) {
-    throw new Error("Refine normaliser returned an unexpected shape");
-  }
+  if (!parsed.success) return malformed("answer has the wrong shape");
   if (!parsed.data.allowed) {
-    return { allowed: false, reason: tidy(parsed.data.reason).slice(0, 300) };
+    return {
+      allowed: false,
+      reason: tidy(parsed.data.reason).slice(0, 300),
+      malformed: false,
+    };
   }
   const instructionEn = tidy(parsed.data.instructionEn);
-  if (!instructionEn || instructionEn.length > INSTRUCTION_EN_MAX) {
-    throw new Error("Refine normaliser returned no usable instruction");
+  if (!instructionEn) return malformed("allowed with an empty instruction");
+  if (instructionEn.length > INSTRUCTION_EN_MAX) {
+    return malformed(
+      `allowed with an instruction of ${instructionEn.length} characters`,
+    );
   }
   const confirmation = tidy(parsed.data.confirmation);
   return {
@@ -254,4 +326,130 @@ export async function normaliseRefineInstruction({
         ? confirmation
         : null,
   };
+}
+
+// --- The fallback's own screen --------------------------------------------
+
+// Whole words, lower case. English, French and German, plus the Arabizi a
+// couple is likeliest to type. Exact words only: a prefix match would stop
+// "texture", "personalised" and "surface" along with "text", "person" and
+// "face". Words that are ordinary decor talk are left out on purpose:
+// guests ("guest tables"), baby ("baby's breath", "baby blue"), face
+// ("chairs face the stage"), family ("family-style tables"), blood
+// ("blood red").
+const UNSAFE_LATIN_WORDS = new Set([
+  // People, faces, bodies.
+  "bride", "brides", "groom", "grooms", "bridegroom", "newlyweds",
+  "people", "person", "persons", "faces", "body", "bodies", "man", "men",
+  "woman", "women", "girl", "girls", "boy", "boys", "child", "children",
+  "kid", "kids", "dancer", "dancers", "singer", "singers", "musician",
+  "musicians", "waiter", "waiters", "mom", "dad", "mother", "father",
+  "portrait", "portraits", "selfie", "selfies",
+  "mariée", "mariées", "marié", "mariés", "gens", "personne",
+  "personnes", "visage", "visages", "corps", "homme", "hommes", "femme",
+  "femmes", "enfant", "enfants", "danseur", "danseurs", "danseuse",
+  "danseuses",
+  "braut", "bräutigam", "brautpaar", "leute", "menschen", "personen",
+  "gesicht", "gesichter", "mann", "männer", "frau", "frauen", "kinder",
+  "tänzer", "tänzerin",
+  "3aris", "3arees", "3ariis", "3arousa", "3aroosa", "3arosa", "3roosa",
+  "3ersan", "naas",
+  // Text, names, logos, brands.
+  "text", "texts", "word", "words", "letter", "letters", "lettering",
+  "name", "names", "initials", "monogram", "monograms", "sign", "signs",
+  "signage", "write", "writes", "writing", "written", "wrote", "spell",
+  "caption", "captions", "quote", "hashtag", "logo", "logos", "brand",
+  "brands", "branded", "trademark",
+  "texte", "textes", "mot", "mots", "lettre", "lettres", "nom", "noms",
+  "prénom", "prénoms", "écrire", "écrit", "écrite", "écriture",
+  "marque", "marques", "enseigne", "initiales",
+  "wort", "wörter", "buchstabe", "buchstaben", "schrift", "schriftzug",
+  "schreiben", "geschrieben", "namen", "marke", "marken", "initialen",
+  "esm", "esmna", "esmena", "asamy", "asamina", "ektebo", "ektb",
+  "maktoob",
+  // Nudity, weapons.
+  "nude", "naked", "nudity", "sexy", "sexual", "lingerie", "bikini",
+  "topless", "nackt", "weapon", "weapons", "gun", "guns",
+]);
+
+// Arabic, in the folded spelling `foldArabic` produces. Stems match the
+// start of a word once a leading و/ف/ب/ل/ك and ال are taken off, so
+// "العروسة" and "بأسامينا" count while "مناسب" (suitable) does not trip
+// "ناس" (people). Left out like their Latin twins: ضيف (also Egyptian
+// for "add"), ضيوف and معازيم ("guest tables"), مسدس (also "hexagonal").
+const UNSAFE_ARABIC_STEMS = [
+  // People, faces, bodies.
+  "عريس", "عروس", "عرسان", "ناس", "اشخاص", "وجوه", "رجاله", "رجال",
+  "ستات", "سيدات", "بنات", "ولاد", "اولاد", "اطفال", "طفل", "عيال",
+  "راقص", "رقاصه", "مطرب", "مغني", "جرسون",
+  // Text, names, logos, brands.
+  "اسمنا", "اسمي", "اسمه", "اسمها", "اسمهم", "اسمكم", "اسامي", "اسماء",
+  "كلام", "كلمه", "كلمات", "كتابه", "كتب", "اكتب", "نكتب", "يكتب",
+  "مكتوب", "حروف", "حرف", "لوجو", "لوغو", "لوقو", "شعار", "ماركه",
+  "براند", "يافطه", "لافته", "هاشتاج", "مونوجرام",
+  // Nudity, weapons.
+  "عريان", "عاري", "سكسي", "بكيني", "سلاح",
+];
+
+// Whole words only: "اسم" as a stem would also stop "أسمر" (a brown tone).
+const UNSAFE_ARABIC_WORDS = new Set(["اسم"]);
+
+const ARABIC_PREFIXES = [
+  "وبال", "وال", "بال", "فال", "كال", "لل", "ال", "و", "ف", "ب", "ل", "ك",
+];
+
+// One spelling per letter, so a stem matches however it was typed: the
+// hamza forms of alef, taa marbuta, alef maqsura, tatweel and diacritics.
+function foldArabic(word: string): string {
+  return word
+    .replace(/[\u064B-\u065F\u0670\u0640]/g, "")
+    .replace(/[أإآٱ]/g, "ا")
+    .replace(/ة/g, "ه")
+    .replace(/ى/g, "ي");
+}
+
+function arabicWordIsUnsafe(word: string): boolean {
+  const folded = foldArabic(word);
+  const forms = [folded];
+  for (const prefix of ARABIC_PREFIXES) {
+    if (folded.startsWith(prefix) && folded.length > prefix.length + 1) {
+      const rest = folded.slice(prefix.length);
+      forms.push(rest);
+      // و/ف/ب then ال: "والعروسة", "بالاسم".
+      if (rest.startsWith("ال") && rest.length > 3) forms.push(rest.slice(2));
+    }
+  }
+  return forms.some(
+    (form) =>
+      UNSAFE_ARABIC_WORDS.has(form) ||
+      UNSAFE_ARABIC_STEMS.some((stem) => form.startsWith(stem)),
+  );
+}
+
+/**
+ * A crude, deterministic screen for the couple's raw words, used only
+ * when the text model could not be asked and the raw words would go to
+ * the image model as typed. True when the request mentions people, text,
+ * names, logos, brands, nudity or weapons in a language we serve, or
+ * quotes something (the usual shape of `write "Ahmed & Sara"`).
+ *
+ * It is deliberately blunt and errs towards refusing: on this path a false
+ * refusal costs the couple nothing (the edit is handed back and they can
+ * try again), and a miss draws what the model would have refused. The
+ * model's rules stay the real ones.
+ */
+export function refineRequestLooksUnsafe(instruction: string): boolean {
+  if (/["\u201C\u201D\u201E\u201F\u00AB\u00BB\u2033]/.test(instruction)) {
+    return true;
+  }
+  const words = instruction
+    .normalize("NFC")
+    .toLocaleLowerCase("en")
+    .split(/[^\p{L}\p{M}\p{N}]+/u)
+    .filter(Boolean);
+  return words.some((word) =>
+    /\p{Script=Arabic}/u.test(word)
+      ? arabicWordIsUnsafe(word)
+      : UNSAFE_LATIN_WORDS.has(word),
+  );
 }

@@ -43,8 +43,11 @@ import {
 } from "@/i18n/config";
 import {
   REFINE_INSTRUCTION_MAX,
+  RefineNormaliserUnavailable,
   normaliseRefineInstruction,
+  refineRequestLooksUnsafe,
   refineScene,
+  type RefineNormalisation,
 } from "../ai/refine";
 
 const referenceCategorySchema = z.enum([
@@ -554,15 +557,15 @@ export const aiRouter = router({
       };
 
       // Read the request (any language) into a precise English edit and a
-      // confirmation in the couple's language. A failed read is not a
-      // failed change: the raw request goes to the image model as typed,
-      // with no confirmation line.
+      // confirmation in the couple's language. The read fails closed: an
+      // answer we cannot use is a refusal (the couple can provoke one on
+      // purpose), and only a text model we could not reach lets the raw
+      // request go to the image model as typed, with no confirmation line,
+      // and then only past a deterministic screen for the same rules.
       const locale = requestLocale(ctx.req, input.locale);
-      let instructionEn = input.instruction;
-      let confirmation: string | null = null;
-      let normalised = false;
+      let read: RefineNormalisation | null;
       try {
-        const read = await normaliseRefineInstruction({
+        read = await normaliseRefineInstruction({
           instruction: input.instruction,
           locale,
           context: {
@@ -572,20 +575,49 @@ export const aiRouter = router({
             hasVenue: venue !== null,
           },
         });
-        if (!read.allowed) {
-          await releaseEditQuietly(pack.id, logContext);
-          // Why, for tuning the rules; never shown to the couple, whose UI
-          // says "we can only change the decor" in their own language.
-          logger.info("ai.refine_rejected", { ...logContext, reason: read.reason });
-          throw new TRPCError({ code: "BAD_REQUEST", message: "REFINE_REJECTED" });
-        }
-        instructionEn = read.instructionEn;
-        confirmation = read.confirmation;
-        normalised = true;
       } catch (err) {
-        if (err instanceof TRPCError) throw err;
+        if (!(err instanceof RefineNormaliserUnavailable)) {
+          // Not an outage, so a bug: nothing was read, nothing is drawn.
+          await releaseEditQuietly(pack.id, logContext);
+          reportError("ai.refine_normalise_crashed", err, logContext);
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: "REFINE_FAILED",
+          });
+        }
         reportError("ai.refine_normalise_failed", err, logContext);
+        read = refineRequestLooksUnsafe(input.instruction)
+          ? {
+              allowed: false,
+              reason: "Text model unavailable and the raw request trips the fallback screen.",
+              malformed: false,
+            }
+          : null;
       }
+      if (read && !read.allowed) {
+        await releaseEditQuietly(pack.id, logContext);
+        if (read.malformed) {
+          // Refused all the same, but worth seeing: a model or schema
+          // change that breaks every answer would otherwise look like a
+          // run of couples asking for things we do not draw.
+          reportError(
+            "ai.refine_normalise_malformed",
+            new Error(read.reason),
+            logContext,
+          );
+        }
+        // Why, for tuning the rules; never shown to the couple, whose UI
+        // says "we can only change the decor" in their own language.
+        logger.info("ai.refine_rejected", {
+          ...logContext,
+          reason: read.reason,
+          malformed: read.malformed,
+        });
+        throw new TRPCError({ code: "BAD_REQUEST", message: "REFINE_REJECTED" });
+      }
+      const instructionEn = read ? read.instructionEn : input.instruction;
+      const confirmation = read ? read.confirmation : null;
+      const normalised = read !== null;
 
       let result: Awaited<ReturnType<typeof refineScene>>;
       try {

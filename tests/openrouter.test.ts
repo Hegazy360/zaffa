@@ -9,7 +9,7 @@ vi.mock("@/lib/logger", () => ({
   reportError: vi.fn(),
 }));
 
-const { chatCompletion, chatCompletionJson, designLlmModel } = await import(
+const { chatCompletion, chatCompletionJson, designLlmModel, LlmError } = await import(
   "@/server/llm/openrouter"
 );
 
@@ -164,6 +164,9 @@ describe("chatCompletion", () => {
     }).catch((e: Error) => e);
     expect((err as Error).message).toMatch(/^LLM 402: \{"error":"Insufficient credits"\}/);
     expect((err as Error).message.length).toBeLessThanOrEqual("LLM 402: ".length + 400);
+    // Typed, so a caller can tell an outage from an empty answer (F2).
+    expect(err).toBeInstanceOf(LlmError);
+    expect(err).toMatchObject({ kind: "http", status: 402 });
   });
 
   it("turns a non-JSON body into a readable error, not a bare SyntaxError", async () => {
@@ -171,6 +174,10 @@ describe("chatCompletion", () => {
     await expect(
       chatCompletion({ model: "m", messages: [{ role: "user", content: "hi" }] }),
     ).rejects.toThrow("LLM returned non-JSON body: <html>502</html>");
+    fetchMock.mockResolvedValue(new Response("<html>502</html>", { status: 200 }));
+    await expect(
+      chatCompletion({ model: "m", messages: [{ role: "user", content: "hi" }] }),
+    ).rejects.toMatchObject({ kind: "envelope" });
   });
 
   it("refuses an empty completion", async () => {
@@ -178,5 +185,9 @@ describe("chatCompletion", () => {
     await expect(
       chatCompletion({ model: "m", messages: [{ role: "user", content: "hi" }] }),
     ).rejects.toThrow("LLM returned empty content");
+    fetchMock.mockResolvedValue(completion(""));
+    await expect(
+      chatCompletion({ model: "m", messages: [{ role: "user", content: "hi" }] }),
+    ).rejects.toMatchObject({ kind: "empty" });
   });
 });

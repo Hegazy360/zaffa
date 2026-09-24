@@ -108,6 +108,30 @@ function authHeaders(appTitle: string): Record<string, string> {
   };
 }
 
+/**
+ * What `chatCompletion` throws when OpenRouter answered but not usefully,
+ * so a caller can tell "the provider is down" from "the model said
+ * nothing" without matching on message text. The messages are the
+ * diagnosable ones described at the top of this file. A failure of
+ * `fetch` itself (network, `timeoutMs`) is not wrapped: it surfaces as
+ * undici's `TypeError` or a `TimeoutError`.
+ *
+ *  - `http`: a non-2xx status (`status` is set).
+ *  - `envelope`: a 2xx whose body is not JSON (a gateway error page).
+ *  - `empty`: a well-formed answer with no content, which is also how a
+ *    provider's safety block can come back.
+ */
+export class LlmError extends Error {
+  constructor(
+    message: string,
+    readonly kind: "http" | "envelope" | "empty",
+    readonly status?: number,
+  ) {
+    super(message);
+    this.name = "LlmError";
+  }
+}
+
 /** Returns the assistant message content, or throws with a truncated,
  *  diagnosable error. Never returns empty. */
 export async function chatCompletion({
@@ -134,7 +158,11 @@ export async function chatCompletion({
   });
   if (!res.ok) {
     const text = await res.text();
-    throw new Error(`LLM ${res.status}: ${text.slice(0, 400)}`);
+    throw new LlmError(
+      `LLM ${res.status}: ${text.slice(0, 400)}`,
+      "http",
+      res.status,
+    );
   }
   const raw = await res.text();
   let data: {
@@ -144,7 +172,10 @@ export async function chatCompletion({
   try {
     data = JSON.parse(raw);
   } catch {
-    throw new Error(`LLM returned non-JSON body: ${raw.slice(0, 200)}`);
+    throw new LlmError(
+      `LLM returned non-JSON body: ${raw.slice(0, 200)}`,
+      "envelope",
+    );
   }
   // One line per billed call, like `image.generated`. Text calls are cheap
   // one at a time, but the design partner features make several per
@@ -155,7 +186,7 @@ export async function chatCompletion({
     costUsd: data.usage?.cost ?? null,
   });
   const content = data.choices?.[0]?.message?.content;
-  if (!content) throw new Error("LLM returned empty content");
+  if (!content) throw new LlmError("LLM returned empty content", "empty");
   return content;
 }
 

@@ -10,9 +10,15 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 vi.mock("server-only", () => ({}));
 
 const chatCompletionJson = vi.fn();
-vi.mock("@/server/llm/openrouter", () => ({
-  chatCompletionJson: (...args: unknown[]) => chatCompletionJson(...args),
-}));
+vi.mock("@/server/llm/openrouter", async () => {
+  const actual = await vi.importActual<typeof import("@/server/llm/openrouter")>(
+    "@/server/llm/openrouter",
+  );
+  return {
+    LlmError: actual.LlmError,
+    chatCompletionJson: (...args: unknown[]) => chatCompletionJson(...args),
+  };
+});
 
 const generateImageViaImagesApi = vi.fn();
 vi.mock("@/server/ai/image-gen", () => ({
@@ -21,8 +27,14 @@ vi.mock("@/server/ai/image-gen", () => ({
   editImageModel: () => ({ model: "openai/gpt-image-2.5-flare", quality: "medium" }),
 }));
 
-const { buildRefinePrompt, refineScene, normaliseRefineInstruction } =
-  await import("@/server/ai/refine");
+const {
+  buildRefinePrompt,
+  refineScene,
+  normaliseRefineInstruction,
+  refineRequestLooksUnsafe,
+  RefineNormaliserUnavailable,
+} = await import("@/server/ai/refine");
+const { LlmError } = await import("@/server/llm/openrouter");
 
 const CONTEXT = {
   eventType: "wedding",
@@ -198,7 +210,7 @@ describe("normaliseRefineInstruction", () => {
     });
     await expect(
       normaliseRefineInstruction({ instruction: "add the bride", locale: "en", context: CONTEXT }),
-    ).resolves.toEqual({ allowed: false, reason: "Adds a person." });
+    ).resolves.toEqual({ allowed: false, reason: "Adds a person.", malformed: false });
   });
 
   it("takes the dashes out of what the model wrote", async () => {
@@ -232,25 +244,110 @@ describe("normaliseRefineInstruction", () => {
     ).resolves.toMatchObject({ allowed: true, confirmation: null });
   });
 
-  it("throws on an answer it cannot use, so the caller falls back to the raw words", async () => {
-    chatCompletionJson.mockResolvedValue({ allowed: "yes" });
+  // The couple writes the input, so they can steer the model into any of
+  // these on purpose. None of them may unlock the raw-words fallback.
+  it.each([
+    ["the wrong shape", async () => ({ allowed: "yes" })],
+    [
+      "an empty instruction",
+      async () => ({ allowed: true, instructionEn: "  ", confirmation: "Done.", reason: "" }),
+    ],
+    [
+      "an instruction past our limit (\"write roses 200 times\")",
+      async () => ({
+        allowed: true,
+        instructionEn: "roses ".repeat(200),
+        confirmation: "Done.",
+        reason: "",
+      }),
+    ],
+    [
+      "JSON cut off at maxTokens",
+      async () => {
+        throw new SyntaxError("Unterminated string in JSON at position 1180");
+      },
+    ],
+    [
+      "an empty answer (a provider safety block)",
+      async () => {
+        throw new LlmError("LLM returned empty content", "empty");
+      },
+    ],
+    [
+      "a moderation refusal of the request itself",
+      async () => {
+        throw new LlmError("LLM 403: flagged", "http", 403);
+      },
+    ],
+  ])("refuses an answer it cannot use: %s", async (_label, answer) => {
+    chatCompletionJson.mockImplementation(answer);
     await expect(
-      normaliseRefineInstruction({ instruction: "candles", locale: "en", context: CONTEXT }),
-    ).rejects.toThrow();
+      normaliseRefineInstruction({
+        instruction: "Put our names in gold letters and add the bride and groom",
+        locale: "en",
+        context: CONTEXT,
+      }),
+    ).resolves.toMatchObject({ allowed: false, malformed: true });
+  });
 
-    chatCompletionJson.mockResolvedValue({
-      allowed: true,
-      instructionEn: "  ",
-      confirmation: "Done.",
-      reason: "",
-    });
-    await expect(
-      normaliseRefineInstruction({ instruction: "candles", locale: "en", context: CONTEXT }),
-    ).rejects.toThrow();
+  it.each([
+    ["a 5xx", () => new LlmError("LLM 502: bad gateway", "http", 502)],
+    ["a 402 (no credits)", () => new LlmError("LLM 402: credits", "http", 402)],
+    ["a gateway page instead of JSON", () => new LlmError("LLM returned non-JSON body: <html>", "envelope")],
+    ["a network failure", () => new TypeError("fetch failed")],
+    [
+      "our timeout",
+      () => Object.assign(new Error("The operation was aborted due to timeout"), { name: "TimeoutError" }),
+    ],
+  ])("says the model was unreachable only for an outage: %s", async (_label, error) => {
+    chatCompletionJson.mockRejectedValue(error());
+    const err = await normaliseRefineInstruction({
+      instruction: "candles",
+      locale: "en",
+      context: CONTEXT,
+    }).catch((e: unknown) => e);
+    expect(err).toBeInstanceOf(RefineNormaliserUnavailable);
+  });
+});
 
-    chatCompletionJson.mockRejectedValue(new Error("LLM 402"));
-    await expect(
-      normaliseRefineInstruction({ instruction: "candles", locale: "en", context: CONTEXT }),
-    ).rejects.toThrow("LLM 402");
+describe("refineRequestLooksUnsafe (the fallback's own screen)", () => {
+  it.each([
+    "Put our names Ahmed & Sara in big gold letters on the wall",
+    "add the bride and groom dancing",
+    "write \"Ahmed & Sara\" above the stage",
+    "«Ahmed & Sara» on the backdrop",
+    "Add our logo to the dance floor",
+    "some people sitting at the tables",
+    "ajoutez les mariés sur la piste",
+    "unsere Namen an die Wand",
+    "حطوا العروسة والعريس في النص",
+    "اكتبوا أسامينا على الكوشة",
+    "بالاسم على الحيطة",
+    "زودوا ناس على الترابيزات",
+    "حطوا لوجو الشركة",
+    "3arees w 3aroosa on the stage",
+  ])("stops %s", (text) => {
+    expect(refineRequestLooksUnsafe(text)).toBe(true);
+  });
+
+  it.each([
+    "More flowers",
+    "Warmer, candlelit lighting",
+    "Add a dance floor",
+    "Make the stage grander",
+    "more baby's breath and a baby blue runner",
+    "more guest tables, family style",
+    "add texture to the backdrop, personalised napkins",
+    "blood red roses on every table",
+    "make the chairs face the stage",
+    "عايزين ورد أبيض أكتر على الترابيزات",
+    "ضيفوا شموع كتير وخلوا الإضاءة أدفى",
+    "كراسي كلاسيك وستارة بيضا",
+    "لون مناسب للمناسبة",
+    "ترابيزات مسدسة وخشب أسمر",
+    "plus de fleurs blanches",
+    "mehr Kerzen und wärmeres Licht",
+  ])("lets %s through", (text) => {
+    expect(refineRequestLooksUnsafe(text)).toBe(false);
   });
 });
