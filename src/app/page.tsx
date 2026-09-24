@@ -5,6 +5,7 @@ import { Navbar } from "@/components/layout/navbar";
 import { Footer } from "@/components/layout/footer";
 import { SampleStudioHero } from "@/components/home/sample-studio-hero";
 import { HeroSocialProof } from "@/components/home/hero-social-proof";
+import { VenueDressedSection } from "@/components/home/venue-dressed-section";
 import { HowItWorks } from "@/components/home/how-it-works";
 import { ConciergePillarsSection } from "@/components/home/concierge-pillars-section";
 import { WholeWeddingSection } from "@/components/home/whole-wedding-section";
@@ -78,6 +79,11 @@ export default async function HomePage() {
             have to be real, so they are read at request time rather than
             hardcoded. */}
         <SampleStudioHero socialProof={<HeroSocialProof />} />
+
+        {/* Your venue, dressed: the hero restyles a sample wedding, this
+            shows the same studio dressing a photo of the couple's own hall
+            or garden. Renders nothing while the venuePhoto flag is off. */}
+        <VenueDressedSection />
 
         {/* How it works - four steps with screenshots, ending in the
             handoff to the concierge (step 4) */}

@@ -28,6 +28,7 @@ import {
   type Setting,
 } from "@/types/venue-designer";
 import { cn } from "@/lib/utils";
+import { VenuePhotoCard } from "./VenuePhotoCard";
 
 const EVENT_TYPES: { value: EventType; labelKey: string }[] = [
   { value: "wedding", labelKey: "eventTypeWedding" },
@@ -143,6 +144,12 @@ export function EventBasicsCard() {
             ))}
           </div>
         </div>
+
+        {/* Right after "indoor or outdoor": the couple who already know
+            the answer usually know the exact place, and a photo of it
+            beats any description. Renders nothing when the feature is
+            switched off. */}
+        <VenuePhotoCard />
 
         <div className="space-y-2">
           <div className="flex items-baseline justify-between gap-2">

@@ -1,6 +1,9 @@
 import { describe, expect, it, vi } from "vitest";
 import { randomUUID } from "node:crypto";
-import { designIdForRender } from "@/components/venue-designer/dashboard/render-design-id";
+import {
+  canSendRender,
+  designIdForRender,
+} from "@/components/venue-designer/dashboard/render-design-id";
 
 // The render panel flushes the design save before `ai.renderScene`, and the
 // server refuses the whole render when the id it is sent is not the
@@ -20,5 +23,19 @@ describe("designIdForRender", () => {
     });
     await expect(designIdForRender(saveNow)).resolves.toBeNull();
     expect(saveNow).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe("canSendRender", () => {
+  // Only the saved design tells the server which venue photo to dress, so
+  // a venue render without a design id would be an imagined hall.
+  it("holds a venue render back until there is a design id", () => {
+    expect(canSendRender(null, true)).toBe(false);
+    expect(canSendRender(randomUUID(), true)).toBe(true);
+  });
+
+  it("lets a render without a venue photo go ahead either way", () => {
+    expect(canSendRender(null, false)).toBe(true);
+    expect(canSendRender(randomUUID(), false)).toBe(true);
   });
 });

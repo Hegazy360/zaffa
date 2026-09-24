@@ -89,8 +89,24 @@ describe("toClientMediaMeta", () => {
       mode: "refine",
       instructionRaw: "warmer lights",
       confirmation: "Warmer lighting",
+      venuePublicId: null,
     });
     expect(JSON.stringify(client)).not.toMatch(/cost|model|gpt|instructionEn/i);
+  });
+
+  it("passes the dressed venue photo's public id, the couple's own photo", () => {
+    const client = toClientMediaMeta({
+      mode: "dress_venue",
+      model: "openai/gpt-image-2.5-sunburst",
+      costUsd: 0.057,
+      venuePublicId: "zaffa-venues/u1/lawn",
+    });
+    expect(client).toEqual({
+      mode: "dress_venue",
+      instructionRaw: null,
+      confirmation: null,
+      venuePublicId: "zaffa-venues/u1/lawn",
+    });
   });
 
   it("is null for a row with no readable meta (every render made before F0)", () => {

@@ -25,3 +25,20 @@ export async function designIdForRender(
     return null;
   }
 }
+
+/**
+ * Whether a render may go out with the design id the flush resolved with.
+ *
+ * A couple with a venue photo was told "We'll dress your venue photo", and
+ * the server only ever reads that photo from the saved design, never from
+ * the request. With no design id the render would come back as an imagined
+ * hall and still use up a render (on the free tier, their only one), so a
+ * venue render waits for a save that works. Without a photo a failed save
+ * changes nothing about the image, and the render goes ahead as above.
+ */
+export function canSendRender(
+  designId: string | null,
+  hasVenuePhoto: boolean,
+): boolean {
+  return designId !== null || !hasVenuePhoto;
+}

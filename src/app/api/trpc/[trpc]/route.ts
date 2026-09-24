@@ -4,6 +4,14 @@ import { appRouter } from "@/server/routers/_app";
 import { createTRPCContext } from "@/server/trpc";
 import { reportError } from "@/lib/logger";
 
+// Every render runs inside this one route. A prompt-only render takes
+// ~24s, but dressing a venue photo on the Images API at quality "high"
+// answers nothing until the image is done, and a live call was still
+// waiting at 84s. Left to the platform default, a slow one would be cut
+// off after the provider had billed it. 300s is the ceiling the cron
+// routes already run under.
+export const maxDuration = 300;
+
 // Treat user-fault TRPC errors as expected and skip the noisy report.
 // Anything else (INTERNAL_SERVER_ERROR, UNRECOGNIZED, server crashes)
 // gets reported through the central reporter.

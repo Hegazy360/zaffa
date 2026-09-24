@@ -31,13 +31,23 @@ import {
 } from "@/types/venue-designer";
 import { usePackPaywall } from "@/components/vision-pack/VisionPackPaywallProvider";
 import { EmailGateOverlay } from "./EmailGateOverlay";
-import { designIdForRender } from "./render-design-id";
+import { canSendRender, designIdForRender } from "./render-design-id";
+import {
+  RENDER_RECOVERY_POLL_MS,
+  RENDER_RECOVERY_WINDOW_MS,
+  findLandedRender,
+  renderMayHaveLanded,
+  renderOutcomeUnknown,
+} from "./render-recovery";
 import { Turnstile } from "@/components/security/Turnstile";
 import { useIsAnonymous } from "@/lib/use-is-anonymous";
 import { isFreePack, packAllowsVideo } from "@/lib/vision-pack";
 import { LockableAction } from "@/components/ui/lockable-action";
 import { useConfirm } from "@/components/ui/confirm";
 import { MediaImage } from "@/components/ui/media-image";
+import { CompareSlider } from "@/components/ui/compare-slider";
+import { useDesignerFlag } from "@/components/venue-designer/designer-flags-provider";
+import { compareBeforePhoto, type LineageRow } from "@/lib/venue-photo";
 
 interface GenerateRenderPanelProps {
   designId?: string;
@@ -99,6 +109,14 @@ export function GenerateRenderPanel({
   const setActiveRenderMediaId = useVenueDesignerStore(
     (s) => s.setActiveRenderMediaId,
   );
+  const activeRenderMediaId = useVenueDesignerStore(
+    (s) => s.activeRenderMediaId,
+  );
+  // F1: with a venue photo the server dresses that photo, and the photo
+  // alone is enough to render (no mood references needed).
+  const venuePhotoEnabled = useDesignerFlag("venuePhoto");
+  const storedVenuePhoto = useVenueDesignerStore((s) => s.venuePhoto);
+  const venuePhoto = venuePhotoEnabled ? storedVenuePhoto : null;
 
   const [resultImage, setResultImage] = useState<string | null>(null);
   const [view, setView] = useState<View>("form");
@@ -106,12 +124,22 @@ export function GenerateRenderPanel({
   const [videoUrl, setVideoUrl] = useState<string | null>(null);
   const [videoError, setVideoError] = useState<string | null>(null);
   const [renderError, setRenderError] = useState<string | null>(null);
-  // True while the design save is flushed ahead of a render, the gap
-  // before the render mutation itself is pending. The ref is the guard (a
-  // double tap lands before the re-render that disables the button), the
-  // state drives the button.
-  const [flushingSave, setFlushingSave] = useState(false);
+  // True while the design save is flushed ahead of a render (and, after a
+  // render lost in transit, while we look for it), the gap before the
+  // render mutation itself is pending. The ref is the guard (a double tap
+  // lands before the re-render that disables the button), the state drives
+  // the button.
+  const [preparingRender, setPreparingRender] = useState(false);
   const renderStartingRef = useRef(false);
+  // Render ids the design held when the couple pressed Generate, and the
+  // watch that uses them after a render failed without an answer: the
+  // server may have finished it anyway (see render-recovery.ts).
+  const knownRenderIdsRef = useRef<ReadonlySet<string>>(new Set());
+  const [recovery, setRecovery] = useState<{
+    designId: string;
+    knownIds: ReadonlySet<string>;
+    until: number;
+  } | null>(null);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const utils = trpc.useUtils();
@@ -150,9 +178,14 @@ export function GenerateRenderPanel({
   // Past renders for this design, fetched once and kept fresh by invalidating
   // after each save/delete. TRPC + react-query dedupe with the parent query in
   // VenueDesigner so this is effectively free.
+  // Polled while a render lost in transit may still land (react-query
+  // skips the interval while the tab is hidden).
   const { data: design } = trpc.venueDesigns.getById.useQuery(
     { id: designId! },
-    { enabled: !!designId }
+    {
+      enabled: !!designId,
+      refetchInterval: recovery ? RENDER_RECOVERY_POLL_MS : false,
+    }
   );
   const allMedia = useMemo(() => design?.media ?? [], [design?.media]);
 
@@ -168,6 +201,7 @@ export function GenerateRenderPanel({
   }, [references]);
 
   const totalRefs = flatRefs.length;
+  const canRender = totalRefs > 0 || venuePhoto !== null;
 
   const [pendingEmailGate, setPendingEmailGate] = useState<{
     renderId: string | null;
@@ -224,11 +258,37 @@ export function GenerateRenderPanel({
     setActiveRenderMediaId(latestRender.id);
   }, [isAnon, latestRender, resultImage, view, setActiveRenderMediaId]);
 
+  // The render the server just dressed, known from the response before the
+  // design refetch brings its row (and meta) back. Only used to decide the
+  // compare slider, so the slider is there the moment the render lands.
+  const [justDressed, setJustDressed] = useState<LineageRow | null>(null);
+  const lineageRows = useMemo<LineageRow[]>(() => {
+    const rows: LineageRow[] = allMedia
+      .filter((m) => m.type === "render")
+      .map((m) => ({
+        id: m.id,
+        parent_id: m.parent_id,
+        mode: m.meta?.mode ?? null,
+        venuePublicId: m.meta?.venuePublicId ?? null,
+      }));
+    if (justDressed && !rows.some((r) => r.id === justDressed.id)) {
+      rows.push(justDressed);
+    }
+    return rows;
+  }, [allMedia, justDressed]);
+  // The "before" for the render on screen, or null for the plain image.
+  const beforePhoto = compareBeforePhoto(
+    activeRenderMediaId,
+    lineageRows,
+    venuePhoto,
+  );
+
   const renderMutation = trpc.ai.renderScene.useMutation({
     onSuccess: (data, variables) => {
       // Clear any banner left over from a previous failed attempt, the
       // form branch unmounts on success but the state outlives it.
       setRenderError(null);
+      setRecovery(null);
       // The displayed URL is tier-aware: free tier sees the signed
       // watermarked transformation; paid tiers see the clean asset.
       setResultImage(data.imageUrl);
@@ -243,6 +303,17 @@ export function GenerateRenderPanel({
         // The server wrote the media row itself, nothing left to save.
         lastRenderMediaIdRef.current = data.mediaId;
         setActiveRenderMediaId(data.mediaId);
+        setJustDressed(
+          data.mode === "dress_venue"
+            ? {
+                id: data.mediaId,
+                parent_id: null,
+                mode: "dress_venue",
+                // The save flushed before the render carried this photo.
+                venuePublicId: venuePhoto?.publicId ?? null,
+              }
+            : null,
+        );
         if (renderDesignId) {
           utils.venueDesigns.getById.invalidate({ id: renderDesignId });
         }
@@ -276,12 +347,44 @@ export function GenerateRenderPanel({
       // re-renders with the decremented count without a full reload.
       utils.visionPacks.current.invalidate();
     },
-    onError: (err) => {
+    onError: (err, variables) => {
       // Turnstile tokens are single-use, even when the failure was on
       // a different layer, force a refresh so the next attempt has a
       // fresh challenge ready.
       setTurnstileToken(null);
       setTurnstileResetKey((k) => k + 1);
+      // No answer is not a "no". A dress takes about a minute, and a phone
+      // that switches apps mid-wait drops the request while the server
+      // carries on, writes the row and spends the render. Refetch the
+      // design and the pack so that render shows up (for an anonymous
+      // visitor, the hydration effect above then mounts the email gate)
+      // instead of a retry running into the paywall over a render they
+      // already have. Without an answer at all, keep watching until it can
+      // no longer land.
+      const lostDesignId = variables.designId ?? designId ?? null;
+      if (renderMayHaveLanded(err)) {
+        if (lostDesignId) {
+          utils.venueDesigns.getById.invalidate({ id: lostDesignId });
+        }
+        utils.visionPacks.current.invalidate();
+      }
+      if (renderOutcomeUnknown(err) && lostDesignId) {
+        setRecovery({
+          designId: lostDesignId,
+          knownIds: knownRenderIdsRef.current,
+          until: Date.now() + RENDER_RECOVERY_WINDOW_MS,
+        });
+        setRenderError(t("renderInterrupted"));
+        toast.error(t("renderInterrupted"));
+        return;
+      }
+      // The server's zero-input backstop: nothing to render from (no mood
+      // reference and no venue photo it could use).
+      if (err.message === "REFERENCES_REQUIRED") {
+        setRenderError(t("needRefBeforeRender"));
+        toast.error(t("needRefBeforeRender"));
+        return;
+      }
       // Pack-paywall errors (PACK_REQUIRED / PACK_QUOTA_RENDERS /
       // PACK_WINDOW_EXPIRED) pop the modal instead of toast-ing. Anything
       // else falls through to the existing render-failed toast.
@@ -309,6 +412,42 @@ export function GenerateRenderPanel({
       toast.error(t("renderFailed"));
     },
   });
+
+  // A render lost in transit turned up on the design: show it as if the
+  // response had arrived. An anonymous visitor gets the email gate through
+  // `isAnon && resultImage`, as after any refresh.
+  const showLandedRender = useCallback(
+    (landed: { id: string; url: string }) => {
+      setRecovery(null);
+      setRenderError(null);
+      setResultImage(landed.url);
+      setView("image");
+      lastRenderMediaIdRef.current = landed.id;
+      setActiveRenderMediaId(landed.id);
+      utils.visionPacks.current.invalidate();
+    },
+    [setActiveRenderMediaId, utils],
+  );
+
+  useEffect(() => {
+    if (!recovery || view !== "form") return;
+    const landed = findLandedRender(allMedia, recovery.knownIds);
+    if (landed) showLandedRender(landed);
+  }, [recovery, allMedia, view, showLandedRender]);
+
+  // Past the route's time limit nothing more can land: stop polling and
+  // say plainly that it failed, so pressing Generate again reads as a retry.
+  useEffect(() => {
+    if (!recovery) return;
+    const timer = setTimeout(
+      () => {
+        setRecovery(null);
+        setRenderError(t("renderFailed"));
+      },
+      Math.max(0, recovery.until - Date.now()),
+    );
+    return () => clearTimeout(timer);
+  }, [recovery, t]);
 
   const videoMutation = trpc.ai.startVideo.useMutation({
     onSuccess: (data) => {
@@ -365,28 +504,52 @@ export function GenerateRenderPanel({
   const handleRender = useCallback(async () => {
     if (renderStartingRef.current || renderMutation.isPending) return;
     setRenderError(null);
-    if (totalRefs === 0) {
+    if (!canRender) {
       toast.error(t("needRefBeforeRender"));
       return;
     }
     renderStartingRef.current = true;
+    setPreparingRender(true);
     try {
+      // The last render died in transit: look before paying for another.
+      // If the server finished it, that is the render they asked for.
+      if (recovery) {
+        const lost = recovery;
+        setRecovery(null);
+        try {
+          const fresh = await utils.venueDesigns.getById.fetch(
+            { id: lost.designId },
+            { staleTime: 0 },
+          );
+          const landed = findLandedRender(fresh?.media ?? [], lost.knownIds);
+          if (landed) {
+            showLandedRender(landed);
+            return;
+          }
+        } catch {
+          // Still offline, most likely: the render below says so itself.
+        }
+      }
       // Flush the design first so the server can attach the render to it
       // (a new design gets its id from this very save). If the save fails
       // the render still goes ahead, with no design id: refusing a couple
       // their render over an autosave hiccup is worse than the old
       // client-side save path, which the server falls back to when it has
       // no design to write to. See `designIdForRender` for why the id we
-      // already had is not sent instead.
+      // already had is not sent instead. The exception is a venue render,
+      // which only the saved design can carry (see `canSendRender`).
       let renderDesignId = designId ?? null;
       if (saveNow) {
-        setFlushingSave(true);
-        try {
-          renderDesignId = await designIdForRender(saveNow);
-        } finally {
-          setFlushingSave(false);
-        }
+        renderDesignId = await designIdForRender(saveNow);
       }
+      if (!canSendRender(renderDesignId, venuePhoto !== null)) {
+        setRenderError(t("venuePhoto.saveFailed"));
+        toast.error(t("venuePhoto.saveFailed"));
+        return;
+      }
+      knownRenderIdsRef.current = new Set(
+        allMedia.filter((m) => m.type === "render").map((m) => m.id),
+      );
       renderMutation.mutate({
         eventType,
         setting,
@@ -399,6 +562,7 @@ export function GenerateRenderPanel({
         designId: renderDesignId,
       });
     } finally {
+      setPreparingRender(false);
       renderStartingRef.current = false;
     }
   }, [
@@ -410,11 +574,16 @@ export function GenerateRenderPanel({
     palette,
     flatRefs,
     styleNotes,
-    totalRefs,
+    canRender,
     t,
     turnstileToken,
     designId,
     saveNow,
+    venuePhoto,
+    allMedia,
+    recovery,
+    utils,
+    showLandedRender,
   ]);
 
   const handleMakeVideo = useCallback(() => {
@@ -586,10 +755,30 @@ export function GenerateRenderPanel({
                 ) : (
                   <span className="text-muted-foreground">
                     {", "}
-                    {t("summaryNoRefs")}
+                    {venuePhoto
+                      ? t("venuePhoto.summaryNoRefs")
+                      : t("summaryNoRefs")}
                   </span>
                 )}
               </p>
+              {venuePhoto ? (
+                <div
+                  data-venue-photo-summary=""
+                  className="mt-3 flex items-center gap-3 border-t border-border/60 pt-3"
+                >
+                  <div className="relative h-12 w-16 shrink-0 overflow-hidden rounded-md border bg-muted">
+                    <MediaImage
+                      src={venuePhoto.url}
+                      alt={t("venuePhoto.thumbAlt")}
+                      fill
+                      sizes="thumb"
+                    />
+                  </div>
+                  <p className="text-sm font-medium">
+                    {t("venuePhoto.summaryDressing")}
+                  </p>
+                </div>
+              ) : null}
             </div>
 
             {isAnon ? (
@@ -604,15 +793,14 @@ export function GenerateRenderPanel({
             <Button
               size="lg"
               onClick={handleRender}
-              disabled={
-                renderMutation.isPending || flushingSave || totalRefs === 0
-              }
+              disabled={renderMutation.isPending || preparingRender || !canRender}
+              data-generate-render=""
               className="h-12 w-full gap-2 bg-rose-500 text-base text-white hover:bg-rose-600 sm:h-11 sm:text-sm"
             >
-              {renderMutation.isPending || flushingSave ? (
+              {renderMutation.isPending || preparingRender ? (
                 <>
                   <Loader2 className="size-4 animate-spin" />
-                  {t("rendering")}
+                  {venuePhoto ? t("venuePhoto.rendering") : t("rendering")}
                 </>
               ) : (
                 <>
@@ -640,10 +828,16 @@ export function GenerateRenderPanel({
               short and tappable on phones (no two-line wrap), while the
               expectation-setting copy stays visible the whole time -
               before, during, and after the request - instead of only
-              flashing in the loading state.
+              flashing in the loading state. Dressing a venue photo takes
+              about a minute rather than half of one, and a couple told 30
+              seconds leaves (or switches apps and drops the request) while
+              the spinner still looks stuck.
             */}
-            <p className="-mt-2 text-center text-xs text-muted-foreground">
-              {t("renderTimeHint")}
+            <p
+              data-render-time-hint=""
+              className="-mt-2 text-center text-xs text-muted-foreground"
+            >
+              {venuePhoto ? t("venuePhoto.renderTimeHint") : t("renderTimeHint")}
             </p>
           </>
         )}
@@ -680,6 +874,20 @@ export function GenerateRenderPanel({
                     loop
                     playsInline
                     className="h-auto w-full animate-in fade-in duration-500"
+                  />
+                ) : resultImage && view === "image" && beforePhoto ? (
+                  // A dressed venue: their own photo and the render in one
+                  // frame, the photo's proportions (the model kept them).
+                  <CompareSlider
+                    before={{ src: beforePhoto.url, alt: t("venuePhoto.thumbAlt") }}
+                    after={{ src: resultImage, alt: t("renderedAlt") }}
+                    width={beforePhoto.width}
+                    height={beforePhoto.height}
+                    sizes="half"
+                    priority
+                    beforeLabel={t("venuePhoto.compareBefore")}
+                    afterLabel={t("venuePhoto.compareAfter")}
+                    label={t("venuePhoto.compareLabel")}
                   />
                 ) : resultImage ? (
                   <>

@@ -219,6 +219,7 @@ describe("venueDesigns.getById (new JSON columns)", () => {
       mode: "refine",
       instructionRaw: "كبّروا الكوشة",
       confirmation: "كبّرنا الكوشة",
+      venuePublicId: null,
     });
   });
 
@@ -383,5 +384,118 @@ describe("reference uploads share the imageUpload bucket", () => {
       expect.any(String),
     );
     expect(upload).not.toHaveBeenCalled();
+  });
+});
+
+describe("venueDesigns.getRenderById (the reveal's before/after)", () => {
+  const RENDER_ID = randomUUID();
+  const ROOT_ID = randomUUID();
+
+  function renderRow(designOverrides: Record<string, unknown> = {}) {
+    return {
+      id: RENDER_ID,
+      type: "render",
+      url: "https://res.cloudinary.com/x/image/upload/v1/zaffa-renders/r2.png",
+      cloudinary_public_id: "zaffa-renders/r2",
+      created_at: new Date(),
+      design: {
+        id: DESIGN_ID,
+        name: "Our hall",
+        event_type: "wedding",
+        setting: "indoor",
+        size: "large",
+        guest_count: 250,
+        palette: { colors: [] },
+        venue_photo: photo(),
+        ...designOverrides,
+      },
+    };
+  }
+
+  // A talked edit (RENDER_ID) of a dress-venue render (ROOT_ID).
+  function lineage(rootMeta: Record<string, unknown>) {
+    return [
+      { id: ROOT_ID, parent_id: null, meta: rootMeta },
+      {
+        id: RENDER_ID,
+        parent_id: ROOT_ID,
+        meta: { mode: "refine", instructionRaw: "more candles" },
+      },
+    ];
+  }
+
+  beforeEach(() => {
+    prismaMock.visionPack.findFirst.mockResolvedValue({
+      id: randomUUID(),
+      sku: "wedding_free_taste_v1",
+    } as never);
+    prismaMock.venueDesignMedia.findFirst.mockResolvedValue(renderRow() as never);
+    prismaMock.venueDesignMedia.findMany.mockResolvedValue(
+      lineage({
+        mode: "dress_venue",
+        model: "openai/gpt-image-2.5-sunburst",
+        costUsd: 0.057,
+        venuePublicId: photo().publicId,
+      }) as never,
+    );
+  });
+
+  it("returns the venue photo for a render descending from a dress-venue render", async () => {
+    const res = await caller().getRenderById({ id: RENDER_ID });
+    expect(res?.venuePhotoUrl).toBe(photo().url);
+    expect(res?.venuePhotoWidth).toBe(2048);
+    expect(res?.venuePhotoHeight).toBe(1536);
+    // The render itself is still the tier URL, and the design leaks no JSON.
+    expect(res?.url).toBe("https://wm.example/zaffa-renders/r2");
+    expect(res?.design).not.toHaveProperty("venue_photo");
+    expect(prismaMock.venueDesignMedia.findMany).toHaveBeenCalledWith({
+      where: { design_id: DESIGN_ID, type: "render" },
+      select: { id: true, parent_id: true, meta: true },
+    });
+  });
+
+  it("returns none for a prompt-only render", async () => {
+    prismaMock.venueDesignMedia.findMany.mockResolvedValue(
+      lineage({ mode: "generate" }) as never,
+    );
+    const res = await caller().getRenderById({ id: RENDER_ID });
+    expect(res?.venuePhotoUrl).toBeNull();
+  });
+
+  it("returns none once the couple replaced the photo that render dressed", async () => {
+    prismaMock.venueDesignMedia.findMany.mockResolvedValue(
+      lineage({
+        mode: "dress_venue",
+        venuePublicId: `zaffa-venues/${USER_ID}/old-hall`,
+      }) as never,
+    );
+    const res = await caller().getRenderById({ id: RENDER_ID });
+    expect(res?.venuePhotoUrl).toBeNull();
+  });
+
+  it("returns none when the design has no photo, or one outside the caller's folder", async () => {
+    prismaMock.venueDesignMedia.findFirst.mockResolvedValue(
+      renderRow({ venue_photo: null }) as never,
+    );
+    expect((await caller().getRenderById({ id: RENDER_ID }))?.venuePhotoUrl).toBeNull();
+
+    const foreign = photo({
+      publicId: `zaffa-venues/${OTHER_USER_ID}/lawn123`,
+      url: `https://res.cloudinary.com/${CLOUD}/image/upload/v1/zaffa-venues/${OTHER_USER_ID}/lawn123.jpg`,
+    });
+    prismaMock.venueDesignMedia.findFirst.mockResolvedValue(
+      renderRow({ venue_photo: foreign }) as never,
+    );
+    prismaMock.venueDesignMedia.findMany.mockResolvedValue(
+      lineage({ mode: "dress_venue", venuePublicId: foreign.publicId }) as never,
+    );
+    expect((await caller().getRenderById({ id: RENDER_ID }))?.venuePhotoUrl).toBeNull();
+  });
+
+  it("returns none while the venuePhoto kill switch is off", async () => {
+    process.env.FLAG_VENUE_PHOTO = "0";
+    const res = await caller().getRenderById({ id: RENDER_ID });
+    expect(res?.venuePhotoUrl).toBeNull();
+    expect(prismaMock.venueDesignMedia.findMany).not.toHaveBeenCalled();
   });
 });

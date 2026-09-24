@@ -11,11 +11,17 @@ import { reportError } from "@/lib/logger";
 import { isFlagEnabled } from "@/lib/flags";
 import { enforceTrpc } from "@/lib/rate-limit";
 import {
+  parseMediaMeta,
   parseVenuePhoto,
   toClientMediaMeta,
   venuePhotoSchema,
   type VenuePhoto,
 } from "@/lib/design-media-meta";
+import {
+  compareBeforePhoto,
+  isOwnVenuePublicId,
+  venuePhotoFolder,
+} from "@/lib/venue-photo";
 import { notifyDesignApproved } from "@/server/services/notifications/dispatchers";
 
 const refSchema = z.object({
@@ -64,15 +70,6 @@ function deriveSize(count: number | null | undefined): "intimate" | "medium" | "
   return "large";
 }
 
-/**
- * Cloudinary folder for a user's venue photos (F1). One folder per user so
- * ownership can be proven from the public id alone: the render path loads
- * the photo from `venue_designs.venue_photo` and must never be steered at
- * someone else's image by a client-supplied value.
- */
-function venuePhotoFolder(userId: string): string {
-  return `zaffa-venues/${userId}`;
-}
 
 /**
  * Accept a venue photo only if it is one `uploadVenuePhoto` could have
@@ -89,9 +86,7 @@ function assertOwnVenuePhoto(photo: VenuePhoto, userId: string): void {
   if (!photo.url.startsWith(`https://res.cloudinary.com/${cloudName}/`)) {
     throw invalid();
   }
-  if (!photo.publicId.startsWith(`${venuePhotoFolder(userId)}/`)) {
-    throw invalid();
-  }
+  if (!isOwnVenuePublicId(photo.publicId, userId)) throw invalid();
   // `.../image/upload/v123/<publicId>.jpg`: the URL must be the asset the
   // public id names, not some other file in our account.
   const path = new URL(photo.url).pathname.replace(/\.[a-z0-9]+$/i, "");
@@ -142,6 +137,37 @@ function urlForTier(
   if (row.type !== "render") return row.url; // Videos aren't watermarked yet.
   if (!row.cloudinary_public_id) return row.url;
   return watermarkedUrl(row.cloudinary_public_id);
+}
+
+/**
+ * The venue photo to show as the "before" of a render on the reveal page,
+ * or null. Reads the design's render rows once and walks the refinement
+ * chain in memory (`compareBeforePhoto`), so a talked edit of a dressed
+ * render still gets its slider. The photo must sit in the caller's own
+ * folder, the same proof `save` demanded when it was attached.
+ */
+async function dressedVenueBefore(
+  mediaId: string,
+  designId: string,
+  photo: VenuePhoto | null,
+  userId: string,
+): Promise<VenuePhoto | null> {
+  if (!photo || !isFlagEnabled("venuePhoto")) return null;
+  if (!isOwnVenuePublicId(photo.publicId, userId)) return null;
+  const rows = await prisma.venueDesignMedia.findMany({
+    where: { design_id: designId, type: "render" },
+    select: { id: true, parent_id: true, meta: true },
+  });
+  const lineage = rows.map((r) => {
+    const meta = parseMediaMeta(r.meta);
+    return {
+      id: r.id,
+      parent_id: r.parent_id,
+      mode: meta?.mode ?? null,
+      venuePublicId: meta?.venuePublicId ?? null,
+    };
+  });
+  return compareBeforePhoto(mediaId, lineage, photo);
 }
 
 export const venueDesignsRouter = router({
@@ -351,6 +377,11 @@ export const venueDesignsRouter = router({
    * tier-appropriate URL (watermarked for free tier, clean for paid).
    * Scoped to the caller's own designs so a leaked render id can't
    * expose someone else's preview.
+   *
+   * When the render dressed the couple's venue photo (or was refined from
+   * one that did) it also returns that photo, the "before" of the reveal's
+   * compare slider. Same rule as the designer (`compareBeforePhoto`), and
+   * nothing at all while the venuePhoto kill switch is off.
    */
   getRenderById: protectedProcedure
     .input(z.object({ id: z.string().uuid() }))
@@ -377,6 +408,7 @@ export const venueDesignsRouter = router({
                 size: true,
                 guest_count: true,
                 palette: true,
+                venue_photo: true,
               },
             },
           },
@@ -385,13 +417,24 @@ export const venueDesignsRouter = router({
       ]);
       if (!media) return null;
       const isFreeTier = isFreePack(pack?.sku);
+      const { venue_photo: venuePhotoJson, ...design } = media.design;
+      const before = await dressedVenueBefore(
+        media.id,
+        design.id,
+        parseVenuePhoto(venuePhotoJson),
+        ctx.user.id,
+      );
       return {
         id: media.id,
         url: urlForTier(media, isFreeTier),
         watermarked: isFreeTier,
         created_at: media.created_at,
-        design: media.design,
+        design,
         packSku: pack?.sku ?? null,
+        // The couple's own photo, never watermarked: it is theirs.
+        venuePhotoUrl: before?.url ?? null,
+        venuePhotoWidth: before?.width ?? null,
+        venuePhotoHeight: before?.height ?? null,
       };
     }),
 

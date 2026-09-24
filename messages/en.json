@@ -676,7 +676,25 @@
     "homeMetaDescription": "Restyle a sample wedding in one tap, then design yours with a free AI render. When you love it, we can build the whole day - venue, vendors, everything.",
     "homeMetaOgDescription": "A real AI render of your wedding, free, in about thirty seconds - and a team that can build the whole day when you're ready.",
     "studioRestyleHint": "Tap to restyle this sample",
-    "studioVibe_outdoor_sunset": "Outdoors at sunset"
+    "studioVibe_outdoor_sunset": "Outdoors at sunset",
+    "venueDressed": {
+      "aria": "Your venue, dressed",
+      "eyebrow": "Dress your own venue",
+      "title": "Your venue, dressed.",
+      "subtitle": "Upload a photo of the hall or garden you booked. We keep every wall, column and palm where it is, and dress it for your night.",
+      "tabsLabel": "Choose an example",
+      "tabHall": "Wedding hall",
+      "tabGarden": "Garden",
+      "before": "Before",
+      "after": "After",
+      "compareLabel": "Drag to compare the venue before and after",
+      "hallBeforeAlt": "An empty wedding hall with boxes and plastic chairs",
+      "hallAfterAlt": "The same hall dressed for a wedding with round tables, white florals and a draped ceiling",
+      "gardenBeforeAlt": "An empty lawn lined with palm trees",
+      "gardenAfterAlt": "The same lawn at golden hour with long tables, candles and string lights between the palms",
+      "cta": "Dress my venue",
+      "note": "Both examples started as real photos."
+    }
   },
   "dashboard": {
     "vendorWelcome": "Welcome back, {name}",
@@ -2109,12 +2127,35 @@
     "renderFailed": "Render failed. Please try again.",
     "videoFailed": "Video generation failed. Please try again.",
     "renderRateLimited": "You have made a lot of render requests. Please try again a little later.",
+    "renderInterrupted": "The connection dropped while we were making your design. If it finished, it will show up here in a moment.",
     "downloadFailed": "Could not download the image. Please try again.",
     "needRefBeforeRender": "Add at least one inspiration reference before rendering.",
     "metaTitle": "Design your day, Zaffa",
     "approveDesign": "This is the one, plan it for us",
     "approvedToast": "Beautiful choice. We'll be in touch soon.",
-    "approvedCta": "Approved, we're on it"
+    "approvedCta": "Approved, we're on it",
+    "venuePhoto": {
+      "title": "Your venue",
+      "hint": "Already booked your venue? Add a photo and we'll dress that exact space.",
+      "add": "Add a photo of your venue",
+      "uploading": "Uploading your photo…",
+      "replace": "Replace",
+      "remove": "Remove",
+      "tip": "Tip: stand where your guests will walk in and shoot wide. An empty space is fine.",
+      "thumbAlt": "Your venue photo",
+      "errorDecode": "We couldn't open that photo. Try a JPEG or PNG, or take a screenshot of it and upload that.",
+      "errorNotImage": "That file isn't a photo. Pick an image of your venue.",
+      "errorUpload": "The upload didn't go through. Check your connection and try again.",
+      "errorRateLimited": "Too many uploads for now. Please try again in an hour.",
+      "summaryDressing": "We'll dress your venue photo",
+      "summaryNoRefs": "no mood references needed, your venue photo is enough.",
+      "renderTimeHint": "Dressing your own venue takes about a minute. Keep this tab open.",
+      "rendering": "Dressing your venue…",
+      "saveFailed": "We couldn't save your design, so we haven't started on your venue photo and nothing was used up. Please try again.",
+      "compareBefore": "Before",
+      "compareAfter": "After",
+      "compareLabel": "Drag to compare your venue before and after"
+    }
   },
   "plannerInspiration": {
     "sectionAria": "Couple's inspiration board",

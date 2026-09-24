@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import { router, protectedProcedure } from "../trpc";
-import { renderScene } from "../ai/scene-generator";
+import { dressVenueScene, renderScene } from "../ai/scene-generator";
 import { startVideoGeneration, getVideoStatus } from "../ai/video-generator";
 import {
   enforceTrpc,
@@ -16,11 +16,17 @@ import {
   requireActivePack,
 } from "./vision-packs";
 import { isFreePack, packAllowsVideo } from "@/lib/vision-pack";
-import { watermarkedUrl } from "@/lib/cloudinary";
+import { venueModelInputUrl, watermarkedUrl } from "@/lib/cloudinary";
 import { verifyTurnstile } from "@/lib/turnstile";
 import { prisma } from "@/lib/prisma";
 import { reportError } from "@/lib/logger";
-import type { MediaMeta } from "@/lib/design-media-meta";
+import {
+  parseVenuePhoto,
+  type MediaMeta,
+  type MediaMode,
+} from "@/lib/design-media-meta";
+import { isFlagEnabled } from "@/lib/flags";
+import { isOwnVenuePublicId } from "@/lib/venue-photo";
 
 const referenceCategorySchema = z.enum([
   "overall_vibe",
@@ -91,14 +97,54 @@ export const aiRouter = router({
       // pack is minted. A foreign or deleted id is a NOT_FOUND here, not a
       // paid render whose row then fails to insert.
       const designId = input.designId ?? null;
+      // The couple's venue photo, when this render should dress it (F1).
+      // Resolved from the design row on the server, never from the
+      // request: the image model fetches whatever URL we hand it, so a
+      // client-chosen URL would let anyone bill us for dressing any photo
+      // on the internet, or someone else's venue.
+      let venue: { url: string; publicId: string } | null = null;
       if (designId) {
         const owned = await prisma.venueDesign.findFirst({
           where: { id: designId, user_id: ctx.user.id },
-          select: { id: true },
+          select: { id: true, venue_photo: true },
         });
         if (!owned) {
           throw new TRPCError({ code: "NOT_FOUND", message: "Design not found" });
         }
+        const photo = parseVenuePhoto(owned.venue_photo);
+        // Checked here as well as in the UI: the procedure is the kill
+        // switch that cannot lag a flag flip. Off renders the old way.
+        if (photo && isFlagEnabled("venuePhoto")) {
+          if (isOwnVenuePublicId(photo.publicId, ctx.user.id)) {
+            venue = {
+              url: venueModelInputUrl(photo.publicId),
+              publicId: photo.publicId,
+            };
+          } else {
+            // `save` only ever stores a photo from the caller's own folder,
+            // so this is a hand-edited or corrupted row. Render without it
+            // rather than refuse the couple their render, and say so.
+            reportError(
+              "ai.render_scene.venue_photo_foreign",
+              new Error("venue photo outside the caller's folder"),
+              { userId: ctx.user.id, designId, publicId: photo.publicId },
+            );
+          }
+        }
+      }
+      const mode: MediaMode = venue ? "dress_venue" : "generate";
+
+      // Nothing to render from: no mood reference and no venue photo we
+      // can use. The panel lets a couple render on their venue photo alone,
+      // so this is a venue render that lost its photo on the way (no design
+      // id, the kill switch flipped mid-session, a photo outside their
+      // folder). They asked for their venue, not an imagined hall, so it is
+      // refused before a free pack is minted or a render is counted.
+      if (!venue && input.references.length === 0) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "REFERENCES_REQUIRED",
+        });
       }
 
       // Free-tier auto-grant: anonymous (or not-yet-paid) users hitting
@@ -146,7 +192,23 @@ export const aiRouter = router({
         await enforceTrpc("aiRenderFreePerIp", ip, "FREE_RENDER_RATE_LIMITED");
       }
 
-      const result = await renderScene(input);
+      // Same quota, limits and bot check as a prompt-only render: dressing
+      // a photo is still one render to the couple, and cheaper to us.
+      let result: Awaited<ReturnType<typeof renderScene>>;
+      if (venue) {
+        try {
+          result = await dressVenueScene(input, venue);
+        } catch (err) {
+          reportError("ai.render_scene.dress_venue_failed", err, {
+            userId: ctx.user.id,
+            designId,
+            publicId: venue.publicId,
+          });
+          throw err;
+        }
+      } else {
+        result = await renderScene(input);
+      }
       // Atomically decrement the quota. Done after a successful render
       // so a failed OpenAI call doesn't burn a slot from the pack.
       await consumeQuota(pack.id, "render");
@@ -185,9 +247,12 @@ export const aiRouter = router({
         // `satisfies` rather than a `MediaMeta` annotation: the schema's
         // loose index signature is not a Prisma JSON input, this literal is.
         const meta = {
-          mode: "generate" as const,
+          mode,
           model: result.model,
           ...(result.costUsd != null ? { costUsd: result.costUsd } : {}),
+          // Which photo was the "before", so the compare slider can tell
+          // whether the photo on the design now is still this one.
+          ...(venue ? { venuePublicId: venue.publicId } : {}),
         } satisfies MediaMeta;
         try {
           const row = await prisma.venueDesignMedia.create({
@@ -222,7 +287,7 @@ export const aiRouter = router({
       // toward a finished design. Tracking the input shape (event type,
       // setting, palette size) lets us compare conversion across config.
       await trackServer(ctx.user.id, ANALYTICS_EVENTS.DESIGN_RENDER_GENERATED, {
-        mode: "generate",
+        mode,
         event_type: input.eventType,
         setting: input.setting,
         size: input.size,
@@ -248,6 +313,9 @@ export const aiRouter = router({
         mediaId,
         // What the client should render right now.
         imageUrl,
+        // How it was made. `dress_venue` tells the panel to show the
+        // before/after slider before the design refetch lands.
+        mode,
         text: result.text,
         // True iff the visitor is currently on the free tier, the UI
         // mounts the email gate when this is set.
