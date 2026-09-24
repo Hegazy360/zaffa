@@ -22,6 +22,58 @@ describe("suggestEmail", () => {
     }
   });
 
+  it("leaves real providers we do not list alone, even one slip from one we do", () => {
+    // Each of these used to be "corrected" into an address the person does
+    // not own: ymail.com is Yahoo, hotmail.de is Hotmail in Germany.
+    for (const ok of [
+      "noor@ymail.com",
+      "noor@rocketmail.com",
+      "noor@mail.com",
+      "noor@email.com",
+      "noor@googlemail.com",
+      "noor@gmx.net",
+      "noor@hotmail.de",
+      "noor@hotmail.it",
+      "noor@hotmail.es",
+      "noor@hotmail.be",
+      "noor@hotmail.nl",
+      "noor@hotmail.ca",
+      "noor@hotmail.fi",
+      "noor@hotmail.gr",
+      "noor@yahoo.de",
+      "noor@yahoo.es",
+      "noor@yahoo.ca",
+      "noor@yahoo.gr",
+      "noor@yahoo.co.jp",
+      "noor@outlook.de",
+      "noor@outlook.es",
+      "noor@outlook.sa",
+      "noor@outlook.ae",
+      "noor@live.ca",
+      "noor@live.fr",
+    ]) {
+      expect(suggestEmail(ok), ok).toBeNull();
+    }
+  });
+
+  it("never swaps one real ending for another, listed or not", () => {
+    // Not on any list: the rule itself, not an allowlist, keeps these.
+    expect(suggestEmail("noor@hotmail.lu")).toBeNull();
+    expect(suggestEmail("noor@yahoo.co.kr")).toBeNull();
+    expect(suggestEmail("noor@outlook.kw")).toBeNull();
+    // A misspelled name under another real ending is not guessed at either.
+    expect(suggestEmail("noor@hotmial.de")).toBeNull();
+  });
+
+  it("fixes an ending one key off, and a lost dot", () => {
+    expect(suggestEmail("noor@gmail.cim")).toBe("noor@gmail.com");
+    expect(suggestEmail("noor@gmail.com.")).toBe("noor@gmail.com");
+    expect(suggestEmail("noor@gmail,com")).toBe("noor@gmail.com");
+    expect(suggestEmail("noor@hotmail.fe")).toBe("noor@hotmail.fr");
+    expect(suggestEmail("noor@hotmail.co.ul")).toBe("noor@hotmail.co.uk");
+    expect(suggestEmail("noor@gmial.con")).toBe("noor@gmail.com");
+  });
+
   it("fixes swapped, missing and extra letters in the name", () => {
     expect(suggestEmail("noor@gmial.com")).toBe("noor@gmail.com");
     expect(suggestEmail("noor@gmal.com")).toBe("noor@gmail.com");
