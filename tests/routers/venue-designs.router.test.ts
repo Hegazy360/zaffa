@@ -36,6 +36,10 @@ const COUPLE = { id: USER_ID, email: "noor@example.com", is_anonymous: false };
 
 beforeEach(() => {
   vi.clearAllMocks();
+  // Approval and lead are one transaction; the callback runs against the
+  // same mock, so assertions on prismaMock see the writes made inside it.
+  prismaMock.$transaction.mockImplementation((async (fn: unknown) =>
+    (fn as (tx: typeof prismaMock) => Promise<unknown>)(prismaMock)) as never);
   prismaMock.venueDesign.updateMany.mockResolvedValue({ count: 1 } as never);
   prismaMock.venueDesign.findUniqueOrThrow.mockResolvedValue({
     name: "Garden Nikah",
@@ -112,6 +116,109 @@ describe("venueDesigns.approve", () => {
       enquiryId: ENQUIRY_ID,
       detailsAdded: false,
     });
+    expect(prismaMock.enquiry.create).not.toHaveBeenCalled();
+    expect(notifyDesignApproved).not.toHaveBeenCalled();
+  });
+
+  it("files the approval and its lead in one transaction", async () => {
+    await caller(COUPLE).approve({ designId: DESIGN_ID });
+    expect(prismaMock.$transaction).toHaveBeenCalledOnce();
+    expect(prismaMock.enquiry.create).toHaveBeenCalledOnce();
+  });
+
+  it("a lead lost to a failed create is filed by the retry, not reported as filed", async () => {
+    // A small stand-in for the database: the approval flag, the leads, and
+    // a transaction that puts both back when its callback throws.
+    let approvedAt: Date | null = null;
+    let leads: string[] = [];
+    prismaMock.$transaction.mockImplementation((async (fn: unknown) => {
+      const before = { approvedAt, leads: [...leads] };
+      try {
+        return await (fn as (tx: typeof prismaMock) => Promise<unknown>)(prismaMock);
+      } catch (err) {
+        approvedAt = before.approvedAt;
+        leads = before.leads;
+        throw err;
+      }
+    }) as never);
+    prismaMock.venueDesign.updateMany.mockImplementation((async (args: {
+      where: { approved_at?: null };
+      data: { approved_at?: Date };
+    }) => {
+      if ("approved_at" in args.where && approvedAt) return { count: 0 };
+      if (args.data.approved_at) approvedAt = args.data.approved_at;
+      return { count: 1 };
+    }) as never);
+    prismaMock.venueDesign.findFirst.mockResolvedValue({ id: DESIGN_ID } as never);
+    prismaMock.enquiry.findFirst.mockImplementation((async () =>
+      leads.length ? { id: leads[0] } : null) as never);
+    prismaMock.enquiry.create
+      .mockRejectedValueOnce(new Error("pool timeout"))
+      .mockImplementation((async () => {
+        leads.push(ENQUIRY_ID);
+        return { id: ENQUIRY_ID };
+      }) as never);
+
+    await expect(caller(COUPLE).approve({ designId: DESIGN_ID })).rejects.toThrow();
+    // The failed create took the approval back with it.
+    expect(approvedAt).toBeNull();
+    expect(notifyDesignApproved).not.toHaveBeenCalled();
+
+    const retry = await caller(COUPLE).approve({ designId: DESIGN_ID });
+    expect(retry).toEqual({
+      ok: true,
+      alreadyApproved: false,
+      enquiryId: ENQUIRY_ID,
+      detailsAdded: false,
+    });
+    expect(leads).toEqual([ENQUIRY_ID]);
+    expect(notifyDesignApproved).toHaveBeenCalledOnce();
+
+    // And the click after that is the idempotent one.
+    const third = await caller(COUPLE).approve({ designId: DESIGN_ID });
+    expect(third).toMatchObject({ alreadyApproved: true, enquiryId: ENQUIRY_ID });
+    expect(leads).toEqual([ENQUIRY_ID]);
+    expect(notifyDesignApproved).toHaveBeenCalledOnce();
+  });
+
+  it("files the lead for a design approved without one, instead of saying the team has it", async () => {
+    // approved_at set, no design_approved enquiry: the state an approval
+    // whose create failed before the transaction existed was left in.
+    prismaMock.venueDesign.updateMany
+      .mockResolvedValueOnce({ count: 0 } as never) // the conditional flip
+      .mockResolvedValue({ count: 1 } as never); // the re-stamp
+    prismaMock.venueDesign.findFirst.mockResolvedValue({ id: DESIGN_ID } as never);
+    prismaMock.enquiry.findFirst.mockResolvedValue(null as never);
+
+    const res = await caller(COUPLE).approve({ designId: DESIGN_ID });
+    expect(res).toEqual({
+      ok: true,
+      alreadyApproved: false,
+      enquiryId: ENQUIRY_ID,
+      detailsAdded: false,
+    });
+    expect(prismaMock.enquiry.create).toHaveBeenCalledOnce();
+    expect(notifyDesignApproved).toHaveBeenCalledOnce();
+    // The re-stamp is scoped to the caller's design and runs before the
+    // second look, so a twin recovering the same design waits on the row.
+    expect(prismaMock.venueDesign.updateMany).toHaveBeenNthCalledWith(2, {
+      where: { id: DESIGN_ID, user_id: USER_ID },
+      data: { approved_at: expect.any(Date) },
+    });
+    expect(prismaMock.enquiry.findFirst).toHaveBeenCalledTimes(2);
+  });
+
+  it("a twin that waited on the re-stamp hands back the lead the other one filed", async () => {
+    prismaMock.venueDesign.updateMany
+      .mockResolvedValueOnce({ count: 0 } as never)
+      .mockResolvedValue({ count: 1 } as never);
+    prismaMock.venueDesign.findFirst.mockResolvedValue({ id: DESIGN_ID } as never);
+    prismaMock.enquiry.findFirst
+      .mockResolvedValueOnce(null as never)
+      .mockResolvedValueOnce({ id: ENQUIRY_ID } as never);
+
+    const res = await caller(COUPLE).approve({ designId: DESIGN_ID });
+    expect(res).toMatchObject({ alreadyApproved: true, enquiryId: ENQUIRY_ID });
     expect(prismaMock.enquiry.create).not.toHaveBeenCalled();
     expect(notifyDesignApproved).not.toHaveBeenCalled();
   });

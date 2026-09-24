@@ -292,119 +292,157 @@ export const venueDesignsRouter = router({
       }
 
       const details = resolveLeadDetails(input);
-
-      // Conditional write doubles as the idempotency guard: only the call
-      // that flips `approved_at` from null proceeds to create the lead, so a
-      // re-click (or a replayed request) can never spam every admin twice.
-      const flipped = await prisma.venueDesign.updateMany({
-        where: { id: input.designId, user_id: ctx.user.id, approved_at: null },
-        data: {
-          approved_at: new Date(),
-          ...(input.mediaId ? { selected_media_id: input.mediaId } : {}),
-        },
-      });
-
-      if (flipped.count === 0) {
-        const design = await prisma.venueDesign.findFirst({
-          where: { id: input.designId, user_id: ctx.user.id },
-          select: { id: true },
-        });
-        if (!design) {
-          throw new TRPCError({ code: "NOT_FOUND", message: "Design not found" });
-        }
-        // The latest word on which version wins: a couple approving from a
-        // page showing another version means that one now.
-        if (input.mediaId) {
-          await prisma.venueDesign.updateMany({
-            where: { id: input.designId, user_id: ctx.user.id },
-            data: { selected_media_id: input.mediaId },
-          });
-        }
-        // Already approved, hand back the existing lead so the UI can show
-        // the same "we're on it" state without creating a duplicate, and
-        // complete it with whatever the couple has now told us.
-        const existing = await prisma.enquiry.findFirst({
+      const where = { id: input.designId, user_id: ctx.user.id };
+      const findLead = (tx: Prisma.TransactionClient) =>
+        tx.enquiry.findFirst({
           where: { design_id: input.designId, source: "design_approved" },
           orderBy: { created_at: "desc" },
           select: { id: true },
         });
-        const detailsAdded = existing
-          ? await fillEmptyEnquiryFields(existing.id, details)
-          : false;
+
+      // The approval and its lead are ONE write. They used to be two: when
+      // the create failed after `approved_at` was flipped, every retry took
+      // the already-approved branch, found no lead and still answered "our
+      // team has it", while every surface showed the design as approved.
+      // Now a failed create rolls the approval back and the retry files it.
+      const outcome = await prisma.$transaction(async (tx) => {
+        // Conditional write doubles as the idempotency guard: only the call
+        // that flips `approved_at` from null goes on to file the lead, and
+        // the row lock it holds until commit makes a concurrent twin wait
+        // here and then find that lead, so admins are never notified twice.
+        const flipped = await tx.venueDesign.updateMany({
+          where: { ...where, approved_at: null },
+          data: {
+            approved_at: new Date(),
+            ...(input.mediaId ? { selected_media_id: input.mediaId } : {}),
+          },
+        });
+
+        let recovered = false;
+        if (flipped.count === 0) {
+          const design = await tx.venueDesign.findFirst({ where, select: { id: true } });
+          if (!design) {
+            throw new TRPCError({ code: "NOT_FOUND", message: "Design not found" });
+          }
+          const existing = await findLead(tx);
+          if (existing) {
+            // The latest word on which version wins: a couple approving
+            // from a page showing another version means that one now.
+            if (input.mediaId) {
+              await tx.venueDesign.updateMany({
+                where,
+                data: { selected_media_id: input.mediaId },
+              });
+            }
+            return { enquiryId: existing.id, created: false as const };
+          }
+          // Approved with no lead to show for it (an approval from before
+          // the two were one write lost its create): file it now rather
+          // than tell the couple the team has it. Re-stamping takes the row
+          // lock, so a twin doing the same waits, then finds this lead.
+          await tx.venueDesign.updateMany({
+            where,
+            data: {
+              approved_at: new Date(),
+              ...(input.mediaId ? { selected_media_id: input.mediaId } : {}),
+            },
+          });
+          const filedMeanwhile = await findLead(tx);
+          if (filedMeanwhile) {
+            return { enquiryId: filedMeanwhile.id, created: false as const };
+          }
+          recovered = true;
+        }
+
+        const [design, profile] = await Promise.all([
+          tx.venueDesign.findUniqueOrThrow({
+            where: { id: input.designId },
+            select: { name: true, guest_count: true },
+          }),
+          tx.profile.findUnique({
+            where: { id: ctx.user.id },
+            select: { full_name: true, phone: true, locale: true },
+          }),
+        ]);
+        const fullName =
+          profile?.full_name || ctx.user.email?.split("@")[0] || "A couple";
+        const phone = details.phone ?? (profile?.phone || null);
+
+        // ---- The row. Everything after the transaction is best-effort. ----
+        const enquiry = await tx.enquiry.create({
+          data: {
+            user_id: ctx.user.id,
+            full_name: fullName,
+            email: ctx.user.email ?? null,
+            phone,
+            // WhatsApp when there is a number to reach, else the email we
+            // always have: a channel we cannot use is not a preference.
+            preferred_channel: phone ? "whatsapp" : "email",
+            country: details.country ?? null,
+            city: details.city ?? null,
+            event_date: details.eventDate?.date ?? null,
+            date_flexible: details.eventDate?.monthOnly ?? false,
+            guest_band: design.guest_count ? String(design.guest_count) : null,
+            design_id: input.designId,
+            source: "design_approved",
+            locale: profile?.locale ?? null,
+            pricing_published: isFlagEnabled("publishedPricing"),
+          },
+          select: { id: true },
+        });
+        return {
+          enquiryId: enquiry.id,
+          created: true as const,
+          recovered,
+          fullName,
+          designName: design.name,
+          hasPhone: Boolean(phone),
+        };
+      });
+
+      if (!outcome.created) {
+        // Already approved: hand back the existing lead so the UI can show
+        // the same "we're on it" state without creating a duplicate, and
+        // complete it with whatever the couple has now told us.
+        const detailsAdded = await fillEmptyEnquiryFields(outcome.enquiryId, details);
         if (details.phone) await fillProfilePhone(ctx.user.id, details.phone);
         return {
           ok: true as const,
           alreadyApproved: true as const,
-          enquiryId: existing?.id ?? null,
+          enquiryId: outcome.enquiryId,
           detailsAdded,
         };
       }
-
-      const [design, profile] = await Promise.all([
-        prisma.venueDesign.findUniqueOrThrow({
-          where: { id: input.designId },
-          select: { name: true, guest_count: true },
-        }),
-        prisma.profile.findUnique({
-          where: { id: ctx.user.id },
-          select: { full_name: true, phone: true, locale: true },
-        }),
-      ]);
-      const fullName =
-        profile?.full_name || ctx.user.email?.split("@")[0] || "A couple";
-      const phone = details.phone ?? (profile?.phone || null);
-
-      // ---- The row. Everything after this point is best-effort. ----
-      const enquiry = await prisma.enquiry.create({
-        data: {
-          user_id: ctx.user.id,
-          full_name: fullName,
-          email: ctx.user.email ?? null,
-          phone,
-          // WhatsApp when there is a number to reach, else the email we
-          // always have: a channel we cannot use is not a preference.
-          preferred_channel: phone ? "whatsapp" : "email",
-          country: details.country ?? null,
-          city: details.city ?? null,
-          event_date: details.eventDate?.date ?? null,
-          date_flexible: details.eventDate?.monthOnly ?? false,
-          guest_band: design.guest_count ? String(design.guest_count) : null,
-          design_id: input.designId,
-          source: "design_approved",
-          locale: profile?.locale ?? null,
-          pricing_published: isFlagEnabled("publishedPricing"),
-        },
-        select: { id: true },
-      });
 
       if (details.phone) await fillProfilePhone(ctx.user.id, details.phone);
 
       try {
         await notifyDesignApproved({
-          enquiryId: enquiry.id,
-          coupleName: fullName,
-          designName: design.name,
+          enquiryId: outcome.enquiryId,
+          coupleName: outcome.fullName,
+          designName: outcome.designName,
         });
       } catch (err) {
         reportError("design_approve.notify_failed", err, {
-          enquiryId: enquiry.id,
+          enquiryId: outcome.enquiryId,
         });
       }
 
       await trackServer(ctx.user.id, ANALYTICS_EVENTS.DESIGN_APPROVED, {
         design_id: input.designId,
-        enquiry_id: enquiry.id,
+        enquiry_id: outcome.enquiryId,
         from: "free_approve",
         pinned_version: Boolean(input.mediaId),
-        has_phone: Boolean(phone),
+        has_phone: outcome.hasPhone,
         has_date: Boolean(details.eventDate),
         has_place: Boolean(details.city || details.country),
+        recovered: outcome.recovered,
       });
 
       return {
         ok: true as const,
         alreadyApproved: false as const,
-        enquiryId: enquiry.id,
+        enquiryId: outcome.enquiryId,
         detailsAdded: false,
       };
     }),
