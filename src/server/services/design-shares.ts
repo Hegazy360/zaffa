@@ -3,7 +3,7 @@ import { randomBytes } from "node:crypto";
 import { cache } from "react";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
-import { watermarkedUrl } from "@/lib/cloudinary";
+import { cloudinary, watermarkedUrl } from "@/lib/cloudinary";
 import { FREE_PACK_SKU_ID } from "@/lib/vision-pack";
 import { parseMediaMeta } from "@/lib/design-media-meta";
 
@@ -74,12 +74,15 @@ export function numberVersions(
 
 /**
  * The first word of the couple's name, for "Help Noor choose". Null when
- * there is no usable name: a missing profile name, or one that is really
- * an email address (never shown to strangers).
+ * there is no usable name. The profile trigger fills `full_name` with the
+ * email, or for an anonymous visitor with the user id itself, and couples
+ * who signed up after the email gate keep that id as their "name" (every
+ * anonymous profile in production had one). Neither may reach strangers,
+ * so anything with an `@` or a digit in it is not a first name.
  */
 export function coupleFirstName(fullName: string | null | undefined): string | null {
   const first = fullName?.trim().split(/\s+/)[0] ?? "";
-  if (!first || first.includes("@") || first.length > 40) return null;
+  if (!first || first.length > 40 || /[@\p{Nd}]/u.test(first)) return null;
   return first;
 }
 
@@ -208,6 +211,44 @@ export async function loadSharePayload(token: string): Promise<SharePayload | nu
   return { coupleName: share.coupleName, designName: share.designName, versions };
 }
 
+/** The render panel of the share card, in pixels (see `opengraph-image.tsx`). */
+export const SHARE_OG_PANEL = { width: 640, height: 630 } as const;
+
+/**
+ * The render cut to the card's panel, THEN marked. `watermarkedUrl` marks
+ * the whole frame bottom-right, and a card that crops a wide render to a
+ * near-square panel would cut that mark off; cropping first keeps it on
+ * the picture people actually see. The mark goes in the panel's outer
+ * corner, away from the fade into the text (the text is on the right in
+ * Arabic). Same mark as `watermarkedUrl`, signed the same way, JPEG
+ * because the card is re-encoded to JPEG anyway.
+ */
+function ogPanelUrl(publicId: string, rtl: boolean): string {
+  return cloudinary.url(publicId, {
+    sign_url: true,
+    type: "upload",
+    secure: true,
+    fetch_format: "jpg",
+    quality: "auto:good",
+    transformation: [
+      { ...SHARE_OG_PANEL, crop: "fill", gravity: "auto" },
+      {
+        overlay: {
+          font_family: "Arial",
+          font_size: 26,
+          font_weight: "bold",
+          text: "Made%20with%20Zaffa",
+        },
+        color: "white",
+        opacity: 70,
+        gravity: rtl ? "south_west" : "south_east",
+        x: 20,
+        y: 20,
+      },
+    ],
+  });
+}
+
 /**
  * The link preview for a share: the couple's first name and the newest
  * render, ALWAYS watermarked whatever the tier, because a preview is copied
@@ -216,12 +257,13 @@ export async function loadSharePayload(token: string): Promise<SharePayload | nu
  */
 export async function loadShareOgCard(
   token: string,
+  { rtl }: { rtl: boolean },
 ): Promise<{ coupleName: string | null; imageUrl: string | null } | null> {
   const share = await loadShare(token);
   if (!share) return null;
   const newest = [...share.renders].reverse().find((r) => r.publicId);
   return {
     coupleName: share.coupleName,
-    imageUrl: newest?.publicId ? watermarkedUrl(newest.publicId) : null,
+    imageUrl: newest?.publicId ? ogPanelUrl(newest.publicId, rtl) : null,
   };
 }

@@ -26,12 +26,16 @@ vi.mock("@/lib/rate-limit", () => ({
     req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown",
 }));
 
+const cloudinaryUrl = vi.fn<(id: string, opts: unknown) => string>(
+  (id) => `https://res.cloudinary.com/demo/og/${id}.jpg`,
+);
 vi.mock("@/lib/cloudinary", () => ({
-  cloudinary: {},
+  cloudinary: { url: (id: string, opts: unknown) => cloudinaryUrl(id, opts) },
   watermarkedUrl: (id: string) => `https://res.cloudinary.com/demo/wm/${id}.jpg`,
 }));
 
 const { designSharesRouter } = await import("@/server/routers/design-shares");
+const { loadShareOgCard } = await import("@/server/services/design-shares");
 
 const OWNER_ID = randomUUID();
 const STRANGER_ID = randomUUID();
@@ -424,6 +428,27 @@ describe("designShares.getByToken (public)", () => {
     expect(res.designName).toBeNull();
   });
 
+  it.each([
+    ["the user id an anonymous profile is named with", "733e87a2-26d7-45f4-bfab-f5a774b19a5e"],
+    ["an email address", "noor.hassan@example.com"],
+    ["a handle with digits", "noor2008 Hassan"],
+    ["an Arabic handle with Arabic digits", "نور٢٠٠٨"],
+  ])("never shows %s as the couple's name", async (_label, fullName) => {
+    prismaMock.designShare.findUnique.mockResolvedValue(
+      shareRow({ design: { ...shareRow().design, user: { full_name: fullName } } }) as never,
+    );
+    const res = await caller(null).getByToken({ token: TOKEN });
+    expect(res.coupleName).toBeNull();
+  });
+
+  it("keeps an Arabic first name", async () => {
+    prismaMock.designShare.findUnique.mockResolvedValue(
+      shareRow({ design: { ...shareRow().design, user: { full_name: "نور حسن" } } }) as never,
+    );
+    const res = await caller(null).getByToken({ token: TOKEN });
+    expect(res.coupleName).toBe("نور");
+  });
+
   it("answers NOT_FOUND for a revoked link", async () => {
     prismaMock.designShare.findUnique.mockResolvedValue(
       shareRow({ revoked_at: new Date() }) as never,
@@ -579,5 +604,43 @@ describe("designShares.vote (public)", () => {
       code: "PRECONDITION_FAILED",
     });
     expect(enforceTrpc).not.toHaveBeenCalled();
+  });
+});
+
+describe("the share link preview", () => {
+  beforeEach(() => {
+    prismaMock.designShare.findUnique.mockResolvedValue(shareRow() as never);
+  });
+
+  it("is always the newest watermarkable render, marked AFTER the crop, even for a paying couple", async () => {
+    prismaMock.visionPack.count.mockResolvedValue(1 as never);
+    const card = await loadShareOgCard(TOKEN, { rtl: false });
+    expect(card).toEqual({
+      coupleName: "Noor",
+      // R3 is newer but has no public id to mark, so R2 it is.
+      imageUrl: "https://res.cloudinary.com/demo/og/zaffa-renders/r2.jpg",
+    });
+    const opts = cloudinaryUrl.mock.calls[0][1] as {
+      sign_url: boolean;
+      transformation: Array<Record<string, unknown>>;
+    };
+    expect(opts.sign_url).toBe(true);
+    expect(opts.transformation[0]).toMatchObject({ width: 640, height: 630, crop: "fill" });
+    expect(opts.transformation[1]).toMatchObject({ gravity: "south_east" });
+    expect(JSON.stringify(opts.transformation[1])).toContain("Made%20with%20Zaffa");
+  });
+
+  it("puts the mark in the outer corner in Arabic, where the panel sits on the left", async () => {
+    await loadShareOgCard(TOKEN, { rtl: true });
+    const opts = cloudinaryUrl.mock.calls[0][1] as { transformation: Array<Record<string, unknown>> };
+    expect(opts.transformation[1]).toMatchObject({ gravity: "south_west" });
+  });
+
+  it("is nothing for a revoked link", async () => {
+    prismaMock.designShare.findUnique.mockResolvedValue(
+      shareRow({ revoked_at: new Date() }) as never,
+    );
+    await expect(loadShareOgCard(TOKEN, { rtl: false })).resolves.toBeNull();
+    expect(cloudinaryUrl).not.toHaveBeenCalled();
   });
 });
