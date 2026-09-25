@@ -34,7 +34,8 @@ export type WhatsAppSurface =
   | "enquire_form"
   | "dashboard_enquiry"
   | "microsite"
-  | "chat_widget";
+  | "chat_widget"
+  | "design_approved";
 
 export function WhatsAppCta({
   surface,
@@ -43,27 +44,30 @@ export function WhatsAppCta({
    *  compose box, and a wall of it looks like spam the visitor is being asked
    *  to send. */
   context,
+  message: messageOverride,
   label,
   variant = "solid",
   className,
 }: {
   surface: WhatsAppSurface;
   context?: string;
+  /** Replaces the generic opener entirely, for surfaces that know exactly
+   *  what the visitor is writing about (a design they just sent us). */
+  message?: string;
   label?: string;
   variant?: "solid" | "outline" | "quiet";
   className?: string;
 }) {
   const t = useTranslations("whatsapp");
 
-  const message = context
-    ? `${t("prefill")}\n${context}`
-    : t("prefill");
+  const base = messageOverride ?? t("prefill");
+  const message = context ? `${base}\n${context}` : base;
   const href = whatsappLink(message);
 
   const onClick = () => {
     track(ANALYTICS_EVENTS.WHATSAPP_CTA_CLICKED, {
       surface,
-      has_context: Boolean(context),
+      has_context: Boolean(context || messageOverride),
     });
   };
 

@@ -1,11 +1,10 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion, useReducedMotion } from "framer-motion";
 import {
   Plus,
-  Loader2,
   Trash2,
   Sparkles,
   ArrowRight,
@@ -13,7 +12,6 @@ import {
   Image as ImageIcon,
 } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { Navbar } from "@/components/layout/navbar";
@@ -29,6 +27,7 @@ import { isFreePack } from "@/lib/vision-pack";
 import { Skeleton, SkeletonRegion } from "@/components/ui/skeleton";
 import { useConfirm } from "@/components/ui/confirm";
 import { MediaImage } from "@/components/ui/media-image";
+import { ApproveDesignDialog } from "@/components/venue-designer/ApproveDesignDialog";
 
 interface NormalizedPalette {
   colors: string[];
@@ -75,15 +74,15 @@ export default function VenueDesignerGalleryPage() {
 
   // Approval is a lead ("I want this wedding - contact me"), free on every
   // tier. The old events.createFromDesign path was Vision-Pack-gated because
-  // it opened the hidden planner marketplace.
-  const approveMutation = trpc.venueDesigns.approve.useMutation({
-    onSuccess: () => {
-      toast.success(t("approvedToast"));
-      utils.venueDesigns.list.invalidate();
-      utils.enquiries.mine.invalidate();
-    },
-    onError: (err) => toast.error(err.message),
-  });
+  // it opened the hidden planner marketplace. A card's approve opens the
+  // approval dialog (F5) for that design, pinned to the render on its card.
+  // One dialog for the page, outside the cards: a card is a click target
+  // that navigates, and clicks inside a portal still bubble through it.
+  const [approving, setApproving] = useState<{
+    id: string;
+    name: string;
+    mediaId?: string;
+  } | null>(null);
 
   const handleDelete = async (
     e: React.MouseEvent,
@@ -104,10 +103,13 @@ export default function VenueDesignerGalleryPage() {
     }
   };
 
-  const handleApprove = (e: React.MouseEvent, designId: string) => {
+  const handleApprove = (
+    e: React.MouseEvent,
+    design: { id: string; name: string; mediaId?: string },
+  ) => {
     e.stopPropagation();
     e.preventDefault();
-    approveMutation.mutate({ designId });
+    setApproving(design);
   };
 
   const handleOpenEvent = (e: React.MouseEvent, eventId: string) => {
@@ -430,19 +432,16 @@ export default function VenueDesignerGalleryPage() {
                     ) : (
                       <button
                         type="button"
-                        disabled={
-                          approveMutation.isPending &&
-                          approveMutation.variables?.designId === design.id
+                        onClick={(e) =>
+                          handleApprove(e, {
+                            id: design.id,
+                            name: design.name,
+                            mediaId: design.media[0]?.id,
+                          })
                         }
-                        onClick={(e) => handleApprove(e, design.id)}
-                        className="inline-flex w-full items-center justify-center gap-1.5 rounded-lg bg-brand-gradient px-3 py-1.5 text-xs font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-60"
+                        className="inline-flex min-h-11 w-full items-center justify-center gap-1.5 rounded-lg bg-brand-gradient px-3 py-1.5 text-xs font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-60"
                       >
-                        {approveMutation.isPending &&
-                        approveMutation.variables?.designId === design.id ? (
-                          <Loader2 className="size-3 animate-spin" />
-                        ) : (
-                          <CheckCircle2 className="size-3.5" />
-                        )}
+                        <CheckCircle2 className="size-3.5" />
                         {t("approveDesign")}
                       </button>
                     )}
@@ -454,6 +453,17 @@ export default function VenueDesignerGalleryPage() {
         )}
       </div>
     </div>
+    {approving ? (
+      <ApproveDesignDialog
+        open
+        onOpenChange={(open) => {
+          if (!open) setApproving(null);
+        }}
+        designId={approving.id}
+        designName={approving.name}
+        mediaId={approving.mediaId}
+      />
+    ) : null}
     </>
   );
 }

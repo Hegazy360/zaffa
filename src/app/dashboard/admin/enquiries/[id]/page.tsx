@@ -19,6 +19,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import { waLinkFor } from "@/lib/contact-channels";
 import { quoteGuidanceFor, currencyForCountry } from "@/lib/concierge-pricing";
+import { DesignBriefSection } from "../_components/design-brief-section";
 
 /**
  * Working view for a single enquiry: context, pipeline moves, notes, and the
@@ -127,6 +128,16 @@ export default function EnquiryDetailPage({
 
       <div className="grid gap-6 lg:grid-cols-3">
         <div className="space-y-6 lg:col-span-2">
+          {/* The design is the brief for an approved lead: what to quote. */}
+          {e.design && e.brief ? (
+            <DesignBriefSection
+              enquiryId={id}
+              designName={e.design.name}
+              country={e.country}
+              brief={e.brief}
+            />
+          ) : null}
+
           {/* Pipeline moves. Only legal transitions render, the router
               rejects the rest, so the UI never offers a dead button. */}
           <section className="rounded-2xl border border-brand-line p-4">
@@ -391,8 +402,12 @@ export default function EnquiryDetailPage({
               <div>
                 <dt className="text-xs text-muted-foreground">When</dt>
                 <dd>
+                  {/* A flexible date with a day is a month the couple gave
+                      (approval asks for the month), stored as its 1st. */}
                   {e.event_date
-                    ? format(new Date(e.event_date), "d MMM yyyy")
+                    ? e.date_flexible
+                      ? `${format(new Date(e.event_date), "MMMM yyyy")}, day not fixed`
+                      : format(new Date(e.event_date), "d MMM yyyy")
                     : e.date_flexible
                       ? "Still deciding"
                       : "-"}
@@ -423,30 +438,13 @@ export default function EnquiryDetailPage({
                 <Sparkles className="size-3.5 text-rose-600" />
                 Their designs
               </h2>
-              {/* The render is the brief for design_approved leads -
-                  the operator should see the wedding, not just a name. */}
-              {e.design?.thumbnail && (
-                <Link
-                  href={`/venue-designer/${e.design.id}`}
-                  className="mt-3 block overflow-hidden rounded-xl"
-                >
-                  {/* eslint-disable-next-line @next/next/no-img-element -- admin-only detail, Cloudinary thumb */}
-                  <img
-                    src={e.design.thumbnail}
-                    alt={e.design.name}
-                    className="aspect-video w-full object-cover transition-transform hover:scale-[1.02]"
-                  />
-                </Link>
-              )}
+              {/* The render itself is in the brief on the left. The
+                  designer is owner-scoped, so no link into it: an admin
+                  would land on a blank page. */}
               <ul className="mt-2 space-y-1.5 text-sm">
                 {e.design && (
                   <li>
-                    <Link
-                      href={`/venue-designer/${e.design.id}`}
-                      className="text-rose-700 underline-offset-4 hover:underline"
-                    >
-                      {e.design.name}
-                    </Link>{" "}
+                    <span className="font-medium">{e.design.name}</span>{" "}
                     <span className="text-xs text-muted-foreground">
                       {[
                         e.design.setting,
@@ -459,13 +457,8 @@ export default function EnquiryDetailPage({
                   </li>
                 )}
                 {e.otherDesigns.map((d) => (
-                  <li key={d.id}>
-                    <Link
-                      href={`/venue-designer/${d.id}`}
-                      className="text-muted-foreground underline-offset-4 hover:underline"
-                    >
-                      {d.name}
-                    </Link>
+                  <li key={d.id} className="text-muted-foreground">
+                    {d.name}
                   </li>
                 ))}
               </ul>

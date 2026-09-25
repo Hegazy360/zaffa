@@ -1,7 +1,6 @@
 "use client";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { toast } from "sonner";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import {
@@ -18,6 +17,11 @@ import { trpc } from "@/lib/trpc";
 import { MediaGalleryDialog } from "./MediaGalleryDialog";
 import { VisionPackQuotaBadge } from "@/components/vision-pack/VisionPackQuotaBadge";
 import { useIsAnonymous } from "@/lib/use-is-anonymous";
+import { useVenueDesignerStore } from "@/stores/venue-designer-store";
+import {
+  ApproveDesignDialog,
+  pickApproveMediaId,
+} from "@/components/venue-designer/ApproveDesignDialog";
 
 interface DesignerHeaderProps {
   name: string;
@@ -57,17 +61,14 @@ export function DesignerHeader({
   const linkedEventId = design?.event_id ?? null;
   const isApproved = Boolean(design?.approved_at);
 
-  const utils = trpc.useUtils();
-  const approve = trpc.venueDesigns.approve.useMutation({
-    onSuccess: () => {
-      toast.success(t("approvedToast"));
-      utils.venueDesigns.list.invalidate();
-      if (designId) utils.venueDesigns.getById.invalidate({ id: designId });
-      // The dashboard's "we're on it" card reads enquiries.mine.
-      utils.enquiries.mine.invalidate();
-    },
-    onError: (err) => toast.error(err.message),
-  });
+  // Approving opens the dialog (F5): how to reach the couple, and the
+  // version on screen pinned as the one to quote.
+  const [approveOpen, setApproveOpen] = useState(false);
+  const activeRenderId = useVenueDesignerStore((s) => s.activeRenderMediaId);
+  const renderIds = useMemo(
+    () => (design?.media ?? []).filter((m) => m.type === "render").map((m) => m.id),
+    [design?.media],
+  );
 
   return (
     <div className="flex flex-col gap-2 rounded-xl border bg-background/90 px-3 py-2 shadow-sm backdrop-blur-sm md:flex-row md:items-center md:gap-3 md:py-1.5">
@@ -210,17 +211,21 @@ export function DesignerHeader({
             <Button
               size="sm"
               className="h-9 flex-1 gap-1.5 bg-brand-gradient text-xs text-white hover:opacity-90 md:h-7 md:flex-none"
-              disabled={approve.isPending}
-              onClick={() => approve.mutate({ designId })}
+              onClick={() => setApproveOpen(true)}
             >
-              {approve.isPending ? (
-                <Loader2 className="h-3.5 w-3.5 animate-spin md:h-3 md:w-3" />
-              ) : (
-                <CheckCircle2 className="h-3.5 w-3.5 md:h-3 md:w-3" />
-              )}
+              <CheckCircle2 className="h-3.5 w-3.5 md:h-3 md:w-3" />
               {t("approveDesign")}
             </Button>
           ))}
+        {designId && !isAnon ? (
+          <ApproveDesignDialog
+            open={approveOpen}
+            onOpenChange={setApproveOpen}
+            designId={designId}
+            designName={design?.name ?? name}
+            mediaId={pickApproveMediaId(activeRenderId, renderIds)}
+          />
+        ) : null}
       </div>
     </div>
   );

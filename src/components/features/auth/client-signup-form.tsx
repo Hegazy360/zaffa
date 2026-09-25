@@ -16,6 +16,7 @@ import { ttTrack, TIKTOK_EVENTS } from "@/lib/tiktok";
 import { OAuthButtons } from "./oauth-buttons";
 import { PasswordField } from "./password-field";
 import { AuthCheckEmail } from "./auth-check-email";
+import { EmailSuggestion } from "@/components/ui/email-suggestion";
 
 const MIN_PASSWORD_LENGTH = 6;
 
@@ -280,6 +281,7 @@ export function ClientSignUpForm() {
             disabled={loading}
             className="h-11"
           />
+          <EmailSuggestion email={email} onApply={setEmail} />
         </div>
         <PasswordField
           id="password"

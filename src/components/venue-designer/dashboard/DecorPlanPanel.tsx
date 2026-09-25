@@ -7,11 +7,9 @@ import {
   CheckCircle2,
   ChevronDown,
   Info,
-  Loader2,
   MessageCircleQuestion,
   ReceiptText,
 } from "lucide-react";
-import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
 import { isFlagEnabled } from "@/lib/flags";
 import { useIsAnonymous } from "@/lib/use-is-anonymous";
@@ -21,6 +19,7 @@ import { REPLY_WITHIN_HOURS } from "@/lib/contact-channels";
 import { Button } from "@/components/ui/button";
 import { Skeleton, SkeletonRegion } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
+import { ApproveDesignDialog } from "@/components/venue-designer/ApproveDesignDialog";
 import {
   FALLBACK_QUESTION_KEYS,
   assumptionMessage,
@@ -80,7 +79,6 @@ export function DecorPlanPanel({ designId, renderIds, approved }: DecorPlanPanel
   const t = useTranslations("decorPlan");
   const locale = useLocale();
   const isAnon = useIsAnonymous();
-  const utils = trpc.useUtils();
   const activeId = useVenueDesignerStore((s) => s.activeRenderMediaId);
   const mediaId =
     activeId && renderIds.includes(activeId) ? activeId : (renderIds[0] ?? null);
@@ -108,14 +106,11 @@ export function DecorPlanPanel({ designId, renderIds, approved }: DecorPlanPanel
     },
   );
 
-  const approve = trpc.venueDesigns.approve.useMutation({
-    onSuccess: () => {
-      toast.success(t("quoteRequested", { hours: REPLY_WITHIN_HOURS }));
-      utils.venueDesigns.getById.invalidate({ id: designId });
-      utils.venueDesigns.list.invalidate();
-    },
-    onError: () => toast.error(t("quoteFailed")),
-  });
+  // "Get exact quotes" opens the approval dialog (F5) pinned to the
+  // version this plan priced, so the team quotes what the couple saw.
+  const [approveOpen, setApproveOpen] = useState(false);
+  // Same query the step above runs, so this is a cache read.
+  const { data: design } = trpc.venueDesigns.getById.useQuery({ id: designId });
 
   const num = useMemo(
     () => new Intl.NumberFormat(moneyLocaleTag(locale), { maximumFractionDigits: 1 }),
@@ -262,19 +257,20 @@ export function DecorPlanPanel({ designId, renderIds, approved }: DecorPlanPanel
                 variant="cta"
                 size="xl"
                 className="w-full sm:w-auto"
-                disabled={approve.isPending}
-                // Pins the version this plan priced, so the quote the team
-                // builds is for the render the couple is looking at.
-                onClick={() =>
-                  approve.mutate(mediaId ? { designId, mediaId } : { designId })
-                }
+                onClick={() => setApproveOpen(true)}
               >
-                {approve.isPending ? (
-                  <Loader2 aria-hidden className="size-4 animate-spin" />
-                ) : null}
                 {t("ctaQuote")}
               </Button>
             )}
+            {isAnon === false ? (
+              <ApproveDesignDialog
+                open={approveOpen}
+                onOpenChange={setApproveOpen}
+                designId={designId}
+                designName={design?.name ?? ""}
+                mediaId={mediaId ?? undefined}
+              />
+            ) : null}
             {!approved ? (
               <p className="text-xs text-muted-foreground">
                 {t("ctaHint", { hours: REPLY_WITHIN_HOURS })}

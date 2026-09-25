@@ -7,6 +7,7 @@ import { MessageCircle, Mail, Phone, Inbox } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { cn } from "@/lib/utils";
 import { LeadQualityCard } from "./_components/lead-quality-card";
+import { MediaImage } from "@/components/ui/media-image";
 
 /**
  * The concierge sales pipeline.
@@ -143,13 +144,16 @@ export default function AdminEnquiriesPage() {
               <li key={e.id} className="relative">
                 <div className="flex items-start gap-3 rounded-2xl border border-brand-line p-4 transition-colors hover:border-rose-200 focus-within:ring-2 focus-within:ring-rose-300">
                   {/* A design_approved lead IS its render, show it on the
-                      row so the operator recognises the wedding at a glance. */}
+                      row so the operator recognises the wedding at a glance:
+                      the render the couple chose, else their newest. */}
                   {e.design?.thumbnail && (
-                    // eslint-disable-next-line @next/next/no-img-element -- admin-only inbox chip, tiny fixed size, Cloudinary thumb already sized
-                    <img
+                    <MediaImage
                       src={e.design.thumbnail}
                       alt=""
-                      className="size-12 shrink-0 rounded-lg object-cover"
+                      width={48}
+                      height={48}
+                      sizes="thumb"
+                      className="size-12 shrink-0 rounded-lg"
                     />
                   )}
                   <div className="min-w-0 flex-1">

@@ -7,6 +7,11 @@ export interface NotificationFact {
   label: string;
   /** Rendered value, already localized/formatted by buildFacts. */
   value: string;
+  /**
+   * Optional link for the value (relative paths resolve against the app
+   * URL). A digest lists several records, and each row should open its own.
+   */
+  href?: string;
 }
 
 export interface NotificationCopy {

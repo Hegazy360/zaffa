@@ -2729,8 +2729,42 @@
     },
     "ctaQuote": "Obtenir des devis exacts de notre équipe",
     "ctaHint": "Gratuit. Une personne vous répond sous {hours} heures.",
-    "quoteRequested": "C'est envoyé. Notre équipe vous contacte sous {hours} heures.",
-    "quoteAlready": "Notre équipe a déjà ce design et vous contactera.",
-    "quoteFailed": "L'envoi n'a pas abouti. Veuillez réessayer."
+    "quoteAlready": "Notre équipe a déjà ce design et vous contactera."
+  },
+  "approveFlow": {
+    "title": "Obtenez un vrai devis pour ce design",
+    "intro": "Notre équipe va transformer ce design en un vrai devis. Où pouvons-nous vous joindre ?",
+    "optionalNote": "Tous les champs sont facultatifs.",
+    "phoneLabel": "Numéro WhatsApp",
+    "phonePlaceholder": "+33 6 12 34 56 78",
+    "phoneHint": "Avec l'indicatif du pays. Nous ne l'utilisons que pour parler de votre mariage.",
+    "phoneInvalid": "Ce numéro ne semble pas valide. Ajoutez l'indicatif du pays, par exemple +33.",
+    "phoneWillUse": "Nous vous écrirons sur WhatsApp au <num>{phone}</num>.",
+    "dateLabel": "Mois du mariage",
+    "dateHint": "Une idée approximative suffit, elle nous aide à vérifier les disponibilités.",
+    "dateInvalid": "Choisissez un mois, par exemple 2026-10.",
+    "cityLabel": "Ville",
+    "cityPlaceholder": "Par exemple Paris",
+    "countryLabel": "Pays",
+    "countryPlaceholder": "Choisissez un pays",
+    "submit": "Envoyer à notre équipe",
+    "submitting": "Envoi en cours",
+    "cancel": "Pas maintenant",
+    "close": "Fermer",
+    "error": "L'envoi n'a pas abouti. Veuillez réessayer.",
+    "successTitle": "Votre design est entre les mains de notre équipe",
+    "alreadyWithTeam": "Notre équipe a déjà ce design.",
+    "detailsAdded": "Nous avons ajouté ces informations à votre demande.",
+    "nextTitle": "Et maintenant ?",
+    "nextStep1": "Une personne de notre équipe étudie votre design et chiffre ce qu'il faut pour le réaliser.",
+    "nextStep2": "Nous vous répondons sous {hours} heures, sur WhatsApp si vous avez laissé un numéro, sinon par e-mail.",
+    "nextStep3": "Rien n'est réservé ni facturé avant que vous ayez vu un devis et dit oui.",
+    "whatsappCta": "Écrivez-nous sur WhatsApp",
+    "whatsappMessage": "Bonjour Zaffa, nous venons de vous envoyer notre design « {design} » et aimerions un devis. Référence : {ref}",
+    "done": "Terminé"
+  },
+  "emailTypo": {
+    "didYouMean": "Vouliez-vous dire <fix>{email}</fix> ?",
+    "apply": "Utiliser {email}"
   }
 }

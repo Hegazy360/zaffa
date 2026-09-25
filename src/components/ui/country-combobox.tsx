@@ -39,6 +39,7 @@ export function CountryCombobox({
   id,
   placeholder,
   className,
+  inputClassName,
 }: {
   /** ISO 3166-1 alpha-2, or "" for nothing chosen yet. */
   value: string;
@@ -46,6 +47,8 @@ export function CountryCombobox({
   id?: string;
   placeholder?: string;
   className?: string;
+  /** Extra classes for the text field, e.g. to match a form's field height. */
+  inputClassName?: string;
 }) {
   const locale = useLocale();
   const t = useTranslations("enquire");
@@ -90,7 +93,10 @@ export function CountryCombobox({
         <Combobox.Input
           id={id}
           placeholder={placeholder ?? t("countryPlaceholder")}
-          className="h-10 w-full rounded-lg border border-input bg-transparent px-3 ps-10 pe-9 text-sm outline-none transition-colors focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
+          className={cn(
+            "h-10 w-full rounded-lg border border-input bg-transparent px-3 ps-10 pe-9 text-sm outline-none transition-colors focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50",
+            inputClassName,
+          )}
         />
         <Combobox.Icon className="pointer-events-none absolute end-3 top-1/2 -translate-y-1/2 text-muted-foreground">
           <ChevronDown className="size-4" />

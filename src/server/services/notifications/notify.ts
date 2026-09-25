@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import { Prisma, type NotificationType } from "@/generated/prisma/client";
 import { prisma } from "@/lib/prisma";
 import { reportError } from "@/lib/logger";
@@ -122,6 +123,11 @@ export interface BulkNotifyArgs {
  * "new event in your service area"). Persists rows in a single
  * `createMany` transaction, then fires emails in parallel with
  * `Promise.allSettled` so a handful of send failures don't abort the rest.
+ *
+ * Rows that were emailed get `emailed_at`, exactly like `notify`. It used to
+ * be left null, so the one `design_approved` notification in production
+ * could not say whether its email ever went out. `createMany` returns no
+ * ids, so the ids are minted here to find the rows again.
  */
 export async function notifyMany(args: BulkNotifyArgs): Promise<void> {
   if (args.userIds.length === 0) return;
@@ -141,6 +147,7 @@ export async function notifyMany(args: BulkNotifyArgs): Promise<void> {
         locale,
         copy,
         row: {
+          id: randomUUID(),
           user_id: r.id,
           type: args.type,
           title: copy.title,
@@ -158,19 +165,38 @@ export async function notifyMany(args: BulkNotifyArgs): Promise<void> {
     if (mailable.length === 0) return;
 
     const emails = await resolveUserEmails(mailable.map((m) => m.recipient.id));
-    await Promise.allSettled(
-      mailable.map((m) => {
+    const sent = await Promise.allSettled(
+      mailable.map(async (m) => {
         const email = emails.get(m.recipient.id);
-        if (!email) return Promise.resolve();
-        return sendNotificationEmail({
+        if (!email) return null;
+        const ok = await sendNotificationEmail({
           to: email,
           locale: m.locale,
           copy: m.copy,
           ctaHref: args.link ?? "/dashboard",
           userId: m.recipient.id,
         });
+        return ok ? m.row.id : null;
       }),
     );
+    const emailedIds = sent.flatMap((r) =>
+      r.status === "fulfilled" && r.value ? [r.value] : [],
+    );
+    if (emailedIds.length > 0) {
+      // One write for the batch. A failure here only loses the audit stamp,
+      // never the notification or the email, so it is reported, not thrown.
+      await prisma.notification
+        .updateMany({
+          where: { id: { in: emailedIds } },
+          data: { emailed_at: new Date() },
+        })
+        .catch((err: unknown) =>
+          reportError("notifications.notifyMany.stamp_failed", err, {
+            type: args.type,
+            count: emailedIds.length,
+          }),
+        );
+    }
   } catch (err) {
     reportError("notifications.notifyMany.failed", err, {
       type: args.type,
@@ -197,7 +223,13 @@ async function resolveUserEmail(userId: string): Promise<string | null> {
   }
 }
 
-async function resolveUserEmails(userIds: string[]): Promise<Map<string, string>> {
+/**
+ * auth.users emails for many profile ids at once, missing ones left out.
+ * Exported for digests that send mail without an in-app row.
+ */
+export async function resolveUserEmails(
+  userIds: string[],
+): Promise<Map<string, string>> {
   const map = new Map<string, string>();
   if (userIds.length === 0) return map;
   try {

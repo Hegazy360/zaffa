@@ -10,6 +10,7 @@ import { trpc } from "@/lib/trpc";
 import { createClient } from "@/lib/supabase/client";
 import { Turnstile } from "@/components/security/Turnstile";
 import { ttTrack, TIKTOK_EVENTS } from "@/lib/tiktok";
+import { EmailSuggestion } from "@/components/ui/email-suggestion";
 
 interface EmailGateOverlayProps {
   /**
@@ -268,6 +269,9 @@ function FormState({
             className="block w-full rounded-lg border border-input bg-background ps-9 pe-3 py-2.5 text-base shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:border-rose-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-300 disabled:cursor-not-allowed disabled:opacity-60 sm:text-sm"
           />
         </div>
+        {/* `@2008gmail.com` got through here once and the couple was
+            never reachable again. A hint, never a block. */}
+        <EmailSuggestion email={email} onApply={setEmail} />
       </div>
 
       <div className="flex justify-center">

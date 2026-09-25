@@ -2729,8 +2729,42 @@
     },
     "ctaQuote": "Get exact quotes from our team",
     "ctaHint": "Free. A person replies within {hours} hours.",
-    "quoteRequested": "Sent. Our team will be in touch within {hours} hours.",
-    "quoteAlready": "Our team already has this design and will be in touch.",
-    "quoteFailed": "That did not go through. Please try again."
+    "quoteAlready": "Our team already has this design and will be in touch."
+  },
+  "approveFlow": {
+    "title": "Get a real quote for this design",
+    "intro": "Our team will turn this into a real quote. Where can we reach you?",
+    "optionalNote": "Everything here is optional.",
+    "phoneLabel": "WhatsApp number",
+    "phonePlaceholder": "+20 10 1234 5678",
+    "phoneHint": "With your country code. We only use it to talk about your wedding.",
+    "phoneInvalid": "That does not look like a phone number. Add your country code, for example +20.",
+    "phoneWillUse": "We will message <num>{phone}</num> on WhatsApp.",
+    "dateLabel": "Wedding month",
+    "dateHint": "A rough idea is enough, it helps us check availability.",
+    "dateInvalid": "Pick a month, for example 2026-10.",
+    "cityLabel": "City",
+    "cityPlaceholder": "For example Cairo",
+    "countryLabel": "Country",
+    "countryPlaceholder": "Choose a country",
+    "submit": "Send to our team",
+    "submitting": "Sending",
+    "cancel": "Not now",
+    "close": "Close",
+    "error": "That did not go through. Please try again.",
+    "successTitle": "Your design is with our team",
+    "alreadyWithTeam": "Our team already has this design.",
+    "detailsAdded": "We have added what you told us to your request.",
+    "nextTitle": "What happens next",
+    "nextStep1": "A person on our team studies your design and prices what it takes to build it.",
+    "nextStep2": "We reply within {hours} hours, on WhatsApp if you left a number, otherwise by email.",
+    "nextStep3": "Nothing is booked and nothing is charged until you have seen a quote and said yes.",
+    "whatsappCta": "Message us on WhatsApp now",
+    "whatsappMessage": "Hello Zaffa, we just sent you our design \"{design}\" and would like a quote. Reference: {ref}",
+    "done": "Done"
+  },
+  "emailTypo": {
+    "didYouMean": "Did you mean <fix>{email}</fix>?",
+    "apply": "Use {email}"
   }
 }
