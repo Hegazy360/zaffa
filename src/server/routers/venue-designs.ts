@@ -3,7 +3,12 @@ import { TRPCError } from "@trpc/server";
 import { Prisma } from "@/generated/prisma/client";
 import { router, protectedProcedure, nonAnonymousProcedure } from "../trpc";
 import { prisma } from "@/lib/prisma";
-import { cloudinary, watermarkedUrl } from "@/lib/cloudinary";
+import {
+  cloudinary,
+  referenceAsVenueSourceUrl,
+  watermarkedUrl,
+} from "@/lib/cloudinary";
+import { publicIdFromDeliveryUrl } from "@/lib/cloudinary-url";
 import { isFreePack } from "@/lib/vision-pack";
 import { trackServer } from "@/lib/posthog";
 import { ANALYTICS_EVENTS } from "@/lib/analytics-events";
@@ -19,7 +24,9 @@ import {
 } from "@/lib/design-media-meta";
 import {
   compareBeforePhoto,
+  isOwnReferencePublicId,
   isOwnVenuePublicId,
+  referenceFolder,
   venuePhotoFolder,
 } from "@/lib/venue-photo";
 import { notifyDesignApproved } from "@/server/services/notifications/dispatchers";
@@ -589,7 +596,7 @@ export const venueDesignsRouter = router({
     .mutation(async ({ ctx, input }) => {
       await enforceTrpc("imageUpload", ctx.user.id, UPLOAD_RATE_LIMITED);
       const result = await cloudinary.uploader.upload(input.dataUrl, {
-        folder: `zaffa-references/${ctx.user.id}`,
+        folder: referenceFolder(ctx.user.id),
         resource_type: "image",
         type: "upload",
       });
@@ -610,7 +617,7 @@ export const venueDesignsRouter = router({
       // an arbitrary URL on our account, so it is the likeliest to loop.
       await enforceTrpc("imageUpload", ctx.user.id, UPLOAD_RATE_LIMITED);
       const result = await cloudinary.uploader.upload(input.url, {
-        folder: `zaffa-references/${ctx.user.id}`,
+        folder: referenceFolder(ctx.user.id),
         resource_type: "image",
         type: "upload",
       });
@@ -658,35 +665,114 @@ export const venueDesignsRouter = router({
         resource_type: "image",
         type: "upload",
       });
-      const photo: VenuePhoto = {
-        url: result.secure_url,
-        publicId: result.public_id,
-        width: result.width,
-        height: result.height,
-      };
-      // What we hand back must be something `save` will accept. If the
-      // Cloudinary account's folder mode ever stops prefixing public ids
-      // with the folder, every save would start failing with
-      // VENUE_PHOTO_INVALID; this makes that loud at the upload instead.
+      return acceptVenueUpload(result, ctx.user.id, "upload");
+    }),
+
+  /**
+   * F3: the intake check thought one of the couple's reference uploads is a
+   * photo of their own empty venue, and they agreed ("Use it as the
+   * canvas"). Copies it into their venue folder and returns the shape
+   * `save` accepts as `venue_photo`, exactly like `uploadVenuePhoto`; the
+   * client then attaches it and drops the reference.
+   *
+   * Only the caller's own reference images qualify, proven from the URL:
+   * our Cloudinary account, the plain delivery shape, a public id inside
+   * `zaffa-references/<uid>/`. The copy is then made from a URL built here
+   * from that public id, never from the URL the client sent, so this cannot
+   * make Cloudinary fetch anything else.
+   */
+  promoteReferenceToVenue: protectedProcedure
+    .input(z.object({ url: z.string().url().max(2000) }))
+    .mutation(async ({ ctx, input }) => {
+      // The same kill switch as uploading a venue photo: this makes one.
+      if (!isFlagEnabled("venuePhoto")) {
+        throw new TRPCError({
+          code: "PRECONDITION_FAILED",
+          message: "VENUE_PHOTO_DISABLED",
+        });
+      }
+      const publicId = publicIdFromDeliveryUrl(
+        input.url,
+        process.env.CLOUDINARY_CLOUD_NAME,
+      );
+      if (!publicId || !isOwnReferencePublicId(publicId, ctx.user.id)) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "REFERENCE_NOT_PROMOTABLE",
+        });
+      }
+      await enforceTrpc("imageUpload", ctx.user.id, UPLOAD_RATE_LIMITED);
+
+      let result: CloudinaryUpload;
       try {
-        assertOwnVenuePhoto(venuePhotoSchema.parse(photo), ctx.user.id);
+        result = await cloudinary.uploader.upload(
+          referenceAsVenueSourceUrl(publicId),
+          {
+            folder: venuePhotoFolder(ctx.user.id),
+            resource_type: "image",
+            type: "upload",
+          },
+        );
       } catch (err) {
-        reportError("venue_designs.venue_photo_shape_unexpected", err, {
+        reportError("venue_designs.promote_reference_failed", err, {
           userId: ctx.user.id,
-          publicId: result.public_id,
+          publicId,
         });
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
           message: "VENUE_PHOTO_UPLOAD_FAILED",
         });
       }
-
-      // Fired here, server-side, once per successful upload. The client
-      // should not fire it again when it attaches the photo.
-      await trackServer(ctx.user.id, ANALYTICS_EVENTS.DESIGN_VENUE_PHOTO_ADDED, {
-        width: photo.width,
-        height: photo.height,
-      });
-      return photo;
+      return acceptVenueUpload(result, ctx.user.id, "reference");
     }),
 });
+
+type CloudinaryUpload = {
+  secure_url: string;
+  public_id: string;
+  width: number;
+  height: number;
+};
+
+/**
+ * The venue photo a fresh Cloudinary upload into the caller's venue folder
+ * becomes, checked to be one `save` will accept, and counted.
+ */
+async function acceptVenueUpload(
+  result: CloudinaryUpload,
+  userId: string,
+  source: "upload" | "reference",
+): Promise<VenuePhoto> {
+  const photo: VenuePhoto = {
+    url: result.secure_url,
+    publicId: result.public_id,
+    width: result.width,
+    height: result.height,
+  };
+  // What we hand back must be something `save` will accept. If the
+  // Cloudinary account's folder mode ever stops prefixing public ids
+  // with the folder, every save would start failing with
+  // VENUE_PHOTO_INVALID; this makes that loud at the upload instead.
+  try {
+    assertOwnVenuePhoto(venuePhotoSchema.parse(photo), userId);
+  } catch (err) {
+    reportError("venue_designs.venue_photo_shape_unexpected", err, {
+      userId,
+      publicId: result.public_id,
+      source,
+    });
+    throw new TRPCError({
+      code: "INTERNAL_SERVER_ERROR",
+      message: "VENUE_PHOTO_UPLOAD_FAILED",
+    });
+  }
+
+  // Fired here, server-side, once per photo that joins a venue folder. The
+  // client should not fire it again when it attaches the photo.
+  await trackServer(userId, ANALYTICS_EVENTS.DESIGN_VENUE_PHOTO_ADDED, {
+    width: photo.width,
+    height: photo.height,
+    source,
+  });
+  return photo;
+}

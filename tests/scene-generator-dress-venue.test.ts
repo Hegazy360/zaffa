@@ -120,16 +120,25 @@ describe("buildDressVenuePrompt", () => {
     expect(prompt).not.toMatch(/mood references/);
   });
 
-  it("carries the palette and the couple's notes, preferring an English brief when there is one", () => {
+  it("carries the palette, the intake brief when there is one, and the raw notes either way", () => {
     const withNotes = buildDressVenuePrompt(INPUT, []);
     expect(withNotes).toContain("#ffffff, #d4af37 (ivory)");
     expect(withNotes).toContain(INPUT.styleNotes);
+    expect(withNotes).not.toMatch(/Design brief/);
+    // F3: the brief is the model's clean English reading of the notes. It
+    // leads, and the notes stay, because a detail the brief lost is still
+    // in the couple's own words.
     const withBrief = buildDressVenuePrompt(
       { ...INPUT, briefEn: "Lots of white roses and warm lights." },
       [],
     );
-    expect(withBrief).toContain("The couple's brief: Lots of white roses and warm lights.");
-    expect(withBrief).not.toContain(INPUT.styleNotes);
+    expect(withBrief).toContain(
+      "Design brief, normalised from the couple's own words: Lots of white roses and warm lights.",
+    );
+    expect(withBrief).toContain(INPUT.styleNotes);
+    expect(withBrief.indexOf("Design brief")).toBeLessThan(
+      withBrief.indexOf(INPUT.styleNotes),
+    );
   });
 
   it("forbids people, text and watermarks, and asks for one photograph", () => {
@@ -204,5 +213,26 @@ describe("renderScene (prompt-only) is unchanged", () => {
     expect(call.mode).toBe("generate");
     expect(call.prompt).toMatch(/strictly as a stylistic mood reference/);
     expect(call.prompt).toContain("- Image 1: florals");
+  });
+
+  it("carries the intake brief next to the raw notes (F3)", async () => {
+    await renderScene({
+      ...INPUT,
+      briefEn: "A secret garden: white roses, crystal chandeliers hung in the trees.",
+    });
+    const prompt: string = generateImage.mock.calls[0][0].prompt;
+    expect(prompt).toContain(
+      "Design brief, normalised from the couple's own words: A secret garden: white roses, crystal chandeliers hung in the trees.",
+    );
+    expect(prompt).toContain(
+      `Additional notes from the host (incorporate where they fit): ${INPUT.styleNotes}`,
+    );
+  });
+
+  it("says nothing about a brief when there is none", async () => {
+    await renderScene({ ...INPUT, briefEn: "   " });
+    const prompt: string = generateImage.mock.calls[0][0].prompt;
+    expect(prompt).not.toMatch(/Design brief/);
+    expect(prompt).toContain(INPUT.styleNotes);
   });
 });

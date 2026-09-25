@@ -80,8 +80,9 @@ export interface RenderReference {
 
 export interface RenderSceneInput {
   eventType: string;
-  // Clean English brief from the intake check (F3), when there is one. The
-  // dress-venue prompt prefers it over the raw notes, which may be dialect.
+  // Clean English brief from the intake check (F3), when there is one. Both
+  // prompts carry it next to the raw notes: the notes may be dialect the
+  // image model half reads, the brief may have lost a detail they typed.
   briefEn?: string | null;
   setting: string;
   size: string;
@@ -132,6 +133,22 @@ function layoutFor(input: RenderSceneInput): string {
     : SIZE_LAYOUT[input.size] ?? SIZE_LAYOUT.medium;
 }
 
+/**
+ * The couple's own words for the prompt: the intake check's English brief
+ * (F3) when there is one, then the notes exactly as typed. `notesLead` is
+ * each prompt's own framing of the raw notes.
+ */
+function wordsPartFor(input: RenderSceneInput, notesLead: string): string {
+  const brief = input.briefEn?.trim();
+  const notes = input.styleNotes?.trim();
+  return [
+    brief ? `Design brief, normalised from the couple's own words: ${brief}` : "",
+    notes ? `${notesLead}: ${notes}` : "",
+  ]
+    .filter(Boolean)
+    .join("\n\n");
+}
+
 function palettePartFor(input: RenderSceneInput): string {
   return input.palette.colors.length
     ? `Color palette: ${input.palette.colors.join(", ")}${
@@ -175,9 +192,10 @@ function buildPrompt(
 
   const refLines = referenceLines(ordered, 1);
 
-  const notesPart = input.styleNotes?.trim()
-    ? `Additional notes from the host (incorporate where they fit): ${input.styleNotes.trim()}`
-    : "";
+  const notesPart = wordsPartFor(
+    input,
+    "Additional notes from the host (incorporate where they fit)",
+  );
 
   return [
     `Generate a single photorealistic photograph, 16:9 widescreen landscape orientation, of a fully decorated and styled ${input.eventType} reception at ${settingInfo.space}. Layout: ${layout}.`,
@@ -239,8 +257,6 @@ export function buildDressVenuePrompt(
 ): string {
   const layout = layoutFor(input);
   const refLines = referenceLines(moodRefs, 2);
-  const brief = input.briefEn?.trim();
-  const notes = input.styleNotes?.trim();
 
   return [
     `Image 1 is a photograph of the couple's real venue, the exact place their ${input.eventType} will happen. Edit this photograph: dress this same space for the ${input.eventType}. The result must be the same place, photographed from the same spot.`,
@@ -257,11 +273,10 @@ export function buildDressVenuePrompt(
       ? `The couple added mood references for the decor only. Take colors, materials, textures, density and mood from each one for its part of the decor, but never copy their rooms, architecture, backgrounds or layouts into the venue, and never paste them in as cutouts:\n${refLines}`
       : "",
 
-    brief
-      ? `The couple's brief: ${brief}`
-      : notes
-        ? `The couple's notes (follow them for the decor; they may be written in any language): ${notes}`
-        : "",
+    wordsPartFor(
+      input,
+      "The couple's notes as they typed them (follow them for the decor; they may be written in any language)",
+    ),
 
     `Lighting: keep the photo's own light, or make it a warm evening or golden-hour scene with the decor lighting glowing, whichever flatters the space. The permanent structures stay exactly as they are either way.`,
 

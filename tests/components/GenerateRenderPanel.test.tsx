@@ -44,6 +44,7 @@ const h = vi.hoisted(() => ({
   pack: { current: undefined as undefined | { sku: string; edits_left: number } },
   flags: { current: {} as Record<string, boolean> },
   paywallHandle: vi.fn<(err: unknown) => boolean>(() => false),
+  onBriefChange: { current: null as null | ((brief: string | null) => void) },
 }));
 
 vi.mock("next-intl", () => ({
@@ -126,6 +127,14 @@ vi.mock("@/components/ui/media-image", () => ({
     <img src={props.src} alt={props.alt} />
   ),
 }));
+// The intake card (F3) has its own tests; here it only hands the panel a
+// brief, the way the real one does once its answer matches the inputs.
+vi.mock("@/components/venue-designer/dashboard/IntakeReviewCard", () => ({
+  IntakeReviewCard: (props: { onBriefChange: (brief: string | null) => void }) => {
+    h.onBriefChange.current = props.onBriefChange;
+    return <div data-testid="intake-card" />;
+  },
+}));
 vi.mock("@/components/ui/compare-slider", () => ({
   CompareSlider: (props: { after: { src: string } }) => (
     <div data-testid="compare" data-after={props.after.src} />
@@ -193,7 +202,39 @@ beforeEach(() => {
   h.flags.current = {};
   h.paywallHandle.mockReset();
   h.paywallHandle.mockReturnValue(false);
+  h.onBriefChange.current = null;
   useVenueDesignerStore.getState().reset();
+});
+
+describe("the intake check before a render (F3)", () => {
+  it("sits in the form above the button and sends its brief with the render", async () => {
+    withReference();
+    render(<GenerateRenderPanel designId={DESIGN_ID} saveNow={async () => DESIGN_ID} />);
+    const card = screen.getByTestId("intake-card");
+    expect(
+      card.compareDocumentPosition(generateButton()) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+    act(() => h.onBriefChange.current!("Secret garden, chandeliers in the trees."));
+    await pressGenerate();
+    expect(h.renderCalls[0]).toMatchObject({
+      briefEn: "Secret garden, chandeliers in the trees.",
+    });
+  });
+
+  it("renders without a brief when there is none for these inputs", async () => {
+    withReference();
+    render(<GenerateRenderPanel designId={DESIGN_ID} saveNow={async () => DESIGN_ID} />);
+    act(() => h.onBriefChange.current!("An old brief."));
+    act(() => h.onBriefChange.current!(null));
+    await pressGenerate();
+    expect(h.renderCalls[0]).toHaveProperty("briefEn", undefined);
+  });
+
+  it("never blocks the button while it reads", () => {
+    withReference();
+    render(<GenerateRenderPanel designId={DESIGN_ID} saveNow={async () => DESIGN_ID} />);
+    expect(generateButton()).not.toBeDisabled();
+  });
 });
 
 describe("a venue render waits for the saved design", () => {

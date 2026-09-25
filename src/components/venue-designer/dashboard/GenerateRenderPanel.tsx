@@ -49,6 +49,7 @@ import { useDesignerFlag } from "@/components/venue-designer/designer-flags-prov
 import { compareBeforePhoto, type LineageRow } from "@/lib/venue-photo";
 import { RefineBox, type RefineResult } from "./RefineBox";
 import { VersionStrip } from "./VersionStrip";
+import { IntakeReviewCard } from "./IntakeReviewCard";
 import {
   buildRenderVersions,
   withPendingVersions,
@@ -126,6 +127,9 @@ export function GenerateRenderPanel({
   const venuePhoto = venuePhotoEnabled ? storedVenuePhoto : null;
   // F2: "what would you change?" under the render, and the version strip.
   const refineEnabled = useDesignerFlag("refineRender");
+  // F3: the intake check's clean English brief, for the inputs on screen.
+  // Set by the card only while its answer matches them, null otherwise.
+  const [intakeBrief, setIntakeBrief] = useState<string | null>(null);
 
   const [resultImage, setResultImage] = useState<string | null>(null);
   const [view, setView] = useState<View>("form");
@@ -579,6 +583,7 @@ export function GenerateRenderPanel({
         palette,
         references: flatRefs,
         styleNotes: styleNotes.trim() || undefined,
+        briefEn: intakeBrief ?? undefined,
         turnstileToken: turnstileToken ?? undefined,
         designId: renderDesignId,
       });
@@ -595,6 +600,7 @@ export function GenerateRenderPanel({
     palette,
     flatRefs,
     styleNotes,
+    intakeBrief,
     canRender,
     t,
     turnstileToken,
@@ -905,6 +911,11 @@ export function GenerateRenderPanel({
                 </div>
               ) : null}
             </div>
+
+            {/* F3: what we read from their choices, with one-tap fixes,
+                before the render they may only get one of. Never blocks
+                the button below. */}
+            <IntakeReviewCard onBriefChange={setIntakeBrief} />
 
             {isAnon ? (
               <div className="flex justify-center">

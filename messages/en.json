@@ -2175,6 +2175,25 @@
       "interrupted": "The connection dropped. If your change finished, it will appear in your versions in a moment.",
       "appliesTo": "Your change applies to the version on screen."
     },
+    "intake": {
+      "title": "Here's what we'll create",
+      "checking": "Reading your choices…",
+      "updating": "Updating…",
+      "settingMismatch": "Your notes describe {setting, select, indoor {an indoor venue} outdoor {an outdoor venue} tent {a tent} other {a different setting}}, but the setting is {current, select, indoor {indoor} outdoor {outdoor} tent {tent} other {something else}}.",
+      "switchTo": "{setting, select, indoor {Switch to indoor} outdoor {Switch to outdoor} tent {Switch to a tent} other {Switch the setting}}",
+      "switched": "{setting, select, indoor {Switched to indoor.} outdoor {Switched to outdoor.} tent {Switched to a tent.} other {Setting switched.}} Your render will follow it.",
+      "keepAsIs": "Keep as is",
+      "checkGuests": "Check the guest count",
+      "guestsMissing": "How many guests are you expecting? We size the tables and the layout from the number.",
+      "addGuests": "Add your guest count",
+      "venueQuestion": "Is this your venue?",
+      "venueHint": "It looks like a photo of an empty space. We can dress this exact place instead of imagining one.",
+      "useAsVenue": "Use it as the canvas",
+      "notOurVenue": "No, it's inspiration",
+      "venueUsed": "Done. We'll dress your venue photo.",
+      "venueFailed": "We couldn't use that photo as your venue. Please try again.",
+      "venueThumbAlt": "A reference photo that looks like an empty venue"
+    },
     "versions": {
       "title": "Your versions",
       "hint": "Tap one to see it and keep changing it.",

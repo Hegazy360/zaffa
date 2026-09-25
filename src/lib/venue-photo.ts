@@ -23,6 +23,19 @@ export function isOwnVenuePublicId(publicId: string, userId: string): boolean {
   return publicId.startsWith(`${venuePhotoFolder(userId)}/`);
 }
 
+/**
+ * Cloudinary folder for a user's reference images: their own uploads and
+ * the Pinterest pins re-hosted for them (`uploadReference`, `rehostUrl`).
+ */
+export function referenceFolder(userId: string): string {
+  return `zaffa-references/${userId}`;
+}
+
+/** True when `publicId` is inside `userId`'s reference folder. */
+export function isOwnReferencePublicId(publicId: string, userId: string): boolean {
+  return publicId.startsWith(`${referenceFolder(userId)}/`);
+}
+
 /** The slice of a media row the lineage walk needs. */
 export interface LineageRow {
   id: string;

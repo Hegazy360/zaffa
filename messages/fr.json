@@ -2175,6 +2175,25 @@
       "interrupted": "La connexion a été coupée. Si votre modification a abouti, elle apparaîtra dans vos versions dans un instant.",
       "appliesTo": "La modification s'applique à la version affichée."
     },
+    "intake": {
+      "title": "Voici ce que nous allons créer",
+      "checking": "Nous lisons vos choix…",
+      "updating": "Mise à jour…",
+      "settingMismatch": "Vos notes décrivent {setting, select, indoor {un lieu en intérieur} outdoor {un lieu en extérieur} tent {une tente} other {un autre cadre}}, mais le cadre choisi est {current, select, indoor {l'intérieur} outdoor {l'extérieur} tent {la tente} other {différent}}.",
+      "switchTo": "{setting, select, indoor {Passer en intérieur} outdoor {Passer en extérieur} tent {Passer sous tente} other {Changer de cadre}}",
+      "switched": "{setting, select, indoor {C'est fait, en intérieur.} outdoor {C'est fait, en extérieur.} tent {C'est fait, sous tente.} other {C'est fait, cadre modifié.}} Votre rendu suivra ce choix.",
+      "keepAsIs": "Garder tel quel",
+      "checkGuests": "Vérifier le nombre d'invités",
+      "guestsMissing": "Combien d'invités attendez-vous ? Nous dimensionnons les tables et la disposition à partir de ce nombre.",
+      "addGuests": "Indiquer le nombre d'invités",
+      "venueQuestion": "Est-ce votre lieu ?",
+      "venueHint": "On dirait la photo d'un espace vide. Nous pouvons décorer ce lieu précis au lieu d'en imaginer un.",
+      "useAsVenue": "L'utiliser comme base",
+      "notOurVenue": "Non, c'est une inspiration",
+      "venueUsed": "C'est fait. Nous décorerons la photo de votre lieu.",
+      "venueFailed": "Nous n'avons pas pu utiliser cette photo comme lieu. Veuillez réessayer.",
+      "venueThumbAlt": "Photo de référence qui ressemble à un lieu vide"
+    },
     "versions": {
       "title": "Vos versions",
       "hint": "Touchez une version pour la voir et continuer à la modifier.",

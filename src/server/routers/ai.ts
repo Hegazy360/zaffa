@@ -49,6 +49,7 @@ import {
   refineScene,
   type RefineNormalisation,
 } from "../ai/refine";
+import { checkIntake, type IntakeResult } from "../ai/intake";
 
 const referenceCategorySchema = z.enum([
   "overall_vibe",
@@ -126,6 +127,10 @@ export const aiRouter = router({
         }),
         references: z.array(renderReferenceSchema).max(10),
         styleNotes: z.string().max(2000).optional(),
+        // The clean English brief `checkIntake` wrote from the couple's own
+        // words (F3), when the check ran for these inputs. The prompt
+        // carries it next to the raw notes, never instead of them.
+        briefEn: z.string().trim().max(1200).nullish(),
         // Cloudflare Turnstile token. Anonymous visitors must always
         // send one when `TURNSTILE_SECRET_KEY` is configured (prod);
         // paid users skip the bot check entirely (see below).
@@ -360,6 +365,7 @@ export const aiRouter = router({
         sku: pack.sku,
         design_id: designId,
         persisted: mediaId !== null,
+        has_brief: Boolean(input.briefEn),
       });
 
       return {
@@ -388,6 +394,100 @@ export const aiRouter = router({
         // render, no gate".
         packSku: pack.sku,
       };
+    }),
+
+  /**
+   * F3, "Before we render": read the couple's brief with the cheap design
+   * LLM before they spend a render on it, see src/server/ai/intake.ts.
+   *
+   * Anonymous sessions may call it (the generate step comes before the
+   * email gate), so it is limited per user AND per IP: a bot minting fresh
+   * anonymous users still shares one IP bucket. A mutation, not a query:
+   * it costs money on every call, and the client decides when to ask.
+   */
+  checkIntake: protectedProcedure
+    .input(
+      z.object({
+        eventType: z.enum([
+          "wedding",
+          "engagement",
+          "birthday",
+          "corporate",
+          "other",
+        ]),
+        setting: z.enum(["indoor", "outdoor", "tent"]),
+        guestCount: z.number().int().min(2).max(10000).nullish(),
+        // As lenient as `renderScene`'s: a check refused over a long
+        // palette name would only make the card disappear for nothing.
+        palette: z.object({
+          name: z.string().max(500).optional(),
+          colors: z.array(z.string().max(100)).max(8).default([]),
+        }),
+        styleNotes: z.string().max(2000).optional(),
+        references: z
+          .array(
+            z.object({
+              url: z.string().min(1).max(2000),
+              category: referenceCategorySchema,
+            }),
+          )
+          .max(10),
+        hasVenuePhoto: z.boolean(),
+        locale: z.enum(locales).optional(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      // Kill switch, checked here as well as in the UI: this is the check
+      // that stops the spend the moment the flag flips.
+      if (!isFlagEnabled("intakeCheck")) {
+        throw new TRPCError({
+          code: "PRECONDITION_FAILED",
+          message: "INTAKE_DISABLED",
+        });
+      }
+      const limited = "Too many checks for now. Please try again later.";
+      await enforceTrpc("aiIntake", ctx.user.id, limited);
+      const ip = ctx.req ? ipFromRequest(ctx.req) : "unknown";
+      await enforceTrpc("aiIntake", `ip:${ip}`, limited);
+
+      const locale = requestLocale(ctx.req, input.locale);
+      let result: IntakeResult;
+      try {
+        result = await checkIntake({
+          eventType: input.eventType,
+          setting: input.setting,
+          guestCount: input.guestCount ?? null,
+          palette: input.palette,
+          styleNotes: input.styleNotes ?? "",
+          references: input.references,
+          hasVenuePhoto: input.hasVenuePhoto,
+          venuePhotoEnabled: isFlagEnabled("venuePhoto"),
+          locale,
+        });
+      } catch (err) {
+        reportError("ai.intake_failed", err, {
+          userId: ctx.user.id,
+          referenceCount: input.references.length,
+          locale,
+        });
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "INTAKE_FAILED",
+        });
+      }
+
+      await trackServer(ctx.user.id, ANALYTICS_EVENTS.DESIGN_INTAKE_CHECKED, {
+        conflicts: result.conflicts.length,
+        conflict_kinds: result.conflicts.map((c) => c.kind),
+        venue_candidates: result.venueCandidateIndexes.length,
+        notes_setting: result.notesSetting,
+        setting: input.setting,
+        has_notes: Boolean(input.styleNotes?.trim()),
+        reference_count: input.references.length,
+        has_venue_photo: input.hasVenuePhoto,
+        locale,
+      });
+      return result;
     }),
 
   /**
