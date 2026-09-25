@@ -36,6 +36,7 @@ import {
   ApproveDesignDialog,
   pickApproveMediaId,
 } from "@/components/venue-designer/ApproveDesignDialog";
+import { FamilyShareSection } from "@/components/venue-designer/FamilyShareSection";
 
 interface Props {
   /** Owner of this design, used to wire the find-planner CTA to a saved design. */
@@ -49,14 +50,14 @@ interface Props {
  * design they're working on to publish it, download it, or take it to
  * a planner.
  *
- * Three sections share one card:
- *   1. Microsite, publish + share URL (with public/private toggle).
- *   2. Lookbook PDF, download (stamps the refund tripwire on first hit).
- *   3. Find a planner, hands off to the existing marketplace flow.
+ * Four sections share one card:
+ *   1. Ask your family (F6), a private voting link, free tier included.
+ *   2. Microsite, publish + share URL (with public/private toggle).
+ *   3. Lookbook PDF, download (stamps the refund tripwire on first hit).
+ *   4. Find a planner, hands off to the existing marketplace flow.
  *
- * The component fetches the recipient's pack itself; it returns null
- * when there's no pack so the designer step renders nothing extra for
- * users who haven't purchased yet (the paywall handles that case).
+ * The component fetches the recipient's pack itself. With no pack it shows
+ * only the family link, which needs none; the paywall handles the rest.
  *
  * The parent `GenerateStep` only mounts this panel after the first
  * render lands, so we can assume there's always renderable media here -
@@ -101,7 +102,10 @@ export function ShareAndFinishPanel({ designId }: Props) {
     [design?.media],
   );
 
-  if (isLoading || !pack) return null;
+  if (isLoading) return null;
+  if (!pack) {
+    return designId ? <FamilyShareSection designId={designId} standalone /> : null;
+  }
 
   const isPublished = Boolean(pack.microsite_published_at);
   const slug = pack.microsite_slug;
@@ -137,6 +141,9 @@ export function ShareAndFinishPanel({ designId }: Props) {
       </CardHeader>
 
       <CardContent className="divide-y divide-rose-100/70 px-0">
+        {/* F6: first, because it is the one thing here every tier can use. */}
+        {designId ? <FamilyShareSection designId={designId} /> : null}
+
         {/* Microsite */}
         <Section
           icon={<Globe className="size-4" />}

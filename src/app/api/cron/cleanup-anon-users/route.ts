@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { isAuthorizedCronRequest } from "@/lib/env-checks";
 import { logger, reportError } from "@/lib/logger";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
+import { staleAnonProfilesWhere } from "@/server/services/anon-cleanup";
 
 /**
  * Daily sweep of anonymous Supabase users that never confirmed an
@@ -15,7 +16,8 @@ import { getSupabaseAdmin } from "@/lib/supabase/admin";
  * who confirmed the email a few days late, short enough that abuse
  * accumulation stays bounded. Anon users who DID upgrade
  * (`is_anonymous=false`) are never touched, the cleanup is keyed off
- * the mirrored flag on `profiles`.
+ * the mirrored flag on `profiles`. Nor, while it is in use, is an
+ * anonymous couple's family link (`staleAnonProfilesWhere`).
  *
  * Configure in `vercel.json`:
  *   { "path": "/api/cron/cleanup-anon-users", "schedule": "0 3 * * *" }
@@ -75,10 +77,7 @@ export async function GET(req: Request) {
   // again. The free-render uniqueness constraint is a fairness
   // signal, not a permanent ban.
   const stale = await prisma.profile.findMany({
-    where: {
-      is_anonymous: true,
-      created_at: { lt: cutoff },
-    },
+    where: staleAnonProfilesWhere(cutoff),
     select: { id: true },
     take: BATCH,
   });
