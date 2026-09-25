@@ -19,6 +19,9 @@ import { mockTrpc } from "./helpers/trpc-mock";
 
 const EASTERN_ARABIC_DIGITS = /[٠-٩]/;
 
+/** 1110 x 1568, a portrait picture standing in for a render of a portrait photo. */
+const PORTRAIT_RENDER = "/home/how-it-works/step-4-share-with-planner.avif";
+
 function newToken(): string {
   return randomBytes(16).toString("base64url");
 }
@@ -37,7 +40,8 @@ async function openSharePage(page: Page, opts: { gone?: boolean } = {}) {
         coupleName: "Noor",
         designName: "Garden nikah",
         versions: [
-          { id: first, number: 1, url: "/home/examples/collage-2.avif", caption: null },
+          // Portrait, as a render dressed onto a phone photo of the hall is.
+          { id: first, number: 1, url: PORTRAIT_RENDER, caption: null },
           {
             id: second,
             number: 2,
@@ -78,6 +82,19 @@ test.describe("family vote page", () => {
 
     const cards = page.getByTestId("family-version");
     await expect(cards).toHaveCount(2);
+    // A portrait version is shown whole, not cut to a 16:9 strip: family
+    // are choosing on what is in the frame.
+    const portrait = cards.nth(0).getByRole("img");
+    await expect
+      .poll(() => portrait.evaluate((img: HTMLImageElement) => img.complete && img.naturalWidth > 0))
+      .toBe(true);
+    const fit = await portrait.evaluate((img: HTMLImageElement) => {
+      const box = img.getBoundingClientRect();
+      return { objectFit: getComputedStyle(img).objectFit, width: box.width, height: box.height };
+    });
+    expect(fit.objectFit).toBe("contain");
+    expect(fit.height).toBeGreaterThan((fit.width * 9) / 16 + 40);
+    if (isArabic) expect(fit.height).toBeGreaterThan(fit.width);
     // The couple's own words under the version they came from.
     await expect(cards.nth(1)).toContainText("ورد أكتر على الكوشة");
     if (isArabic) {

@@ -271,13 +271,21 @@ export function FamilyVoteClient({ token, initial, enabled }: Props) {
                   picked && "ring-2 ring-rose-500",
                 )}
               >
-                <div className="relative aspect-video bg-muted">
+                {/* Natural aspect, never cropped: a render made from the
+                    couple's own photo keeps that photo's proportions, often
+                    portrait, and family are choosing on what is in the
+                    frame. Capped to the screen so one tall version never
+                    fills it; the width and height are only the placeholder
+                    box until the real proportions load. */}
+                <div className="bg-muted">
                   <MediaImage
                     src={version.url}
                     alt={t("versionAlt", { number: count(version.number) })}
-                    fill
+                    width={1600}
+                    height={900}
                     sizes="half"
                     priority={index === 0}
+                    className="h-auto max-h-[80dvh] w-full object-contain"
                   />
                 </div>
                 <figcaption className="flex items-center gap-3 p-4">
