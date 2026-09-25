@@ -292,6 +292,8 @@ test.describe("ask your family, in the designer", () => {
         created
           ? {
               needsEmail: false,
+              // An anonymous couple past the email gate, not yet confirmed.
+              unconfirmed: true,
               share: { token, path: `/s/${token}`, createdAt: new Date() },
               votes: [
                 {
@@ -312,7 +314,7 @@ test.describe("ask your family, in the designer", () => {
               ],
               voterCount: 3,
             }
-          : { needsEmail: false, share: null, votes: [], voterCount: 0 },
+          : { needsEmail: false, unconfirmed: true, share: null, votes: [], voterCount: 0 },
       "designShares.create": (input) => {
         createCalls.push(input);
         created = true;
@@ -340,6 +342,9 @@ test.describe("ask your family, in the designer", () => {
     const text = decodeURIComponent(href.slice("https://wa.me/?text=".length));
     expect(text).toContain(`/s/${token}`);
     expect(text).toContain(m.whatsappMessage.split("{url}")[0].trim());
+
+    // Their link lives only while family are voting until they confirm.
+    await expect(block.getByTestId("family-share-unconfirmed")).toHaveText(m.unconfirmedNote);
 
     const results = block.getByTestId("family-result");
     await expect(results).toHaveCount(2);

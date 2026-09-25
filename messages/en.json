@@ -2692,6 +2692,7 @@
     "stopConfirmTitle": "Stop sharing this link?",
     "stopConfirmBody": "The link stops working for everyone who has it, and its votes are cleared from here. You can make a new link anytime.",
     "stopped": "Link stopped. You can make a new one anytime.",
+    "unconfirmedNote": "This link stays live while your family is voting. To keep it and their votes for good, open the email we sent you and tap the confirmation link.",
     "resultsTitle": "What your family picked",
     "resultsEmpty": "No votes yet. Once your family opens the link, their picks show up here.",
     "voterCount": "{count, plural, one {{countLabel} person voted} other {{countLabel} people voted}}",

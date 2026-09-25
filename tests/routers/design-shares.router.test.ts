@@ -283,14 +283,26 @@ describe("designShares.forOwner", () => {
     const res = await caller({ id: OWNER_ID, is_anonymous: true }).forOwner({
       designId: DESIGN_ID,
     });
-    expect(res).toEqual({ needsEmail: true, share: null, votes: [], voterCount: 0 });
+    expect(res).toEqual({
+      needsEmail: true,
+      unconfirmed: true,
+      share: null,
+      votes: [],
+      voterCount: 0,
+    });
     expect(prismaMock.designShare.findMany).not.toHaveBeenCalled();
   });
 
   it("returns no link when the design was never shared", async () => {
     prismaMock.designShare.findMany.mockResolvedValue([]);
     const res = await caller(OWNER).forOwner({ designId: DESIGN_ID });
-    expect(res).toEqual({ needsEmail: false, share: null, votes: [], voterCount: 0 });
+    expect(res).toEqual({
+      needsEmail: false,
+      unconfirmed: false,
+      share: null,
+      votes: [],
+      voterCount: 0,
+    });
     expect(prismaMock.designVote.findMany).not.toHaveBeenCalled();
   });
 
@@ -322,6 +334,18 @@ describe("designShares.forOwner", () => {
       },
     ]);
     expect(res.voterCount).toBe(3);
+  });
+
+  it("flags an anonymous couple past the gate, whose link lasts only while it is in use", async () => {
+    prismaMock.profile.findUnique.mockResolvedValue({ free_render_email: "noor@example.com" } as never);
+    const anon = await caller({ id: OWNER_ID, is_anonymous: true }).forOwner({
+      designId: DESIGN_ID,
+    });
+    expect(anon).toMatchObject({ needsEmail: false, unconfirmed: true, share: { token: TOKEN } });
+    expect(anon.voterCount).toBe(3);
+
+    const permanent = await caller(OWNER).forOwner({ designId: DESIGN_ID });
+    expect(permanent.unconfirmed).toBe(false);
   });
 
   it("is refused while the kill switch is off", async () => {

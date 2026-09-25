@@ -10,6 +10,7 @@ import {
   Heart,
   Link2,
   Loader2,
+  MailCheck,
   MessageCircle,
   Share2,
   Users,
@@ -126,7 +127,7 @@ export function FamilyShareSection({
 
   if (!enabled || owner.isError || !owner.data || owner.data.needsEmail) return null;
 
-  const { share, votes, voterCount } = owner.data;
+  const { share, votes, voterCount, unconfirmed } = owner.data;
   const origin = typeof window !== "undefined" ? window.location.origin : "";
   const url = share ? `${origin}${share.path}` : null;
   const message = url ? t("whatsappMessage", { url }) : "";
@@ -256,6 +257,19 @@ export function FamilyShareSection({
                   {t("previewCta")}
                 </Link>
               </div>
+
+              {/* An anonymous couple's link lives only while family are
+                  voting (the anonymous sweep spares it that long); saying so
+                  here is the only warning they get before the votes go. */}
+              {unconfirmed ? (
+                <p
+                  data-testid="family-share-unconfirmed"
+                  className="flex items-start gap-2 rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-900 ring-1 ring-amber-200"
+                >
+                  <MailCheck aria-hidden className="mt-0.5 size-4 shrink-0" />
+                  <span>{t("unconfirmedNote")}</span>
+                </p>
+              ) : null}
 
               <section aria-labelledby={resultsTitleId} className="space-y-2 pt-1">
                 <div className="flex flex-wrap items-baseline justify-between gap-x-3">

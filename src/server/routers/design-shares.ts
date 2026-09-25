@@ -115,12 +115,18 @@ export const designSharesRouter = router({
    * The couple's view: their live link, and who voted for which version.
    * Votes are counted across every live link of the design, so two links
    * minted by a double tap never split the family's answer.
+   *
+   * `unconfirmed`: an anonymous couple past the email gate who has not yet
+   * opened the confirmation email. Their link lives only while it is in
+   * use (the anonymous sweep spares it that long), so the block asks them
+   * to confirm to keep it and the votes for good.
    */
   forOwner: protectedProcedure.input(designInput).query(async ({ ctx, input }) => {
     assertEnabled();
     await ownDesign(input.designId, ctx.user.id);
+    const unconfirmed = ctx.user.is_anonymous;
     if (await mustPassEmailGate(ctx.user)) {
-      return { needsEmail: true as const, share: null, votes: [], voterCount: 0 };
+      return { needsEmail: true as const, unconfirmed, share: null, votes: [], voterCount: 0 };
     }
 
     const shares = await prisma.designShare.findMany({
@@ -130,7 +136,7 @@ export const designSharesRouter = router({
     });
     const newest = shares[0];
     if (!newest) {
-      return { needsEmail: false as const, share: null, votes: [], voterCount: 0 };
+      return { needsEmail: false as const, unconfirmed, share: null, votes: [], voterCount: 0 };
     }
 
     const [renders, votes] = await Promise.all([
@@ -170,6 +176,7 @@ export const designSharesRouter = router({
 
     return {
       needsEmail: false as const,
+      unconfirmed,
       share: { token: newest.token, path: sharePath(newest.token), createdAt: newest.created_at },
       votes: tally,
       voterCount: tally.reduce((sum, v) => sum + v.count, 0),

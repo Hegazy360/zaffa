@@ -2692,6 +2692,7 @@
     "stopConfirmTitle": "Arrêter de partager ce lien ?",
     "stopConfirmBody": "Le lien ne fonctionnera plus pour personne, et ses votes disparaîtront d'ici. Vous pourrez créer un nouveau lien à tout moment.",
     "stopped": "Lien désactivé. Vous pouvez en créer un nouveau à tout moment.",
+    "unconfirmedNote": "Ce lien reste actif tant que votre famille vote. Pour le garder pour de bon, avec ses votes, ouvrez l'e-mail que nous vous avons envoyé et touchez le lien de confirmation.",
     "resultsTitle": "Le choix de la famille",
     "resultsEmpty": "Pas encore de vote. Dès que votre famille ouvre le lien, ses choix s'affichent ici.",
     "voterCount": "{count, plural, one {{countLabel} personne a voté} other {{countLabel} personnes ont voté}}",

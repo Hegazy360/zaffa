@@ -2692,6 +2692,7 @@
     "stopConfirmTitle": "Diesen Link nicht mehr teilen?",
     "stopConfirmBody": "Der Link funktioniert dann für niemanden mehr, und seine Stimmen verschwinden hier. Sie können jederzeit einen neuen Link erstellen.",
     "stopped": "Link beendet. Sie können jederzeit einen neuen erstellen.",
+    "unconfirmedNote": "Dieser Link bleibt aktiv, solange Ihre Familie abstimmt. Damit er und die Stimmen dauerhaft erhalten bleiben, öffnen Sie die E-Mail, die wir Ihnen geschickt haben, und tippen Sie auf den Bestätigungslink.",
     "resultsTitle": "Das hat Ihre Familie gewählt",
     "resultsEmpty": "Noch keine Stimmen. Sobald Ihre Familie den Link öffnet, erscheint ihre Wahl hier.",
     "voterCount": "{count, plural, one {{countLabel} Person hat abgestimmt} other {{countLabel} Personen haben abgestimmt}}",
