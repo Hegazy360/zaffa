@@ -48,6 +48,55 @@ export function printSizedUrl(publicId: string, width: number): string {
  * has Strict Transformations on.
  */
 export function venueModelInputUrl(publicId: string): string {
+  return modelInputUrl(publicId);
+}
+
+/**
+ * A render as the edit model receives it when the couple asks for a change
+ * (F2): the clean asset, never the watermarked one (the model would keep
+ * the mark and bake it into the next version), at the same ~1536px JPEG
+ * as the venue photo, because every input pixel is billed. Built from the
+ * public id on the server, like the venue photo.
+ */
+export function renderModelInputUrl(publicId: string): string {
+  return modelInputUrl(publicId);
+}
+
+/**
+ * A reference image as the intake check reads it (F3): 512px on the long
+ * edge, JPEG. The text model only has to tell an empty venue from decorated
+ * inspiration and pick up the look, and every input pixel is billed, so a
+ * thumbnail is plenty. Signed like the model inputs above.
+ */
+export function intakeThumbUrl(publicId: string): string {
+  return cloudinary.url(publicId, {
+    sign_url: true,
+    type: "upload",
+    secure: true,
+    format: "jpg",
+    quality: "auto:eco",
+    transformation: [{ width: 512, height: 512, crop: "limit" }],
+  });
+}
+
+/**
+ * The source a reference is re-uploaded from when the couple says it is
+ * their venue (F3): capped at 2048px JPEG, the same ceiling the venue card's
+ * client-side downscale gives an uploaded venue photo, since references are
+ * stored at whatever size the phone produced.
+ */
+export function referenceAsVenueSourceUrl(publicId: string): string {
+  return cloudinary.url(publicId, {
+    sign_url: true,
+    type: "upload",
+    secure: true,
+    format: "jpg",
+    quality: "auto:good",
+    transformation: [{ width: 2048, height: 2048, crop: "limit" }],
+  });
+}
+
+function modelInputUrl(publicId: string): string {
   return cloudinary.url(publicId, {
     sign_url: true,
     type: "upload",

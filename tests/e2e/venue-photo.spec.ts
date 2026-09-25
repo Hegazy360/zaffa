@@ -57,6 +57,19 @@ async function mockVenueUpload(page: Page) {
   return () => uploads;
 }
 
+/**
+ * The generate step reads the brief with the intake check (F3), a paid LLM
+ * call. Nothing here is about it (tests/e2e/intake-check.spec.ts is), so it
+ * never reaches the model: the card simply stays away, as after any failed
+ * check.
+ */
+async function blockIntakeCheck(page: Page) {
+  await page.route(
+    (url) => url.pathname.includes("ai.checkIntake"),
+    (route) => route.abort(),
+  );
+}
+
 async function goToStep(page: Page, step: "basics" | "generate") {
   await page.evaluate((s) => {
     window.location.hash = `#step=${s}`;
@@ -106,6 +119,7 @@ test.describe("your venue, dressed", () => {
     page,
   }) => {
     const uploads = await mockVenueUpload(page);
+    await blockIntakeCheck(page);
     await page.goto("/venue-designer/new#step=basics");
 
     const card = page.locator("[data-venue-photo-card]");
@@ -138,6 +152,7 @@ test.describe("your venue, dressed", () => {
     page,
   }) => {
     await mockVenueUpload(page);
+    await blockIntakeCheck(page);
     // Every design save fails (not saveMedia).
     await page.route(
       (url) => /\/api\/trpc\/.*venueDesigns\.save(?!Media)/.test(url.pathname),

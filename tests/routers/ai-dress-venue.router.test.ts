@@ -15,6 +15,8 @@ const { prismaMock } = await vi.hoisted(async () => {
 });
 
 vi.mock("@/lib/prisma", () => ({ prisma: prismaMock }));
+// ai.ts reaches the design LLM (F2 refine), a server-only module.
+vi.mock("server-only", () => ({}));
 
 const reportError = vi.fn();
 vi.mock("@/lib/logger", () => ({

@@ -46,8 +46,16 @@ function roundDown(n: number): number {
 async function loadProof(): Promise<{ count: number; thumbs: string[] }> {
   // Consent is the gate: only packs whose owners published their microsite
   // publicly, which is the same condition /gallery uses.
+  //
+  // The count is what the line says: weddings designed, one per wedding
+  // design that has at least one render. It used to count render rows,
+  // which already counted a couple twice for a second render, and since a
+  // talked change (F2) is saved as a render too, one couple with a render
+  // and three free changes would add four, a paid pack up to sixty more.
   const [count, packs] = await Promise.all([
-    prisma.venueDesignMedia.count({ where: { type: "render" } }),
+    prisma.venueDesign.count({
+      where: { event_type: "wedding", media: { some: { type: "render" } } },
+    }),
     prisma.visionPack.findMany({
       where: {
         microsite_public: true,

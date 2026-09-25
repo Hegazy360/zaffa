@@ -528,6 +528,7 @@ export async function requireActivePack(
     orderBy: { paid_at: "desc" },
   });
   if (!pack) {
+    if (kind === "edit") await throwIfEditsSpent(userId);
     throw new TRPCError({
       code: "FORBIDDEN",
       message: "PACK_REQUIRED",
@@ -595,6 +596,33 @@ export async function requireActivePack(
     });
   }
   return pack;
+}
+
+/**
+ * Why an edit found no `active` pack, when the answer is "you used them".
+ *
+ * `reserveEdit` flips a pack to `fulfilled` on the edit that leaves
+ * nothing anywhere on it: the free taste on its third change (1/1 render,
+ * 0/0 videos, 3/3 edits), a paid pack on its last. Inside the window that
+ * couple asks for their next change with no active pack, and without this
+ * they got PACK_REQUIRED, the generic "Unlock generation" paywall, instead
+ * of the "you've used all your design changes" one written for exactly
+ * that moment. A pack fulfilled by its window closing is past its window
+ * and still gets PACK_REQUIRED, like a render does.
+ */
+async function throwIfEditsSpent(userId: string): Promise<void> {
+  const spent = await prisma.visionPack.findFirst({
+    where: { recipient_user_id: userId, status: "fulfilled" },
+    orderBy: { paid_at: "desc" },
+    select: { edits_used: true, edits_quota: true, expires_at: true },
+  });
+  if (
+    spent &&
+    !isPackWindowExpired(spent.expires_at) &&
+    spent.edits_used >= spent.edits_quota
+  ) {
+    throw new TRPCError({ code: "FORBIDDEN", message: "PACK_QUOTA_EDITS" });
+  }
 }
 
 /**

@@ -355,7 +355,7 @@ describe("venueDesigns.uploadVenuePhoto", () => {
     expect(trackServer).toHaveBeenCalledWith(
       USER_ID,
       "design.venue_photo_added",
-      { width: 2048, height: 1536 },
+      { width: 2048, height: 1536, source: "upload" },
     );
   });
 });
