@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useId, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import Link from "next/link";
 import { useLocale, useTranslations } from "next-intl";
 import { ArrowRight, Heart, Loader2, NotebookPen, Sparkles } from "lucide-react";
@@ -82,6 +82,23 @@ function newVoterKey(): string {
   return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`;
 }
 
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/**
+ * This browser's voter key, saved BEFORE the first vote goes out. A vote the
+ * server kept but whose answer never reached the phone (patchy mobile data)
+ * is then retried under the same key and updates that row, where a fresh key
+ * per attempt would count the same person twice. The name is saved only
+ * once a vote goes through, so the dialog still asks for it after a failure.
+ */
+function ensureVoterKey(): string {
+  const stored = readJson<Partial<Voter>>(VOTER_STORAGE);
+  if (typeof stored?.key === "string" && UUID.test(stored.key)) return stored.key;
+  const key = newVoterKey();
+  writeJson(VOTER_STORAGE, { key, name: "" });
+  return key;
+}
+
 function errorCode(err: unknown): string | undefined {
   return err instanceof TRPCClientError
     ? (err.data?.code as string | undefined)
@@ -140,13 +157,17 @@ export function FamilyVoteClient({ token, initial, enabled }: Props) {
   const [dialog, setDialog] = useState<{ mediaId: string } | null>(null);
 
   const vote = trpc.designShares.vote.useMutation();
+  // Held for the life of the page as well as in storage, so a retry reuses
+  // the key even where storage refuses writes (private mode, full quota).
+  const voterKey = useRef<string | null>(null);
 
   const castVote = async (
     mediaId: string,
     name: string,
     comment: string,
   ): Promise<string | null> => {
-    const key = voter?.key ?? newVoterKey();
+    if (!voterKey.current) voterKey.current = voter?.key ?? ensureVoterKey();
+    const key = voterKey.current;
     try {
       await vote.mutateAsync({
         token,
