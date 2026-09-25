@@ -4,8 +4,10 @@ import { randomUUID } from "node:crypto";
 // F3, ai.checkIntake: the cheap read of a couple's brief before their
 // render, and the brief it writes riding into ai.renderScene. What must hold:
 //  - the kill switch stops it before anything is spent;
-//  - it is limited per user AND per IP (anonymous sessions can reach it,
-//    and a bot minting fresh users still shares its IP's bucket);
+//  - it is limited per IP, per user and globally, hourly and daily, all
+//    failing closed (anonymous sessions reach it, a bot minting fresh
+//    users still shares its IP's bucket, and it bills the balance the
+//    renders run on);
 //  - it answers in the couple's language (the input, else the cookie);
 //  - a failure is reported and comes back as one stable code, never the
 //    provider's words, so the card can quietly step aside;
@@ -152,16 +154,59 @@ describe("ai.checkIntake", () => {
     });
   });
 
-  it("is limited per user and per IP before the model is asked", async () => {
-    await caller().checkIntake(INPUT);
-    expect(enforceTrpc).toHaveBeenCalledWith("aiIntake", USER_ID, expect.any(String));
-    expect(enforceTrpc).toHaveBeenCalledWith("aiIntake", "ip:1.2.3.4", expect.any(String));
+  it("is limited per IP, per user and globally, by the hour and the day, before the model is asked", async () => {
+    await caller({ anonymous: true }).checkIntake(INPUT);
+    // The IP first (a bot mints users, not addresses) and the global
+    // ceiling last; every one refuses rather than allows if Upstash is down.
+    expect(enforceTrpc.mock.calls.map(([key, id]) => [key, id])).toEqual([
+      ["aiIntake", "ip:1.2.3.4"],
+      ["aiIntakeDaily", "ip:1.2.3.4"],
+      ["aiIntake", USER_ID],
+      ["aiIntakeDaily", USER_ID],
+      ["aiIntakeGlobalDaily", "global"],
+    ]);
+    for (const call of enforceTrpc.mock.calls) {
+      expect(call[3]).toEqual({ failClosed: true });
+    }
+    expect(enforceTrpc.mock.invocationCallOrder.at(-1)!).toBeLessThan(
+      checkIntake.mock.invocationCallOrder[0],
+    );
   });
 
-  it("stops at a limit without asking the model", async () => {
+  it("stops at an IP's limit without spending the user's or everyone's budget", async () => {
     const { TRPCError } = await import("@trpc/server");
-    enforceTrpc.mockImplementation(async (_key: string, id: string) => {
-      if (id.startsWith("ip:")) {
+    enforceTrpc.mockImplementation(async (key: string, id: string) => {
+      if (key === "aiIntakeDaily" && id.startsWith("ip:")) {
+        throw new TRPCError({ code: "TOO_MANY_REQUESTS", message: "slow down" });
+      }
+    });
+    await expect(caller().checkIntake(INPUT)).rejects.toMatchObject({
+      code: "TOO_MANY_REQUESTS",
+    });
+    const spent = enforceTrpc.mock.calls.map(([, id]) => id);
+    expect(spent).not.toContain(USER_ID);
+    expect(spent).not.toContain("global");
+    expect(checkIntake).not.toHaveBeenCalled();
+  });
+
+  it("stops at a user's daily limit before the global ceiling is touched", async () => {
+    const { TRPCError } = await import("@trpc/server");
+    enforceTrpc.mockImplementation(async (key: string, id: string) => {
+      if (key === "aiIntakeDaily" && id === USER_ID) {
+        throw new TRPCError({ code: "TOO_MANY_REQUESTS", message: "slow down" });
+      }
+    });
+    await expect(caller().checkIntake(INPUT)).rejects.toMatchObject({
+      code: "TOO_MANY_REQUESTS",
+    });
+    expect(enforceTrpc.mock.calls.map(([, id]) => id)).not.toContain("global");
+    expect(checkIntake).not.toHaveBeenCalled();
+  });
+
+  it("stops at the global ceiling without asking the model", async () => {
+    const { TRPCError } = await import("@trpc/server");
+    enforceTrpc.mockImplementation(async (key: string) => {
+      if (key === "aiIntakeGlobalDaily") {
         throw new TRPCError({ code: "TOO_MANY_REQUESTS", message: "slow down" });
       }
     });
@@ -169,6 +214,7 @@ describe("ai.checkIntake", () => {
       code: "TOO_MANY_REQUESTS",
     });
     expect(checkIntake).not.toHaveBeenCalled();
+    expect(trackServer).not.toHaveBeenCalled();
   });
 
   it("is off with its kill switch, before any limit or model", async () => {

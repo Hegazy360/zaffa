@@ -71,6 +71,16 @@ export const limiters = {
   // costed plan (F4). Reachable by anonymous sessions, so still bounded.
   aiIntake: makeLimiter("rl:ai:intake", 20, "1 h"),
   aiDecorPlan: makeLimiter("rl:ai:decor", 20, "1 h"),
+  // The intake check runs by itself on the generate step, for any fresh
+  // anonymous session, and bills the one OpenRouter balance the render
+  // funnel runs on. So beyond the burst bucket: a daily ceiling per user and
+  // per IP (a couple re-reading their brief makes a handful a day), and one
+  // global daily ceiling for everyone, ~$2.80 at ~$0.0014 a check with ten
+  // references. Spending it all only hides an optional card; the renders it
+  // would otherwise starve keep working. `ai.checkIntake` consumes these
+  // with `failClosed`, so an Upstash outage cannot lift them.
+  aiIntakeDaily: makeLimiter("rl:ai:intake:d", 60, "1 d"),
+  aiIntakeGlobalDaily: makeLimiter("rl:ai:intake:global", 2000, "1 d"),
   // Per-user image uploads to Cloudinary: reference photos, Pinterest
   // re-hosts and venue photos. Nothing capped these before, and every one
   // is a server-side upload of up to several MB on our Cloudinary quota.
@@ -108,11 +118,24 @@ export const limiters = {
 
 export type LimiterKey = keyof typeof limiters;
 
+export interface ConsumeOptions {
+  /**
+   * Refuse instead of allow when Upstash is unreachable. For a paid call
+   * nothing else bounds and that the product works without (the intake
+   * check): there, a lost limiter would be an open tap on the OpenRouter
+   * balance, and refusing costs only an optional card. An unconfigured
+   * limiter (local dev) still allows; production refuses to boot without
+   * Upstash (see env-checks).
+   */
+  failClosed?: boolean;
+}
+
 /**
  * Consume one token from a limiter. Returns the underlying Upstash result.
  * If Upstash isn't configured OR is unreachable (stale credentials,
  * transient network failure, provider outage), returns `{ success: true }`
- * so the app fails open rather than 500-ing on a non-critical dependency.
+ * so the app fails open rather than 500-ing on a non-critical dependency
+ * (unless the caller asks to fail closed, see `ConsumeOptions`).
  * A rate-limiter should slow abuse; it should never take the app down.
  * Failures are logged once at warn-level so we don't drown the console
  * when a misconfigured Upstash URL keeps missing DNS.
@@ -123,6 +146,7 @@ export type LimiterKey = keyof typeof limiters;
 export async function consume(
   key: LimiterKey,
   identifier: string,
+  { failClosed = false }: ConsumeOptions = {},
 ): Promise<{ success: boolean; remaining?: number; reset?: number }> {
   const limiter = limiters[key];
   if (!limiter) return { success: true };
@@ -136,11 +160,11 @@ export async function consume(
   } catch (err) {
     // Network / configuration error reaching Upstash. Fail open with a
     // single warn log so the caller still succeeds.
-    console.warn("[rate-limit] limiter unreachable, failing open", {
-      key,
-      error: err instanceof Error ? err.message : String(err),
-    });
-    return { success: true };
+    console.warn(
+      `[rate-limit] limiter unreachable, failing ${failClosed ? "closed" : "open"}`,
+      { key, error: err instanceof Error ? err.message : String(err) },
+    );
+    return { success: !failClosed };
   }
 }
 
@@ -152,8 +176,9 @@ export async function enforceTrpc(
   key: LimiterKey,
   identifier: string,
   message = "Too many requests, please slow down.",
+  options?: ConsumeOptions,
 ): Promise<void> {
-  const res = await consume(key, identifier);
+  const res = await consume(key, identifier, options);
   if (!res.success) {
     throw new TRPCError({ code: "TOO_MANY_REQUESTS", message });
   }

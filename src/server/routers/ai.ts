@@ -7,6 +7,7 @@ import {
   enforceTrpc,
   enforceTrpcMany,
   ipFromRequest,
+  type LimiterKey,
 } from "@/lib/rate-limit";
 import { trackServer } from "@/lib/posthog";
 import { ANALYTICS_EVENTS } from "@/lib/analytics-events";
@@ -445,10 +446,25 @@ export const aiRouter = router({
           message: "INTAKE_DISABLED",
         });
       }
+      // Any fresh anonymous session reaches this, and it bills the balance
+      // the renders run on, so: burst and daily buckets per IP and per
+      // user, then one global daily ceiling, all failing closed (see
+      // `aiIntakeDaily` in rate-limit.ts). Every bucket that passes spends
+      // a token, so the order matters: the IP first (a bot can mint users,
+      // not addresses), and the global ceiling last, so a caller refused
+      // by its own buckets never spends what real couples share.
       const limited = "Too many checks for now. Please try again later.";
-      await enforceTrpc("aiIntake", ctx.user.id, limited);
       const ip = ctx.req ? ipFromRequest(ctx.req) : "unknown";
-      await enforceTrpc("aiIntake", `ip:${ip}`, limited);
+      const buckets: Array<[LimiterKey, string]> = [
+        ["aiIntake", `ip:${ip}`],
+        ["aiIntakeDaily", `ip:${ip}`],
+        ["aiIntake", ctx.user.id],
+        ["aiIntakeDaily", ctx.user.id],
+        ["aiIntakeGlobalDaily", "global"],
+      ];
+      for (const [key, identifier] of buckets) {
+        await enforceTrpc(key, identifier, limited, { failClosed: true });
+      }
 
       const locale = requestLocale(ctx.req, input.locale);
       let result: IntakeResult;
