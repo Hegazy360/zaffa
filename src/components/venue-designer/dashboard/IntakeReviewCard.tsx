@@ -35,6 +35,20 @@ interface IntakeReviewCardProps {
    * notes the couple has since changed is worse than none.
    */
   onBriefChange: (briefEn: string | null) => void;
+  /**
+   * A render is being prepared or is on its way. It was sent with the
+   * inputs as they were when Generate was pressed, so a fix tapped now
+   * would change the design but not that render, while the card said the
+   * render would follow it. The fixes wait until it is back.
+   */
+  renderInFlight?: boolean;
+  /**
+   * True while a fix the couple tapped is still changing the design
+   * (copying a reference into their venue photo). The panel holds the
+   * render button meanwhile, or the render would leave without the venue
+   * they just chose.
+   */
+  onBusyChange?: (busy: boolean) => void;
 }
 
 type Applied = { kind: "setting"; setting: Setting } | { kind: "venue" } | null;
@@ -50,7 +64,11 @@ type Applied = { kind: "setting"; setting: Setting } | { kind: "venue" } | null;
  * never blocks the render: while it reads there is a skeleton beside a
  * working button, and if the check fails the card is simply not there.
  */
-export function IntakeReviewCard({ onBriefChange }: IntakeReviewCardProps) {
+export function IntakeReviewCard({
+  onBriefChange,
+  renderInFlight = false,
+  onBusyChange,
+}: IntakeReviewCardProps) {
   const t = useTranslations("designer");
   const uiLocale = useLocale();
   const enabled = useDesignerFlag("intakeCheck");
@@ -152,6 +170,12 @@ export function IntakeReviewCard({ onBriefChange }: IntakeReviewCardProps) {
   const [venueError, setVenueError] = useState<string | null>(null);
   const promote = trpc.venueDesigns.promoteReferenceToVenue.useMutation();
 
+  const promoting = promotingId !== null;
+  useEffect(() => {
+    onBusyChange?.(promoting);
+    return () => onBusyChange?.(false);
+  }, [promoting, onBusyChange]);
+
   if (!request || failed) return null;
 
   const conflicts = shown
@@ -167,6 +191,10 @@ export function IntakeReviewCard({ onBriefChange }: IntakeReviewCardProps) {
     shown && venuePhotoEnabled && !hasVenuePhoto
       ? venueCandidates(shown, references, notVenue)
       : [];
+
+  // Every fix waits while a render is out: see `renderInFlight`.
+  const fixesLocked = renderInFlight;
+  const hasFixes = conflicts.length > 0 || candidates.length > 0 || guestCount == null;
 
   // The line saying what a fix did, for as long as it is still true.
   const showApplied =
@@ -232,6 +260,12 @@ export function IntakeReviewCard({ onBriefChange }: IntakeReviewCardProps) {
         ) : null}
       </div>
 
+      {fixesLocked && hasFixes ? (
+        <p data-intake-locked="" className="text-xs leading-relaxed text-muted-foreground">
+          {t("intake.renderInFlight")}
+        </p>
+      ) : null}
+
       {shown ? (
         <div aria-live="polite" className="space-y-3">
           <p data-intake-summary="" className="leading-relaxed">
@@ -273,6 +307,7 @@ export function IntakeReviewCard({ onBriefChange }: IntakeReviewCardProps) {
                     type="button"
                     size="lg"
                     data-intake-fix-setting={conflict.suggestedSetting}
+                    disabled={fixesLocked}
                     onClick={() => fixSetting(conflict.suggestedSetting!)}
                     className="h-11 bg-rose-500 text-white hover:bg-rose-600 sm:h-9"
                   >
@@ -284,6 +319,7 @@ export function IntakeReviewCard({ onBriefChange }: IntakeReviewCardProps) {
                     type="button"
                     size="lg"
                     variant="outline"
+                    disabled={fixesLocked}
                     onClick={() => openBasics("guest_count")}
                     className="h-11 sm:h-9"
                   >
@@ -295,6 +331,7 @@ export function IntakeReviewCard({ onBriefChange }: IntakeReviewCardProps) {
                   size="lg"
                   variant="ghost"
                   data-intake-keep=""
+                  disabled={fixesLocked}
                   onClick={() => keepAsIs(conflict)}
                   className="h-11 sm:h-9"
                 >
@@ -331,7 +368,7 @@ export function IntakeReviewCard({ onBriefChange }: IntakeReviewCardProps) {
                     type="button"
                     size="lg"
                     data-intake-use-venue=""
-                    disabled={promotingId !== null}
+                    disabled={promoting || fixesLocked}
                     onClick={() => void promoteCandidate(candidate)}
                     className="h-11 gap-2 bg-rose-500 text-white hover:bg-rose-600 sm:h-9"
                   >
@@ -344,7 +381,8 @@ export function IntakeReviewCard({ onBriefChange }: IntakeReviewCardProps) {
                     type="button"
                     size="lg"
                     variant="ghost"
-                    disabled={promotingId !== null}
+                    data-intake-not-venue=""
+                    disabled={promoting || fixesLocked}
                     onClick={() => dismissCandidate(candidate.ref.id)}
                     className="h-11 sm:h-9"
                   >
@@ -380,6 +418,7 @@ export function IntakeReviewCard({ onBriefChange }: IntakeReviewCardProps) {
             type="button"
             size="lg"
             variant="outline"
+            disabled={fixesLocked}
             onClick={() => openBasics("guest_count_missing")}
             className="h-11 shrink-0 sm:h-9"
           >

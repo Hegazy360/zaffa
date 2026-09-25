@@ -92,9 +92,9 @@ async function settle() {
   await act(async () => {});
 }
 
-function renderCard() {
+function renderCard(props: { renderInFlight?: boolean; onBusyChange?: (busy: boolean) => void } = {}) {
   const onBriefChange = vi.fn();
-  const view = render(<IntakeReviewCard onBriefChange={onBriefChange} />);
+  const view = render(<IntakeReviewCard onBriefChange={onBriefChange} {...props} />);
   return { ...view, onBriefChange };
 }
 
@@ -305,5 +305,89 @@ describe("a missing guest count", () => {
     const row = document.querySelector("[data-intake-guests-missing]") as HTMLElement;
     fireEvent.click(row.querySelector("button") as HTMLElement);
     expect(h.goToStep).toHaveBeenCalledWith("basics");
+  });
+});
+
+describe("while a render is on its way", () => {
+  // It left with the inputs as they were when Generate was pressed. A fix
+  // tapped now would change the design but not that render, and the card
+  // would say the render follows it.
+  it("holds every fix and says why, then lets them go once it is back", async () => {
+    useVenueDesignerStore.getState().setGuestCount(null);
+    useVenueDesignerStore.getState().addReference("venue_decor", LAWN);
+    h.check.mockResolvedValue(
+      answer({ conflicts: [SETTING_CONFLICT], venueCandidateIndexes: [0] }),
+    );
+    const onBriefChange = vi.fn();
+    const view = render(<IntakeReviewCard onBriefChange={onBriefChange} renderInFlight />);
+    await settle();
+
+    const fixes = [
+      '[data-intake-fix-setting="outdoor"]',
+      "[data-intake-keep]",
+      "[data-intake-use-venue]",
+      "[data-intake-not-venue]",
+      "[data-intake-guests-missing] button",
+    ].map((selector) => document.querySelector(selector) as HTMLElement);
+    for (const button of fixes) {
+      expect(button).not.toBeNull();
+      expect(button).toBeDisabled();
+    }
+    expect(document.querySelector("[data-intake-locked]")).toHaveTextContent(
+      "intake.renderInFlight",
+    );
+
+    for (const button of fixes) fireEvent.click(button);
+    expect(useVenueDesignerStore.getState().setting).toBe("indoor");
+    expect(h.promote).not.toHaveBeenCalled();
+    expect(h.goToStep).not.toHaveBeenCalled();
+    expect(h.track).not.toHaveBeenCalled();
+    expect(document.querySelector("[data-intake-applied]")).toBeNull();
+
+    view.rerender(<IntakeReviewCard onBriefChange={onBriefChange} renderInFlight={false} />);
+    for (const button of fixes) expect(button).not.toBeDisabled();
+    expect(document.querySelector("[data-intake-locked]")).toBeNull();
+    fireEvent.click(
+      document.querySelector('[data-intake-fix-setting="outdoor"]') as HTMLElement,
+    );
+    expect(useVenueDesignerStore.getState().setting).toBe("outdoor");
+  });
+
+  it("says nothing about it when there is nothing to fix", async () => {
+    h.check.mockResolvedValueOnce(answer());
+    renderCard({ renderInFlight: true });
+    await settle();
+    expect(document.querySelector("[data-intake-summary]")).not.toBeNull();
+    expect(document.querySelector("[data-intake-locked]")).toBeNull();
+  });
+});
+
+describe("a fix still changing the design", () => {
+  it("tells the panel to hold the render until the venue photo has landed", async () => {
+    useVenueDesignerStore.getState().addReference("venue_decor", LAWN);
+    h.check.mockResolvedValueOnce(answer({ venueCandidateIndexes: [0] }));
+    const onBusyChange = vi.fn();
+    renderCard({ onBusyChange });
+    await settle();
+    expect(onBusyChange).toHaveBeenLastCalledWith(false);
+
+    let land: (photo: unknown) => void = () => {};
+    h.promote.mockReturnValueOnce(new Promise((resolve) => (land = resolve)));
+    h.check.mockReturnValue(new Promise(() => {}));
+    await act(async () => {
+      fireEvent.click(document.querySelector("[data-intake-use-venue]") as HTMLElement);
+    });
+    expect(onBusyChange).toHaveBeenLastCalledWith(true);
+
+    await act(async () =>
+      land({
+        url: "https://res.cloudinary.com/zaffa/image/upload/v2/zaffa-venues/u1/lawn.jpg",
+        publicId: "zaffa-venues/u1/lawn",
+        width: 2048,
+        height: 1536,
+      }),
+    );
+    expect(useVenueDesignerStore.getState().venuePhoto).not.toBeNull();
+    expect(onBusyChange).toHaveBeenLastCalledWith(false);
   });
 });

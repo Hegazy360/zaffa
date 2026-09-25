@@ -2192,7 +2192,8 @@
       "notOurVenue": "No, it's inspiration",
       "venueUsed": "Done. We'll dress your venue photo.",
       "venueFailed": "We couldn't use that photo as your venue. Please try again.",
-      "venueThumbAlt": "A reference photo that looks like an empty venue"
+      "venueThumbAlt": "A reference photo that looks like an empty venue",
+      "renderInFlight": "This render is already on its way with the choices above. You can make these fixes for your next one."
     },
     "versions": {
       "title": "Your versions",

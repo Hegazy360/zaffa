@@ -2192,7 +2192,8 @@
       "notOurVenue": "Nein, nur Inspiration",
       "venueUsed": "Erledigt. Wir dekorieren das Foto Ihres Veranstaltungsorts.",
       "venueFailed": "Wir konnten dieses Foto nicht als Veranstaltungsort verwenden. Bitte versuchen Sie es erneut.",
-      "venueThumbAlt": "Referenzfoto, das wie ein leerer Raum aussieht"
+      "venueThumbAlt": "Referenzfoto, das wie ein leerer Raum aussieht",
+      "renderInFlight": "Dieses Bild wird bereits mit der Auswahl oben erstellt. Diese Korrekturen können Sie beim nächsten vornehmen."
     },
     "versions": {
       "title": "Ihre Versionen",

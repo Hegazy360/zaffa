@@ -130,6 +130,10 @@ export function GenerateRenderPanel({
   // F3: the intake check's clean English brief, for the inputs on screen.
   // Set by the card only while its answer matches them, null otherwise.
   const [intakeBrief, setIntakeBrief] = useState<string | null>(null);
+  // True while a fix the couple tapped in the intake card is still changing
+  // the design (a reference becoming their venue photo): the render waits
+  // for it rather than leave without the venue they just chose.
+  const [intakeBusy, setIntakeBusy] = useState(false);
 
   const [resultImage, setResultImage] = useState<string | null>(null);
   const [view, setView] = useState<View>("form");
@@ -527,7 +531,7 @@ export function GenerateRenderPanel({
   }, [view, generationId]);
 
   const handleRender = useCallback(async () => {
-    if (renderStartingRef.current || renderMutation.isPending) return;
+    if (renderStartingRef.current || renderMutation.isPending || intakeBusy) return;
     setRenderError(null);
     if (!canRender) {
       toast.error(t("needRefBeforeRender"));
@@ -601,6 +605,7 @@ export function GenerateRenderPanel({
     flatRefs,
     styleNotes,
     intakeBrief,
+    intakeBusy,
     canRender,
     t,
     turnstileToken,
@@ -913,9 +918,15 @@ export function GenerateRenderPanel({
             </div>
 
             {/* F3: what we read from their choices, with one-tap fixes,
-                before the render they may only get one of. Never blocks
-                the button below. */}
-            <IntakeReviewCard onBriefChange={setIntakeBrief} />
+                before the render they may only get one of. Reading never
+                blocks the button below; only a fix still being applied
+                does. Once a render is out its fixes wait, since that
+                render left with the inputs as they were. */}
+            <IntakeReviewCard
+              onBriefChange={setIntakeBrief}
+              renderInFlight={renderMutation.isPending || preparingRender}
+              onBusyChange={setIntakeBusy}
+            />
 
             {isAnon ? (
               <div className="flex justify-center">
@@ -929,7 +940,9 @@ export function GenerateRenderPanel({
             <Button
               size="lg"
               onClick={handleRender}
-              disabled={renderMutation.isPending || preparingRender || !canRender}
+              disabled={
+                renderMutation.isPending || preparingRender || intakeBusy || !canRender
+              }
               data-generate-render=""
               className="h-12 w-full gap-2 bg-rose-500 text-base text-white hover:bg-rose-600 sm:h-11 sm:text-sm"
             >

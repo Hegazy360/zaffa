@@ -174,7 +174,13 @@ async function openGenerateStep(
   {
     check,
     guestCount = 180,
-  }: { check: (input: CheckInput) => unknown; guestCount?: number | null },
+    handlers = {},
+  }: {
+    check: (input: CheckInput) => unknown;
+    guestCount?: number | null;
+    /** Extra or replacement procedures, answered by the test. */
+    handlers?: Record<string, Handler>;
+  },
 ) {
   const designId = randomUUID();
   const checks: CheckInput[] = [];
@@ -191,6 +197,7 @@ async function openGenerateStep(
       promotions.push(input as { url: string });
       return VENUE_PHOTO;
     },
+    ...handlers,
   });
   await page.goto(`/venue-designer/${designId}#step=generate`);
   return { checks, promotions };
@@ -287,6 +294,76 @@ test.describe("before we render", () => {
       await card.scrollIntoViewIfNeeded();
       await page.screenshot({ path: `${shots}/intake-fixed-${testInfo.project.name}.png` });
     }
+  });
+
+  test("a venue being set holds the render, and a render on its way holds the fixes", async ({
+    page,
+  }, testInfo) => {
+    const shots = process.env.INTAKE_SHOTS;
+    const phone = testInfo.project.name === "mobile-ar";
+    if (shots && phone) await page.setViewportSize({ width: 390, height: 844 });
+
+    let landVenue: () => void = () => {};
+    const venueHeld = new Promise<void>((resolve) => (landVenue = resolve));
+    let failRender: () => void = () => {};
+    const renderHeld = new Promise<void>((resolve) => (failRender = resolve));
+    const renders: Array<{ setting: string }> = [];
+    await openGenerateStep(page, {
+      check: answerFor,
+      handlers: {
+        "venueDesigns.promoteReferenceToVenue": async () => {
+          await venueHeld;
+          return VENUE_PHOTO;
+        },
+        // Held, then refused: nothing is rendered or spent.
+        "ai.renderScene": async (input) => {
+          renders.push(input as { setting: string });
+          await renderHeld;
+          throw new TrpcError("RENDER_FAILED");
+        },
+      },
+    });
+    const arabic = await isArabic(page);
+    const card = page.locator("[data-intake-card]");
+    const generate = page.locator("[data-generate-render]");
+    await expect(card.locator("[data-intake-venue-candidate]")).toBeVisible({ timeout: 45_000 });
+
+    // The lawn is being copied into their venue photo: the render waits
+    // for it instead of leaving without the venue they just chose.
+    await card.locator("[data-intake-use-venue]").click();
+    await expect(generate).toBeDisabled();
+    landVenue();
+    await expect(page.locator("[data-venue-photo-summary]")).toBeVisible();
+    await expect(generate).toBeEnabled();
+
+    // Generate while the garden conflict still stands. That render left
+    // with "indoor": the fix waits, and the card says why.
+    const conflict = card.locator('[data-intake-conflict="setting"]');
+    await expect(conflict).toBeVisible();
+    await generate.click();
+    await expect.poll(() => renders.length).toBe(1);
+    expect(renders[0]).toMatchObject({ setting: "indoor" });
+    const fix = conflict.locator('[data-intake-fix-setting="outdoor"]');
+    await expect(fix).toBeDisabled();
+    await expect(conflict.locator("[data-intake-keep]")).toBeDisabled();
+    await expect(card.locator("[data-intake-locked]")).toHaveText(
+      arabic
+        ? "التصميم ده بيتعمل دلوقتي بالاختيارات اللي فوق. تقدروا تعملوا التعديلات دي في التصميم الجاي."
+        : "This render is already on its way with the choices above. You can make these fixes for your next one.",
+    );
+    await expect(card.locator("[data-intake-applied]")).not.toContainText(
+      arabic ? "خلّيناها خارجي" : "Switched to outdoor",
+    );
+
+    if (shots) {
+      await card.scrollIntoViewIfNeeded();
+      await page.screenshot({ path: `${shots}/intake-locked-${testInfo.project.name}.png` });
+    }
+
+    // It came back without a render: the fix is theirs again.
+    failRender();
+    await expect(fix).toBeEnabled();
+    await expect(card.locator("[data-intake-locked]")).toHaveCount(0);
   });
 
   test("a missing guest count links back to basics", async ({ page }) => {

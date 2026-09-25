@@ -2192,7 +2192,8 @@
       "notOurVenue": "Non, c'est une inspiration",
       "venueUsed": "C'est fait. Nous décorerons la photo de votre lieu.",
       "venueFailed": "Nous n'avons pas pu utiliser cette photo comme lieu. Veuillez réessayer.",
-      "venueThumbAlt": "Photo de référence qui ressemble à un lieu vide"
+      "venueThumbAlt": "Photo de référence qui ressemble à un lieu vide",
+      "renderInFlight": "Ce rendu est déjà en cours avec les choix ci-dessus. Vous pourrez faire ces corrections pour le prochain."
     },
     "versions": {
       "title": "Vos versions",

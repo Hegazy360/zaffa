@@ -45,6 +45,10 @@ const h = vi.hoisted(() => ({
   flags: { current: {} as Record<string, boolean> },
   paywallHandle: vi.fn<(err: unknown) => boolean>(() => false),
   onBriefChange: { current: null as null | ((brief: string | null) => void) },
+  intakeProps: {
+    current: null as null | { renderInFlight?: boolean; onBusyChange?: (busy: boolean) => void },
+  },
+  renderPending: { current: false as boolean },
 }));
 
 vi.mock("next-intl", () => ({
@@ -83,7 +87,7 @@ vi.mock("@/lib/trpc", () => {
             h.renderOpts.current = opts;
             return {
               mutate: (vars: RenderVars) => h.renderCalls.push(vars),
-              isPending: false,
+              isPending: h.renderPending.current,
               reset: vi.fn(),
             };
           },
@@ -130,9 +134,14 @@ vi.mock("@/components/ui/media-image", () => ({
 // The intake card (F3) has its own tests; here it only hands the panel a
 // brief, the way the real one does once its answer matches the inputs.
 vi.mock("@/components/venue-designer/dashboard/IntakeReviewCard", () => ({
-  IntakeReviewCard: (props: { onBriefChange: (brief: string | null) => void }) => {
+  IntakeReviewCard: (props: {
+    onBriefChange: (brief: string | null) => void;
+    renderInFlight?: boolean;
+    onBusyChange?: (busy: boolean) => void;
+  }) => {
     h.onBriefChange.current = props.onBriefChange;
-    return <div data-testid="intake-card" />;
+    h.intakeProps.current = props;
+    return <div data-testid="intake-card" data-render-in-flight={String(!!props.renderInFlight)} />;
   },
 }));
 vi.mock("@/components/ui/compare-slider", () => ({
@@ -203,6 +212,8 @@ beforeEach(() => {
   h.paywallHandle.mockReset();
   h.paywallHandle.mockReturnValue(false);
   h.onBriefChange.current = null;
+  h.intakeProps.current = null;
+  h.renderPending.current = false;
   useVenueDesignerStore.getState().reset();
 });
 
@@ -234,6 +245,43 @@ describe("the intake check before a render (F3)", () => {
     withReference();
     render(<GenerateRenderPanel designId={DESIGN_ID} saveNow={async () => DESIGN_ID} />);
     expect(generateButton()).not.toBeDisabled();
+  });
+
+  it("holds its fixes while the design is saved ahead of the render, and while the render is out", async () => {
+    withReference();
+    let finishSave: (id: string) => void = () => {};
+    const saveNow = () => new Promise<string>((resolve) => (finishSave = resolve));
+    const view = render(<GenerateRenderPanel designId={DESIGN_ID} saveNow={saveNow} />);
+    expect(h.intakeProps.current?.renderInFlight).toBe(false);
+
+    await pressGenerate();
+    // The render's inputs are settled from here: a fix now would miss it.
+    expect(h.intakeProps.current?.renderInFlight).toBe(true);
+    await act(async () => finishSave(DESIGN_ID));
+    expect(h.renderCalls).toHaveLength(1);
+
+    h.renderPending.current = true;
+    view.rerender(<GenerateRenderPanel designId={DESIGN_ID} saveNow={saveNow} />);
+    expect(h.intakeProps.current?.renderInFlight).toBe(true);
+
+    // The render failed: the couple can fix and try again.
+    h.renderPending.current = false;
+    view.rerender(<GenerateRenderPanel designId={DESIGN_ID} saveNow={saveNow} />);
+    expect(h.intakeProps.current?.renderInFlight).toBe(false);
+  });
+
+  it("holds the render while a fix is still changing the design", async () => {
+    withReference();
+    render(<GenerateRenderPanel designId={DESIGN_ID} saveNow={async () => DESIGN_ID} />);
+    act(() => h.intakeProps.current!.onBusyChange!(true));
+    expect(generateButton()).toBeDisabled();
+    await pressGenerate();
+    expect(h.renderCalls).toHaveLength(0);
+
+    act(() => h.intakeProps.current!.onBusyChange!(false));
+    expect(generateButton()).not.toBeDisabled();
+    await pressGenerate();
+    expect(h.renderCalls).toHaveLength(1);
   });
 });
 
