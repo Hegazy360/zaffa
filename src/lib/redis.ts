@@ -1,10 +1,9 @@
 import { Redis } from "@upstash/redis";
 import { Ratelimit } from "@upstash/ratelimit";
 
-// Upstash credentials are optional in dev so the app can boot without
-// Redis. When unset, `redis` is `null` and rate-limit helpers in
-// `./rate-limit.ts` short-circuit to "allowed", which is fine locally
-// but should be detected and refused in production (see env-checks).
+// Upstash credentials are optional so the app can boot without Redis.
+// When unset or unreachable, `redis` is null (or failing) and the limiters
+// in `./rate-limit.ts` count in Postgres instead, so the caps still hold.
 //
 // Two naming conventions are accepted:
 //   1. UPSTASH_REDIS_REST_URL / UPSTASH_REDIS_REST_TOKEN

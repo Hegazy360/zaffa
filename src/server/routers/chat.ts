@@ -34,8 +34,8 @@ import {
  *      the ISR'd homepage can lag a flag flip by 300s; this cannot.
  *   2. Turnstile on the FIRST message of a conversation for callers
  *      without a permanent session (same posture as `ai.renderScene`).
- *   3. Upstash per-IP buckets (burst + daily). These fail OPEN when
- *      Upstash is down, so -
+ *   3. Per-IP buckets (burst + daily), counted in Upstash or, when it is
+ *      unreachable, in Postgres. They only fail open if both are down, so -
  *   4. A Postgres-backed global daily cap: count today's assistant
  *      messages. Not optional; it is the only bound that cannot fail
  *      open, because it lives in the same database the reply is written

@@ -1547,3 +1547,16 @@ model DesignVote {
   @@index([media_id])
   @@map("design_votes")
 }
+
+// Postgres fallback counter for src/lib/rate-limit.ts, used when Upstash is
+// unreachable so a lost Redis never silently lifts every cap. Fixed windows:
+// one row per (bucket, window_start). Swept daily by cleanup-anon-users.
+model RateLimitHit {
+  bucket       String
+  window_start DateTime @db.Timestamptz(6)
+  hits         Int      @default(0)
+
+  @@id([bucket, window_start])
+  @@index([window_start])
+  @@map("rate_limit_hits")
+}

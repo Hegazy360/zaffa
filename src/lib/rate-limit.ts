@@ -1,23 +1,45 @@
 import { Ratelimit } from "@upstash/ratelimit";
 import { TRPCError } from "@trpc/server";
 import { redis } from "./redis";
+import { prisma } from "./prisma";
+import { reportError } from "./logger";
 
 // Per-surface limiters. Each one gets its own prefix so analytics &
-// throttling don't bleed across endpoints. When Upstash isn't configured
-// (local dev) the helpers below short-circuit to "allowed" instead of
-// throwing.
-function makeLimiter(
-  prefix: string,
-  limit: number,
-  window: Parameters<typeof Ratelimit.slidingWindow>[1],
-): Ratelimit | null {
-  if (!redis) return null;
-  return new Ratelimit({
-    redis,
+// throttling don't bleed across endpoints.
+//
+// Upstash is the primary counter. Postgres is the fallback, and it exists
+// because of what happened without it: on 2026-09-25 production logs showed
+// every Upstash call failing with "fetch failed". The database behind the
+// configured URL had been deleted (its hostname no longer resolves), and since
+// the limiters failed open, every cap in production - paid renders, the one
+// free render per IP, sign-in brute force, chat - had quietly stopped limiting
+// anything. Nothing looked wrong, because allowing everything looks exactly
+// like a quiet day. Now a lost Upstash costs one Postgres upsert per check
+// instead of the caps themselves.
+type Window = Parameters<typeof Ratelimit.slidingWindow>[1];
+
+interface Limiter {
+  prefix: string;
+  limit: number;
+  window: Window;
+  /** Null when Upstash is not configured; Postgres then counts alone. */
+  upstash: Ratelimit | null;
+}
+
+function makeLimiter(prefix: string, limit: number, window: Window): Limiter {
+  return {
     prefix,
-    limiter: Ratelimit.slidingWindow(limit, window),
-    analytics: true,
-  });
+    limit,
+    window,
+    upstash: redis
+      ? new Ratelimit({
+          redis,
+          prefix,
+          limiter: Ratelimit.slidingWindow(limit, window),
+          analytics: true,
+        })
+      : null,
+  };
 }
 
 export const limiters = {
@@ -78,7 +100,7 @@ export const limiters = {
   // global daily ceiling for everyone, ~$2.80 at ~$0.0014 a check with ten
   // references. Spending it all only hides an optional card; the renders it
   // would otherwise starve keep working. `ai.checkIntake` consumes these
-  // with `failClosed`, so an Upstash outage cannot lift them.
+  // with `failClosed`, so losing both Upstash and Postgres cannot lift them.
   aiIntakeDaily: makeLimiter("rl:ai:intake:d", 60, "1 d"),
   aiIntakeGlobalDaily: makeLimiter("rl:ai:intake:global", 2000, "1 d"),
   // Per-user image uploads to Cloudinary: reference photos, Pinterest
@@ -91,9 +113,9 @@ export const limiters = {
   shareVote: makeLimiter("rl:share:vote", 30, "10 m"),
   // Public homepage chat, keyed per IP. Cheap per message (~$0.001 at
   // gpt-4.1-mini with max_tokens 350) but reachable without any session,
-  // so both a burst cap and a daily ceiling. NOTE: `consume` fails OPEN
-  // when Upstash is down, the Postgres-backed global daily cap inside
-  // `chat.ask` is the guarantee, these buckets are the first line.
+  // so both a burst cap and a daily ceiling. These are the first line; the
+  // global daily cap counted from chat_messages inside `chat.ask` is the
+  // guarantee.
   chat: makeLimiter("rl:chat", 10, "5 m"),
   chatDaily: makeLimiter("rl:chat:d", 40, "1 d"),
   // Admin-triggered discovery / outreach. Per-user (admin) limits keep a
@@ -120,25 +142,75 @@ export type LimiterKey = keyof typeof limiters;
 
 export interface ConsumeOptions {
   /**
-   * Refuse instead of allow when Upstash is unreachable. For a paid call
-   * nothing else bounds and that the product works without (the intake
-   * check): there, a lost limiter would be an open tap on the OpenRouter
-   * balance, and refusing costs only an optional card. An unconfigured
-   * limiter (local dev) still allows; production refuses to boot without
-   * Upstash (see env-checks).
+   * Refuse instead of allow when NEITHER counter can be reached (Upstash and
+   * the Postgres fallback both down). For a paid call nothing else bounds and
+   * that the product works without (the intake check): there, a lost limiter
+   * would be an open tap on the OpenRouter balance, and refusing costs only an
+   * optional card.
    */
   failClosed?: boolean;
 }
 
+const WINDOW_UNIT_MS: Record<string, number> = {
+  ms: 1,
+  s: 1_000,
+  m: 60_000,
+  h: 3_600_000,
+  d: 86_400_000,
+};
+
+/** "10 m" -> 600000. Throws on a shape Upstash would also reject. */
+export function windowMs(window: Window): number {
+  const match = /^(\d+)\s*(ms|s|m|h|d)$/.exec(String(window).trim());
+  if (!match) throw new Error(`Unsupported rate-limit window: ${window}`);
+  return Number(match[1]) * WINDOW_UNIT_MS[match[2]!]!;
+}
+
+// Circuit breaker. A deleted Upstash host fails on DNS for every call; paying
+// that lookup on each request (and logging it each time) is how the outage
+// above hid in plain sight as a stream of identical warnings. After one
+// failure we go straight to Postgres for a minute, then try Upstash again.
+const UPSTASH_RETRY_AFTER_MS = 60_000;
+let upstashDownUntil = 0;
+
+/** Test hook: forget a tripped breaker. */
+export function resetRateLimitBreaker(): void {
+  upstashDownUntil = 0;
+}
+
 /**
- * Consume one token from a limiter. Returns the underlying Upstash result.
- * If Upstash isn't configured OR is unreachable (stale credentials,
- * transient network failure, provider outage), returns `{ success: true }`
- * so the app fails open rather than 500-ing on a non-critical dependency
- * (unless the caller asks to fail closed, see `ConsumeOptions`).
- * A rate-limiter should slow abuse; it should never take the app down.
- * Failures are logged once at warn-level so we don't drown the console
- * when a misconfigured Upstash URL keeps missing DNS.
+ * Fixed-window count in Postgres. Coarser than Upstash's sliding window (a
+ * burst straddling a window edge can reach twice the limit), which is an
+ * acceptable price for a fallback whose job is to keep caps from vanishing.
+ */
+async function consumeInPostgres(
+  limiter: Limiter,
+  identifier: string,
+): Promise<{ success: boolean; remaining: number; reset: number }> {
+  const span = windowMs(limiter.window);
+  const start = Math.floor(Date.now() / span) * span;
+  const bucket = `${limiter.prefix}:${identifier}`;
+  const rows = await prisma.$queryRaw<Array<{ hits: number }>>`
+    INSERT INTO rate_limit_hits (bucket, window_start, hits)
+    VALUES (${bucket}, ${new Date(start)}, 1)
+    ON CONFLICT (bucket, window_start)
+    DO UPDATE SET hits = rate_limit_hits.hits + 1
+    RETURNING hits`;
+  const hits = Number(rows[0]?.hits ?? 1);
+  return {
+    success: hits <= limiter.limit,
+    remaining: Math.max(0, limiter.limit - hits),
+    reset: start + span,
+  };
+}
+
+/**
+ * Consume one token from a limiter.
+ *
+ * Upstash answers when it can. When it is not configured, unreachable, or
+ * recently failed (see the breaker), Postgres counts instead. Only when both
+ * are down does the limiter give up: it allows (a rate limiter should slow
+ * abuse, never take the app down) unless the caller asked to fail closed.
  *
  * Always pass a stable identifier (user id, IP, session id) so the bucket
  * is keyed correctly.
@@ -150,20 +222,31 @@ export async function consume(
 ): Promise<{ success: boolean; remaining?: number; reset?: number }> {
   const limiter = limiters[key];
   if (!limiter) return { success: true };
+
+  if (limiter.upstash && Date.now() >= upstashDownUntil) {
+    try {
+      const res = await limiter.upstash.limit(identifier);
+      return {
+        success: res.success,
+        remaining: res.remaining,
+        reset: res.reset,
+      };
+    } catch (err) {
+      upstashDownUntil = Date.now() + UPSTASH_RETRY_AFTER_MS;
+      // To Sentry, not just stdout: a console.warn is exactly how the
+      // deleted database went unnoticed. The breaker keeps this to one
+      // event per instance per minute.
+      reportError("rate_limit.upstash_unreachable", err, { key });
+    }
+  }
+
   try {
-    const res = await limiter.limit(identifier);
-    return {
-      success: res.success,
-      remaining: res.remaining,
-      reset: res.reset,
-    };
+    return await consumeInPostgres(limiter, identifier);
   } catch (err) {
-    // Network / configuration error reaching Upstash. Fail open with a
-    // single warn log so the caller still succeeds.
-    console.warn(
-      `[rate-limit] limiter unreachable, failing ${failClosed ? "closed" : "open"}`,
-      { key, error: err instanceof Error ? err.message : String(err) },
-    );
+    reportError("rate_limit.no_counter_reachable", err, {
+      key,
+      failing: failClosed ? "closed" : "open",
+    });
     return { success: !failClosed };
   }
 }

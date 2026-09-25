@@ -52,6 +52,22 @@ export async function GET(req: Request) {
     logger.info("cron.cleanup_anon.chat_swept", { count: chatSwept.count });
   }
 
+  // Rate-limit counters (the Postgres fallback in src/lib/rate-limit.ts).
+  // The longest window is a day, so anything older than two can never be
+  // read again.
+  const limitCutoff = new Date(Date.now() - 2 * 86_400_000);
+  const limitSwept = await prisma.rateLimitHit
+    .deleteMany({ where: { window_start: { lt: limitCutoff } } })
+    .catch((err: unknown) => {
+      reportError("cron.cleanup_anon.rate_limit_sweep_failed", err);
+      return { count: 0 };
+    });
+  if (limitSwept.count > 0) {
+    logger.info("cron.cleanup_anon.rate_limit_swept", {
+      count: limitSwept.count,
+    });
+  }
+
   // Anon users that haven't claimed an email yet AND haven't even
   // hit the gate (no `free_render_email`). Email-claimed-but-not-
   // confirmed rows are also fair game because the lock falls away
