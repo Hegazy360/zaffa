@@ -58,3 +58,6 @@ next-env.d.ts
 
 # Sample-studio PNG sources — only the compressed AVIFs are committed
 public/home/studio/*.png
+
+# Supabase CLI local state (project ref, pooler host)
+supabase/.temp/

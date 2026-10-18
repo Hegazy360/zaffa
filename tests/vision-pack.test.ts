@@ -137,7 +137,7 @@ describe("generateMicrositeSlug", () => {
 
 describe("PACK_SKUS quotas (stamped onto every new pack row)", () => {
   // These numbers are promised in the paywall copy and priced against in
-  // docs/plan-design-partner-2026-09.md section 4. A change here is a
+  // the design partner plan section 4. A change here is a
   // pricing decision, so it should fail a test and be made on purpose.
   it("free taste: one render, three talked edits, no video", () => {
     const q = PACK_SKUS.wedding_free_taste_v1.quotas;

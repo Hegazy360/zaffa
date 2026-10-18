@@ -22,7 +22,7 @@ import { Rise } from "@/components/motion/rise";
 //    EGP 150k-400k, Dubai AED 400k-900k+). Any single figure is wrong
 //    somewhere, and a percentage puts the couple's own budget on a meter -
 //    the exact anxiety this plan sells relief from. How we actually quote is
-//    documented in `docs/pricing-full-service.md`.
+//    documented in the internal full-service pricing notes.
 //
 // 3. **No feature checklist.** The packs use ticks because comparison is
 //    their pitch. This plan's pitch is *stop comparing, we've got it*, so it

@@ -7,7 +7,7 @@ import { cloudinary, watermarkedUrl } from "@/lib/cloudinary";
 import { FREE_PACK_SKU_ID } from "@/lib/vision-pack";
 import { parseMediaMeta } from "@/lib/design-media-meta";
 
-// "Ask your family" (F6, docs/plan-design-partner-2026-09.md): a couple
+// "Ask your family" (F6, the design partner plan): a couple
 // sends a private link, family open it with no account and vote for the
 // version they love. This module is the one place that decides what a share
 // link may show, so the tRPC procedure, the page and its link preview can

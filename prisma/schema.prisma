@@ -610,7 +610,7 @@ model VenueDesign {
   approved_at       DateTime?
   // The couple's own venue photo `{url, publicId, width, height}`. Kept out
   // of `references` on purpose so it never leaks into moodboards,
-  // microsites or share pages (docs/plan-design-partner-2026-09.md, F1).
+  // microsites or share pages (the design partner plan, F1).
   venue_photo       Json?
   // The render version the couple chose/approved. Enquiry, lookbook and
   // the admin brief pin to it instead of guessing "latest" (F5).
@@ -1514,7 +1514,7 @@ model ChatMessage {
 }
 
 // Family votes on a design's versions, through an unguessable link
-// (docs/plan-design-partner-2026-09.md, F6). Viewers never need an account:
+// (the design partner plan, F6). Viewers never need an account:
 // `voter_key` is a random id kept in their browser, one vote per share.
 model DesignShare {
   id         String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid

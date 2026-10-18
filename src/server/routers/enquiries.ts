@@ -679,7 +679,7 @@ export const enquiriesRouter = router({
    * which belong to the marketplace we just hid.
    *
    * The amounts are ZAFFA'S FEE ONLY. Vendor money stays vendor-direct until
-   * the licensing question is settled; see docs/pricing-full-service.md.
+   * the licensing question is settled; see the internal full-service pricing notes.
    */
   createQuote: protectedProcedure
     .input(

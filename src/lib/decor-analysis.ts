@@ -1,5 +1,5 @@
 // What a render shows, as a fixed vocabulary (F4, "What it takes to build
-// this", docs/plan-design-partner-2026-09.md).
+// this", the design partner plan).
 //
 // The design LLM looks at a render and answers ONLY in these enums. It never
 // says how many of anything, how big, or what it costs: quantities come from

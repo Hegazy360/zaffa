@@ -1,5 +1,5 @@
 // The optional contact details a couple can leave when they approve a design
-// (F5, "Leads that never rot", docs/plan-design-partner-2026-09.md).
+// (F5, "Leads that never rot", the design partner plan).
 //
 // The first real approval sat at `new` for 16 days: a Google sign-in has no
 // phone, the lead had no country or date, and the only way back to the couple

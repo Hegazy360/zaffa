@@ -40,7 +40,7 @@ export const ANALYTICS_EVENTS = {
   DESIGN_RENDER_GENERATED: "design.render_generated",
   DESIGN_VIDEO_GENERATED: "design.video_generated",
   DESIGN_APPROVED: "design.approved",
-  // The design partner release (docs/plan-design-partner-2026-09.md).
+  // The design partner release (the design partner plan).
   // F1: a couple added a photo of their own venue.
   DESIGN_VENUE_PHOTO_ADDED: "design.venue_photo_added",
   // F2: a talked edit landed as a new version of a render.

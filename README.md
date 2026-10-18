@@ -221,4 +221,4 @@ VAT-compliant invoice PDFs and Egyptian e-invoice integration are explicitly **o
 
 ## License
 
-Private — All rights reserved.
+[MIT](LICENSE) © 2026 Mohamed Hegazy

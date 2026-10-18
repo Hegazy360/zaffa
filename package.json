@@ -2,6 +2,7 @@
   "name": "zaffa",
   "version": "0.1.0",
   "private": true,
+  "license": "MIT",
   "scripts": {
     "dev": "npx dotenvx run --env-file=.env.local --overload -- next dev",
     "dev:cron": "npx dotenvx run --env-file=.env.local -- node scripts/dev-cron.mjs",

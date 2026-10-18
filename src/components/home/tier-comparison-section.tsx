@@ -238,7 +238,7 @@ function IncludedRow({
  * checkout. The fee is 10-15% of a wedding budget and budgets across our
  * markets differ by roughly 20x, so any single figure printed here would be
  * wrong somewhere; how we actually quote lives in
- * `docs/pricing-full-service.md`. The CTA is a link to /contact, never
+ * the internal full-service pricing notes. The CTA is a link to /contact, never
  * `usePackCheckoutAction`, a "tell us about your wedding" button that opens
  * Stripe Checkout would be the worst outcome available on this page.
  */

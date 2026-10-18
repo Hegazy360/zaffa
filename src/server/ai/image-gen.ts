@@ -5,7 +5,7 @@
 //    venue prompt and forwards here.
 //  - The admin post-generator pipeline (src/server/posts/) which builds
 //    a 4:5 editorial portrait prompt and forwards here.
-//  - The design partner modes (docs/plan-design-partner-2026-09.md):
+//  - The design partner modes (the design partner plan):
 //    dressing the couple's own venue photo and talked edits of a render.
 //    Those go through `generateImageViaImagesApi`, see below.
 //

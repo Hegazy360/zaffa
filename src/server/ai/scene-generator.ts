@@ -245,7 +245,7 @@ export async function renderScene(input: RenderSceneInput) {
  * keeps everything permanent and the camera exactly, clears temporary
  * clutter, and only adds decor. The substance of the wording is what held
  * the palms, hedge, ceiling and columns in place in the bake-off
- * (docs/plan-design-partner-2026-09.md, section 2).
+ * (the design partner plan, section 2).
  *
  * Deliberately absent from `buildPrompt`'s blocks: the setting descriptor
  * (the photo already says hall or garden), the forced 16:9 frame and the

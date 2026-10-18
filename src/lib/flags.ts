@@ -35,7 +35,7 @@ export const KNOWN = {
   // marketplace is hidden rather than deleted. ~25 pages and 10 routers stay
   // in the tree behind this flag; flip it on to bring the whole side back.
   // The E2E suite forces it on, because money-path.spec.ts drives planner
-  // flows. See docs/plan-pivot-2026-08.md Phase 0.2.
+  // flows. See the 2026-08 pivot plan Phase 0.2.
   professionalSurfaces: "PROFESSIONAL_SURFACES",
   // Testimonials on the marketing pages. OFF until the first weddings are
   // delivered and real couples have said something we are allowed to quote.
@@ -48,7 +48,7 @@ export const KNOWN = {
   // with-price / without-price comparison cannot be reconstructed from deploy
   // history. Each enquiry records the flag state it was submitted under
   // (`Enquiry.pricing_published`), which keeps that comparison possible if it
-  // is ever wanted. See docs/pricing-published-2026-08.md.
+  // is ever wanted. See the internal published-pricing notes.
   publishedPricing: "PUBLISHED_PRICING",
   // The AI chat widget (floating launcher + homepage section) AND its
   // backend: `chat.ask` refuses when this is off, which is the instant
@@ -56,7 +56,7 @@ export const KNOWN = {
   // procedure check cannot. OFF by default until the launch QA in en+ar
   // passes and the OpenRouter account has credits (ZAF-85).
   aiChat: "AI_CHAT",
-  // The design partner release (docs/plan-design-partner-2026-09.md). Five
+  // The design partner release (the design partner plan). Five
   // flags, one per feature, all ON by default: each is a kill switch, not a
   // rollout. Every one is checked in its tRPC procedure as well as in the
   // UI, because the procedure check is the instant one (an ISR'd page can

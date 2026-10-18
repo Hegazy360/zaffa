@@ -38,7 +38,7 @@ export async function generateMetadata(): Promise<Metadata> {
  * What we charge.
  *
  * The reversal of "you won't find a single price on this page". The research
- * behind it and the literal copy are in `docs/pricing-published-2026-08.md`;
+ * behind it and the literal copy are in the internal published-pricing notes;
  * the numbers come from `concierge-pricing.ts`, which the admin quote panel
  * and the intake wizard read from too, so the three can never disagree.
  *

@@ -130,7 +130,7 @@ jobs:
       # money-path.spec.ts drives planner + vendor dashboards, which the
       # pivot hides behind `professionalSurfaces` (default off in prod).
       # Force it on for E2E so the existing money path stays exercised.
-      # See docs/plan-pivot-2026-08.md Phase 0.2.
+      # See the 2026-08 pivot plan Phase 0.2.
       FLAG_PROFESSIONAL_SURFACES: "true"
       # Stubs for third-party APIs the money path does not actually call but
       # whose SDKs throw at module-load time if the env var is missing (Resend

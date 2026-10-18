@@ -325,7 +325,7 @@ describe("middleware: matcher", () => {
 
 describe("middleware: professionalSurfaces flag", () => {
   // The pivot hides planner/vendor surfaces rather than deleting them
-  // (docs/plan-pivot-2026-08.md Phase 0.2). These must 404 at the edge:
+  // (the 2026-08 pivot plan Phase 0.2). These must 404 at the edge:
   // they're authenticated dashboards, so a `notFound()` inside the layout
   // would still be served behind a 200 status.
   it.each([

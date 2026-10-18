@@ -1,5 +1,5 @@
 // Typed shapes for the JSON columns the design partner release added
-// (docs/plan-design-partner-2026-09.md, F0):
+// (the design partner plan, F0):
 //
 //   - `venue_designs.venue_photo`: the couple's own venue photo.
 //   - `venue_design_media.meta`: how a render was made (mode, model, cost,

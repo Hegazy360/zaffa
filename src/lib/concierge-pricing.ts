@@ -1,7 +1,7 @@
 /**
  * Quoting policy for the full-service plan ("The Whole Wedding").
  *
- * This encodes `docs/pricing-full-service.md` so the numbers live in one place
+ * This encodes the internal full-service pricing notes so the numbers live in one place
  * instead of in an operator's head. It feeds three surfaces that must never
  * disagree: the quote panel in the enquiry CRM, the budget chips in the intake
  * wizard, and - as of ZAF-48 - the public `/pricing` table.
@@ -10,7 +10,7 @@
  * exposed publicly, on the reasoning that no single price fits Cairo and Dubai
  * alike. The reasoning was sound and the conclusion was wrong: the answer to
  * "one price cannot fit both markets" is a published fee *per market*, not
- * silence. See `docs/pricing-published-2026-08.md`.
+ * silence. See the internal published-pricing notes.
  *
  * The model, in one line: from a single per-market input `E` (the event budget
  * at which full service becomes a realistic purchase), derive three geometric
